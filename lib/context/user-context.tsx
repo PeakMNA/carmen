@@ -35,6 +35,7 @@ const createMockUser = (): User => {
       currentDepartment: defaultDepartment,
       currentLocation: defaultLocation,
       showPrices: true, // Default to showing prices
+      showSystemQuantity: true, // Default to showing system quantity during counts
     }
   };
 };
@@ -71,6 +72,11 @@ export function UserProvider({ children }: { children: React.ReactNode }) {
     // Update price visibility if provided
     if (contextUpdates.showPrices !== undefined) {
       updatedUser.context.showPrices = contextUpdates.showPrices;
+    }
+
+    // Update system quantity visibility if provided
+    if (contextUpdates.showSystemQuantity !== undefined) {
+      updatedUser.context.showSystemQuantity = contextUpdates.showSystemQuantity;
     }
 
     setUser(updatedUser);

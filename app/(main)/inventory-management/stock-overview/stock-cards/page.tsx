@@ -2,26 +2,27 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useUser } from '@/lib/context/simple-user-context'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Progress } from "@/components/ui/progress"
 import {
   ArrowUpDown,
   Download,
@@ -35,7 +36,17 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
-  RefreshCw
+  RefreshCw,
+  Package,
+  DollarSign,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
+  CheckCircle2,
+  Grid3X3,
+  Eye,
+  ArrowRight,
+  Activity
 } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
@@ -201,7 +212,7 @@ export default function StockCardListPage() {
   const [locationFilter, setLocationFilter] = useState("all")
   const [sortField, setSortField] = useState("name")
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-  const [viewMode, setViewMode] = useState<"list" | "grouped">("list")
+  const [viewMode, setViewMode] = useState<"list" | "grouped" | "cards">("list")
   const [groupedProducts, setGroupedProducts] = useState<Array<{
     locationId: string
     locationName: string
@@ -415,6 +426,38 @@ export default function StockCardListPage() {
     }
   }
 
+  // Calculate summary statistics
+  const summaryStats = useMemo(() => {
+    const totalProducts = filteredProducts.length
+    const activeProducts = filteredProducts.filter(p => p.status === 'Active').length
+    const totalValue = filteredProducts.reduce((sum, p) => sum + p.value, 0)
+    const totalStock = filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)
+    const lowStockProducts = filteredProducts.filter(p => p.currentStock <= p.minimumStock).length
+    const highStockProducts = filteredProducts.filter(p => p.currentStock >= p.maximumStock).length
+    const normalStockProducts = filteredProducts.filter(p => p.currentStock > p.minimumStock && p.currentStock < p.maximumStock).length
+    const avgValue = totalProducts > 0 ? totalValue / totalProducts : 0
+
+    // Category breakdown
+    const categoryStats = Array.from(new Set(filteredProducts.map(p => p.category))).map(cat => ({
+      category: cat,
+      count: filteredProducts.filter(p => p.category === cat).length,
+      value: filteredProducts.filter(p => p.category === cat).reduce((sum, p) => sum + p.value, 0)
+    })).sort((a, b) => b.value - a.value)
+
+    return {
+      totalProducts,
+      activeProducts,
+      inactiveProducts: totalProducts - activeProducts,
+      totalValue,
+      totalStock,
+      lowStockProducts,
+      highStockProducts,
+      normalStockProducts,
+      avgValue,
+      categoryStats
+    }
+  }, [filteredProducts])
+
   // Prepare export data
   const exportData = useMemo(() => {
     const filters = {
@@ -508,12 +551,15 @@ export default function StockCardListPage() {
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Stock Cards</h1>
+          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+            <Package className="h-7 w-7 text-blue-600" />
+            Stock Cards
+          </h1>
           <p className="text-sm text-muted-foreground">
-            View and manage inventory items
+            View and manage inventory items across all locations
           </p>
         </div>
-        
+
         <div className="flex flex-wrap gap-2 self-end md:self-auto">
           <div className="flex items-center bg-muted rounded-md p-1">
             <Button
@@ -524,6 +570,15 @@ export default function StockCardListPage() {
             >
               <List className="h-4 w-4 mr-1" />
               List
+            </Button>
+            <Button
+              variant={viewMode === 'cards' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setViewMode('cards')}
+              className="h-8 px-3"
+            >
+              <Grid3X3 className="h-4 w-4 mr-1" />
+              Cards
             </Button>
             <Button
               variant={viewMode === 'grouped' ? 'default' : 'ghost'}
@@ -553,7 +608,100 @@ export default function StockCardListPage() {
           </Button>
         </div>
       </div>
-      
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Products</p>
+                <p className="text-2xl font-bold">{formatNumber(summaryStats.totalProducts)}</p>
+                <p className="text-xs text-muted-foreground">{summaryStats.activeProducts} active</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <Package className="h-6 w-6 text-blue-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Value</p>
+                <p className="text-2xl font-bold">{formatCurrency(summaryStats.totalValue)}</p>
+                <p className="text-xs text-muted-foreground">Avg: {formatCurrency(summaryStats.avgValue)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Normal Stock</p>
+                <p className="text-2xl font-bold text-green-600">{formatNumber(summaryStats.normalStockProducts)}</p>
+                <Progress value={(summaryStats.normalStockProducts / summaryStats.totalProducts) * 100} className="h-1.5 mt-2 [&>div]:bg-green-500" />
+              </div>
+              <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                <CheckCircle2 className="h-6 w-6 text-green-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Low Stock</p>
+                <p className="text-2xl font-bold text-red-600">{formatNumber(summaryStats.lowStockProducts)}</p>
+                <Progress value={(summaryStats.lowStockProducts / summaryStats.totalProducts) * 100} className="h-1.5 mt-2 [&>div]:bg-red-500" />
+              </div>
+              <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                <TrendingDown className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">High Stock</p>
+                <p className="text-2xl font-bold text-amber-600">{formatNumber(summaryStats.highStockProducts)}</p>
+                <Progress value={(summaryStats.highStockProducts / summaryStats.totalProducts) * 100} className="h-1.5 mt-2 [&>div]:bg-amber-500" />
+              </div>
+              <div className="h-12 w-12 rounded-full bg-amber-100 flex items-center justify-center">
+                <TrendingUp className="h-6 w-6 text-amber-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Categories</p>
+                <p className="text-2xl font-bold">{categories.length}</p>
+                <p className="text-xs text-muted-foreground">Top: {summaryStats.categoryStats[0]?.category || 'N/A'}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <Activity className="h-6 w-6 text-purple-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       {/* Main Content */}
       <Card>
         <CardContent className="pt-6">
@@ -570,7 +718,7 @@ export default function StockCardListPage() {
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
-              
+
               <div className="flex flex-wrap gap-2">
                 {viewMode === 'grouped' && (
                   <div className="flex gap-1">
@@ -631,8 +779,95 @@ export default function StockCardListPage() {
               </div>
             </div>
             
-            {/* Products Table */}
-            {viewMode === 'list' ? (
+            {/* Products Display */}
+            {viewMode === 'cards' ? (
+              /* Cards Grid View */
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {filteredProducts.length === 0 ? (
+                  <div className="col-span-full text-center py-12 text-muted-foreground">
+                    No products found.
+                  </div>
+                ) : (
+                  filteredProducts.map((product) => {
+                    const stockPercentage = product.maximumStock > 0
+                      ? (product.currentStock / product.maximumStock) * 100
+                      : 0
+                    const isLowStock = product.currentStock <= product.minimumStock
+                    const isHighStock = product.currentStock >= product.maximumStock
+
+                    return (
+                      <Card
+                        key={product.id}
+                        className={`cursor-pointer hover:shadow-md transition-shadow ${
+                          isLowStock ? 'border-red-200' : isHighStock ? 'border-amber-200' : ''
+                        }`}
+                        onClick={() => handleRowClick(product.id)}
+                      >
+                        <CardContent className="pt-4">
+                          <div className="flex justify-between items-start mb-3">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <Badge variant="outline" className="text-xs">{product.code}</Badge>
+                                <Badge
+                                  variant={product.status === "Active" ? "outline" : "secondary"}
+                                  className={product.status === "Active"
+                                    ? "bg-green-50 text-green-700 border-green-200 text-xs"
+                                    : "bg-gray-100 text-gray-700 text-xs"
+                                  }
+                                >
+                                  {product.status}
+                                </Badge>
+                              </div>
+                              <h3 className="font-semibold mt-2 line-clamp-1">{product.name}</h3>
+                              <p className="text-sm text-muted-foreground">{product.category}</p>
+                            </div>
+                          </div>
+
+                          <div className="space-y-3">
+                            <div className="flex justify-between items-center">
+                              <span className="text-sm text-muted-foreground">Stock Level</span>
+                              {renderStockLevelBadge(product)}
+                            </div>
+
+                            <div>
+                              <div className="flex justify-between text-sm mb-1">
+                                <span>{formatNumber(product.currentStock)} {product.unit}</span>
+                                <span className="text-muted-foreground">Max: {formatNumber(product.maximumStock)}</span>
+                              </div>
+                              <Progress
+                                value={Math.min(stockPercentage, 100)}
+                                className={`h-2 ${
+                                  isLowStock ? '[&>div]:bg-red-500' :
+                                  isHighStock ? '[&>div]:bg-amber-500' :
+                                  '[&>div]:bg-green-500'
+                                }`}
+                              />
+                            </div>
+
+                            <div className="flex justify-between pt-2 border-t">
+                              <div>
+                                <p className="text-xs text-muted-foreground">Value</p>
+                                <p className="font-medium">{formatCurrency(product.value)}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-muted-foreground">Locations</p>
+                                <p className="font-medium flex items-center gap-1">
+                                  <MapPin className="h-3 w-3" />
+                                  {product.locationCount}
+                                </p>
+                              </div>
+                              <Button size="sm" variant="ghost" className="self-end">
+                                <Eye className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    )
+                  })
+                )}
+              </div>
+            ) : viewMode === 'list' ? (
               <div className="rounded-md border">
                 <div className="overflow-x-auto">
                   <Table>

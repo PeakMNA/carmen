@@ -2,13 +2,14 @@
 
 **Module**: Inventory Management
 **Sub-module**: Inventory Adjustments
-**Version**: 1.0
-**Last Updated**: 2025-01-10
+**Version**: 1.1
+**Last Updated**: 2025-12-09
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-09 | Documentation Team | Updated to match implementation: type-specific adjustment reasons, costing rules, type change restrictions |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -239,21 +240,45 @@
 1. User views adjustment list page
 2. User clicks "New Adjustment" button
 3. System opens adjustment creation form/page
-4. System displays header fields:
+4. System displays Adjustment Type selection:
+   - Stock OUT (decrease inventory) - default selection
+   - Stock IN (increase inventory)
+5. User selects adjustment type using visual card buttons
+6. System displays header fields:
    - Date (defaults to today)
-   - Type dropdown (IN/OUT)
    - Location dropdown (user's accessible locations)
-   - Department dropdown
-   - Reason dropdown (predefined list)
+   - Reason dropdown (TYPE-SPECIFIC options - see below)
    - Description (free text)
-5. User fills required fields: Date, Type, Location, Department, Reason
-6. User optionally adds Description
-7. User clicks "Save" or "Save & Continue"
-8. System validates all required fields
-9. System generates Adjustment # (ADJ-YYYY-NNN format)
-10. System creates adjustment with status "Draft"
-11. System navigates to adjustment detail page
-12. User can now add items
+7. System displays **type-specific** reason dropdown:
+
+   **For Stock OUT adjustments:**
+   - Damaged Goods
+   - Expired Items
+   - Theft / Loss
+   - Spoilage
+   - Physical Count Variance
+   - Quality Control Rejection
+   - Other (requires notes)
+
+   **For Stock IN adjustments:**
+   - Physical Count Variance
+   - Found Items
+   - Return to Stock
+   - System Correction
+   - Other (requires notes)
+
+8. User fills required fields: Location, Reason
+9. User optionally adds Description
+10. User adds items to adjustment:
+    - Search and select products
+    - Enter adjustment quantities
+    - For Stock IN: Enter unit cost (required)
+    - For Stock OUT: System uses average cost automatically
+11. User clicks "Save as Draft" or "Post Adjustment"
+12. System validates all required fields
+13. System generates Adjustment # (ADJ-YYYY-NNN format)
+14. System creates adjustment with appropriate status
+15. System navigates to adjustment detail page or list
 
 **Alternative Flows**:
 
@@ -299,18 +324,28 @@
 2. System displays "Edit" button
 3. User clicks "Edit" button
 4. System enables edit mode:
-   - Header fields become editable
+   - Header fields become editable (except Type - cannot change after creation)
    - Items table shows edit/delete buttons
    - "Add Item" button enabled
-5. User modifies header fields (Type, Location, Department, Reason, Description)
+5. User modifies header fields:
+   - Location
+   - Reason (type-specific dropdown - options depend on adjustment type)
+   - Description
+   - **Note**: Type (IN/OUT) cannot be changed after creation
 6. User modifies items:
    - Edit quantities
-   - Edit costs
+   - For Stock IN: Edit unit costs (required)
+   - For Stock OUT: Unit costs auto-calculated from average cost
    - Add new items
    - Remove items
 7. System recalculates totals in real-time
 8. User clicks "Save" button
-9. System validates all changes
+9. System validates all changes:
+   - Location required
+   - Reason required
+   - At least one item required
+   - For Stock IN: All items have unit cost > 0
+   - For Stock OUT: Quantities do not exceed current stock
 10. System updates adjustment record
 11. System displays success message
 12. System exits edit mode
@@ -366,25 +401,33 @@
 6. User searches for product by name or SKU
 7. System displays matching products
 8. User selects product
-9. System pre-fills:
+9. System pre-fills based on adjustment type:
    - Product name and SKU
    - Current stock (On Hand)
-   - Last unit cost
    - UOM
+
+   **For Stock OUT adjustments:**
+   - Unit cost = product's average cost (auto-filled, read-only)
+
+   **For Stock IN adjustments:**
+   - Unit cost = 0 (user must enter)
+
 10. User enters:
-    - Location (if different from header)
-    - Adjustment quantity (positive for IN, negative for OUT)
-    - Unit cost (if different from default)
+    - Adjustment quantity (positive integer)
+    - For Stock IN: Unit cost (required, affects inventory valuation)
+    - Item-level reason (optional, uses type-specific dropdown)
 11. System calculates:
-    - Closing stock = On Hand + Adjustment
-    - Total price = Unit Cost × Adjustment Quantity
-12. User clicks "Add"
-13. System adds item to table
-14. System updates totals section:
-    - Total IN quantity
-    - Total OUT quantity
-    - Total cost
-15. Item appears in table
+    - Total value = Unit Cost × Adjustment Quantity
+12. User clicks "Add" (or item is added directly to table)
+13. System validates:
+    - Quantity > 0
+    - For Stock OUT: Quantity ≤ current stock
+    - For Stock IN: Unit cost > 0
+14. System adds item to table
+15. System updates summary section:
+    - Total items count
+    - Total quantity
+    - Total value (color-coded: green for IN, red for OUT)
 
 **Alternative Flows**:
 

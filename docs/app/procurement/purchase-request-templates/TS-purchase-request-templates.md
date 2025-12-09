@@ -5,7 +5,7 @@
 - **Sub-Module**: Purchase Request Templates
 - **Route**: `/procurement/purchase-request-templates`
 - **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Last Updated**: 2025-12-04
 - **Owner**: Procurement Team
 - **Status**: Draft
 
@@ -13,6 +13,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System Documentation | Initial version |
+| 1.1.0 | 2025-12-04 | Documentation Team | Aligned with prototype - simplified item fields, updated component responsibilities |
 
 ---
 
@@ -29,9 +30,10 @@ The technical implementation uses modern React patterns including React Hook For
 - Visual workflows are in FD (Flow Diagrams) document
 
 **Related Documents**:
+- [Backend Requirements](./BE-purchase-request-templates.md)
 - [Business Requirements](./BR-purchase-request-templates.md)
+- [Data Definition](./DD-purchase-request-templates.md)
 - [Use Cases](./UC-purchase-request-templates.md)
-- [Data Schema](./DS-purchase-request-templates.md)
 - [Flow Diagrams](./FD-purchase-request-templates.md)
 - [Validation Rules](./VAL-purchase-request-templates.md)
 
@@ -106,10 +108,15 @@ graph TD
 - Data Table: Sortable columns, row actions, bulk selection
 - Pagination: Page size selector, page navigation
 
-**Tabs**:
-- **All Items**: Complete list of all templates
-- **Active**: Filter active items only
-- **Archived**: View archived items
+**View Modes**:
+- **Table View**: Display templates in tabular format with sortable columns
+- **Card View**: Display templates as cards for visual browsing
+
+**Filters**:
+- Status filter: draft, active, inactive
+- Request Type filter: goods, services, capital
+- Department filter
+- Search by template number or description
 
 **Dialogues**:
 - **Quick Create**: Fast creation form with essential fields only
@@ -355,26 +362,25 @@ app/(main)/procurement/purchase-request-templates/
 #### Item Form Dialog Component
 **File**: `app/(main)/procurement/purchase-request-templates/components/item-form-dialog.tsx`
 **Type**: Client Component with React Hook Form
-**Purpose**: Add or edit individual template items with comprehensive validation
+**Purpose**: Add or edit individual template items with validation
 
 **Responsibilities**:
 - Renders form fields for all item properties
 - Implements Zod validation schema for real-time validation
-- Calculates amounts automatically as user types
-- Handles multi-currency inputs with exchange rates
+- Calculates total amount automatically as user types
 - Provides budget code and account code dropdowns
-- Displays calculated breakdowns (base, discount, tax, total amounts)
-- Supports tax-included vs tax-additional modes
-- Enables/disables discount and tax adjustments
+- Displays calculated total (quantity × unit price)
 
 **Form Fields**:
 - Basic Information: itemCode, description
 - Quantity/UOM: uom dropdown, quantity number input
-- Pricing: currency dropdown, currencyRate, unitPrice, taxIncluded checkbox, discountRate, taxRate
+- Pricing: currency dropdown, unitPrice
 - Financial Coding: budgetCode dropdown, accountCode dropdown, department dropdown, taxCode dropdown
-- Calculated Fields (read-only): baseAmount, discountAmount, netAmount, taxAmount, totalAmount
+- Calculated Fields (read-only): totalAmount
 
-**Validation Schema**: Zod schema enforcing all BR-TPL-008 through BR-TPL-018 rules
+> **Note**: Advanced pricing fields (discountRate, taxRate, taxIncluded, currencyRate, baseAmount, discountAmount, netAmount, taxAmount) planned for Phase 2.
+
+**Validation Schema**: Zod schema enforcing item validation rules
 
 **Component Props**:
 - `open`: Boolean for dialog visibility
@@ -383,12 +389,8 @@ app/(main)/procurement/purchase-request-templates/
 - `onCancel`: Callback to close dialog
 
 **Real-Time Calculations**:
-Component watches quantity, unitPrice, discountRate, taxRate fields and recalculates:
-1. baseAmount = quantity × unitPrice
-2. discountAmount = baseAmount × (discountRate / 100)
-3. netAmount = baseAmount - discountAmount
-4. taxAmount = netAmount × (taxRate / 100) OR calculated from total if taxIncluded
-5. totalAmount = netAmount + taxAmount
+Component watches quantity and unitPrice fields and recalculates:
+- totalAmount = quantity × unitPrice
 
 ---
 
@@ -483,7 +485,7 @@ Client calls server action: createTemplate(data)
     ↓
 Server action validates data (server-side Zod)
     ↓
-Server action generates template number (TPL-YYYY-NNN)
+Server action generates template number (TPL-YY-NNNN)
     ↓
 Server action inserts template record to database
     ↓

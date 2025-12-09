@@ -12,6 +12,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 ---
 
 ## 1. Overview
@@ -1670,12 +1671,15 @@ export type SearchRequisitionInput = z.infer<typeof SearchRequisitionSchema>;
 
 ## 10. Related Documents
 
-- **Business Requirements**: [BR-store-requisitions.md](./BR-store-requisitions.md) - Business rules and requirements
+- **Business Requirements**: [BR-store-requisitions.md](./BR-store-requisitions.md) - Business rules, functional requirements, and backend specifications
 - **Use Cases**: [UC-store-requisitions.md](./UC-store-requisitions.md) - User scenarios and workflows
-- **Technical Specification**: [TS-store-requisitions.md](./TS-store-requisitions.md) - Technical implementation details
-- **Data Schema**: [DS-store-requisitions.md](./DS-store-requisitions.md) - Database schema and structure
-- **Flow Diagrams**: [FD-store-requisitions.md](./FD-store-requisitions.md) - Process flows and workflows
+- **Technical Specification**: [TS-store-requisitions.md](./TS-store-requisitions.md) - System architecture and components
+- **Data Definition**: [DD-store-requisitions.md](./DD-store-requisitions.md) - Database entity descriptions
+- **Flow Diagrams**: [FD-store-requisitions.md](./FD-store-requisitions.md) - Visual workflow diagrams
+- **Backend Requirements**: [BR-store-requisitions.md#10-backend-requirements](./BR-store-requisitions.md#10-backend-requirements) - API endpoints, server actions (Section 10 of BR)
 - **Prisma Schema**: `/docs/app/data-struc/schema.prisma` - Authoritative database schema
+- **Inventory Operations Shared Method**: [SM-inventory-operations.md](../../shared-methods/inventory-operations/SM-inventory-operations.md) - Inventory transaction patterns
+- **Costing Methods Shared Method**: [SM-costing-methods.md](../../shared-methods/inventory-valuation/SM-costing-methods.md) - FIFO/AVG costing validation
 
 ---
 

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Switch } from "@/components/ui/switch"
 import { Label } from "@/components/ui/label"
-import { Building, Bell, Lock, LogOut } from "lucide-react"
+import { Building, Bell, Lock, LogOut, ClipboardCheck } from "lucide-react"
 import {
   Dialog,
   DialogContent,
@@ -20,12 +20,21 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog"
 import { PersonIcon } from "@radix-ui/react-icons"
+import { useUser } from "@/lib/context/simple-user-context"
 
 export default function ProfilePage() {
   const router = useRouter()
+  const { user, updateUserContext } = useUser()
 
   const [notifications, setNotifications] = useState(true)
   const [logoutDialogOpen, setLogoutDialogOpen] = useState(false)
+
+  // Inventory counting preferences from user context
+  const showSystemQuantity = user?.context?.showSystemQuantity ?? true
+
+  const handleShowSystemQuantityChange = (checked: boolean) => {
+    updateUserContext({ showSystemQuantity: checked })
+  }
 
   // Mock business units
   const businessUnits = [
@@ -130,6 +139,37 @@ export default function ProfilePage() {
                 </Label>
                 <Switch id="notifications" checked={notifications} onCheckedChange={setNotifications} />
               </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="mb-6">
+          <CardHeader>
+            <div className="flex items-center gap-4">
+              <div className="bg-primary/10 p-3 rounded-full">
+                <ClipboardCheck className="h-6 w-6 text-primary" />
+              </div>
+              <CardTitle>Inventory Counting</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="showSystemQuantity" className="flex flex-col gap-1">
+                  <span>Show System Quantity</span>
+                  <span className="font-normal text-sm text-muted-foreground">
+                    Display system quantities during physical counts and spot checks
+                  </span>
+                </Label>
+                <Switch
+                  id="showSystemQuantity"
+                  checked={showSystemQuantity}
+                  onCheckedChange={handleShowSystemQuantityChange}
+                />
+              </div>
+              <p className="text-xs text-muted-foreground">
+                When disabled, you can perform &quot;blind counts&quot; without seeing the expected system quantities. This can help ensure more accurate and unbiased counting.
+              </p>
             </div>
           </CardContent>
         </Card>

@@ -5,9 +5,12 @@
 - **Document Type**: Use Cases (UC)
 - **Related Documents**:
   - BR-period-end.md (Business Requirements)
-  - TS-period-end.md (Technical Specification - to be created)
-- **Version**: 1.0
-- **Last Updated**: 2025-01-11
+  - TS-period-end.md (Technical Specification)
+  - DD-period-end.md (Data Definition)
+  - FD-period-end.md (Flow Diagrams)
+  - VAL-period-end.md (Validations)
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
 
 ## Table of Contents
 1. [Overview](#overview)
@@ -22,6 +25,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-09 | Development Team | Updated status values (open, closing, closed, reopened), expanded validation checklist to 11 items, updated status badge colors |
 ---
 
 ## Overview
@@ -93,7 +97,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 |----|---------------|---------|----------|
 | UC-PE-101 | Validate Period Closure | User initiates close | Critical |
 | UC-PE-102 | Log Activity Entry | Any period action | Critical |
-| UC-PE-103 | Enforce Single In-Progress Period | Status transition | High |
+| UC-PE-103 | Enforce Single Closing Period | Status transition | High |
 | UC-PE-104 | Prevent Transaction Posting to Closed Period | Transaction creation | Critical |
 | UC-PE-105 | Send Re-open Notification | Period re-opened | High |
 
@@ -133,7 +137,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
    - Period Name (e.g., "January 2024")
    - Start Date (formatted: Jan 1, 2024)
    - End Date (formatted: Jan 31, 2024)
-   - Status (badge: Blue=Open, Yellow=In Progress, Green=Closed, Gray=Void)
+   - Status (badge: Green=Open, Yellow=Closing, Gray=Closed, Blue=Reopened)
    - Completed By (user name or "-" if not closed)
    - Completed At (date or "-" if not closed)
    - Notes (truncated if long)
@@ -200,12 +204,19 @@ Each use case includes detailed flow descriptions, business rules applied, error
    - Completed By, Completed At (if closed)
    - Notes (editable text area for Inventory Manager+)
 
-   **Section 2: Checklist Card**
-   - List of 4 default tasks:
-     1. Complete Physical Count (status: Pending/Completed, completed by, completed at)
-     2. Reconcile Inventory Adjustments (status, completed info)
-     3. Review Variances (status, completed info)
-     4. Post Period End Entries (status, completed info)
+   **Section 2: Checklist Card (Validation Checklist)**
+   - List of 11 default validation tasks:
+     1. All inventory counts completed
+     2. Stock movements recorded
+     3. Adjustments posted
+     4. Returns processed
+     5. Costing calculations finalized
+     6. GL entries reconciled
+     7. Department allocations completed
+     8. Variance analysis completed
+     9. Audit trail verified
+     10. Reports generated
+     11. Management approval obtained
    - Visual indicators: Green checkmark for completed, gray circle for pending
    - Completed tasks show green background highlight
 
@@ -218,8 +229,8 @@ Each use case includes detailed flow descriptions, business rules applied, error
    - Click row navigates to adjustment detail (opens in new tab)
 
 7. User sees action buttons in header (role-dependent):
-   - "Complete Period End" button (if status = "In Progress" and user is Inventory Manager+)
-   - "Cancel Period End" button (if status = "Open"/"In Progress" and user is System Admin)
+   - "Complete Period End" button (if status = "Closing" and user is Inventory Manager+)
+   - "Cancel Period End" button (if status = "Open"/"Closing" and user is System Admin)
    - "Re-open Period" button (if status = "Closed" and user is Financial Manager+)
 
 **Alternative Flows**:
@@ -303,11 +314,18 @@ Each use case includes detailed flow descriptions, business rules applied, error
    - INSERT into period_end table
    - Set status = "Open"
    - Set created_by, created_date
-7. System creates default checklist tasks:
-   - Complete Physical Count (sequence=1, status=Pending)
-   - Reconcile Inventory Adjustments (sequence=2, status=Pending)
-   - Review Variances (sequence=3, status=Pending)
-   - Post Period End Entries (sequence=4, status=Pending)
+7. System creates default validation checklist tasks (11 items):
+   - All inventory counts completed (sequence=1, status=Pending)
+   - Stock movements recorded (sequence=2, status=Pending)
+   - Adjustments posted (sequence=3, status=Pending)
+   - Returns processed (sequence=4, status=Pending)
+   - Costing calculations finalized (sequence=5, status=Pending)
+   - GL entries reconciled (sequence=6, status=Pending)
+   - Department allocations completed (sequence=7, status=Pending)
+   - Variance analysis completed (sequence=8, status=Pending)
+   - Audit trail verified (sequence=9, status=Pending)
+   - Reports generated (sequence=10, status=Pending)
+   - Management approval obtained (sequence=11, status=Pending)
 8. System logs activity entry:
    - Action: "Create"
    - User, Timestamp, IP Address
@@ -352,7 +370,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 **Acceptance Criteria**:
 - Period ID auto-generated correctly (PE-YYYY-MM format)
 - Start/End dates align with calendar month boundaries
-- Default 4 tasks created automatically
+- Default 11 validation tasks created automatically
 - Activity log captures creation event
 - Validation prevents duplicate periods
 - Administrator override works when prior period not closed
@@ -360,7 +378,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 ---
 
 ### UC-PE-004: Close Period
-**Description**: Authorized user closes an "In Progress" period after all checklist tasks are completed, locking it from further transactions.
+**Description**: Authorized user closes a "Closing" period after all 11 validation checklist tasks are completed, locking it from further transactions.
 
 **Actor**: Inventory Manager, Financial Manager, System Administrator
 
@@ -371,8 +389,8 @@ Each use case includes detailed flow descriptions, business rules applied, error
 **Preconditions**:
 - User is authenticated
 - User has "Inventory.PeriodEnd.Close" permission (Inventory Manager or higher)
-- Period status = "In Progress"
-- ALL checklist tasks marked "Completed"
+- Period status = "Closing"
+- ALL 11 validation checklist tasks marked "Completed"
 
 **Postconditions**:
 - Period status updated to "Closed"
@@ -383,10 +401,10 @@ Each use case includes detailed flow descriptions, business rules applied, error
 
 **Main Flow**:
 1. User navigates to period detail page (UC-PE-002)
-2. System verifies period status = "In Progress"
+2. System verifies period status = "Closing"
 3. System displays "Complete Period End" button (enabled)
 4. User clicks "Complete Period End" button
-5. System validates all checklist tasks completed:
+5. System validates all 11 validation checklist tasks completed:
    - Query period_task table: `WHERE period_end_id = :id AND status != 'completed'`
    - If any task pending, validation fails → Go to Exc-4A
 6. System displays confirmation dialog:
@@ -440,9 +458,9 @@ Each use case includes detailed flow descriptions, business rules applied, error
   - User remains on period detail page
   - Period status unchanged
 
-- **Exc-4B: Period Status Not "In Progress"**
+- **Exc-4B: Period Status Not "Closing"**
   - Validation fails at Step 2
-  - System displays error: "Period cannot be closed. Current status: [status]. Only 'In Progress' periods can be closed."
+  - System displays error: "Period cannot be closed. Current status: [status]. Only periods in 'Closing' status can be closed."
   - User remains on page, button disabled
 
 - **Exc-4C: Permission Denied**
@@ -489,7 +507,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 - Next period (if exists) is not closed
 
 **Postconditions**:
-- Period status updated to "Open"
+- Period status updated to "Reopened"
 - Re-open reason, reopened_by, reopened_at fields populated
 - Original closure information preserved in original_completed_by, original_completed_at
 - Activity log entry recorded
@@ -530,7 +548,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 9. System begins atomic transaction:
    - BEGIN TRANSACTION
    - UPDATE period_end:
-     - status = 'Open'
+     - status = 'Reopened'
      - reopened_by = :user_id
      - reopened_at = NOW()
      - reopen_reason = :reason
@@ -538,13 +556,13 @@ Each use case includes detailed flow descriptions, business rules applied, error
      - original_completed_at = current_completed_at (preserve)
      - completed_by = NULL (clear)
      - completed_at = NULL (clear)
-   - INSERT into period_activity: action='Reopen', user, timestamp, reason, from_status='Closed', to_status='Open'
+   - INSERT into period_activity: action='Reopen', user, timestamp, reason, from_status='Closed', to_status='Reopened'
    - COMMIT TRANSACTION
 10. System triggers notification workflow (UC-PE-105):
     - Send email to Financial Controller: "Period PE-YYYY-MM has been re-opened by [user_name]. Reason: [reason]"
     - Send email to System Administrators with same content
 11. System displays success message: "Period re-opened successfully. Transactions can now be posted to period PE-YYYY-MM. Remember to re-close the period after corrections are complete."
-12. System refreshes period detail page showing updated status "Open"
+12. System refreshes period detail page showing updated status "Reopened"
 13. Checklist tasks remain in "Completed" status (can be marked incomplete if needed)
 14. "Complete Period End" button visible again
 
@@ -624,14 +642,14 @@ Each use case includes detailed flow descriptions, business rules applied, error
 **Preconditions**:
 - User is authenticated
 - User has "Inventory.PeriodEnd.UpdateTasks" permission
-- Period status = "Open" or "In Progress"
+- Period status = "Open", "Closing", or "Reopened"
 - Task status = "Pending"
 
 **Postconditions**:
 - Task status updated to "Completed"
 - Completed_by, completed_at fields populated
 - Activity log entry recorded
-- Period status may auto-transition to "In Progress" if first task completed
+- Period status may auto-transition to "Closing" if first task completed
 
 **Main Flow**:
 1. User navigates to period detail page (UC-PE-002)
@@ -648,13 +666,13 @@ Each use case includes detailed flow descriptions, business rules applied, error
 5. User clicks "Confirm"
 6. System validates:
    - User has permission to complete this task type
-   - Period status is "Open" or "In Progress"
+   - Period status is "Open", "Closing", or "Reopened"
    - Task is currently "Pending" (prevent duplicate completion)
 7. System updates task:
    - UPDATE period_task: status = 'Completed', completed_by = :user_id, completed_at = NOW()
 8. System checks if this is first task completed and period status = "Open":
-   - If yes: UPDATE period_end: status = 'In Progress'
-   - Trigger UC-PE-103 (Enforce Single In-Progress Period)
+   - If yes: UPDATE period_end: status = 'Closing'
+   - Trigger UC-PE-103 (Enforce Single Closing Period)
 9. System logs activity entry:
    - Action: "TaskComplete"
    - Task name, user, timestamp
@@ -702,7 +720,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 - Task status updates immediately in UI
 - Completed user and timestamp recorded
 - Cannot unmark task once completed (immutable)
-- Period auto-transitions to "In Progress" on first task completion
+- Period auto-transitions to "Closing" on first task completion
 - Activity log captures task completion event
 - Task progress indicator updates correctly
 
@@ -871,19 +889,18 @@ Each use case includes detailed flow descriptions, business rules applied, error
 **Preconditions**:
 - User is authenticated
 - User has "Inventory.PeriodEnd.Cancel" permission (System Administrator only)
-- Period status = "Open" or "In Progress" (cannot cancel "Closed" periods)
+- Period status = "Open" or "Closing" (cannot cancel "Closed" periods)
 - No transactions have been posted to the period
 
 **Postconditions**:
-- Period status updated to "Void"
+- Period is deleted or marked as cancelled
 - Cancellation reason recorded
 - Activity log entry captured
-- Period displayed in list with "Void" status (gray badge)
-- Void periods cannot be modified or re-opened
+- Cancelled periods are removed from active management
 
 **Main Flow**:
 1. User navigates to period detail page (UC-PE-002)
-2. System verifies period status = "Open" or "In Progress"
+2. System verifies period status = "Open" or "Closing"
 3. System displays "Cancel Period End" button (visible only to System Administrator)
 4. User clicks "Cancel Period End" button
 5. System validates cancellation is allowed:
@@ -892,10 +909,10 @@ Each use case includes detailed flow descriptions, business rules applied, error
 6. System displays cancellation dialog:
    ```
    Title: "Cancel Period"
-   Message: "You are about to cancel and void period PE-YYYY-MM (Month YYYY).
+   Message: "You are about to cancel period PE-YYYY-MM (Month YYYY).
 
    Warning: This action will:
-   - Mark the period as 'Void' (cannot be undone)
+   - Delete or cancel the period (cannot be undone)
    - Prevent any further modifications to this period
    - Remove it from active period management
    - Create permanent audit trail entry
@@ -905,18 +922,17 @@ Each use case includes detailed flow descriptions, business rules applied, error
    Reason for Cancellation (required, minimum 50 characters):
    [Text area, character counter showing: 0/50]
 
-   Actions: [Cancel] [Confirm Void]
+   Actions: [Cancel] [Confirm Cancel]
    ```
-7. User enters reason (minimum 50 characters) and clicks "Confirm Void"
+7. User enters reason (minimum 50 characters) and clicks "Confirm Cancel"
 8. System validates reason length ≥ 50 characters
 9. System begins atomic transaction:
    - BEGIN TRANSACTION
-   - UPDATE period_end: status = 'Void', modified_by = :user_id, modified_date = NOW()
-   - INSERT into period_activity: action='Cancel', user, timestamp, reason, from_status, to_status='Void'
+   - DELETE period_end record OR mark as cancelled
+   - INSERT into period_activity: action='Cancel', user, timestamp, reason, from_status
    - COMMIT TRANSACTION
-10. System displays success message: "Period cancelled and marked as void. Period PE-YYYY-MM will no longer appear in active period lists."
+10. System displays success message: "Period cancelled. Period PE-YYYY-MM will no longer appear in active period lists."
 11. System redirects user to period list page (UC-PE-001)
-12. Voided period displayed with gray "Void" badge in list
 
 **Alternative Flows**: None
 
@@ -940,11 +956,11 @@ Each use case includes detailed flow descriptions, business rules applied, error
 - **Exc-9B: Reason Too Short**
   - Validation fails at Step 8
   - System displays inline error: "Reason must be at least 50 characters. Current: [X]/50"
-  - "Confirm Void" button disabled until requirement met
+  - "Confirm Cancel" button disabled until requirement met
 
 - **Exc-9C: Period Already Closed**
   - Validation fails at Step 2
-  - System displays error: "Cannot cancel period. Status is 'Closed'. Only Open or In Progress periods can be cancelled."
+  - System displays error: "Cannot cancel period. Status is 'Closed'. Only Open or Closing periods can be cancelled."
   - Button disabled
 
 - **Exc-9D: Permission Denied**
@@ -960,9 +976,8 @@ Each use case includes detailed flow descriptions, business rules applied, error
 - Only System Administrator can cancel periods
 - Validation prevents cancellation if transactions exist
 - Reason requirement enforced (50 characters minimum)
-- Void status is permanent (cannot be undone)
+- Cancellation is permanent (cannot be undone)
 - Activity log captures full cancellation context
-- Voided periods clearly distinguished in period list
 
 ---
 
@@ -1077,7 +1092,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 **Priority**: Critical
 
 **Preconditions**:
-- Period status = "In Progress"
+- Period status = "Closing"
 - User has Close permission
 
 **Postconditions**:
@@ -1190,10 +1205,10 @@ Each use case includes detailed flow descriptions, business rules applied, error
 
 ---
 
-### UC-PE-103: Enforce Single In-Progress Period
-**Description**: System ensures only one period can be "In Progress" at any time across the entire system.
+### UC-PE-103: Enforce Single Closing Period
+**Description**: System ensures only one period can be in "Closing" status at any time across the entire system.
 
-**Trigger**: Period status transitions to "In Progress"
+**Trigger**: Period status transitions to "Closing"
 
 **Priority**: High
 
@@ -1201,30 +1216,30 @@ Each use case includes detailed flow descriptions, business rules applied, error
 - Period status change being requested
 
 **Postconditions**:
-- Only one period has status "In Progress"
-- All other periods are "Open", "Closed", or "Void"
+- Only one period has status "Closing"
+- All other periods are "Open", "Closed", or "Reopened"
 
 **Main Flow**:
-1. System detects period status changing to "In Progress" (from UC-PE-004 Step 8 or UC-PE-006 Step 8)
-2. System queries database for existing "In Progress" periods:
+1. System detects period status changing to "Closing" (from UC-PE-006 Step 8 when first task completed)
+2. System queries database for existing "Closing" periods:
    ```sql
    SELECT id, period_id, period_name FROM period_end
-   WHERE status = 'In Progress' AND id != :current_period_id
+   WHERE status = 'Closing' AND id != :current_period_id
    ```
-3. If query returns results (another period is already "In Progress"):
+3. If query returns results (another period is already "Closing"):
    - Validation fails
    - Return error to calling use case
-4. If query returns no results (no other "In Progress" period):
+4. If query returns no results (no other "Closing" period):
    - Validation passes
    - Allow status change to proceed
 
 **Alternative Flows**: None
 
 **Exception Flows**:
-- **Exc-103A: Multiple In-Progress Periods Found**
+- **Exc-103A: Multiple Closing Periods Found**
   - Query returns multiple results at Step 2 (data integrity issue)
-  - System logs critical error: "Data integrity violation: Multiple In Progress periods detected"
-  - System displays error: "System error: Multiple periods in progress state. Please contact administrator immediately."
+  - System logs critical error: "Data integrity violation: Multiple Closing periods detected"
+  - System displays error: "System error: Multiple periods in closing state. Please contact administrator immediately."
   - System halts operation
 
 **Business Rules Applied**: BR-PE-004
@@ -1255,8 +1270,8 @@ Each use case includes detailed flow descriptions, business rules applied, error
    - Calculate period_id from transaction_date (e.g., 2024-01-15 → PE-2024-01)
    - Query: `SELECT status FROM period_end WHERE period_id = :calculated_period_id`
 4. System validates period status:
-   - If status = 'Open' or 'In Progress': Validation passes → Allow transaction
-   - If status = 'Closed' or 'Void': Validation fails → Reject transaction
+   - If status = 'Open', 'Closing', or 'Reopened': Validation passes → Allow transaction
+   - If status = 'Closed': Validation fails → Reject transaction
    - If period not found (no period exists for that month): Validation fails → Reject transaction
 5. System returns validation result to calling transaction module
 
@@ -1299,7 +1314,7 @@ Each use case includes detailed flow descriptions, business rules applied, error
 ### UC-PE-105: Send Re-open Notification
 **Description**: System sends email notification when a period is re-opened to inform financial oversight personnel.
 
-**Trigger**: Period status changes to "Open" from "Closed" (re-open action)
+**Trigger**: Period status changes to "Reopened" from "Closed" (re-open action)
 
 **Priority**: High
 
@@ -1576,8 +1591,8 @@ Each use case includes detailed flow descriptions, business rules applied, error
 ### Use Case Relationships
 
 **Primary Workflows**:
-1. **Monthly Period Close Workflow**: UC-PE-003 → UC-PE-006 (multiple) → UC-PE-004 → UC-PE-101 (validation)
-2. **Period Re-open Workflow**: UC-PE-005 → UC-PE-105 (notification) → UC-PE-006 (corrections) → UC-PE-004 (re-close)
+1. **Monthly Period Close Workflow**: UC-PE-003 (Create) → UC-PE-006 (Complete 11 tasks) → UC-PE-004 (Close) → UC-PE-101 (validation)
+2. **Period Re-open Workflow**: UC-PE-005 (Reopen) → UC-PE-105 (notification) → UC-PE-006 (corrections) → UC-PE-004 (re-close)
 3. **Period Review Workflow**: UC-PE-001 → UC-PE-002 → UC-PE-007 (adjustments) → UC-PE-010 (export)
 
 **Integration Touchpoints**:
@@ -1589,11 +1604,11 @@ Each use case includes detailed flow descriptions, business rules applied, error
 
 All activity log entries use these standard action types:
 - **Create**: Period creation
-- **StatusChange**: Status transition (Open ↔ In Progress ↔ Closed)
-- **TaskComplete**: Checklist task marked complete
+- **StatusChange**: Status transition (Open → Closing → Closed → Reopened)
+- **TaskComplete**: Validation task marked complete (11 tasks)
 - **Close**: Period closure finalization
-- **Reopen**: Period re-opened from Closed status
-- **Cancel**: Period cancelled (Void status)
+- **Reopen**: Period re-opened from Closed status (changes to Reopened)
+- **Cancel**: Period cancelled
 - **NotesUpdate**: Period notes modified
 - **Export**: Period data exported
 
@@ -1619,6 +1634,7 @@ All activity log entries use these standard action types:
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2025-01-11 | System | Initial version with 10 user use cases, 5 system use cases, 3 integration use cases |
+| 1.1.0 | 2025-12-09 | Development Team | Updated status values (open, closing, closed, reopened), expanded validation checklist to 11 items |
 
 ---
 
@@ -1626,4 +1642,5 @@ All activity log entries use these standard action types:
 - **Classification**: Internal Use
 - **Review Required**: Yes
 - **Approved By**: Pending
-- **Next Review Date**: TBD
+- **Last Review**: 2025-12-09
+- **Next Review Date**: 2026-03-09

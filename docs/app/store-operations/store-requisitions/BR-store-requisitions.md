@@ -8,17 +8,20 @@
 - **Status**: Active - For Implementation
 
 ## Related Documents
-- [Use Cases](./UC-store-requisitions.md)
-- [Technical Specification](./TS-store-requisitions.md)
-- [Data Schema](./DS-store-requisitions.md)
-- [Flow Diagrams](./FD-store-requisitions.md)
-- [Validations](./VAL-store-requisitions.md)
+- [Use Cases](./UC-store-requisitions.md) - User workflows and scenarios
+- [Technical Specification](./TS-store-requisitions.md) - System architecture and components
+- [Data Definition](./DD-store-requisitions.md) - Database entity descriptions
+- [Flow Diagrams](./FD-store-requisitions.md) - Visual workflow diagrams
+- [Validations](./VAL-store-requisitions.md) - Validation rules and Zod schemas
+- [Inventory Operations Shared Method](../../shared-methods/inventory-operations/SM-inventory-operations.md) - Inventory transaction patterns
+- [Costing Methods Shared Method](../../shared-methods/inventory-valuation/SM-costing-methods.md) - FIFO/AVG costing integration
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added Section 10: Backend Requirements (consolidated from BE document), added shared methods references |
 
 ## 1. Executive Summary
 
@@ -760,9 +763,549 @@ None required for initial implementation. Future considerations:
 
 ---
 
-## 10. Constraints and Assumptions
+## 10. Backend Requirements
 
-### 10.1 Constraints
+### 10.1 API Endpoints
+
+#### BE-API-SR-001: List Store Requisitions
+**Method**: GET | **Path**: `/api/store-requisitions` | **Priority**: Critical
+
+Retrieves a paginated list of store requisitions with optional filtering and sorting.
+
+**Query Parameters**:
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| page | number | No | Page number (default: 1) |
+| limit | number | No | Items per page (default: 20, max: 100) |
+| status | string | No | Filter by status (draft, pending, approved, rejected, issued, cancelled) |
+| department_id | string | No | Filter by requesting department |
+| location_id | string | No | Filter by location |
+| date_from | string | No | Filter by date range start (ISO 8601) |
+| date_to | string | No | Filter by date range end (ISO 8601) |
+| search | string | No | Search by requisition number or notes |
+| sort_by | string | No | Sort field (created_at, requisition_number, status) |
+| sort_order | string | No | Sort direction (asc, desc) |
+
+**Authorization**: Requires `store_requisition:read` permission
+
+---
+
+#### BE-API-SR-002: Get Store Requisition Detail
+**Method**: GET | **Path**: `/api/store-requisitions/:id` | **Priority**: Critical
+
+Retrieves detailed information for a specific store requisition including items, approval history, and journal entries.
+
+**Authorization**: User must have `store_requisition:read` permission and access to the requisition's department/location
+
+---
+
+#### BE-API-SR-003: Create Store Requisition
+**Method**: POST | **Path**: `/api/store-requisitions` | **Priority**: Critical
+
+Creates a new store requisition with line items.
+
+**Request Body**:
+```typescript
+interface CreateRequest {
+  department_id: string;        // Required
+  location_id: string;          // Required
+  required_date: string;        // Required, ISO 8601
+  priority: 'low' | 'normal' | 'high' | 'urgent';  // Required
+  notes?: string;               // Optional, max 1000 chars
+  items: {
+    product_id: string;         // Required
+    quantity: number;           // Required, > 0
+    uom_id: string;             // Required
+    notes?: string;             // Optional
+  }[];
+}
+```
+
+**Business Logic**:
+1. Generate requisition number: `SR-{LOCATION}-{YYMMDD}-{SEQ}`
+2. Validate all products exist and are active
+3. Validate requesting department has access to products
+4. Set initial status to `draft`
+5. Calculate estimated costs using current inventory valuations (via SM-COSTING-METHODS)
+
+---
+
+#### BE-API-SR-004: Update Store Requisition
+**Method**: PUT | **Path**: `/api/store-requisitions/:id` | **Priority**: High
+
+Updates an existing store requisition. Only allowed for requisitions in `draft` status.
+
+---
+
+#### BE-API-SR-005: Delete Store Requisition
+**Method**: DELETE | **Path**: `/api/store-requisitions/:id` | **Priority**: Medium
+
+Soft-deletes a store requisition. Only allowed for requisitions in `draft` status.
+
+---
+
+#### BE-API-SR-006: Check Stock Availability
+**Method**: POST | **Path**: `/api/store-requisitions/:id/check-stock` | **Priority**: High
+
+Checks current stock availability for all items in the requisition.
+
+**Integration**: Uses SM-INVENTORY-OPERATIONS for real-time balance queries
+
+---
+
+### 10.2 Server Actions
+
+#### BE-SA-SR-001: Submit for Approval
+**Action**: `submitForApproval` | **Priority**: Critical
+
+Submits a draft requisition to the approval workflow.
+
+**Business Logic**:
+1. Verify requisition is in `draft` status
+2. Validate all required fields are complete
+3. Check stock availability (warning only, not blocking)
+4. Determine approval routing based on total value, department, and item categories
+5. Create first approval step and update status to `pending`
+6. Send notification to first approver
+
+**Approval Routing Rules**:
+| Condition | Approver Level |
+|-----------|----------------|
+| Value < $500 | Department Manager |
+| Value $500-$2000 | Department Manager → Store Manager |
+| Value > $2000 | Department Manager → Store Manager → Finance |
+| Contains restricted items | +Security Approval |
+
+---
+
+#### BE-SA-SR-002: Approve Requisition
+**Action**: `approveRequisition` | **Priority**: Critical
+
+Approves a requisition at the current approval level.
+
+**Business Logic**:
+1. Verify user is the current pending approver
+2. Mark current approval step as `approved`
+3. If more levels required: Create next step, notify next approver
+4. If no more levels: Update status to `approved`, notify requester
+
+---
+
+#### BE-SA-SR-003: Reject Requisition
+**Action**: `rejectRequisition` | **Priority**: Critical
+
+Rejects a requisition with mandatory comments (minimum 10 characters).
+
+---
+
+#### BE-SA-SR-004: Send Back Requisition
+**Action**: `sendBackRequisition` | **Priority**: High
+
+Returns a requisition to the requester for modifications with mandatory comments.
+
+---
+
+#### BE-SA-SR-005: Issue Items
+**Action**: `issueItems` | **Priority**: Critical
+
+Issues approved items from inventory to the requesting department.
+
+**Business Logic**:
+1. Verify requisition is in `approved` status
+2. For each item:
+   - Validate issued quantity ≤ approved quantity
+   - Check stock availability
+   - Determine cost using SM-COSTING-METHODS (FIFO or AVG)
+   - Create inventory transaction (SM-INVENTORY-OPERATIONS)
+   - Update lot quantities and create journal entry
+3. Generate lot numbers: `{LOCATION}-{YYMMDD}-{SEQ}`
+4. Record parent_lot_no to distinguish LOT vs ADJUSTMENT transactions
+
+---
+
+#### BE-SA-SR-006: Cancel Requisition
+**Action**: `cancelRequisition` | **Priority**: Medium
+
+Cancels a requisition that is no longer needed (blocked if approved with partial issuance).
+
+---
+
+### 10.3 Database Schema
+
+#### Store Requisitions Table
+```sql
+CREATE TABLE store_requisitions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requisition_number VARCHAR(50) NOT NULL UNIQUE,
+  department_id UUID NOT NULL REFERENCES departments(id),
+  location_id UUID NOT NULL REFERENCES locations(id),
+  status VARCHAR(20) NOT NULL DEFAULT 'draft',
+  priority VARCHAR(10) NOT NULL DEFAULT 'normal',
+  required_date DATE NOT NULL,
+  notes TEXT,
+  estimated_total DECIMAL(15,2) DEFAULT 0,
+  actual_total DECIMAL(15,2) DEFAULT 0,
+  created_by UUID NOT NULL REFERENCES users(id),
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  submitted_at TIMESTAMP WITH TIME ZONE,
+  approved_at TIMESTAMP WITH TIME ZONE,
+  issued_at TIMESTAMP WITH TIME ZONE,
+  cancelled_at TIMESTAMP WITH TIME ZONE,
+  is_deleted BOOLEAN DEFAULT FALSE,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+
+  CONSTRAINT chk_status CHECK (status IN ('draft', 'pending', 'approved', 'rejected', 'issued', 'cancelled')),
+  CONSTRAINT chk_priority CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
+);
+
+CREATE INDEX idx_store_requisitions_status ON store_requisitions(status);
+CREATE INDEX idx_store_requisitions_department ON store_requisitions(department_id);
+CREATE INDEX idx_store_requisitions_location ON store_requisitions(location_id);
+CREATE INDEX idx_store_requisitions_created_at ON store_requisitions(created_at DESC);
+```
+
+#### Store Requisition Items Table
+```sql
+CREATE TABLE store_requisition_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requisition_id UUID NOT NULL REFERENCES store_requisitions(id) ON DELETE CASCADE,
+  product_id UUID NOT NULL REFERENCES products(id),
+  uom_id UUID NOT NULL REFERENCES units_of_measure(id),
+  requested_quantity DECIMAL(15,4) NOT NULL,
+  approved_quantity DECIMAL(15,4),
+  issued_quantity DECIMAL(15,4) DEFAULT 0,
+  unit_cost DECIMAL(15,4),
+  total_cost DECIMAL(15,2),
+  notes TEXT,
+  lot_id UUID REFERENCES inventory_lots(id),
+  issued_date TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+  CONSTRAINT chk_quantities CHECK (
+    requested_quantity > 0 AND
+    (approved_quantity IS NULL OR approved_quantity >= 0) AND
+    issued_quantity >= 0
+  )
+);
+
+CREATE INDEX idx_sr_items_requisition ON store_requisition_items(requisition_id);
+CREATE INDEX idx_sr_items_product ON store_requisition_items(product_id);
+```
+
+#### Approval Steps Table
+```sql
+CREATE TABLE store_requisition_approvals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requisition_id UUID NOT NULL REFERENCES store_requisitions(id) ON DELETE CASCADE,
+  step_number INT NOT NULL,
+  approver_role VARCHAR(50) NOT NULL,
+  approver_id UUID REFERENCES users(id),
+  status VARCHAR(20) NOT NULL DEFAULT 'pending',
+  comments TEXT,
+  action_date TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+
+  CONSTRAINT chk_approval_status CHECK (status IN ('pending', 'approved', 'rejected', 'current')),
+  UNIQUE(requisition_id, step_number)
+);
+```
+
+#### Audit Log Table
+```sql
+CREATE TABLE store_requisition_audit_log (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  requisition_id UUID NOT NULL REFERENCES store_requisitions(id),
+  action VARCHAR(50) NOT NULL,
+  old_values JSONB,
+  new_values JSONB,
+  user_id UUID NOT NULL REFERENCES users(id),
+  ip_address INET,
+  user_agent TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX idx_sr_audit_requisition ON store_requisition_audit_log(requisition_id);
+CREATE INDEX idx_sr_audit_created_at ON store_requisition_audit_log(created_at DESC);
+```
+
+---
+
+### 10.4 Service Integrations
+
+#### Inventory Operations Service (SM-INVENTORY-OPERATIONS)
+**Integration Points**:
+- **Balance Query**: Real-time stock availability checks
+- **Transaction Recording**: Stock movements on issuance
+- **State Management**: Location-based inventory tracking
+
+```typescript
+// Query current balance
+inventoryService.getBalance(productId: string, locationId: string): Promise<InventoryBalance>
+
+// Record stock movement
+inventoryService.recordTransaction({
+  product_id: string;
+  location_id: string;
+  transaction_type: 'ISSUE';
+  quantity: number;
+  reference_type: 'STORE_REQUISITION';
+  reference_id: string;
+  lot_id?: string;
+}): Promise<InventoryTransaction>
+```
+
+#### Costing Methods Service (SM-COSTING-METHODS)
+**Integration Points**:
+- **FIFO Cost Determination**: Select oldest cost layers for issuance
+- **AVG Cost Calculation**: Weighted average for periodic costing
+- **Lot Tracking**: Cost layer and lot assignment
+
+```typescript
+// Get FIFO cost for issuance
+costingService.getFIFOCost(productId: string, locationId: string, quantity: number): Promise<CostLayer[]>
+
+// Get average cost
+costingService.getAverageCost(productId: string, locationId: string): Promise<number>
+
+// Generate lot number (format: {LOCATION}-{YYMMDD}-{SEQ})
+costingService.generateLotNumber(locationId: string): Promise<string>
+```
+
+#### Workflow Engine Service
+**Integration Points**:
+- **Routing Determination**: Calculate approval path based on value and department
+- **Step Management**: Create and track approval steps
+- **Notification Dispatch**: Alert approvers of pending items
+
+#### Journal Entry Service
+**Journal Entry Pattern for Issuance**:
+```
+Debit:  Department Expense Account     $XXX.XX
+Credit: Inventory Asset Account        $XXX.XX
+Reference: Store Requisition {number}
+```
+
+#### Notification Service
+**Notification Events**:
+| Event | Recipients | Template |
+|-------|------------|----------|
+| Submitted | First Approver | `sr_pending_approval` |
+| Approved (interim) | Next Approver | `sr_pending_approval` |
+| Approved (final) | Requester | `sr_approved` |
+| Rejected | Requester | `sr_rejected` |
+| Sent Back | Requester | `sr_returned` |
+| Issued | Requester | `sr_issued` |
+| Reminder | Pending Approver | `sr_reminder` |
+
+---
+
+### 10.5 Error Handling
+
+**Error Codes**:
+| Code | Description | HTTP Status |
+|------|-------------|-------------|
+| SR001 | Requisition not found | 404 |
+| SR002 | Invalid status transition | 400 |
+| SR003 | Unauthorized action | 403 |
+| SR004 | Validation error | 400 |
+| SR005 | Insufficient stock | 400 |
+| SR006 | Approval required | 400 |
+| SR007 | Already processed | 409 |
+| SR008 | Item not found | 404 |
+| SR009 | Department access denied | 403 |
+| SR010 | Costing method error | 500 |
+| SR011 | Journal entry failed | 500 |
+| SR012 | Workflow routing error | 500 |
+
+**Error Response Format**:
+```typescript
+interface ErrorResponse {
+  error: {
+    code: string;
+    message: string;
+    details?: Record<string, string[]>;
+    timestamp: string;
+    request_id: string;
+  };
+}
+```
+
+---
+
+### 10.6 Backend Performance Requirements
+
+**Response Time Targets**:
+| Operation | Target | Maximum |
+|-----------|--------|---------|
+| List requisitions | 200ms | 500ms |
+| Get detail | 150ms | 300ms |
+| Create/Update | 300ms | 600ms |
+| Submit for approval | 500ms | 1000ms |
+| Issue items | 1000ms | 2000ms |
+| Stock check | 200ms | 400ms |
+
+**Throughput Requirements**:
+| Metric | Requirement |
+|--------|-------------|
+| Concurrent users | 100+ |
+| Requisitions per hour | 500+ |
+| Items per requisition | Up to 100 |
+| Approval steps per requisition | Up to 5 |
+
+---
+
+### 10.7 Backend Security Requirements
+
+**Authentication**: JWT with 1-hour access token, 7-day refresh token
+
+**Permission Matrix**:
+| Role | Create | Read | Update | Delete | Approve | Issue |
+|------|--------|------|--------|--------|---------|-------|
+| Staff | Own | Own | Own Draft | Own Draft | ✗ | ✗ |
+| Dept Manager | Dept | Dept | Dept Draft | Dept Draft | ✓ | ✗ |
+| Store Manager | ✗ | All | ✗ | ✗ | ✓ | ✓ |
+| Finance | ✗ | All | ✗ | ✗ | ✓ | ✗ |
+| Admin | All | All | All | All | ✓ | ✓ |
+
+**Data Protection**:
+- Encryption at rest and TLS 1.3 in transit
+- PII masking in logs
+- SQL injection prevention via parameterized queries
+- CSRF protection via tokens
+
+---
+
+### 10.8 Testing Requirements
+
+**Coverage Targets**:
+- Service layer: ≥80%
+- Repository layer: ≥80%
+- Validation logic: 100%
+
+**Test Types**:
+- Unit tests: Service and repository layers
+- Integration tests: API endpoints and database transactions
+- E2E tests: Complete approval workflow, issuance with inventory update
+
+---
+
+### 10.9 Backend TypeScript Interfaces
+
+```typescript
+// Store Requisition Entity
+interface StoreRequisition {
+  id: string;
+  requisition_number: string;
+  department_id: string;
+  department?: Department;
+  location_id: string;
+  location?: Location;
+  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'issued' | 'cancelled';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  required_date: string;
+  notes?: string;
+  estimated_total: number;
+  actual_total: number;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  submitted_at?: string;
+  approved_at?: string;
+  issued_at?: string;
+  cancelled_at?: string;
+}
+
+// Store Requisition Item Entity
+interface StoreRequisitionItem {
+  id: string;
+  requisition_id: string;
+  product_id: string;
+  product?: Product;
+  uom_id: string;
+  uom?: UnitOfMeasure;
+  requested_quantity: number;
+  approved_quantity?: number;
+  issued_quantity: number;
+  unit_cost?: number;
+  total_cost?: number;
+  notes?: string;
+  lot_id?: string;
+  issued_date?: string;
+}
+
+// Approval Step Entity
+interface ApprovalStep {
+  id: string;
+  requisition_id: string;
+  step_number: number;
+  approver_role: string;
+  approver_id?: string;
+  approver?: User;
+  status: 'pending' | 'approved' | 'rejected' | 'current';
+  comments?: string;
+  action_date?: string;
+}
+
+// Approval Log (for history display)
+interface ApprovalLog {
+  id: number;
+  date: string;
+  status: 'Pending' | 'Approved' | 'Reject' | 'Review';
+  by: string;
+  comments: string;
+}
+```
+
+---
+
+### 10.10 Backend Architecture Diagram
+
+```mermaid
+graph TB
+    subgraph API["API Layer"]
+        REST["REST Endpoints"]
+        SA["Server Actions"]
+    end
+
+    subgraph Services["Service Layer"]
+        SRS["Store Requisition Service"]
+        WFS["Workflow Service"]
+        NS["Notification Service"]
+    end
+
+    subgraph Integration["Integration Layer"]
+        INV["Inventory Operations<br/>(SM-INVENTORY-OPERATIONS)"]
+        COST["Costing Methods<br/>(SM-COSTING-METHODS)"]
+        JE["Journal Entry Service"]
+    end
+
+    subgraph Data["Data Layer"]
+        DB[(PostgreSQL)]
+        CACHE[(Redis Cache)]
+    end
+
+    REST --> SRS
+    SA --> SRS
+    SRS --> WFS
+    SRS --> NS
+    SRS --> INV
+    SRS --> COST
+    SRS --> JE
+    SRS --> DB
+    SRS --> CACHE
+    WFS --> DB
+    INV --> DB
+    COST --> DB
+    JE --> DB
+```
+
+---
+
+## 11. Constraints and Assumptions
+
+### 11.1 Constraints
 - **Budget**: Development within allocated ERP budget
 - **Timeline**: Implementation within 12 weeks
 - **Technology**: Must use existing Next.js/React technology stack
@@ -771,7 +1314,7 @@ None required for initial implementation. Future considerations:
 - **Resources**: Development team of 2-3 developers
 - **Hardware**: Must run on existing server infrastructure
 
-### 10.2 Assumptions
+### 11.2 Assumptions
 - Users have basic computer literacy and internet access
 - Reliable network connectivity in all store locations
 - Existing Inventory Management module is functional and accurate
@@ -781,7 +1324,7 @@ None required for initial implementation. Future considerations:
 - Locations are configured in the system
 - Tablets/computers available in storerooms for real-time updates
 
-### 10.3 Dependencies
+### 11.3 Dependencies
 - **Inventory Management Module**: Must be operational for stock queries and updates
 - **Workflow Engine**: Must be configured for approval routing
 - **User Management**: Users, roles, and departments must be set up
@@ -791,9 +1334,9 @@ None required for initial implementation. Future considerations:
 
 ---
 
-## 11. Risks and Mitigation
+## 12. Risks and Mitigation
 
-### 11.1 Technical Risks
+### 12.1 Technical Risks
 
 | Risk | Probability | Impact | Mitigation Strategy |
 |------|-------------|--------|-------------------|
@@ -802,7 +1345,7 @@ None required for initial implementation. Future considerations:
 | Data migration from existing system | High | High | Phased migration, extensive validation, parallel run period |
 | Workflow engine complexity | Medium | Medium | Start with simple workflows, iterative enhancement, thorough testing |
 
-### 11.2 Operational Risks
+### 12.2 Operational Risks
 
 | Risk | Probability | Impact | Mitigation Strategy |
 |------|-------------|--------|-------------------|
@@ -811,7 +1354,7 @@ None required for initial implementation. Future considerations:
 | Network connectivity issues in remote locations | Low | Medium | Offline mode for emergencies, backup manual process, regular IT support |
 | Approval delays causing operational disruptions | Medium | Medium | Escalation mechanisms, notification system, emergency workflow bypass |
 
-### 11.3 Business Risks
+### 12.3 Business Risks
 
 | Risk | Probability | Impact | Mitigation Strategy |
 |------|-------------|--------|-------------------|
@@ -821,7 +1364,7 @@ None required for initial implementation. Future considerations:
 
 ---
 
-## 12. Appendices
+## 13. Appendices
 
 ### Appendix A: Glossary
 - **Requisition**: Internal document requesting materials from store
@@ -840,6 +1383,23 @@ None required for initial implementation. Future considerations:
 - Carmen ERP User Management Guide
 - Hospitality Industry Best Practices for Store Management
 - Internal Control Standards for Material Requisitions
+- [Inventory Operations Shared Method](../../shared-methods/inventory-operations/SM-inventory-operations.md)
+- [Costing Methods Shared Method](../../shared-methods/inventory-valuation/SM-costing-methods.md)
+
+### Appendix D: Shared Method Integration
+
+#### Inventory Operations (SM-INVENTORY-OPERATIONS)
+Store Requisitions integrates with the Inventory Operations shared method for:
+- **Balance Tracking**: Real-time inventory balance queries during requisition creation
+- **Transaction Recording**: Stock movement transactions upon issuance
+- **State Management**: Location-based inventory state tracking
+
+#### Costing Methods (SM-COSTING-METHODS)
+Store Requisitions uses the Costing Methods shared method for:
+- **FIFO Costing**: First-In-First-Out cost determination for issued items
+- **Periodic Average (AVG)**: Average cost calculation for inventory valuation
+- **Lot Tracking**: Lot number assignment and tracking (format: {LOCATION}-{YYMMDD}-{SEQ})
+- **Transaction Types**: LOT (new lots) vs ADJUSTMENT (consumption) via parent_lot_no pattern
 
 ### Appendix C: Change Log
 | Version | Date | Author | Changes |

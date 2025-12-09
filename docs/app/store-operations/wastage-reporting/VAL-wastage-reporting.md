@@ -3,15 +3,38 @@
 **Module**: Store Operations
 **Sub-Module**: Wastage Reporting
 **Document Type**: Validations (VAL)
-**Version**: 1.0.0
-**Last Updated**: 2025-01-12
-**Status**: Draft
+**Version**: 1.2.0
+**Last Updated**: 2025-12-09
+**Status**: Active
+**Implementation Status**: PARTIALLY IMPLEMENTED (Frontend validation exists, backend pending)
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend validation |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+
+---
+
+## ✅ IMPLEMENTATION NOTE
+
+The Wastage Reporting module frontend has been implemented with client-side validation in forms. Backend validation and database constraints are pending.
+
+**Implemented Validation Contexts**:
+- ✅ **New Report Form** - Location required, item selection required, quantity > 0, reason selection required
+- ✅ **Category Form** - Name required, code max 4 chars, color selection, approval threshold numeric
+- ✅ **Report Status** - Valid transitions: pending → under_review → approved/rejected
+- ✅ **High Value Alert** - Reports > $100 display manager approval warning
+
+**Validation Status**:
+- ✅ Client-side validation in forms - IMPLEMENTED
+- ⏳ Server-side business rules - PENDING (using mock data)
+- ⏳ Database constraints - PENDING (schema not deployed)
+
+See [BR-wastage-reporting.md](./BR-wastage-reporting.md) for complete implementation details.
+
 ---
 
 ## 1. Overview

@@ -4,14 +4,15 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Inventory Adjustments
 - **Route**: `/inventory-management/inventory-adjustments`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-10
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
 - **Owner**: Development Team
 - **Status**: Active
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-09 | Development Team | Updated to match implementation: type-specific adjustment reasons, costing rules, GL account mapping |
 | 1.0.0 | 2025-01-10 | Development Team | Initial technical specification based on source code analysis |
 
 ---
@@ -24,13 +25,18 @@ The Inventory Adjustments module provides comprehensive functionality for record
 
 **Key Capabilities**:
 - Create and manage inventory adjustment transactions (IN/OUT types)
-- Record adjustments with 8 predefined reason codes
+- Record adjustments with TYPE-SPECIFIC reason codes:
+  - **Stock OUT (7 reasons)**: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
+  - **Stock IN (5 reasons)**: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
 - Track lot-level stock movements for traceability
 - Generate automated balanced journal entries for general ledger
 - Workflow management: Draft → Posted → Voided status transitions
 - Multi-location and multi-department support
 - Search, filter, and sort functionality for adjustment list
 - Three-tab detail view: Items, Stock Movement, Journal Entries
+- **Costing Rules**:
+  - Stock OUT: Uses system average cost automatically (no price entry)
+  - Stock IN: Requires manual unit cost entry (affects inventory valuation)
 
 **Related Documents**:
 
@@ -232,7 +238,7 @@ graph TD
 - Types: Mix of IN (5) and OUT (3)
 - Statuses: Posted (5), Draft (2), Voided (1)
 - Locations: Main Warehouse, Kitchen, Bar, Housekeeping, Engineering
-- Reasons: Physical Count Variance, Damaged Goods, Spoilage, Waste, Sample, Promotion, Conversion, Inter-department Transfer
+- Reasons: Type-specific (Stock OUT: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Count Variance, Quality Rejection, Other; Stock IN: Count Variance, Found Items, Return to Stock, System Correction, Other)
 - Date Range: January 2024
 - Value Range: $245.00 to $2,845.50
 
@@ -822,7 +828,9 @@ This section provides high-level descriptions of key components without implemen
 - **Status**: Draft, Posted, Voided
 - **Type**: IN, OUT
 - **Location**: All accessible locations from user permissions
-- **Reason**: Physical Count Variance, Damaged Goods, Spoilage, Waste, Sample, Promotion, Conversion, Inter-department Transfer
+- **Reason**: Type-specific reasons (filtered based on selected Type):
+  - **Stock OUT**: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
+  - **Stock IN**: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
 
 **Inputs**: Available filter options based on user permissions
 **Outputs**: Array of active filter objects
@@ -1000,21 +1008,16 @@ This section describes key algorithms and calculation methods without implementa
    - Determine GL accounts based on adjustment type and reason
 
 3. **IN Adjustments** (Inventory Increase):
-   - **Debit**: 1100 Inventory Asset (increases asset)
-   - **Credit**: Expense account based on reason:
-     - Physical Count Variance → 5100 COGS
-     - Receipt Adjustment → 5100 COGS
-     - Conversion → 5300 Sample Expense
-     - Inter-department Transfer → 5100 COGS
+   - **Debit**: 1310 Raw Materials Inventory (increases asset)
+   - **Credit**: 5110 Inventory Variance
+   - Valid reasons: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
+   - **Unit Cost**: Manually entered by user (required, affects inventory valuation)
 
 4. **OUT Adjustments** (Inventory Decrease):
-   - **Debit**: Expense account based on reason:
-     - Damaged Goods → 5200 Waste Expense
-     - Spoilage → 5200 Waste Expense
-     - Waste → 5200 Waste Expense
-     - Sample → 5300 Sample Expense
-     - Promotion → 5300 Sample Expense
-   - **Credit**: 1100 Inventory Asset (decreases asset)
+   - **Debit**: 5110 Inventory Variance
+   - **Credit**: 1310 Raw Materials Inventory (decreases asset)
+   - Valid reasons: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
+   - **Unit Cost**: Automatically uses product's average cost (no manual entry)
 
 5. Set department and reference on each line
 6. Calculate total debits and total credits
@@ -1441,30 +1444,44 @@ Key interfaces defined in `components/types.ts`:
 
 ### Appendix D: Adjustment Reasons
 
-8 predefined reason codes:
+**Type-specific reason codes** (reason dropdown dynamically changes based on selected adjustment type):
 
-1. **Physical Count Variance**: Discrepancy between system and physical count
-2. **Damaged Goods**: Items damaged during storage or handling
-3. **Spoilage**: Perishable items expired or spoiled
-4. **Waste**: Operational waste (trim loss, cooking loss)
-5. **Sample**: Items used for tasting, testing, quality control
-6. **Promotion**: Items given away for marketing purposes
-7. **Conversion**: Recipe preparation (ingredients to finished goods)
-8. **Inter-department Transfer**: Movement between departments
+**Stock OUT Reasons (7 options)** - For decreasing inventory:
+1. **Damaged Goods** (`damaged`): Items damaged during storage or handling
+2. **Expired Items** (`expired`): Perishable items past expiration date
+3. **Theft / Loss** (`theft_loss`): Missing items due to theft or unknown loss
+4. **Spoilage** (`spoilage`): Perishable items spoiled before expiration
+5. **Physical Count Variance** (`count_variance`): Discrepancy found during physical count (decrease)
+6. **Quality Control Rejection** (`quality_rejection`): Items rejected during QC inspection
+7. **Other** (`other`): Free-text reason required
+
+**Stock IN Reasons (5 options)** - For increasing inventory:
+1. **Physical Count Variance** (`count_variance`): Discrepancy found during physical count (increase)
+2. **Found Items** (`found_items`): Previously missing items located
+3. **Return to Stock** (`return_to_stock`): Items returned from production or service
+4. **System Correction** (`system_correction`): Correction of data entry errors
+5. **Other** (`other`): Free-text reason required
+
+**Costing Rules by Type**:
+- **Stock OUT**: Unit cost automatically uses product's average cost (no manual entry)
+- **Stock IN**: Unit cost must be manually entered (affects inventory valuation)
 
 ### Appendix E: GL Account Mapping
 
 | Reason | Type | Debit Account | Credit Account |
 |--------|------|---------------|----------------|
-| Physical Count Variance | IN | 1100 Inventory Asset | 5100 COGS |
-| Physical Count Variance | OUT | 5100 COGS | 1100 Inventory Asset |
-| Damaged Goods | OUT | 5200 Waste Expense | 1100 Inventory Asset |
-| Spoilage | OUT | 5200 Waste Expense | 1100 Inventory Asset |
-| Waste | OUT | 5200 Waste Expense | 1100 Inventory Asset |
-| Sample | OUT | 5300 Sample Expense | 1100 Inventory Asset |
-| Promotion | OUT | 5300 Sample Expense | 1100 Inventory Asset |
-| Conversion | IN | 1100 Inventory Asset | 5300 Sample Expense |
-| Inter-department Transfer | IN/OUT | 1100 Inventory Asset | 5100 COGS |
+| Physical Count Variance | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| Found Items | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| Return to Stock | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| System Correction | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| Other | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| Damaged Goods | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+| Expired Items | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+| Theft / Loss | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+| Spoilage | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+| Physical Count Variance | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+| Quality Control Rejection | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+| Other | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
 
 ---
 

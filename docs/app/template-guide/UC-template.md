@@ -755,15 +755,133 @@
 
 ---
 
-## Use Case Traceability Matrix
+## Traceability Matrices
 
-{Map use cases to requirements and test cases}
+{Comprehensive traceability linking use cases to requirements, validations, tests, and implementation artifacts.}
 
-| Use Case | Functional Req | Business Rule | Test Case | Status |
-|----------|----------------|---------------|-----------|--------|
-| UC-{CODE}-001 | FR-{CODE}-001 | BR-{CODE}-001 | TC-{CODE}-001 | Implemented |
-| UC-{CODE}-002 | FR-{CODE}-002 | BR-{CODE}-003 | TC-{CODE}-002 | In Progress |
-| UC-{CODE}-003 | FR-{CODE}-005 | BR-{CODE}-005 | TC-{CODE}-003 | Planned |
+### Use Case to Requirements Traceability Diagram
+
+{Create a Mermaid diagram showing relationships between use cases and functional requirements.}
+
+```mermaid
+flowchart LR
+    subgraph UC[Use Cases]
+        UC001([UC-{CODE}-001])
+        UC002([UC-{CODE}-002])
+        UC003([UC-{CODE}-003])
+        UC101([UC-{CODE}-101])
+        UC201([UC-{CODE}-201])
+    end
+
+    subgraph FR[Functional Requirements]
+        FR001[FR-{CODE}-001]
+        FR002[FR-{CODE}-002]
+        FR003[FR-{CODE}-003]
+        FR004[FR-{CODE}-004]
+    end
+
+    UC001 --> FR001
+    UC002 --> FR002
+    UC003 --> FR003
+    UC101 --> FR003
+    UC101 --> FR004
+    UC201 --> FR004
+
+    style UC fill:#e8f5e9
+    style FR fill:#e3f2fd
+```
+
+### Master Traceability Matrix
+
+{Complete cross-reference table linking all artifacts.}
+
+| Use Case ID | Use Case Name | Functional Req | Business Rules | Validation Rules | Test Cases | UI Components | Status |
+|-------------|---------------|----------------|----------------|------------------|------------|---------------|--------|
+| UC-{CODE}-001 | {Use Case Name} | FR-{CODE}-001 | BR-{CODE}-001, BR-{CODE}-002 | VR-{CODE}-001, VR-{CODE}-002 | TC-{CODE}-001-01 to TC-{CODE}-001-NN | {ComponentName} | To Implement / In Progress / Implemented |
+| UC-{CODE}-002 | {Use Case Name} | FR-{CODE}-002 | BR-{CODE}-003 | VR-{CODE}-003 | TC-{CODE}-002-01 to TC-{CODE}-002-NN | {ComponentName} | {Status} |
+| UC-{CODE}-003 | {Use Case Name} | FR-{CODE}-003 | BR-{CODE}-004, BR-{CODE}-005 | - | TC-{CODE}-003-01 to TC-{CODE}-003-NN | {ComponentName} | {Status} |
+| UC-{CODE}-101 | {System UC Name} | Integration | BR-{CODE}-010 | - | TC-{CODE}-101-01 to TC-{CODE}-101-NN | {ServiceName} | {Status} |
+| UC-{CODE}-201 | {Integration UC} | Integration | - | - | TC-{CODE}-201-01 to TC-{CODE}-201-NN | {IntegrationService} | {Status} |
+
+### Business Rules Traceability
+
+{Map business rules to use cases, validation rules, and enforcement points.}
+
+| Business Rule | Description | Use Cases | Validation Rule | Enforcement |
+|---------------|-------------|-----------|-----------------|-------------|
+| BR-{CODE}-001 | {Brief description of the rule} | UC-{CODE}-001, UC-{CODE}-002 | VR-{CODE}-001 | Server-side |
+| BR-{CODE}-002 | {Brief description} | UC-{CODE}-001 | VR-{CODE}-002 | Client + Server |
+| BR-{CODE}-003 | {Brief description} | UC-{CODE}-002, UC-{CODE}-003 | VR-{CODE}-003 | Client + Server |
+| BR-{CODE}-004 | {Brief description} | UC-{CODE}-003 | - | Server-side |
+| BR-{CODE}-005 | {Brief description} | UC-{CODE}-003 | VR-{CODE}-004 | Client + Server |
+| BR-{CODE}-010 | {Brief description} | UC-{CODE}-101 | - | Server-side |
+
+**Enforcement Legend**:
+- **Client-side**: Validated in browser before submission (immediate feedback)
+- **Server-side**: Validated on server (authoritative check)
+- **Client + Server**: Validated in both places (UX + security)
+
+### Validation Rules Traceability
+
+{Map validation rules to fields, use cases, and error messages.}
+
+| Validation Rule | Field | Use Cases | Business Rule | Error Message | Enforcement |
+|-----------------|-------|-----------|---------------|---------------|-------------|
+| VR-{CODE}-001 | {fieldName} | UC-{CODE}-001, UC-{CODE}-002 | BR-{CODE}-001 | {Error message text} | Client + Server |
+| VR-{CODE}-002 | {fieldName} | UC-{CODE}-001 | BR-{CODE}-002 | {Error message text} | Client + Server |
+| VR-{CODE}-003 | {fieldName} | UC-{CODE}-002 | BR-{CODE}-003 | {Error message text} | Client + Server |
+| VR-{CODE}-004 | {fieldName} | UC-{CODE}-003 | BR-{CODE}-005 | {Error message text} | Server |
+| VR-{CODE}-005 | {fieldName} | UC-{CODE}-001, UC-{CODE}-002, UC-{CODE}-003 | BR-{CODE}-002 | System-generated | Server |
+
+### Document Cross-Reference Matrix
+
+{Link all related documentation files.}
+
+| Document | Type | Related Use Cases | Purpose |
+|----------|------|-------------------|---------|
+| BR-{submodule}.md | Business Requirements | All | Business rules, functional requirements, user stories |
+| DD-{submodule}.md | Data Definition | All | Database schema, entity definitions |
+| TS-{submodule}.md | Technical Spec | All | Architecture, component design |
+| FD-{submodule}.md | Flow Diagrams | All | Visual workflows, state diagrams |
+| VAL-{submodule}.md | Validation Rules | UC-{CODE}-001, UC-{CODE}-002, etc. | Field validations, error messages |
+| BE-{submodule}.md | Backend Requirements | All | Server actions, API contracts |
+| UC-{submodule}.md | Use Cases | - | Actor interactions, scenarios (this document) |
+
+### Test Case Coverage Matrix
+
+{Track test coverage by use case and test type.}
+
+| Use Case | Unit Tests | Integration Tests | E2E Tests | Total Tests |
+|----------|------------|-------------------|-----------|-------------|
+| UC-{CODE}-001 | {n} | {n} | {n} | {total} |
+| UC-{CODE}-002 | {n} | {n} | {n} | {total} |
+| UC-{CODE}-003 | {n} | {n} | {n} | {total} |
+| UC-{CODE}-101 | {n} | {n} | {n} | {total} |
+| UC-{CODE}-201 | {n} | {n} | {n} | {total} |
+| **Total** | **{sum}** | **{sum}** | **{sum}** | **{grand total}** |
+
+**Test Type Definitions**:
+- **Unit Tests**: Isolated component/function tests
+- **Integration Tests**: Tests involving multiple components or services
+- **E2E Tests**: Full user workflow tests in browser
+
+### Implementation Status Summary
+
+{High-level tracking of implementation progress.}
+
+| Category | Total | Implemented | In Progress | Planned | Deferred |
+|----------|-------|-------------|-------------|---------|----------|
+| Use Cases | {n} | {n} | {n} | {n} | {n} |
+| Functional Requirements | {n} | {n} | {n} | {n} | {n} |
+| Business Rules | {n} | {n} | {n} | {n} | {n} |
+| Validation Rules | {n} | {n} | {n} | {n} | {n} |
+| Test Cases | {n} | {n} | {n} | {n} | {n} |
+
+**Status Definitions**:
+- **Implemented**: Feature complete and tested
+- **In Progress**: Currently being developed
+- **Planned**: Scheduled for current release
+- **Deferred**: Moved to future phase or release
 
 ---
 

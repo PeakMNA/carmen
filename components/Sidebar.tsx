@@ -144,6 +144,7 @@ const menuItems: MenuItem[] = [
           { name: "Inventory Aging", path: "/inventory-management/stock-overview/inventory-aging" }
         ]
       },
+      { name: "Transactions", path: "/inventory-management/transactions" },
       { name: "Inventory Adjustments", path: "/inventory-management/inventory-adjustments" },
       { name: "Spot Check", path: "/inventory-management/spot-check" },
       { name: "Physical Count", path: "/inventory-management/physical-count-management" },

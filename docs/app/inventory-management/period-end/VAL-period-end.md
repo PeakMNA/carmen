@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Inventory Management - Period End
 - **Component**: Period End Management
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
-- **Status**: Draft - For Implementation
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
+- **Status**: Active
 
 ## Related Documents
 - [Business Requirements](./BR-period-end.md)
@@ -19,6 +19,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-09 | Development Team | Updated status enum values (open, closing, closed, reopened), updated state transition tests for correct status values |
 ---
 
 ## 1. Introduction
@@ -100,14 +101,14 @@ This document defines comprehensive validation rules, Zod schemas, database cons
 
 #### status
 - **Type**: Enum (enum_period_status)
-- **Values**: open, in_progress, closed, void
+- **Values**: open, closing, closed, reopened
 - **Rules**:
   - Required: Yes
   - Must be valid enum value
   - Transitions must follow allowed paths (see state diagram)
 - **Error Messages**:
   - Empty: "Status is required"
-  - Invalid: "Status must be one of: open, in_progress, closed, void"
+  - Invalid: "Status must be one of: open, closing, closed, reopened"
   - Invalid Transition: "Cannot transition from {from} to {to}"
 
 #### notes
@@ -293,10 +294,10 @@ async function validatePeriodClosure(
     return { isValid: false, errors };
   }
 
-  if (period.status !== 'in_progress') {
+  if (period.status !== 'closing') {
     errors.push({
       field: 'status',
-      message: `Period must be in 'In Progress' status to close. Current status: ${period.status}`
+      message: `Period must be in 'Closing' status to close. Current status: ${period.status}`
     });
   }
 
@@ -422,11 +423,11 @@ async function validateSingleActivePeriod(
 ): Promise<ValidationResult> {
   const errors: ValidationError[] = [];
 
-  if (newStatus === 'in_progress') {
-    // Check if another period is already in_progress
+  if (newStatus === 'closing') {
+    // Check if another period is already in closing status
     const activePeriod = await db.periodEnd.findFirst({
       where: {
-        status: 'in_progress',
+        status: 'closing',
         id: { not: periodId }
       }
     });
@@ -434,7 +435,7 @@ async function validateSingleActivePeriod(
     if (activePeriod) {
       errors.push({
         field: 'status',
-        message: `Only one period can be 'In Progress' at a time. Period ${activePeriod.periodId} is currently active.`
+        message: `Only one period can be in 'Closing' status at a time. Period ${activePeriod.periodId} is currently being closed.`
       });
     }
   }
@@ -469,8 +470,8 @@ async function validateTaskCompletion(
     return { isValid: false, errors };
   }
 
-  // 2. Check period status
-  if (!['open', 'in_progress'].includes(task.periodEnd.status)) {
+  // 2. Check period status (allowed: open, closing, or reopened)
+  if (!['open', 'closing', 'reopened'].includes(task.periodEnd.status)) {
     errors.push({
       field: 'period',
       message: `Cannot complete tasks for period with status: ${task.periodEnd.status}`
@@ -534,11 +535,11 @@ async function validatePeriodCancellation(
     return { isValid: false, errors };
   }
 
-  // 2. Check period status
-  if (!['open', 'in_progress'].includes(period.status)) {
+  // 2. Check period status (only open or closing can be cancelled)
+  if (!['open', 'closing'].includes(period.status)) {
     errors.push({
       field: 'status',
-      message: `Only Open or In Progress periods can be cancelled. Current status: ${period.status}`
+      message: `Only Open or Closing periods can be cancelled. Current status: ${period.status}`
     });
   }
 
@@ -837,7 +838,7 @@ ALTER TABLE tb_period_activity
 
 | Code | Message | Resolution |
 |------|---------|------------|
-| `PE-020` | Only one period can be In Progress at a time | Close or cancel active period first |
+| `PE-020` | Only one period can be in Closing status at a time | Complete or cancel active period closure first |
 | `PE-021` | Cannot close period with incomplete tasks | Complete all required tasks |
 | `PE-022` | Cannot close period with uncommitted physical counts | Commit all physical counts for period |
 | `PE-023` | Cannot re-open period: not most recent closed | Only most recent closed period can be re-opened |
@@ -889,7 +890,7 @@ ALTER TABLE tb_period_activity
 | Test ID | Input | Expected Result | Validation Layer |
 |---------|-------|-----------------|------------------|
 | TC-PE-020 | Valid closure (all tasks complete) | Success | All layers |
-| TC-PE-021 | Period status not In Progress | Error: Status check | Server |
+| TC-PE-021 | Period status not Closing | Error: Status check | Server |
 | TC-PE-022 | Incomplete required tasks | Error: PE-021 | Server |
 | TC-PE-023 | Uncommitted physical counts | Warning: PE-022 | Server |
 | TC-PE-024 | User without close permission | Error: PE-041 | Server |
@@ -919,7 +920,7 @@ ALTER TABLE tb_period_activity
 | TC-PE-042 | Task already completed | Error: PE-029 | Server |
 | TC-PE-043 | User without permission | Error: PE-044 | Server |
 | TC-PE-044 | Automated validation fails | Error: PE-030 | Server |
-| TC-PE-045 | Last required task completed | Auto-transition to In Progress | Server |
+| TC-PE-045 | Last required task completed | Auto-transition to Closing | Server |
 | TC-PE-046 | Optional task completion | Success (no state change) | Server |
 
 ### 7.5 Period Cancellation Tests
@@ -937,16 +938,18 @@ ALTER TABLE tb_period_activity
 
 | Test ID | From Status | To Status | Expected Result |
 |---------|-------------|-----------|-----------------|
-| TC-PE-060 | Open | In Progress | Success (if tasks started) |
-| TC-PE-061 | Open | Closed | Error: Must go through In Progress |
-| TC-PE-062 | Open | Void | Success (if no transactions) |
-| TC-PE-063 | In Progress | Closed | Success (if all tasks complete) |
-| TC-PE-064 | In Progress | Open | Success |
-| TC-PE-065 | In Progress | Void | Success (if no transactions) |
-| TC-PE-066 | Closed | Open | Success (if most recent + authorized) |
-| TC-PE-067 | Closed | In Progress | Error: Invalid transition |
-| TC-PE-068 | Closed | Void | Error: Invalid transition |
-| TC-PE-069 | Void | Any | Error: Void is terminal state |
+| TC-PE-060 | Open | Closing | Success (when initiating period close workflow) |
+| TC-PE-061 | Open | Closed | Error: Must go through Closing status |
+| TC-PE-062 | Open | Reopened | Error: Invalid transition (period must be closed first) |
+| TC-PE-063 | Closing | Closed | Success (if all 11 validation tasks complete) |
+| TC-PE-064 | Closing | Open | Success (cancel closing workflow) |
+| TC-PE-065 | Closing | Reopened | Error: Invalid transition |
+| TC-PE-066 | Closed | Reopened | Success (if most recent + authorized + reason provided) |
+| TC-PE-067 | Closed | Closing | Error: Invalid transition (use Reopen first) |
+| TC-PE-068 | Closed | Open | Error: Invalid transition (use Reopen first) |
+| TC-PE-069 | Reopened | Closing | Success (to close period again) |
+| TC-PE-070 | Reopened | Closed | Success (if all tasks still complete) |
+| TC-PE-071 | Reopened | Open | Error: Invalid transition |
 
 ---
 
@@ -961,7 +964,7 @@ ALTER TABLE tb_period_activity
 
 ---
 
-**Document Status**: Draft
-**Last Review**: 2025-01-12
-**Next Review**: 2025-04-12
+**Document Status**: Active
+**Last Review**: 2025-12-09
+**Next Review**: 2026-03-09
 **Maintained By**: Inventory Management Team

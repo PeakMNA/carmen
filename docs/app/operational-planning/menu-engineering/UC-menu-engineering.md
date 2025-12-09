@@ -3,14 +3,33 @@
 ## Document Information
 - **Document Type**: Use Cases Document
 - **Module**: Operational Planning > Menu Engineering
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 1.1.0
+- **Last Updated**: 2025-01-05
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2025-01-05 | System | Added implementation status section |
 | 1.0 | 2024-01-15 | System | Initial use cases document created |
+
+## ⚠️ Implementation Status
+
+**Current State**: SUBSTANTIAL IMPLEMENTATION (~70-80% Complete)
+
+This use case document describes the Menu Engineering module's comprehensive functionality. **See [BR-menu-engineering.md](./BR-menu-engineering.md) Implementation Status section** for detailed breakdown of what EXISTS vs what's PROPOSED.
+
+**Key Implemented Features**:
+- ✅ Menu Engineering Dashboard with Boston Matrix visualization
+- ✅ Sales data import from POS systems (Square, Toast, Clover, Resy, OpenTable)
+- ✅ Cost alert management with configurable thresholds
+- ✅ Recipe performance metrics tracking
+- ✅ Portfolio composition analysis
+- ✅ AI-powered optimization recommendations
+- ✅ Real-time filtering and date range selection
+- ✅ 8 comprehensive API routes with security, validation, and rate limiting
+
+**NOTE**: All use cases in this document are supported by existing UI components, API routes, and services. Database persistence layer and advanced features (competitor analysis, automated notifications, ML forecasting) are in design phase.
 
 ---
 

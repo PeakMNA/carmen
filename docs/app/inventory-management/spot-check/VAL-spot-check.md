@@ -1,48 +1,52 @@
-# Spot Check - Validations (VAL)
+# Validations: Spot Check
 
-## Document Information
-- **Module**: Inventory Management - Spot Check
-- **Document Type**: Validations (VAL)
-- **Related Documents**:
-  - BR-spot-check.md (Business Requirements)
-  - UC-spot-check.md (Use Cases)
-  - TS-spot-check.md (Technical Specification)
-  - DD-spot-check.md (Data Definition)
-  - FD-spot-check.md (Flow Diagrams)
-- **Version**: 1.0
-- **Last Updated**: 2025-01-11
-
-## Table of Contents
-1. [Overview](#overview)
-2. [Validation Categories](#validation-categories)
-3. [Field-Level Validations](#field-level-validations)
-4. [Business Rule Validations](#business-rule-validations)
-5. [Cross-Field Validations](#cross-field-validations)
-6. [Security Validations](#security-validations)
-7. [Error Messages](#error-messages)
-8. [Test Scenarios](#test-scenarios)
-9. [Validation Matrix](#validation-matrix)
+## Module Information
+- **Module**: Inventory Management
+- **Sub-Module**: Spot Check
+- **Route**: `/app/(main)/inventory-management/spot-check`
+- **Version**: 2.1.0
+- **Last Updated**: 2025-12-09
+- **Owner**: Inventory Management Team
+- **Status**: Implemented
 
 ## Document History
-
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.0.0 | 2025-01-11 | System | Initial version |
+| 2.0.0 | 2025-12-06 | System | Updated to reflect actual implementation with client-side validation |
+| 2.1.0 | 2025-12-09 | System | Updated for 2-step wizard, revised SelectionMethod values |
+
 ---
 
 ## Overview
 
-This document defines all validation rules for the Spot Check sub-module. Validations are organized by category and include field-level, business rule, cross-field, and security validations.
+This document defines all validation rules for the Spot Check sub-module. The current implementation uses client-side validation with React Hook Form and Zod schemas.
 
-### Validation Layers
+**Related Documents**:
+- [Business Requirements](./BR-spot-check.md)
+- [Use Cases](./UC-spot-check.md)
+- [Technical Specification](./TS-spot-check.md)
+- [Data Definition](./DD-spot-check.md)
+- [Flow Diagrams](./FD-spot-check.md)
 
-**Three-Tier Validation Architecture**:
-1. **Client-Side (React Hook Form + Zod)**: Immediate feedback, UX optimization
-2. **Server-Side (Server Actions)**: Business logic enforcement, security
-3. **Database-Level (Constraints + Triggers)**: Data integrity guarantees
+---
+
+## Validation Architecture
+
+### Current Implementation
+The current prototype uses **client-side validation** with:
+1. **React Hook Form**: Form state management and validation triggering
+2. **Zod Schemas**: Type-safe validation rules and error messages
+3. **Component Logic**: Business rule validation in component handlers
+
+### Future Implementation (Server-Side)
+When database integration is added:
+1. **Server Actions**: Business logic enforcement, security
+2. **Prisma Constraints**: Data integrity at database level
+3. **Middleware**: Authentication and authorization validation
 
 ### Validation Priorities
-- **Critical**: Data integrity violations, security breaches, financial impact
+- **Critical**: Data integrity violations, required fields, type constraints
 - **High**: Business rule violations, workflow disruption
 - **Medium**: Data quality issues, user experience impact
 - **Low**: Formatting preferences, non-critical warnings
@@ -55,1306 +59,871 @@ This document defines all validation rules for the Spot Check sub-module. Valida
 Individual field constraints: required, format, range, length, data type
 
 ### 2. Business Rule Validations (VAL-SC-101 to 199)
-Business logic enforcement: status transitions, product limits, variance thresholds
+Business logic enforcement: status transitions, item limits, variance thresholds
 
 ### 3. Cross-Field Validations (VAL-SC-201 to 299)
 Multi-field dependencies: date relationships, quantity consistency, status dependencies
 
-### 4. Security Validations (VAL-SC-301 to 399)
-Access control, permissions, data ownership, audit requirements
+### 4. Form Step Validations (VAL-SC-301 to 399)
+2-step wizard validations: step completion requirements, step transition rules
 
 ---
 
 ## Field-Level Validations
 
-### VAL-SC-001: Count Stock Type Required
+### VAL-SC-001: Check Type Required
 **Priority**: Critical
-**Enforcement**: Client, Server, Database
+**Enforcement**: Client (Zod)
 
-**Rule**: The `count_stock_type` field must be set to 'spot' for all spot check records.
+**Rule**: The `checkType` field must be one of the defined check types.
 
 **Validation Logic**:
-```
-IF count_stock_type IS NULL OR count_stock_type != 'spot' THEN
-  ERROR: "Invalid count type. Spot checks must have type 'spot'."
-END IF
+```typescript
+checkType: z.enum(['random', 'targeted', 'high-value', 'variance-based', 'cycle-count'], {
+  required_error: "Check type is required"
+})
 ```
 
-**Error Message**: "Invalid count type. This record must be a spot check."
+**Valid Values**:
+- `random`: System-selected random sample
+- `targeted`: Specific items of interest
+- `high-value`: Focus on expensive items
+- `variance-based`: Items with historical variance
+- `cycle-count`: Part of regular counting cycle
 
-**Tested By**: TEST-SC-VAL-001
+**Error Message**: "Check type is required. Please select a check type."
 
 ---
 
 ### VAL-SC-002: Location Required
 **Priority**: Critical
-**Enforcement**: Client, Server, Database
+**Enforcement**: Client (Zod)
 
-**Rule**: The `location_id` field must reference a valid, active location from tb_location.
+**Rule**: The `locationId` field must be a non-empty string referencing a valid location.
 
 **Validation Logic**:
-```
-IF location_id IS NULL THEN
-  ERROR: "Location is required."
-ELSE IF NOT EXISTS (SELECT 1 FROM tb_location WHERE id = location_id AND deleted_at IS NULL) THEN
-  ERROR: "Invalid location. Location does not exist or is inactive."
-END IF
+```typescript
+locationId: z.string().min(1, { message: "Location is required" })
 ```
 
-**Error Messages**:
-- "Location is required to create a spot check."
-- "Invalid location. Please select an active location."
-
-**Tested By**: TEST-SC-VAL-002
+**Error Message**: "Location is required. Please select a location."
 
 ---
 
-### VAL-SC-003: Count Date Required
+### VAL-SC-003: Scheduled Date Required
 **Priority**: High
-**Enforcement**: Client, Server
+**Enforcement**: Client (Zod)
 
-**Rule**: The `count_date` must be a valid date and cannot be null.
+**Rule**: The `scheduledDate` must be a valid date.
 
 **Validation Logic**:
-```
-IF count_date IS NULL THEN
-  ERROR: "Count date is required."
-ELSE IF count_date IS NOT a valid date THEN
-  ERROR: "Invalid date format."
-END IF
+```typescript
+scheduledDate: z.date({
+  required_error: "Scheduled date is required",
+  invalid_type_error: "Invalid date format"
+})
 ```
 
-**Error Messages**:
-- "Count date is required."
-- "Invalid date format. Please use YYYY-MM-DD."
-
-**Tested By**: TEST-SC-VAL-003
+**Error Message**: "Scheduled date is required."
 
 ---
 
-### VAL-SC-004: Count Date Range
+### VAL-SC-004: Scheduled Date Range
 **Priority**: Medium
-**Enforcement**: Client, Server
+**Enforcement**: Client (Zod)
 
-**Rule**: Count date must be within the last 30 days or up to 1 day in the future.
+**Rule**: Scheduled date should be within a reasonable range (not more than 1 year in past or future).
 
 **Validation Logic**:
-```
-IF count_date < (CURRENT_DATE - INTERVAL '30 days') THEN
-  ERROR: "Count date cannot be more than 30 days in the past."
-ELSE IF count_date > (CURRENT_DATE + INTERVAL '1 day') THEN
-  ERROR: "Count date cannot be more than 1 day in the future."
-END IF
+```typescript
+scheduledDate: z.date()
+  .min(subYears(new Date(), 1), { message: "Date cannot be more than 1 year in the past" })
+  .max(addYears(new Date(), 1), { message: "Date cannot be more than 1 year in the future" })
 ```
 
 **Error Messages**:
-- "Count date cannot be more than 30 days in the past."
-- "Count date cannot be more than 1 day in the future."
-
-**Tested By**: TEST-SC-VAL-004
+- "Date cannot be more than 1 year in the past."
+- "Date cannot be more than 1 year in the future."
 
 ---
 
 ### VAL-SC-005: Status Required
 **Priority**: Critical
-**Enforcement**: Client, Server, Database
+**Enforcement**: Client (Zod)
 
-**Rule**: Status must be one of: 'pending', 'in_progress', 'completed', 'cancelled'.
+**Rule**: Status must be one of the defined status values.
 
 **Validation Logic**:
-```
-IF status NOT IN ('pending', 'in_progress', 'completed', 'cancelled') THEN
-  ERROR: "Invalid status value."
-END IF
+```typescript
+status: z.enum(['draft', 'pending', 'in-progress', 'completed', 'cancelled', 'on-hold'], {
+  required_error: "Status is required"
+})
 ```
 
-**Error Message**: "Invalid status. Status must be pending, in_progress, completed, or cancelled."
+**Valid Values**:
+- `draft`: Initial creation state
+- `pending`: Awaiting start
+- `in-progress`: Active counting
+- `completed`: Final state
+- `cancelled`: Terminated state
+- `on-hold`: Temporarily paused
 
-**Tested By**: TEST-SC-VAL-005
+**Error Message**: "Invalid status value."
 
 ---
 
-### VAL-SC-006: Created By Required
-**Priority**: Critical
-**Enforcement**: Server, Database
-
-**Rule**: The `created_by` field must reference a valid, active user.
-
-**Validation Logic**:
-```
-IF created_by IS NULL THEN
-  ERROR: "Created by user is required."
-ELSE IF NOT EXISTS (SELECT 1 FROM tb_user WHERE id = created_by AND deleted_at IS NULL) THEN
-  ERROR: "Invalid user reference."
-END IF
-```
-
-**Error Message**: "Invalid user. Created by user does not exist or is inactive."
-
-**Tested By**: TEST-SC-VAL-006
-
----
-
-### VAL-SC-007: Product Reference Required
-**Priority**: Critical
-**Enforcement**: Client, Server, Database
-
-**Rule**: Each detail record must reference a valid product from tb_product.
-
-**Validation Logic**:
-```
-IF product_id IS NULL THEN
-  ERROR: "Product is required for each line item."
-ELSE IF NOT EXISTS (SELECT 1 FROM tb_product WHERE id = product_id AND deleted_at IS NULL) THEN
-  ERROR: "Invalid product reference."
-END IF
-```
-
-**Error Messages**:
-- "Product is required for each line item."
-- "Invalid product. Product does not exist or is inactive."
-
-**Tested By**: TEST-SC-VAL-007
-
----
-
-### VAL-SC-008: Unit Reference Required
-**Priority**: Critical
-**Enforcement**: Client, Server, Database
-
-**Rule**: Each detail record must reference a valid unit from tb_unit.
-
-**Validation Logic**:
-```
-IF unit_id IS NULL THEN
-  ERROR: "Unit of measure is required."
-ELSE IF NOT EXISTS (SELECT 1 FROM tb_unit WHERE id = unit_id AND deleted_at IS NULL) THEN
-  ERROR: "Invalid unit reference."
-END IF
-```
-
-**Error Messages**:
-- "Unit of measure is required for each product."
-- "Invalid unit. Unit does not exist or is inactive."
-
-**Tested By**: TEST-SC-VAL-008
-
----
-
-### VAL-SC-009: Expected Quantity Non-Negative
+### VAL-SC-006: Priority Required
 **Priority**: High
-**Enforcement**: Client, Server, Database
+**Enforcement**: Client (Zod)
 
-**Rule**: Expected quantity cannot be negative.
+**Rule**: Priority must be one of the defined priority levels.
 
 **Validation Logic**:
-```
-IF expected_qty IS NOT NULL AND expected_qty < 0 THEN
-  ERROR: "Expected quantity cannot be negative."
-END IF
+```typescript
+priority: z.enum(['low', 'medium', 'high', 'critical'], {
+  required_error: "Priority is required"
+})
 ```
 
-**Error Message**: "Expected quantity cannot be negative."
+**Valid Values**:
+- `low`: Low priority
+- `medium`: Medium priority (default)
+- `high`: High priority
+- `critical`: Critical priority
 
-**Tested By**: TEST-SC-VAL-009
+**Error Message**: "Priority is required. Please select a priority level."
 
 ---
 
-### VAL-SC-010: Actual Quantity Required for Counted Items
+### VAL-SC-007: Assigned Staff Required
 **Priority**: High
-**Enforcement**: Client, Server
+**Enforcement**: Client (Zod)
 
-**Rule**: When status is 'counted', actual_qty must be provided and non-negative.
+**Rule**: The `assignedTo` field must be a non-empty string.
 
 **Validation Logic**:
-```
-IF status = 'counted' THEN
-  IF actual_qty IS NULL THEN
-    ERROR: "Actual quantity is required for counted items."
-  ELSE IF actual_qty < 0 THEN
-    ERROR: "Actual quantity cannot be negative."
-  END IF
-END IF
+```typescript
+assignedTo: z.string().min(1, { message: "Assigned staff is required" })
 ```
 
-**Error Messages**:
-- "Actual quantity is required for counted items."
-- "Actual quantity cannot be negative."
-
-**Tested By**: TEST-SC-VAL-010
+**Error Message**: "Assigned staff is required. Please select a staff member."
 
 ---
 
-### VAL-SC-011: Variance Calculation Accuracy
-**Priority**: High
-**Enforcement**: Server, Database
-
-**Rule**: Variance quantity must equal (actual_qty - expected_qty) when both are provided.
-
-**Validation Logic**:
-```
-IF actual_qty IS NOT NULL AND expected_qty IS NOT NULL THEN
-  calculated_variance = actual_qty - expected_qty
-  IF variance_qty != calculated_variance THEN
-    ERROR: "Variance quantity calculation is incorrect."
-  END IF
-END IF
-```
-
-**Error Message**: "Variance quantity calculation is incorrect. Expected {calculated_variance}, got {variance_qty}."
-
-**Tested By**: TEST-SC-VAL-011
-
----
-
-### VAL-SC-012: Variance Percentage Calculation
-**Priority**: High
-**Enforcement**: Server, Database
-
-**Rule**: Variance percentage must be calculated correctly: (variance_qty / expected_qty) * 100.
-
-**Validation Logic**:
-```
-IF variance_qty IS NOT NULL AND expected_qty IS NOT NULL AND expected_qty != 0 THEN
-  calculated_pct = (variance_qty / expected_qty) * 100
-  IF ABS(variance_pct - calculated_pct) > 0.01 THEN
-    ERROR: "Variance percentage calculation is incorrect."
-  END IF
-END IF
-```
-
-**Error Message**: "Variance percentage calculation is incorrect."
-
-**Tested By**: TEST-SC-VAL-012
-
----
-
-### VAL-SC-013: Variance Value Calculation
-**Priority**: High
-**Enforcement**: Server
-
-**Rule**: Variance value must equal variance_qty * unit_cost.
-
-**Validation Logic**:
-```
-IF variance_qty IS NOT NULL AND unit_cost IS NOT NULL THEN
-  calculated_value = variance_qty * unit_cost
-  IF ABS(variance_value - calculated_value) > 0.01 THEN
-    ERROR: "Variance value calculation is incorrect."
-  END IF
-END IF
-```
-
-**Error Message**: "Variance value calculation is incorrect."
-
-**Tested By**: TEST-SC-VAL-013
-
----
-
-### VAL-SC-014: Unit Cost Non-Negative
-**Priority**: High
-**Enforcement**: Client, Server
-
-**Rule**: Unit cost must be zero or positive.
-
-**Validation Logic**:
-```
-IF unit_cost IS NOT NULL AND unit_cost < 0 THEN
-  ERROR: "Unit cost cannot be negative."
-END IF
-```
-
-**Error Message**: "Unit cost cannot be negative."
-
-**Tested By**: TEST-SC-VAL-014
-
----
-
-### VAL-SC-015: Remark Length Limit
-**Priority**: Low
-**Enforcement**: Client, Server
-
-**Rule**: Remark field cannot exceed 500 characters.
-
-**Validation Logic**:
-```
-IF remark IS NOT NULL AND LENGTH(remark) > 500 THEN
-  ERROR: "Remark cannot exceed 500 characters."
-END IF
-```
-
-**Error Message**: "Remark cannot exceed 500 characters. Current length: {length}."
-
-**Tested By**: TEST-SC-VAL-015
-
----
-
-### VAL-SC-016: Count Number Format
+### VAL-SC-008: Reason Required
 **Priority**: Medium
-**Enforcement**: Server, Database
+**Enforcement**: Client (Zod)
 
-**Rule**: Count number must follow format: CNT-YYYY-NNNN (e.g., CNT-2024-0001).
+**Rule**: A reason for the spot check must be provided.
 
 **Validation Logic**:
-```
-IF count_no IS NOT NULL THEN
-  IF count_no !~ '^CNT-\d{4}-\d{4}$' THEN
-    ERROR: "Invalid count number format."
-  END IF
-END IF
+```typescript
+reason: z.string().min(1, { message: "Reason is required" })
 ```
 
-**Error Message**: "Invalid count number format. Expected format: CNT-YYYY-NNNN (e.g., CNT-2024-0001)."
-
-**Tested By**: TEST-SC-VAL-016
+**Error Message**: "Reason is required. Please provide a reason for this spot check."
 
 ---
 
-### VAL-SC-017: Detail Status Required
-**Priority**: Critical
-**Enforcement**: Client, Server, Database
-
-**Rule**: Detail record status must be one of: 'pending', 'counted', 'skipped'.
-
-**Validation Logic**:
-```
-IF status NOT IN ('pending', 'counted', 'skipped') THEN
-  ERROR: "Invalid detail status."
-END IF
-```
-
-**Error Message**: "Invalid detail status. Status must be pending, counted, or skipped."
-
-**Tested By**: TEST-SC-VAL-017
-
----
-
-### VAL-SC-018: Approval Required Fields
+### VAL-SC-009: Counted Quantity Non-Negative
 **Priority**: High
-**Enforcement**: Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: When approved_by is set, approved_at must also be set.
+**Rule**: Counted quantity cannot be negative.
 
 **Validation Logic**:
-```
-IF approved_by IS NOT NULL AND approved_at IS NULL THEN
-  ERROR: "Approval timestamp is required when approver is set."
-ELSE IF approved_by IS NULL AND approved_at IS NOT NULL THEN
-  ERROR: "Approver is required when approval timestamp is set."
-END IF
+```typescript
+if (countedQuantity !== null && countedQuantity < 0) {
+  setError("Counted quantity cannot be negative")
+}
 ```
 
-**Error Messages**:
-- "Approval timestamp is required when approver is set."
-- "Approver is required when approval timestamp is set."
+**Error Message**: "Counted quantity cannot be negative."
 
-**Tested By**: TEST-SC-VAL-018
+---
+
+### VAL-SC-010: Counted Quantity Required for Completion
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: When marking an item as counted, quantity must be provided.
+
+**Validation Logic**:
+```typescript
+if (status === 'counted' && countedQuantity === null) {
+  setError("Counted quantity is required")
+}
+```
+
+**Error Message**: "Counted quantity is required for counted items."
+
+---
+
+### VAL-SC-011: Item Condition Required
+**Priority**: High
+**Enforcement**: Client (Zod)
+
+**Rule**: Item condition must be one of the defined conditions.
+
+**Validation Logic**:
+```typescript
+condition: z.enum(['good', 'damaged', 'expired', 'missing'], {
+  required_error: "Item condition is required"
+})
+```
+
+**Valid Values**:
+- `good`: Item in good condition
+- `damaged`: Item is damaged
+- `expired`: Item has expired
+- `missing`: Item is missing
+
+**Error Message**: "Item condition is required."
+
+---
+
+### VAL-SC-012: Notes Length Limit
+**Priority**: Low
+**Enforcement**: Client (Zod)
+
+**Rule**: Notes field cannot exceed 500 characters.
+
+**Validation Logic**:
+```typescript
+notes: z.string().max(500, { message: "Notes cannot exceed 500 characters" }).optional()
+```
+
+**Error Message**: "Notes cannot exceed 500 characters."
+
+---
+
+### VAL-SC-013: Check Number Format
+**Priority**: Medium
+**Enforcement**: Client/Server
+
+**Rule**: Check number must follow format: SC-YYMMDD-XXXX (e.g., SC-251206-0001).
+
+**Validation Logic**:
+```typescript
+if (checkNumber && !/^SC-\d{6}-\d{4}$/.test(checkNumber)) {
+  setError("Invalid check number format")
+}
+```
+
+**Error Message**: "Invalid check number format. Expected: SC-YYMMDD-XXXX"
+
+---
+
+### VAL-SC-014: Item Selection Method Required
+**Priority**: High
+**Enforcement**: Client (Zod)
+
+**Rule**: Selection method must be specified for item generation in the 2-step wizard.
+
+**Validation Logic**:
+```typescript
+selectionMethod: z.enum(['random', 'high-value', 'manual'], {
+  required_error: "Selection method is required"
+})
+```
+
+**Valid Values**:
+- `random`: System generates random selection of items
+- `high-value`: Automatically selects highest-value items
+- `manual`: User selects individual items
+
+**Error Message**: "Selection method is required."
+
+---
+
+### VAL-SC-015: Item Count for Random/High-Value Selection
+**Priority**: High
+**Enforcement**: Client (Zod)
+
+**Rule**: When using random or high-value selection, item count must be one of the predefined values.
+
+**Validation Logic**:
+```typescript
+itemCount: z.union([z.literal(10), z.literal(20), z.literal(50)], {
+  required_error: "Item count is required"
+})
+```
+
+**Valid Values**:
+- `10`: Quick spot check (minimal items)
+- `20`: Standard spot check (default)
+- `50`: Comprehensive spot check
+
+**Error Message**: "Item count must be 10, 20, or 50."
+
+---
+
+### VAL-SC-016: Selected Items Required for Manual Selection
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: When using manual selection method, at least one item must be selected.
+
+**Validation Logic**:
+```typescript
+if (selectionMethod === 'manual' && selectedItems.length === 0) {
+  setError("At least one item must be selected for manual selection")
+}
+```
+
+**Error Message**: "At least one item must be selected when using manual selection."
+
+---
+
+### VAL-SC-017: Skip Reason Required
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: When skipping an item, a reason must be provided.
+
+**Validation Logic**:
+```typescript
+if (status === 'skipped' && (!skipReason || skipReason.trim() === '')) {
+  setError("Skip reason is required")
+}
+```
+
+**Error Message**: "Skip reason is required when skipping an item."
+
+---
+
+### VAL-SC-018: Cancel Reason Required
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: When cancelling a spot check, a reason must be selected.
+
+**Validation Logic**:
+```typescript
+if (!cancelReason) {
+  setError("Cancellation reason is required")
+}
+```
+
+**Valid Cancellation Reasons**:
+- Items Unavailable
+- Staff Unavailable
+- Incorrect Items
+- Duplicate Check
+- Emergency
+- Other
+
+**Error Message**: "Cancellation reason is required."
 
 ---
 
 ## Business Rule Validations
 
-### VAL-SC-101: Minimum Product Count
+### VAL-SC-101: Minimum Item Count
 **Priority**: High
-**Enforcement**: Client, Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: A spot check must include at least 1 product.
+**Rule**: A spot check must include at least 1 item.
 
 **Validation Logic**:
-```
-product_count = COUNT(SELECT id FROM tb_count_stock_detail
-                      WHERE count_stock_id = {id} AND deleted_at IS NULL)
-
-IF product_count < 1 THEN
-  ERROR: "Spot check must include at least 1 product."
-END IF
+```typescript
+if (items.length < 1) {
+  setError("Spot check must include at least 1 item")
+}
 ```
 
-**Error Message**: "Spot check must include at least 1 product. Please add products before proceeding."
-
-**Business Rule Reference**: BR-SC-002
-
-**Tested By**: TEST-SC-VAL-101
+**Error Message**: "Spot check must include at least 1 item. Please add items before proceeding."
 
 ---
 
-### VAL-SC-102: Maximum Product Count
+### VAL-SC-102: Items Required Before Submission
 **Priority**: High
-**Enforcement**: Client, Server
+**Enforcement**: Client (Wizard Step Validation)
 
-**Rule**: A spot check cannot exceed 50 products.
+**Rule**: Items must be selected before the spot check can be created.
 
 **Validation Logic**:
+```typescript
+// Step 3 validation
+if (currentStep === 3 && selectedItems.length === 0) {
+  setStepError("Please select at least one item")
+  return false
+}
 ```
-product_count = COUNT(SELECT id FROM tb_count_stock_detail
-                      WHERE count_stock_id = {id} AND deleted_at IS NULL)
 
-IF product_count > 50 THEN
-  ERROR: "Spot check cannot exceed 50 products."
-END IF
-```
-
-**Error Message**: "Spot check cannot exceed 50 products. Current count: {product_count}. Please remove {excess} product(s)."
-
-**Business Rule Reference**: BR-SC-002
-
-**Tested By**: TEST-SC-VAL-102
+**Error Message**: "Please select at least one item to include in the spot check."
 
 ---
 
-### VAL-SC-103: Unique Products Per Spot Check
+### VAL-SC-103: Unique Items Per Spot Check
 **Priority**: High
-**Enforcement**: Server, Database
+**Enforcement**: Client (Component Logic)
 
-**Rule**: Each product can only appear once in a spot check.
+**Rule**: Each item can only appear once in a spot check.
 
 **Validation Logic**:
-```
-duplicate_count = COUNT(SELECT product_id
-                        FROM tb_count_stock_detail
-                        WHERE count_stock_id = {id} AND deleted_at IS NULL
-                        GROUP BY product_id
-                        HAVING COUNT(*) > 1)
-
-IF duplicate_count > 0 THEN
-  ERROR: "Duplicate products detected in spot check."
-END IF
+```typescript
+const uniqueIds = new Set(items.map(item => item.itemId))
+if (uniqueIds.size !== items.length) {
+  setError("Duplicate items detected")
+}
 ```
 
-**Error Message**: "Product '{product_name}' is already included in this spot check. Each product can only appear once."
-
-**Business Rule Reference**: BR-SC-003
-
-**Tested By**: TEST-SC-VAL-103
+**Error Message**: "Duplicate items detected. Each item can only appear once in a spot check."
 
 ---
 
-### VAL-SC-104: Status Transition - Pending to In Progress
+### VAL-SC-104: Status Transition - Pending to In-Progress
 **Priority**: High
-**Enforcement**: Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: Spot check can transition from 'pending' to 'in_progress' only.
+**Rule**: Spot check can transition from 'pending' to 'in-progress' (Start action).
 
 **Validation Logic**:
-```
-IF current_status = 'pending' THEN
-  IF new_status NOT IN ('in_progress', 'cancelled') THEN
-    ERROR: "Invalid status transition from pending."
-  END IF
-END IF
+```typescript
+function canStart(status: SpotCheckStatus): boolean {
+  return status === 'pending'
+}
 ```
 
-**Error Message**: "Invalid status transition. Pending spot checks can only be set to in_progress or cancelled."
-
-**Business Rule Reference**: BR-SC-006
-
-**Tested By**: TEST-SC-VAL-104
+**Error Message**: "Cannot start spot check. Current status must be 'pending'."
 
 ---
 
-### VAL-SC-105: Status Transition - In Progress to Completed
+### VAL-SC-105: Status Transition - In-Progress to Completed
 **Priority**: High
-**Enforcement**: Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: Spot check can transition from 'in_progress' to 'completed' only when all items are counted.
+**Rule**: Spot check can transition from 'in-progress' to 'completed' only when all items are counted or skipped.
 
 **Validation Logic**:
-```
-IF current_status = 'in_progress' AND new_status = 'completed' THEN
-  pending_count = COUNT(SELECT id FROM tb_count_stock_detail
-                        WHERE count_stock_id = {id}
-                        AND status = 'pending'
-                        AND deleted_at IS NULL)
-
-  IF pending_count > 0 THEN
-    ERROR: "Cannot complete spot check with pending items."
-  END IF
-END IF
+```typescript
+const pendingItems = items.filter(item => item.status === 'pending')
+if (pendingItems.length > 0) {
+  setError(`Cannot complete. ${pendingItems.length} items still pending.`)
+  return false
+}
 ```
 
-**Error Message**: "Cannot complete spot check. {pending_count} item(s) still pending. Please count all items or mark them as skipped."
-
-**Business Rule Reference**: BR-SC-007
-
-**Tested By**: TEST-SC-VAL-105
+**Error Message**: "Cannot complete spot check. {count} item(s) still pending. Please count all items or mark them as skipped."
 
 ---
 
-### VAL-SC-106: Cannot Modify Completed Spot Check
-**Priority**: Critical
-**Enforcement**: Server
-
-**Rule**: Completed spot checks cannot be modified (except for soft delete).
-
-**Validation Logic**:
-```
-IF current_status = 'completed' THEN
-  IF operation != 'soft_delete' THEN
-    ERROR: "Cannot modify completed spot check."
-  END IF
-END IF
-```
-
-**Error Message**: "Cannot modify completed spot check '{count_no}'. Completed spot checks are locked for data integrity."
-
-**Business Rule Reference**: BR-SC-008
-
-**Tested By**: TEST-SC-VAL-106
-
----
-
-### VAL-SC-107: Cannot Modify Cancelled Spot Check
-**Priority**: High
-**Enforcement**: Server
-
-**Rule**: Cancelled spot checks cannot be modified (except for soft delete).
-
-**Validation Logic**:
-```
-IF current_status = 'cancelled' THEN
-  IF operation != 'soft_delete' THEN
-    ERROR: "Cannot modify cancelled spot check."
-  END IF
-END IF
-```
-
-**Error Message**: "Cannot modify cancelled spot check '{count_no}'. Cancelled spot checks cannot be reopened."
-
-**Business Rule Reference**: BR-SC-009
-
-**Tested By**: TEST-SC-VAL-107
-
----
-
-### VAL-SC-108: High Variance Threshold
-**Priority**: High
-**Enforcement**: Server
-
-**Rule**: Items with >5% variance OR variance value >$100 require supervisor approval.
-
-**Validation Logic**:
-```
-FOR EACH detail IN spot_check_details:
-  IF (ABS(detail.variance_pct) > 5) OR (ABS(detail.variance_value) > 100) THEN
-    detail.requires_approval = true
-    IF spot_check.status = 'completed' AND detail.approved_by IS NULL THEN
-      ERROR: "High variance items require supervisor approval."
-    END IF
-  END IF
-END FOR
-```
-
-**Error Message**: "Product '{product_name}' has high variance ({variance_pct}% / ${variance_value}). Supervisor approval required before completion."
-
-**Business Rule Reference**: BR-SC-020
-
-**Tested By**: TEST-SC-VAL-108
-
----
-
-### VAL-SC-109: Location Accessibility
-**Priority**: High
-**Enforcement**: Server
-
-**Rule**: User must have access to the location to create/modify spot checks.
-
-**Validation Logic**:
-```
-IF NOT user_has_location_access(user_id, location_id) THEN
-  ERROR: "User does not have access to this location."
-END IF
-```
-
-**Error Message**: "You do not have access to location '{location_name}'. Please contact your manager to request access."
-
-**Business Rule Reference**: BR-SC-015
-
-**Tested By**: TEST-SC-VAL-109
-
----
-
-### VAL-SC-110: Cannot Add Products After In Progress
+### VAL-SC-106: Status Transition - In-Progress to On-Hold
 **Priority**: Medium
-**Enforcement**: Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: Products cannot be added or removed once spot check is in_progress.
+**Rule**: Spot check can transition from 'in-progress' to 'on-hold' (Pause action).
 
 **Validation Logic**:
-```
-IF current_status = 'in_progress' THEN
-  IF operation IN ('add_product', 'remove_product') THEN
-    ERROR: "Cannot modify product list after counting has started."
-  END IF
-END IF
+```typescript
+function canPause(status: SpotCheckStatus): boolean {
+  return status === 'in-progress'
+}
 ```
 
-**Error Message**: "Cannot add or remove products after counting has started. Product list is locked once spot check is in progress."
-
-**Business Rule Reference**: BR-SC-011
-
-**Tested By**: TEST-SC-VAL-110
+**Error Message**: "Cannot pause spot check. Current status must be 'in-progress'."
 
 ---
 
-### VAL-SC-111: Approval Authority
+### VAL-SC-107: Status Transition - On-Hold to In-Progress
+**Priority**: Medium
+**Enforcement**: Client (Component Logic)
+
+**Rule**: Spot check can transition from 'on-hold' to 'in-progress' (Resume action).
+
+**Validation Logic**:
+```typescript
+function canResume(status: SpotCheckStatus): boolean {
+  return status === 'on-hold'
+}
+```
+
+**Error Message**: "Cannot resume spot check. Current status must be 'on-hold'."
+
+---
+
+### VAL-SC-108: Cannot Modify Completed Spot Check
 **Priority**: Critical
-**Enforcement**: Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: Only users with role 'supervisor' or 'manager' can approve high variance items.
+**Rule**: Completed spot checks cannot be modified.
 
 **Validation Logic**:
+```typescript
+if (spotCheck.status === 'completed') {
+  setError("Cannot modify completed spot check")
+  return
+}
 ```
-IF operation = 'approve_variance' THEN
-  IF user_role NOT IN ('supervisor', 'manager') THEN
-    ERROR: "Insufficient permissions to approve high variance items."
-  END IF
-END IF
-```
 
-**Error Message**: "Only supervisors and managers can approve high variance items. Current role: {user_role}."
-
-**Business Rule Reference**: BR-SC-021
-
-**Tested By**: TEST-SC-VAL-111
+**Error Message**: "Cannot modify completed spot check. Completed spot checks are locked for data integrity."
 
 ---
 
-### VAL-SC-112: ITS Integration Required
+### VAL-SC-109: Cannot Modify Cancelled Spot Check
 **Priority**: High
-**Enforcement**: Server
+**Enforcement**: Client (Component Logic)
 
-**Rule**: Expected quantities must be fetched from ITS when starting spot check.
+**Rule**: Cancelled spot checks cannot be modified.
 
 **Validation Logic**:
-```
-IF status = 'in_progress' THEN
-  FOR EACH detail IN details:
-    IF detail.expected_qty IS NULL AND ITS_available() THEN
-      ERROR: "Expected quantities not retrieved from ITS."
-    END IF
-  END FOR
-END IF
+```typescript
+if (spotCheck.status === 'cancelled') {
+  setError("Cannot modify cancelled spot check")
+  return
+}
 ```
 
-**Error Message**: "Failed to retrieve expected quantities from Inventory Transaction System. Please try again or contact support."
+**Error Message**: "Cannot modify cancelled spot check. Cancelled spot checks cannot be reopened."
 
-**Business Rule Reference**: BR-SC-023
+---
 
-**Tested By**: TEST-SC-VAL-112
+### VAL-SC-110: Cancellation Available States
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: Only non-completed spot checks can be cancelled.
+
+**Validation Logic**:
+```typescript
+function canCancel(status: SpotCheckStatus): boolean {
+  return status !== 'completed' && status !== 'cancelled'
+}
+```
+
+**Valid States for Cancellation**:
+- draft
+- pending
+- in-progress
+- on-hold
+
+**Error Message**: "Cannot cancel completed spot check."
+
+---
+
+### VAL-SC-111: Item Status Transitions
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: Item status must follow valid transition paths.
+
+**Valid Transitions**:
+- `pending` → `counted`
+- `pending` → `skipped`
+- `counted` → `variance` (automatic when variance detected)
+
+**Validation Logic**:
+```typescript
+function isValidItemTransition(from: ItemCheckStatus, to: ItemCheckStatus): boolean {
+  const validTransitions = {
+    'pending': ['counted', 'skipped'],
+    'counted': ['variance'],
+    'variance': [],
+    'skipped': []
+  }
+  return validTransitions[from]?.includes(to) ?? false
+}
+```
+
+**Error Message**: "Invalid item status transition from {from} to {to}."
 
 ---
 
 ## Cross-Field Validations
 
-### VAL-SC-201: Count Date Cannot Exceed Current Date
-**Priority**: High
-**Enforcement**: Client, Server
-
-**Rule**: Count date cannot be more than 1 day in the future.
-
-**Validation Logic**:
-```
-IF count_date > (CURRENT_DATE + INTERVAL '1 day') THEN
-  ERROR: "Count date cannot be more than 1 day in the future."
-END IF
-```
-
-**Error Message**: "Count date cannot be more than 1 day in the future. Selected date: {count_date}, maximum allowed: {max_date}."
-
-**Tested By**: TEST-SC-VAL-201
-
----
-
-### VAL-SC-202: Approval Date After Count Date
+### VAL-SC-201: Due Date After Scheduled Date
 **Priority**: Medium
-**Enforcement**: Server
+**Enforcement**: Client (Zod Refine)
 
-**Rule**: Approval timestamp must be equal to or after the count date.
+**Rule**: If due date is provided, it must be on or after the scheduled date.
 
 **Validation Logic**:
-```
-IF approved_at IS NOT NULL AND count_date IS NOT NULL THEN
-  IF DATE(approved_at) < count_date THEN
-    ERROR: "Approval date cannot be before count date."
-  END IF
-END IF
+```typescript
+.refine(
+  (data) => !data.dueDate || data.dueDate >= data.scheduledDate,
+  {
+    message: "Due date must be on or after scheduled date",
+    path: ["dueDate"]
+  }
+)
 ```
 
-**Error Message**: "Approval date ({approved_at}) cannot be before count date ({count_date})."
-
-**Tested By**: TEST-SC-VAL-202
+**Error Message**: "Due date must be on or after scheduled date."
 
 ---
 
-### VAL-SC-203: Cannot Count Before Pending
+### VAL-SC-202: Variance Calculation Consistency
 **Priority**: High
-**Enforcement**: Server
+**Enforcement**: Client (Automatic Calculation)
 
-**Rule**: Detail items cannot have status 'counted' when parent status is 'pending'.
+**Rule**: Variance quantity must equal (countedQuantity - systemQuantity).
 
 **Validation Logic**:
-```
-IF parent_status = 'pending' THEN
-  counted_items = COUNT(SELECT id FROM tb_count_stock_detail
-                        WHERE count_stock_id = {id}
-                        AND status = 'counted'
-                        AND deleted_at IS NULL)
-
-  IF counted_items > 0 THEN
-    ERROR: "Cannot have counted items when spot check is pending."
-  END IF
-END IF
+```typescript
+const calculatedVariance = countedQuantity - systemQuantity
+if (Math.abs(item.variance - calculatedVariance) > 0.001) {
+  console.warn("Variance mismatch detected")
+  item.variance = calculatedVariance // Auto-correct
+}
 ```
 
-**Error Message**: "Items cannot be counted before starting the spot check. Please set status to 'in_progress' first."
-
-**Tested By**: TEST-SC-VAL-203
+**Note**: Variance is calculated automatically; this validation ensures consistency.
 
 ---
 
-### VAL-SC-204: Counted Timestamp Consistency
-**Priority**: Medium
-**Enforcement**: Server
+### VAL-SC-203: Variance Percentage Calculation
+**Priority**: High
+**Enforcement**: Client (Automatic Calculation)
 
-**Rule**: counted_at timestamp must be set when status is 'counted'.
+**Rule**: Variance percentage must be calculated correctly: (variance / systemQuantity) * 100.
 
 **Validation Logic**:
+```typescript
+const calculatedPct = systemQuantity !== 0
+  ? (variance / systemQuantity) * 100
+  : 0
+
+if (Math.abs(item.variancePercent - calculatedPct) > 0.01) {
+  console.warn("Variance percentage mismatch detected")
+  item.variancePercent = calculatedPct // Auto-correct
+}
 ```
-IF status = 'counted' AND counted_at IS NULL THEN
-  ERROR: "Counted timestamp is required for counted items."
-ELSE IF status != 'counted' AND counted_at IS NOT NULL THEN
-  ERROR: "Counted timestamp should only be set for counted items."
-END IF
+
+---
+
+### VAL-SC-204: Missing Condition Implies Full Variance
+**Priority**: Medium
+**Enforcement**: Client (Component Logic)
+
+**Rule**: When item condition is 'missing', variance should equal negative system quantity.
+
+**Validation Logic**:
+```typescript
+if (condition === 'missing') {
+  countedQuantity = 0
+  variance = -systemQuantity
+  variancePercent = -100
+}
+```
+
+---
+
+### VAL-SC-205: All Items Counted Before Completion
+**Priority**: High
+**Enforcement**: Client (Component Logic)
+
+**Rule**: When completing a spot check, all items must have status 'counted' or 'skipped'.
+
+**Validation Logic**:
+```typescript
+const allItemsProcessed = items.every(
+  item => item.status === 'counted' || item.status === 'skipped'
+)
+
+if (!allItemsProcessed) {
+  setError("All items must be counted or skipped before completion")
+}
+```
+
+**Error Message**: "All items must be counted or skipped before completing the spot check."
+
+---
+
+## Form Step Validations (2-Step Creation Wizard)
+
+### VAL-SC-301: Step 1 - Location Selection Required
+**Priority**: Critical
+**Enforcement**: Client (Wizard Navigation)
+
+**Rule**: Cannot proceed to Step 2 without selecting a location.
+
+**Required Fields**:
+- locationId (required)
+- departmentId (optional)
+- assignedTo (required)
+- scheduledDate (required)
+
+**Validation Logic**:
+```typescript
+function validateStep1(data: SpotCheckFormData): boolean {
+  return !!(
+    data.locationId &&
+    data.assignedTo &&
+    data.scheduledDate
+  )
+}
+```
+
+**Error Message**: "Please select a location to continue."
+
+---
+
+### VAL-SC-302: Step 2 - Method & Items Configuration Required
+**Priority**: High
+**Enforcement**: Client (Wizard Navigation)
+
+**Rule**: Cannot create spot check without configuring method and items.
+
+**Required Fields**:
+- selectionMethod (required)
+- itemCount (required for random/high-value)
+- selectedItems (required for manual)
+
+**Validation Logic**:
+```typescript
+function validateStep2(data: SpotCheckFormData, selectedItems: SpotCheckItem[]): boolean {
+  if (!data.selectionMethod) return false;
+
+  if (data.selectionMethod === 'manual') {
+    return selectedItems.length > 0;
+  }
+
+  // For random and high-value
+  return [10, 20, 50].includes(data.itemCount);
+}
 ```
 
 **Error Messages**:
-- "Counted timestamp is required for counted items."
-- "Counted timestamp should only be set for counted items."
-
-**Tested By**: TEST-SC-VAL-204
-
----
-
-### VAL-SC-205: Total Items Consistency
-**Priority**: Medium
-**Enforcement**: Server
-
-**Rule**: info.total_items must match actual count of detail records.
-
-**Validation Logic**:
-```
-actual_count = COUNT(SELECT id FROM tb_count_stock_detail
-                     WHERE count_stock_id = {id} AND deleted_at IS NULL)
-
-IF info->>'total_items' IS NOT NULL THEN
-  stored_count = CAST(info->>'total_items' AS INTEGER)
-  IF stored_count != actual_count THEN
-    ERROR: "Total items count mismatch."
-  END IF
-END IF
-```
-
-**Error Message**: "Total items count mismatch. Expected {actual_count}, got {stored_count}."
-
-**Tested By**: TEST-SC-VAL-205
+- "Please select a selection method."
+- "Please select an item count (10, 20, or 50)."
+- "Please select at least one item for manual selection."
 
 ---
 
-## Security Validations
-
-### VAL-SC-301: User Authentication Required
-**Priority**: Critical
-**Enforcement**: Server
-
-**Rule**: All spot check operations require authenticated user.
-
-**Validation Logic**:
-```
-IF user_session IS NULL OR user_session.expired THEN
-  ERROR: "Authentication required."
-END IF
-```
-
-**Error Message**: "Authentication required. Please log in to continue."
-
-**Tested By**: TEST-SC-VAL-301
+### VAL-SC-303: (Deprecated - Was Step 3 Item Selection)
+**Note**: Merged into VAL-SC-302 as part of the 2-step wizard consolidation.
 
 ---
 
-### VAL-SC-302: Role-Based Access Control
-**Priority**: Critical
-**Enforcement**: Server
-
-**Rule**: User must have appropriate role to perform actions.
-
-**Validation Logic**:
-```
-action_role_matrix = {
-  'create': ['storekeeper', 'coordinator', 'supervisor', 'manager'],
-  'update': ['storekeeper', 'coordinator', 'supervisor', 'manager'],
-  'delete': ['supervisor', 'manager'],
-  'approve': ['supervisor', 'manager'],
-  'complete': ['coordinator', 'supervisor', 'manager']
-}
-
-IF user_role NOT IN action_role_matrix[action] THEN
-  ERROR: "Insufficient permissions for this action."
-END IF
-```
-
-**Error Message**: "Insufficient permissions to {action} spot checks. Required role: {required_roles}. Your role: {user_role}."
-
-**Tested By**: TEST-SC-VAL-302
+### VAL-SC-304: (Deprecated - Was Step 4 Review)
+**Note**: The 2-step wizard eliminates the separate review step. Submission occurs directly from Step 2.
 
 ---
 
-### VAL-SC-303: Location-Based Permissions
-**Priority**: High
-**Enforcement**: Server
-
-**Rule**: User can only view/modify spot checks for locations they have access to.
-
-**Validation Logic**:
-```
-user_locations = get_user_locations(user_id)
-
-IF spot_check.location_id NOT IN user_locations THEN
-  ERROR: "Access denied to location."
-END IF
-```
-
-**Error Message**: "Access denied. You do not have permissions for location '{location_name}'."
-
-**Tested By**: TEST-SC-VAL-303
-
----
-
-### VAL-SC-304: Audit Trail Required
-**Priority**: Critical
-**Enforcement**: Server, Database
-
-**Rule**: All modifications must be logged with user, timestamp, and action.
-
-**Validation Logic**:
-```
-IF operation IN ('create', 'update', 'delete', 'complete') THEN
-  IF NOT audit_log_created THEN
-    ERROR: "Audit logging failed."
-  END IF
-END IF
-```
-
-**Error Message**: "System error: Audit logging failed. Operation aborted for data integrity."
-
-**Tested By**: TEST-SC-VAL-304
-
----
-
-## Error Messages
+## Error Message Standards
 
 ### Format Standards
 All error messages follow this structure:
-- **Field-Level**: "{Field name} {constraint}. {Additional context}."
+- **Field-Level**: "{Field name} {constraint}."
 - **Business Rule**: "Cannot {action} because {reason}. {Suggested action}."
-- **Security**: "{Access type} denied. {Required permission}. {Current permission}."
+- **Step Validation**: "Please {action} to continue."
 
-### Error Message Categories
+### Error Display Locations
+- **Form Fields**: Below the field with red text
+- **Step Validation**: Toast notification or inline alert
+- **Dialog Validation**: Within the dialog with highlighted fields
+- **Action Buttons**: Tooltip on disabled buttons explaining why
 
-#### Validation Errors (400 Bad Request)
-```json
-{
-  "error": "Validation Error",
-  "code": "VAL-SC-XXX",
-  "message": "Human-readable error message",
-  "field": "field_name",
-  "value": "submitted_value",
-  "constraint": "validation_rule"
-}
+---
+
+## Zod Schema Examples
+
+### Creation Form Schema (2-Step Wizard)
+```typescript
+const spotCheckFormSchema = z.object({
+  // Step 1 - Location Selection
+  locationId: z.string().min(1, "Location is required"),
+  departmentId: z.string().optional(),
+  assignedTo: z.string().min(1, "Assigned staff is required"),
+  scheduledDate: z.date(),
+
+  // Step 2 - Method & Items
+  selectionMethod: z.enum(['random', 'high-value', 'manual'], {
+    required_error: "Selection method is required"
+  }),
+  itemCount: z.union([z.literal(10), z.literal(20), z.literal(50)]).optional(),
+  selectedItems: z.array(z.string()).optional(),
+}).refine(
+  (data) => {
+    if (data.selectionMethod === 'manual') {
+      return data.selectedItems && data.selectedItems.length > 0;
+    }
+    return data.itemCount !== undefined;
+  },
+  {
+    message: "Item count or selected items required based on selection method",
+    path: ["itemCount"]
+  }
+)
 ```
 
-#### Business Rule Errors (422 Unprocessable Entity)
-```json
-{
-  "error": "Business Rule Violation",
-  "code": "VAL-SC-1XX",
-  "message": "Human-readable error message",
-  "rule": "business_rule_reference",
-  "current_state": "current_value",
-  "required_state": "required_value"
-}
+### Counting Form Schema
+```typescript
+const countingFormSchema = z.object({
+  countedQuantity: z.number().min(0, "Quantity cannot be negative"),
+  condition: z.enum(['good', 'damaged', 'expired', 'missing']),
+  notes: z.string().max(500).optional(),
+})
 ```
 
-#### Security Errors (403 Forbidden)
-```json
-{
-  "error": "Access Denied",
-  "code": "VAL-SC-3XX",
-  "message": "Human-readable error message",
-  "required_permission": "permission_name",
-  "user_role": "current_role"
-}
+### Cancel Dialog Schema
+```typescript
+const cancelFormSchema = z.object({
+  reason: z.enum([
+    'items-unavailable',
+    'staff-unavailable',
+    'incorrect-items',
+    'duplicate-check',
+    'emergency',
+    'other'
+  ]),
+  notes: z.string().max(500).optional(),
+})
 ```
-
----
-
-## Test Scenarios
-
-### TEST-SC-VAL-001: Count Type Validation
-**Validates**: VAL-SC-001
-
-**Test Cases**:
-1. ✅ Create spot check with count_stock_type = 'spot' → Success
-2. ❌ Create spot check with count_stock_type = 'physical' → Error
-3. ❌ Create spot check with count_stock_type = NULL → Error
-4. ❌ Update existing spot check to count_stock_type = 'physical' → Error
-
-**Expected Results**:
-- Case 1: Record created successfully
-- Cases 2-4: Error "Invalid count type. This record must be a spot check."
-
----
-
-### TEST-SC-VAL-002: Location Validation
-**Validates**: VAL-SC-002
-
-**Test Cases**:
-1. ✅ Create spot check with valid, active location → Success
-2. ❌ Create spot check with location_id = NULL → Error
-3. ❌ Create spot check with non-existent location_id → Error
-4. ❌ Create spot check with inactive location (deleted_at IS NOT NULL) → Error
-
-**Expected Results**:
-- Case 1: Record created successfully
-- Case 2: Error "Location is required to create a spot check."
-- Cases 3-4: Error "Invalid location. Please select an active location."
-
----
-
-### TEST-SC-VAL-003: Count Date Required
-**Validates**: VAL-SC-003
-
-**Test Cases**:
-1. ✅ Create spot check with valid count_date → Success
-2. ❌ Create spot check with count_date = NULL → Error
-3. ❌ Create spot check with count_date = 'invalid' → Error
-
-**Expected Results**:
-- Case 1: Record created successfully
-- Case 2: Error "Count date is required."
-- Case 3: Error "Invalid date format. Please use YYYY-MM-DD."
-
----
-
-### TEST-SC-VAL-004: Count Date Range
-**Validates**: VAL-SC-004
-
-**Test Cases**:
-1. ✅ Create spot check with count_date = today → Success
-2. ✅ Create spot check with count_date = tomorrow → Success
-3. ✅ Create spot check with count_date = 20 days ago → Success
-4. ❌ Create spot check with count_date = 40 days ago → Error
-5. ❌ Create spot check with count_date = 5 days in future → Error
-
-**Expected Results**:
-- Cases 1-3: Record created successfully
-- Case 4: Error "Count date cannot be more than 30 days in the past."
-- Case 5: Error "Count date cannot be more than 1 day in the future."
-
----
-
-### TEST-SC-VAL-101: Minimum Product Count
-**Validates**: VAL-SC-101
-
-**Test Cases**:
-1. ✅ Create spot check → Add 1 product → Set to in_progress → Success
-2. ✅ Create spot check → Add 5 products → Set to in_progress → Success
-3. ❌ Create spot check → Add 0 products → Set to in_progress → Error
-
-**Expected Results**:
-- Cases 1-2: Status transition successful
-- Case 3: Error "Spot check must include at least 1 product. Please add products before proceeding."
-
----
-
-### TEST-SC-VAL-102: Maximum Product Count
-**Validates**: VAL-SC-102
-
-**Test Cases**:
-1. ✅ Create spot check → Add 50 products → Success
-2. ❌ Create spot check → Add 51 products → Error
-3. ✅ Create spot check → Add 45 products → Add 5 more → Success (total 50)
-4. ❌ Create spot check → Add 48 products → Add 5 more → Error (would exceed 50)
-
-**Expected Results**:
-- Cases 1, 3: Products added successfully
-- Cases 2, 4: Error "Spot check cannot exceed 50 products. Current count: {count}. Please remove {excess} product(s)."
-
----
-
-### TEST-SC-VAL-103: Unique Products
-**Validates**: VAL-SC-103
-
-**Test Cases**:
-1. ✅ Add Product A to spot check → Success
-2. ✅ Add Product B to spot check → Success (different product)
-3. ❌ Add Product A to spot check again → Error (duplicate)
-
-**Expected Results**:
-- Cases 1-2: Products added successfully
-- Case 3: Error "Product 'Product A' is already included in this spot check. Each product can only appear once."
-
----
-
-### TEST-SC-VAL-104: Status Transition - Pending
-**Validates**: VAL-SC-104
-
-**Test Cases**:
-1. ✅ Pending → In Progress → Success
-2. ✅ Pending → Cancelled → Success
-3. ❌ Pending → Completed → Error
-4. ❌ Pending → (invalid status) → Error
-
-**Expected Results**:
-- Cases 1-2: Status transition successful
-- Cases 3-4: Error "Invalid status transition. Pending spot checks can only be set to in_progress or cancelled."
-
----
-
-### TEST-SC-VAL-105: Completion Requires All Counted
-**Validates**: VAL-SC-105
-
-**Test Cases**:
-1. ✅ In Progress → All items counted → Complete → Success
-2. ✅ In Progress → Some items counted, rest skipped → Complete → Success
-3. ❌ In Progress → Some items pending → Complete → Error
-4. ❌ In Progress → No items counted → Complete → Error
-
-**Expected Results**:
-- Cases 1-2: Completion successful
-- Cases 3-4: Error "Cannot complete spot check. {count} item(s) still pending. Please count all items or mark them as skipped."
-
----
-
-### TEST-SC-VAL-106: Cannot Modify Completed
-**Validates**: VAL-SC-106
-
-**Test Cases**:
-1. ❌ Update completed spot check count_date → Error
-2. ❌ Add product to completed spot check → Error
-3. ❌ Modify quantities in completed spot check → Error
-4. ✅ Soft delete completed spot check → Success
-
-**Expected Results**:
-- Cases 1-3: Error "Cannot modify completed spot check 'CNT-2024-XXXX'. Completed spot checks are locked for data integrity."
-- Case 4: Soft delete successful
-
----
-
-### TEST-SC-VAL-108: High Variance Approval
-**Validates**: VAL-SC-108
-
-**Test Cases**:
-1. ✅ Item variance 3%, $50 → No approval needed → Complete → Success
-2. ❌ Item variance 8%, $50 → No approval → Complete → Error (>5% threshold)
-3. ❌ Item variance 3%, $150 → No approval → Complete → Error (>$100 threshold)
-4. ✅ Item variance 8%, $50 → Supervisor approves → Complete → Success
-5. ✅ Item variance 3%, $150 → Supervisor approves → Complete → Success
-
-**Expected Results**:
-- Cases 1, 4, 5: Completion successful
-- Cases 2-3: Error "Product '{name}' has high variance ({variance}). Supervisor approval required before completion."
-
----
-
-### TEST-SC-VAL-109: Location Access
-**Validates**: VAL-SC-109
-
-**Test Cases**:
-1. ✅ User with location access → Create spot check → Success
-2. ❌ User without location access → Create spot check → Error
-3. ❌ User without location access → View spot check → Error
-4. ✅ User granted location access → View/create spot check → Success
-
-**Expected Results**:
-- Cases 1, 4: Operation successful
-- Cases 2-3: Error "You do not have access to location '{name}'. Please contact your manager to request access."
-
----
-
-### TEST-SC-VAL-110: Cannot Modify Product List After In Progress
-**Validates**: VAL-SC-110
-
-**Test Cases**:
-1. ✅ Pending status → Add/remove products → Success
-2. ❌ In Progress status → Add product → Error
-3. ❌ In Progress status → Remove product → Error
-4. ✅ In Progress status → Update quantities → Success (allowed)
-
-**Expected Results**:
-- Cases 1, 4: Operation successful
-- Cases 2-3: Error "Cannot add or remove products after counting has started. Product list is locked once spot check is in progress."
-
----
-
-### TEST-SC-VAL-111: Approval Authority
-**Validates**: VAL-SC-111
-
-**Test Cases**:
-1. ✅ Supervisor role → Approve high variance → Success
-2. ✅ Manager role → Approve high variance → Success
-3. ❌ Coordinator role → Approve high variance → Error
-4. ❌ Storekeeper role → Approve high variance → Error
-
-**Expected Results**:
-- Cases 1-2: Approval successful
-- Cases 3-4: Error "Only supervisors and managers can approve high variance items. Current role: {role}."
-
----
-
-### TEST-SC-VAL-302: Role-Based Access
-**Validates**: VAL-SC-302
-
-**Test Cases**:
-1. ✅ Storekeeper → Create spot check → Success
-2. ✅ Coordinator → Complete spot check → Success
-3. ❌ Storekeeper → Complete spot check → Error
-4. ❌ Coordinator → Delete spot check → Error
-5. ✅ Manager → Delete spot check → Success
-
-**Expected Results**:
-- Cases 1, 2, 5: Operation successful
-- Cases 3-4: Error "Insufficient permissions to {action} spot checks. Required role: {required}. Your role: {current}."
 
 ---
 
 ## Validation Matrix
 
-| Validation ID | Priority | Client | Server | Database | Related BR | Test ID |
-|---------------|----------|--------|--------|----------|------------|---------|
-| VAL-SC-001 | Critical | ✅ | ✅ | ✅ | BR-SC-004 | TEST-SC-VAL-001 |
-| VAL-SC-002 | Critical | ✅ | ✅ | ✅ | BR-SC-001 | TEST-SC-VAL-002 |
-| VAL-SC-003 | High | ✅ | ✅ | - | BR-SC-001 | TEST-SC-VAL-003 |
-| VAL-SC-004 | Medium | ✅ | ✅ | - | BR-SC-012 | TEST-SC-VAL-004 |
-| VAL-SC-005 | Critical | ✅ | ✅ | ✅ | BR-SC-006 | TEST-SC-VAL-005 |
-| VAL-SC-006 | Critical | - | ✅ | ✅ | - | TEST-SC-VAL-006 |
-| VAL-SC-007 | Critical | ✅ | ✅ | ✅ | BR-SC-002 | TEST-SC-VAL-007 |
-| VAL-SC-008 | Critical | ✅ | ✅ | ✅ | BR-SC-002 | TEST-SC-VAL-008 |
-| VAL-SC-009 | High | ✅ | ✅ | ✅ | BR-SC-018 | TEST-SC-VAL-009 |
-| VAL-SC-010 | High | ✅ | ✅ | - | BR-SC-019 | TEST-SC-VAL-010 |
-| VAL-SC-011 | High | - | ✅ | ✅ | BR-SC-018 | TEST-SC-VAL-011 |
-| VAL-SC-012 | High | - | ✅ | ✅ | BR-SC-018 | TEST-SC-VAL-012 |
-| VAL-SC-013 | High | - | ✅ | - | BR-SC-018 | TEST-SC-VAL-013 |
-| VAL-SC-014 | High | ✅ | ✅ | - | BR-SC-022 | TEST-SC-VAL-014 |
-| VAL-SC-015 | Low | ✅ | ✅ | - | - | TEST-SC-VAL-015 |
-| VAL-SC-016 | Medium | - | ✅ | ✅ | BR-SC-013 | TEST-SC-VAL-016 |
-| VAL-SC-017 | Critical | ✅ | ✅ | ✅ | BR-SC-010 | TEST-SC-VAL-017 |
-| VAL-SC-018 | High | - | ✅ | - | BR-SC-021 | TEST-SC-VAL-018 |
-| VAL-SC-101 | High | ✅ | ✅ | - | BR-SC-002 | TEST-SC-VAL-101 |
-| VAL-SC-102 | High | ✅ | ✅ | - | BR-SC-002 | TEST-SC-VAL-102 |
-| VAL-SC-103 | High | - | ✅ | ✅ | BR-SC-003 | TEST-SC-VAL-103 |
-| VAL-SC-104 | High | - | ✅ | - | BR-SC-006 | TEST-SC-VAL-104 |
-| VAL-SC-105 | High | - | ✅ | - | BR-SC-007 | TEST-SC-VAL-105 |
-| VAL-SC-106 | Critical | - | ✅ | - | BR-SC-008 | TEST-SC-VAL-106 |
-| VAL-SC-107 | High | - | ✅ | - | BR-SC-009 | TEST-SC-VAL-107 |
-| VAL-SC-108 | High | - | ✅ | - | BR-SC-020 | TEST-SC-VAL-108 |
-| VAL-SC-109 | High | - | ✅ | - | BR-SC-015 | TEST-SC-VAL-109 |
-| VAL-SC-110 | Medium | - | ✅ | - | BR-SC-011 | TEST-SC-VAL-110 |
-| VAL-SC-111 | Critical | - | ✅ | - | BR-SC-021 | TEST-SC-VAL-111 |
-| VAL-SC-112 | High | - | ✅ | - | BR-SC-023 | TEST-SC-VAL-112 |
-| VAL-SC-201 | High | ✅ | ✅ | - | BR-SC-012 | TEST-SC-VAL-201 |
-| VAL-SC-202 | Medium | - | ✅ | - | BR-SC-021 | TEST-SC-VAL-202 |
-| VAL-SC-203 | High | - | ✅ | - | BR-SC-006 | TEST-SC-VAL-203 |
-| VAL-SC-204 | Medium | - | ✅ | - | BR-SC-019 | TEST-SC-VAL-204 |
-| VAL-SC-205 | Medium | - | ✅ | - | BR-SC-002 | TEST-SC-VAL-205 |
-| VAL-SC-301 | Critical | - | ✅ | - | BR-SC-024 | TEST-SC-VAL-301 |
-| VAL-SC-302 | Critical | - | ✅ | - | BR-SC-014 | TEST-SC-VAL-302 |
-| VAL-SC-303 | High | - | ✅ | - | BR-SC-015 | TEST-SC-VAL-303 |
-| VAL-SC-304 | Critical | - | ✅ | ✅ | BR-SC-017 | TEST-SC-VAL-304 |
+| ID | Priority | Description | Enforcement | Step |
+|----|----------|-------------|-------------|------|
+| VAL-SC-001 | Critical | Check type required | Client (Zod) | - |
+| VAL-SC-002 | Critical | Location required | Client (Zod) | 1 |
+| VAL-SC-003 | High | Scheduled date required | Client (Zod) | 1 |
+| VAL-SC-005 | Critical | Status validation | Client (Zod) | - |
+| VAL-SC-006 | High | Priority required | Client (Zod) | - |
+| VAL-SC-007 | High | Assigned staff required | Client (Zod) | 1 |
+| VAL-SC-009 | High | Counted qty non-negative | Client (Logic) | Count |
+| VAL-SC-011 | High | Item condition required | Client (Zod) | Count |
+| VAL-SC-014 | High | Selection method required | Client (Zod) | 2 |
+| VAL-SC-015 | High | Item count validation (10/20/50) | Client (Zod) | 2 |
+| VAL-SC-016 | High | Selected items for manual | Client (Logic) | 2 |
+| VAL-SC-017 | High | Skip reason required | Client (Logic) | Count |
+| VAL-SC-018 | High | Cancel reason required | Client (Logic) | Cancel |
+| VAL-SC-101 | High | Min 1 item | Client (Logic) | 2 |
+| VAL-SC-105 | High | All items counted for completion | Client (Logic) | Complete |
+| VAL-SC-108 | Critical | Cannot modify completed | Client (Logic) | - |
+| VAL-SC-109 | High | Cannot modify cancelled | Client (Logic) | - |
+| VAL-SC-205 | High | All items processed | Client (Logic) | Complete |
+| VAL-SC-301 | Critical | Step 1 - Location selection | Client (Wizard) | 1 |
+| VAL-SC-302 | High | Step 2 - Method & items | Client (Wizard) | 2 |
 
 ---
 
-## Implementation Notes
+## Implementation Status
 
-### Client-Side Validation (React Hook Form + Zod)
-```typescript
-// Example Zod schema for spot check creation
-const spotCheckSchema = z.object({
-  count_stock_type: z.literal('spot'),
-  location_id: z.string().uuid(),
-  count_date: z.date()
-    .min(subDays(new Date(), 30))
-    .max(addDays(new Date(), 1)),
-  products: z.array(z.string().uuid())
-    .min(1, "At least 1 product required")
-    .max(50, "Maximum 50 products allowed")
-});
-```
+### Completed Validations
+- [x] Location selection (Step 1)
+- [x] Assignment fields - staff, date (Step 1)
+- [x] Selection method validation (Step 2)
+- [x] Item count validation - 10/20/50 (Step 2)
+- [x] Manual item selection validation (Step 2)
+- [x] Counted quantity validation (Counting)
+- [x] Item condition selection (Counting)
+- [x] Skip reason requirement (Skip dialog)
+- [x] Cancel reason requirement (Cancel dialog)
+- [x] Status transition rules (Actions)
+- [x] Variance calculation (Automatic)
 
-### Server-Side Validation (Server Actions)
-```typescript
-// Example server action validation
-async function validateSpotCheck(data: SpotCheckInput) {
-  // Field-level validations
-  if (data.count_stock_type !== 'spot') {
-    throw new ValidationError('VAL-SC-001');
-  }
-
-  // Business rule validations
-  const productCount = data.products.length;
-  if (productCount < 1) {
-    throw new BusinessRuleError('VAL-SC-101');
-  }
-  if (productCount > 50) {
-    throw new BusinessRuleError('VAL-SC-102');
-  }
-
-  // Security validations
-  if (!hasLocationAccess(user.id, data.location_id)) {
-    throw new SecurityError('VAL-SC-303');
-  }
-}
-```
-
-### Database Validation (Constraints + Triggers)
-```sql
--- Example constraint: count_stock_type must be 'spot'
-ALTER TABLE tb_count_stock
-ADD CONSTRAINT chk_spot_check_type
-CHECK (count_stock_type = 'spot');
-
--- Example trigger: validate variance calculation
-CREATE TRIGGER trg_validate_variance
-BEFORE INSERT OR UPDATE ON tb_count_stock_detail
-FOR EACH ROW
-EXECUTE FUNCTION validate_variance_calculation();
-```
+### Pending Validations (Future)
+- [ ] Server-side validation (Server Actions)
+- [ ] Database constraints (Prisma)
+- [ ] User permission validation
+- [ ] Location access validation
+- [ ] High variance approval workflow
+- [ ] Audit logging
 
 ---
 
-## Version History
-
-| Version | Date | Author | Changes |
-|---------|------|--------|---------|
-| 1.0 | 2025-01-11 | System | Initial validation documentation for Spot Check sub-module |
-
----
-
-## References
-
-1. **Business Requirements**: BR-spot-check.md
-2. **Use Cases**: UC-spot-check.md
-3. **Technical Specification**: TS-spot-check.md
-4. **Data Definition**: DD-spot-check.md
-5. **Flow Diagrams**: FD-spot-check.md
-6. **Database Schema**: schema.prisma (tb_count_stock, tb_count_stock_detail)
-7. **WCAG 2.1 AA Standards**: https://www.w3.org/WAI/WCAG21/quickref/
-8. **OWASP Top 10**: https://owasp.org/www-project-top-ten/
-
----
-
-**Document Control**:
-- **Classification**: Internal Use
-- **Status**: Draft
-- **Review Required**: Yes
-- **Approved By**: Pending
-- **Next Review Date**: TBD
+**Document End**

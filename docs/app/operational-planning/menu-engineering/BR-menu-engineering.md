@@ -3,14 +3,86 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Operational Planning > Menu Engineering
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 1.1.0
+- **Last Updated**: 2025-01-05
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2025-01-05 | System | Added implementation status section and Section 11 (Backend Requirements) |
 | 1.0 | 2024-01-15 | System | Initial business requirements document created |
+
+## ⚠️ Implementation Status
+
+**Current State**: SUBSTANTIAL IMPLEMENTATION (~70-80% Complete)
+
+### What EXISTS in Codebase:
+
+**UI Components** (650+ lines):
+- ✅ Menu Engineering Dashboard (`app/(main)/operational-planning/menu-engineering/page.tsx`)
+- ✅ Performance Matrix Scatter Plot with 4-quadrant visualization
+- ✅ Sales Data Import with POS integration (`components/sales-data-import.tsx`)
+- ✅ Cost Alert Management (`components/cost-alert-management.tsx`)
+- ✅ Recipe Performance Metrics (`components/recipe-performance-metrics.tsx`)
+- ✅ Portfolio composition pie charts
+- ✅ Competitive position analysis
+- ✅ AI-powered recommendations
+- ✅ Real-time filtering and date range selection
+
+**API Routes** (8 comprehensive endpoints):
+- ✅ `/api/menu-engineering/analysis` - Menu performance analysis with Boston Matrix classification
+- ✅ `/api/menu-engineering/classification` - Item classification engine
+- ✅ `/api/menu-engineering/recommendations/[recipeId]` - Strategic recommendations
+- ✅ `/api/menu-engineering/sales/import` - Sales data import from POS
+- ✅ `/api/menu-engineering/sales/summary` - Sales summaries
+- ✅ `/api/menu-engineering/pos/sync` - POS system synchronization
+- ✅ `/api/recipes/[id]/cost-alerts` - Cost alert management
+- ✅ `/api/recipes/[id]/performance-metrics` - Performance tracking
+- ✅ `/api/recipes/[id]/real-time-cost` - Real-time cost calculations
+
+**TypeScript Types** (`lib/types/menu-engineering.ts`):
+- ✅ `MenuItemClassification` ('star' | 'plow_horse' | 'puzzle' | 'dog')
+- ✅ `MenuPerformanceData` with comprehensive metrics
+- ✅ `MenuEngineeringMatrix` with quadrant analysis
+- ✅ `CostAlert` and `CostAlertConfig` interfaces
+- ✅ `PriceOptimizationResult` and `MenuOptimizationRecommendation`
+- ✅ Sales trend analysis and forecasting types
+
+**Services** (`lib/services/menu-engineering-*.ts`):
+- ✅ `MenuEngineeringService` - Boston Matrix analysis engine
+- ✅ `POSIntegrationService` - POS system data synchronization
+- ✅ Statistical analysis (popularity/profitability scores)
+- ✅ Classification algorithms with thresholds
+- ✅ Recommendation engine
+- ✅ Enhanced caching layer integration
+
+**Security & Validation**:
+- ✅ JWT/Keycloak authentication on all API routes
+- ✅ Role-based access control (RBAC)
+- ✅ Zod validation schemas for all inputs
+- ✅ Rate limiting (50 requests/minute)
+- ✅ Input sanitization and SQL injection prevention
+- ✅ Audit logging for security events
+
+### What's PROPOSED (Still in Design Phase ~20-30%):
+
+**Database Schema**:
+- ❌ `menu_engineering_snapshots` table
+- ❌ `menu_performance_history` table
+- ❌ `cost_alerts` table persistence
+- ❌ `menu_optimization_recommendations` table
+- ❌ `competitor_pricing` table
+
+**Advanced Features**:
+- ❌ Competitor pricing tracking and analysis
+- ❌ Automated alert notifications (email, SMS, webhook)
+- ❌ Machine learning-based forecasting models
+- ❌ Multi-location comparison and benchmarking
+- ❌ Scheduled jobs for periodic analysis
+- ❌ Export to PDF/Excel with custom templates
+
+**NOTE**: The backend requirements (Section 11) define the server actions, integrations, and infrastructure needed to support both EXISTING UI/API features and PROPOSED advanced capabilities.
 
 
 ## 1. Overview
@@ -1522,6 +1594,924 @@ enum PriceRange {
 - Offer scenario analysis (what-if modeling)
 - Require approval for critical changes
 - Provide training on interpreting results
+
+---
+
+## 11. Backend Implementation Requirements
+
+This section defines the comprehensive backend infrastructure, server actions, database operations, and integrations required to support the Menu Engineering module's analytics and optimization capabilities.
+
+### 11.1 Server Actions Required
+
+The Menu Engineering module requires 23 server actions across 7 functional categories to support data analysis, recommendations, cost tracking, and POS integration.
+
+#### Menu Performance Analysis (5 actions)
+
+**`analyzeMenuPerformance(params: MenuAnalysisParams): Promise<MenuAnalysisResult>`**
+- **Purpose**: Execute comprehensive Boston Matrix analysis on menu items
+- **Input Validation**: Zod schema with date range, location, category filters
+- **Core Logic**:
+  - Fetch sales transactions for specified period from database
+  - Calculate popularity scores (percentile ranking by sales volume)
+  - Calculate profitability scores (percentile ranking by contribution margin)
+  - Classify items into 4 quadrants (star, plow_horse, puzzle, dog)
+  - Generate strategic recommendations per quadrant
+- **Database Queries**:
+  - `SELECT recipe_id, COUNT(*) as sales, SUM(price - cost) as profit FROM sales_transactions WHERE date BETWEEN ? AND ? GROUP BY recipe_id`
+  - Join with `recipes` table for cost data
+  - Join with `inventory_transactions` for real-time cost calculations
+- **Performance**: Cache results for 1 hour, invalidate on recipe cost changes
+- **Authorization**: Requires `view_menu_analytics` permission
+- **Error Handling**: Return empty analysis if no sales data, log data quality warnings
+
+**`getMenuEngineeringMatrix(matrixId: string): Promise<MenuEngineeringMatrix>`**
+- **Purpose**: Retrieve saved menu engineering matrix snapshot
+- **Database**: `menu_engineering_snapshots` table
+- **Caching**: 30-minute cache, invalidate on new analysis
+- **Authorization**: Requires `view_menu_analytics` permission
+
+**`saveMenuEngineeringSnapshot(data: MenuAnalysisResult): Promise<string>`**
+- **Purpose**: Persist menu engineering analysis for historical tracking
+- **Database**: INSERT into `menu_engineering_snapshots` and `menu_performance_history`
+- **Business Rule**: Retain 24 months of snapshots, archive older data
+- **Authorization**: Requires `create_menu_analytics` permission
+
+**`compareMenuPerformance(snapshotIds: string[]): Promise<MenuComparisonResult>`**
+- **Purpose**: Compare menu performance across multiple time periods or locations
+- **Database**: Query multiple snapshots from `menu_engineering_snapshots`
+- **Analysis**: Calculate period-over-period changes, trend analysis
+- **Visualization**: Generate comparison charts data
+- **Authorization**: Requires `view_menu_analytics` permission
+
+**`getMenuPerformanceHistory(recipeId: string, months: number): Promise<PerformanceTimeSeries[]>`**
+- **Purpose**: Retrieve historical performance metrics for a specific recipe
+- **Database**: `menu_performance_history` table with time-series data
+- **Aggregation**: Daily, weekly, or monthly rollups
+- **Authorization**: Requires `view_menu_analytics` permission
+
+#### Menu Item Classification (3 actions)
+
+**`classifyMenuItem(recipeId: string, salesData: SalesMetrics, costData: CostMetrics): Promise<MenuItemClassification>`**
+- **Purpose**: Classify single menu item into Boston Matrix quadrant
+- **Algorithm**:
+  ```typescript
+  const popularityPercentile = calculatePercentile(salesData.totalSales, allItemsSales);
+  const profitabilityPercentile = calculatePercentile(costData.contributionMargin, allItemsMargins);
+
+  if (popularityPercentile >= 50 && profitabilityPercentile >= 50) return 'star';
+  if (popularityPercentile >= 50 && profitabilityPercentile < 50) return 'plow_horse';
+  if (popularityPercentile < 50 && profitabilityPercentile >= 50) return 'puzzle';
+  return 'dog';
+  ```
+- **Thresholds**: Configurable via `menu_engineering_config` table (default: 50th percentile)
+- **Authorization**: Requires `view_menu_analytics` permission
+
+**`reclassifyAllMenuItems(locationId?: string): Promise<ClassificationResult[]>`**
+- **Purpose**: Batch reclassification of all active menu items
+- **Trigger**: Scheduled job (daily 2 AM) or manual refresh
+- **Database**: Bulk UPDATE `menu_performance_history` table
+- **Performance**: Process in batches of 50 items
+- **Authorization**: Requires `manage_menu_analytics` permission
+
+**`getClassificationThresholds(): Promise<ClassificationThresholds>`**
+- **Purpose**: Retrieve current classification thresholds (popularity/profitability percentiles)
+- **Database**: `menu_engineering_config` table
+- **Default Values**: { popularityThreshold: 50, profitabilityThreshold: 50 }
+- **Authorization**: Requires `view_menu_analytics` permission
+
+#### Cost Alert Management (4 actions)
+
+**`createCostAlert(data: CreateCostAlertInput): Promise<CostAlert>`**
+- **Purpose**: Create cost alert rule for recipe monitoring
+- **Input Validation**:
+  ```typescript
+  const schema = z.object({
+    recipeId: z.string().uuid(),
+    alertType: z.enum(['cost_increase', 'margin_decrease', 'threshold_exceeded', 'variance_detected']),
+    warningThreshold: z.number().positive(),
+    criticalThreshold: z.number().positive(),
+    notificationChannels: z.array(z.enum(['email', 'sms', 'dashboard', 'webhook']))
+  });
+  ```
+- **Database**: INSERT into `cost_alerts` table
+- **Business Rule**: Maximum 10 alerts per recipe
+- **Authorization**: Requires `manage_cost_alerts` permission
+
+**`evaluateCostAlerts(recipeId: string, currentCost: number): Promise<AlertEvaluation[]>`**
+- **Purpose**: Evaluate all active alerts for a recipe against current cost
+- **Trigger**: Called automatically when recipe cost changes
+- **Database**: Query `cost_alerts` WHERE `recipe_id = ? AND is_active = true`
+- **Logic**: Compare current cost against thresholds, trigger notifications if exceeded
+- **Side Effects**:
+  - Create `cost_alert_events` record
+  - Send notifications via configured channels
+  - Update alert status to 'triggered'
+- **Authorization**: System-level (called by recipe cost update trigger)
+
+**`acknowledgeCostAlert(alertId: string, userId: string, notes: string): Promise<void>`**
+- **Purpose**: Mark cost alert as acknowledged by user
+- **Database**: UPDATE `cost_alerts` SET `status = 'acknowledged', acknowledged_by = ?, acknowledged_at = NOW()`
+- **Audit**: Log acknowledgment in `audit_log` table
+- **Authorization**: Requires `manage_cost_alerts` permission
+
+**`getCostAlerts(filters: CostAlertFilters): Promise<CostAlert[]>`**
+- **Purpose**: Retrieve cost alerts with filtering and pagination
+- **Filters**: status, severity, recipe_id, date_range
+- **Database**: Query `cost_alerts` with JOIN to `recipes` table
+- **Sorting**: Default by created_at DESC
+- **Authorization**: Requires `view_cost_alerts` permission
+
+#### Recommendation Engine (3 actions)
+
+**`generateMenuRecommendations(classification: MenuItemClassification, performanceData: MenuPerformanceData): Promise<OptimizationRecommendation[]>`**
+- **Purpose**: Generate strategic recommendations based on item classification
+- **Recommendation Logic**:
+  ```typescript
+  switch (classification) {
+    case 'star':
+      return [
+        { action: 'maintain', priority: 'high', description: 'Promote and maintain quality' },
+        { action: 'price_increase', priority: 'medium', description: 'Test 5-10% price increase' }
+      ];
+    case 'plow_horse':
+      return [
+        { action: 'increase_price', priority: 'high', description: 'Raise prices gradually' },
+        { action: 'reduce_cost', priority: 'high', description: 'Negotiate ingredient costs' }
+      ];
+    case 'puzzle':
+      return [
+        { action: 'promote', priority: 'high', description: 'Increase marketing visibility' },
+        { action: 'reposition', priority: 'medium', description: 'Adjust menu placement' }
+      ];
+    case 'dog':
+      return [
+        { action: 'remove', priority: 'high', description: 'Consider removing from menu' },
+        { action: 'reformulate', priority: 'medium', description: 'Reduce costs and test' }
+      ];
+  }
+  ```
+- **AI Enhancement**: Optional ML-based confidence scoring
+- **Database**: Store recommendations in `menu_optimization_recommendations` table
+- **Authorization**: Requires `view_menu_analytics` permission
+
+**`getPriceOptimizationSuggestions(recipeId: string): Promise<PriceOptimizationResult>`**
+- **Purpose**: Calculate optimal pricing based on target margins and market positioning
+- **Calculation**:
+  ```typescript
+  const targetMargin = 0.65; // 65% target contribution margin
+  const currentCost = await getRecipeCost(recipeId);
+  const optimalPrice = currentCost / (1 - targetMargin);
+  const psychologicalPrice = Math.ceil(optimalPrice - 0.01); // $9.99 pricing
+  const elasticity = await estimatePriceElasticity(recipeId);
+  const revenueImpact = calculateRevenueImpact(optimalPrice, elasticity);
+  ```
+- **Database**: Historical price/volume data from `sales_transactions`
+- **Authorization**: Requires `view_price_optimization` permission
+
+**`getMenuOptimizationRecommendations(locationId?: string, top: number = 20): Promise<OptimizationRecommendation[]>`**
+- **Purpose**: Retrieve top menu optimization recommendations across all items
+- **Ranking**: By potential revenue impact, priority level, confidence score
+- **Database**: Query `menu_optimization_recommendations` ORDER BY `priority DESC, confidence DESC`
+- **Filtering**: Active recommendations only, exclude acknowledged/completed
+- **Authorization**: Requires `view_menu_analytics` permission
+
+#### POS Integration (4 actions)
+
+**`syncPOSSalesData(posSystem: POSSystem, syncParams: SyncParams): Promise<SyncResult>`**
+- **Purpose**: Synchronize sales transaction data from POS system
+- **Supported POS Systems**: Square, Toast, Clover, Resy, OpenTable
+- **Sync Strategy**:
+  - Incremental sync: Fetch transactions since last sync timestamp
+  - Full sync: Complete historical data import (initial setup)
+- **Data Mapping**:
+  ```typescript
+  const mapping = {
+    square: { item_name: 'recipeName', qty: 'quantity', price: 'unitPrice' },
+    toast: { item_title: 'recipeName', quantity: 'quantity', amount: 'totalPrice' },
+    // ... mappings for other POS systems
+  };
+  ```
+- **Database**:
+  - INSERT into `sales_transactions` table
+  - UPDATE `pos_sync_status` with last sync timestamp
+- **Error Handling**: Retry failed transactions, log sync errors
+- **Performance**: Batch INSERT operations (500 records per batch)
+- **Authorization**: Requires `manage_pos_integration` permission
+
+**`importSalesDataCSV(file: File, mappings: FieldMappings): Promise<ImportResult>`**
+- **Purpose**: Import sales data from CSV/Excel files
+- **Validation**:
+  - File size limit: 10MB
+  - Row limit: 50,000 records
+  - Required fields: recipeName, quantity, unitPrice, orderDate
+- **Processing**:
+  - Parse CSV with field mappings
+  - Validate data types and ranges
+  - Deduplicate records (by orderId + recipeId + orderDate)
+  - Match recipe names to recipe IDs (fuzzy matching with 85% threshold)
+- **Database**: Bulk INSERT into `sales_transactions` with transaction rollback on errors
+- **Progress Tracking**: Real-time progress updates via WebSocket
+- **Error Reporting**: Generate error report with row numbers and validation messages
+- **Authorization**: Requires `import_sales_data` permission
+
+**`getPOSSyncStatus(posSystemId: string): Promise<SyncStatus>`**
+- **Purpose**: Retrieve current sync status for POS integration
+- **Database**: Query `pos_sync_status` table
+- **Metrics**: Last sync time, records synced, errors, next scheduled sync
+- **Authorization**: Requires `view_pos_integration` permission
+
+**`configurePOSIntegration(config: POSIntegrationConfig): Promise<void>`**
+- **Purpose**: Configure POS system connection and sync settings
+- **Input**:
+  ```typescript
+  interface POSIntegrationConfig {
+    posSystem: 'square' | 'toast' | 'clover' | 'resy' | 'opentable';
+    apiKey: string; // Encrypted at rest
+    locationMapping: Record<string, string>; // POS location ID -> Carmen location ID
+    fieldMappings: FieldMappings;
+    syncFrequency: 'realtime' | 'hourly' | 'daily';
+    autoSync: boolean;
+  }
+  ```
+- **Database**: INSERT/UPDATE `pos_integration_config` table
+- **Security**: Encrypt API keys using AES-256, store in secure vault
+- **Authorization**: Requires `manage_pos_integration` permission
+
+#### Export and Reporting (2 actions)
+
+**`exportMenuAnalysisReport(matrixId: string, format: 'pdf' | 'excel' | 'csv'): Promise<ExportResult>`**
+- **Purpose**: Generate downloadable report of menu analysis
+- **PDF Generation**: Use Puppeteer to render report template
+- **Excel Generation**: Use ExcelJS library with charts and formatting
+- **CSV Generation**: Simple data export with headers
+- **Storage**: Temporary files in S3 with signed URLs (expiry: 1 hour)
+- **Authorization**: Requires `export_menu_reports` permission
+
+**`schedulePeriodicAnalysis(config: PeriodicAnalysisConfig): Promise<string>`**
+- **Purpose**: Schedule automated menu analysis and reporting
+- **Scheduling**: Cron-based (daily, weekly, monthly)
+- **Configuration**:
+  ```typescript
+  interface PeriodicAnalysisConfig {
+    frequency: 'daily' | 'weekly' | 'monthly';
+    locationIds?: string[];
+    recipients: string[]; // Email addresses
+    reportFormat: 'pdf' | 'excel';
+    autoPublish: boolean; // Auto-save to menu_engineering_snapshots
+  }
+  ```
+- **Database**: INSERT into `scheduled_jobs` table
+- **Job Queue**: Add to background job queue (BullMQ/Redis)
+- **Authorization**: Requires `manage_scheduled_reports` permission
+
+#### Competitor Analysis (2 actions)
+
+**`addCompetitorPricing(data: CompetitorPricingInput): Promise<string>`**
+- **Purpose**: Add competitor pricing data for market analysis
+- **Input**:
+  ```typescript
+  interface CompetitorPricingInput {
+    competitorId: string;
+    menuItemName: string;
+    price: Money;
+    dateObserved: Date;
+    source: string; // 'website', 'manual_survey', 'third_party'
+    notes?: string;
+  }
+  ```
+- **Database**: INSERT into `competitor_pricing` table
+- **Matching**: Attempt to match competitor items to Carmen recipes
+- **Authorization**: Requires `manage_competitor_data` permission
+
+**`getCompetitorPricingAnalysis(recipeId: string): Promise<CompetitorAnalysis>`**
+- **Purpose**: Analyze recipe pricing vs competitor pricing
+- **Database**: Query `competitor_pricing` WHERE `matched_recipe_id = ?`
+- **Analysis**:
+  - Calculate price positioning (below/at/above market)
+  - Identify pricing opportunities
+  - Generate competitive recommendations
+- **Authorization**: Requires `view_competitor_analysis` permission
+
+### 11.2 Integration with Inventory Management System
+
+The Menu Engineering module deeply integrates with the Inventory Management system to ensure accurate cost calculations and real-time profitability tracking.
+
+#### FIFO (First-In-First-Out) Costing Integration
+
+**Used For**: Non-perishable items with batch tracking (dry goods, canned products, frozen items)
+
+**Implementation Details**:
+- System identifies oldest inventory batches first when calculating recipe costs
+- Tracks batch-level costs and quantities in `inventory_batches` table
+- Updates cost calculations when inventory is consumed via recipe production
+
+**Server Action Integration**:
+```typescript
+async function calculateRecipeCostFIFO(recipeId: string, quantity: number): Promise<CostBreakdown> {
+  const ingredients = await getRecipeIngredients(recipeId);
+  let totalCost = 0;
+
+  for (const ingredient of ingredients) {
+    // Get available batches ordered by receipt date (FIFO)
+    const batches = await getAvailableStockFIFO(ingredient.productId, locationId, ingredient.quantity * quantity);
+
+    // Calculate cost from oldest batches first
+    let remainingQty = ingredient.quantity * quantity;
+    for (const batch of batches) {
+      const qtyFromBatch = Math.min(remainingQty, batch.availableQuantity);
+      totalCost += qtyFromBatch * batch.unitCost;
+      remainingQty -= qtyFromBatch;
+      if (remainingQty <= 0) break;
+    }
+  }
+
+  return { totalCost, method: 'FIFO', breakdown: ingredients };
+}
+```
+
+**Database Queries**:
+```sql
+SELECT ib.batch_id, ib.unit_cost, ib.available_quantity
+FROM inventory_batches ib
+WHERE ib.product_id = ? AND ib.location_id = ? AND ib.available_quantity > 0
+ORDER BY ib.received_date ASC, ib.batch_id ASC;
+```
+
+#### FEFO (First-Expired-First-Out) Costing Integration
+
+**Used For**: Perishable food items with expiry dates (fresh produce, dairy, meat, seafood)
+
+**Implementation Details**:
+- Prioritizes stock with nearest expiry dates to minimize waste
+- Tracks expiry dates in `inventory_batches.expiry_date` column
+- Alerts when using stock near expiry (within 3 days)
+
+**Server Action Integration**:
+```typescript
+async function calculateRecipeCostFEFO(recipeId: string, quantity: number): Promise<CostBreakdown> {
+  const ingredients = await getRecipeIngredients(recipeId);
+  let totalCost = 0;
+
+  for (const ingredient of ingredients) {
+    // Get available batches ordered by expiry date (FEFO)
+    const batches = await getAvailableStockFEFO(ingredient.productId, locationId, ingredient.quantity * quantity);
+
+    // Calculate cost from nearest-expiry batches first
+    let remainingQty = ingredient.quantity * quantity;
+    for (const batch of batches) {
+      const qtyFromBatch = Math.min(remainingQty, batch.availableQuantity);
+      totalCost += qtyFromBatch * batch.unitCost;
+
+      // Alert if using near-expiry stock
+      const daysToExpiry = differenceInDays(batch.expiryDate, new Date());
+      if (daysToExpiry <= 3) {
+        await createExpiryAlert(ingredient.productId, batch.batchId, daysToExpiry);
+      }
+
+      remainingQty -= qtyFromBatch;
+      if (remainingQty <= 0) break;
+    }
+  }
+
+  return { totalCost, method: 'FEFO', breakdown: ingredients };
+}
+```
+
+**Database Queries**:
+```sql
+SELECT ib.batch_id, ib.unit_cost, ib.available_quantity, ib.expiry_date,
+       DATEDIFF(ib.expiry_date, NOW()) as days_to_expiry
+FROM inventory_batches ib
+WHERE ib.product_id = ? AND ib.location_id = ?
+  AND ib.available_quantity > 0
+  AND ib.expiry_date > NOW()
+ORDER BY ib.expiry_date ASC, ib.batch_id ASC;
+```
+
+#### Weighted Average Costing Integration
+
+**Used For**: Inventory valuation when batch tracking is not feasible or cost variations are minimal
+
+**Implementation Details**:
+- Calculates average cost across all available batches
+- Updates weighted average when new inventory is received
+- Simpler calculation, suitable for high-volume low-value items
+
+**Server Action Integration**:
+```typescript
+async function calculateRecipeCostWeightedAverage(recipeId: string, quantity: number): Promise<CostBreakdown> {
+  const ingredients = await getRecipeIngredients(recipeId);
+  let totalCost = 0;
+
+  for (const ingredient of ingredients) {
+    // Get weighted average cost from inventory
+    const avgCost = await getWeightedAverageCost(ingredient.productId, locationId);
+    totalCost += ingredient.quantity * quantity * avgCost;
+  }
+
+  return { totalCost, method: 'WEIGHTED_AVERAGE', breakdown: ingredients };
+}
+
+async function getWeightedAverageCost(productId: string, locationId: string): Promise<number> {
+  const result = await db.query(`
+    SELECT
+      SUM(ib.available_quantity * ib.unit_cost) / NULLIF(SUM(ib.available_quantity), 0) as weighted_avg_cost
+    FROM inventory_batches ib
+    WHERE ib.product_id = ? AND ib.location_id = ? AND ib.available_quantity > 0
+  `, [productId, locationId]);
+
+  return result[0].weighted_avg_cost || 0;
+}
+```
+
+**Weighted Average Update on Receipt**:
+```typescript
+async function updateWeightedAverage(productId: string, locationId: string, newQty: number, newCost: number) {
+  const currentStock = await getCurrentStock(productId, locationId);
+  const currentAvg = await getWeightedAverageCost(productId, locationId);
+
+  const newWeightedAvg = (
+    (currentStock.quantity * currentAvg) + (newQty * newCost)
+  ) / (currentStock.quantity + newQty);
+
+  // Update inventory record
+  await db.query(`
+    UPDATE inventory_summary
+    SET weighted_average_cost = ?
+    WHERE product_id = ? AND location_id = ?
+  `, [newWeightedAvg, productId, locationId]);
+}
+```
+
+#### Real-Time Cost Calculation Triggers
+
+**Inventory Transaction Triggers**:
+- When inventory is received → Recalculate weighted averages
+- When inventory is consumed → Update cost calculations for affected recipes
+- When inventory is adjusted → Invalidate cached recipe costs
+
+**Server Action**: `invalidateRecipeCostCache(productId: string)`
+```typescript
+async function invalidateRecipeCostCache(productId: string) {
+  // Find all recipes using this product
+  const affectedRecipes = await db.query(`
+    SELECT DISTINCT recipe_id
+    FROM recipe_ingredients
+    WHERE product_id = ?
+  `, [productId]);
+
+  // Invalidate cache for each recipe
+  for (const recipe of affectedRecipes) {
+    await cacheLayer.invalidate(`recipe_cost:${recipe.recipe_id}`);
+
+    // Trigger cost alert evaluation
+    const currentCost = await calculateRecipeCost(recipe.recipe_id);
+    await evaluateCostAlerts(recipe.recipe_id, currentCost.totalCost);
+  }
+}
+```
+
+### 11.3 Workflow Engine Integration
+
+The Menu Engineering module integrates with the Workflow Engine to automate approvals, notifications, and periodic tasks.
+
+#### Workflow: Menu Analysis Review and Approval
+
+**Trigger**: New menu engineering analysis is completed
+
+**Steps**:
+1. **Analysis Generation**: System generates menu performance analysis
+2. **Notification**: Food & Beverage Manager receives notification of new analysis
+3. **Review**: Manager reviews classification and recommendations
+4. **Decision**:
+   - **Approve**: Analysis is marked as approved, recommendations become actionable
+   - **Modify**: Manager adjusts classifications or recommendations
+   - **Reject**: Analysis is rejected with comments, triggers re-analysis
+5. **Implementation**: Approved recommendations are added to action items
+6. **Tracking**: System tracks implementation progress
+
+**Workflow Configuration**:
+```json
+{
+  "workflowId": "menu-analysis-review",
+  "name": "Menu Analysis Review and Approval",
+  "trigger": "menu_analysis_completed",
+  "steps": [
+    {
+      "stepId": "notify_manager",
+      "type": "notification",
+      "recipients": ["role:food_beverage_manager"],
+      "template": "menu_analysis_ready"
+    },
+    {
+      "stepId": "manager_review",
+      "type": "approval",
+      "approver": "role:food_beverage_manager",
+      "timeout": "48_hours",
+      "actions": ["approve", "modify", "reject"]
+    },
+    {
+      "stepId": "publish_recommendations",
+      "type": "automated",
+      "condition": "approved",
+      "action": "publish_menu_recommendations"
+    }
+  ]
+}
+```
+
+#### Workflow: Cost Alert Escalation
+
+**Trigger**: Critical cost alert is not acknowledged within SLA
+
+**Steps**:
+1. **Initial Alert**: Cost threshold exceeded, alert created
+2. **Primary Notification**: Purchasing Manager notified
+3. **Acknowledgment Wait**: 2-hour timeout for acknowledgment
+4. **Escalation Level 1**: If not acknowledged → Notify Department Manager
+5. **Escalation Level 2**: After 4 hours → Notify Financial Manager
+6. **Auto-Resolution**: After 24 hours → Auto-acknowledge with system note
+
+**Workflow Configuration**:
+```json
+{
+  "workflowId": "cost-alert-escalation",
+  "name": "Cost Alert Escalation",
+  "trigger": "critical_cost_alert_created",
+  "steps": [
+    {
+      "stepId": "notify_purchasing",
+      "type": "notification",
+      "recipients": ["role:purchasing_manager"],
+      "priority": "high"
+    },
+    {
+      "stepId": "wait_acknowledgment",
+      "type": "wait",
+      "duration": "2_hours",
+      "breakCondition": "alert_acknowledged"
+    },
+    {
+      "stepId": "escalate_department",
+      "type": "notification",
+      "recipients": ["role:department_manager"],
+      "priority": "urgent"
+    },
+    {
+      "stepId": "escalate_financial",
+      "type": "notification",
+      "delay": "2_hours",
+      "recipients": ["role:financial_manager"],
+      "priority": "critical"
+    },
+    {
+      "stepId": "auto_acknowledge",
+      "type": "automated",
+      "delay": "24_hours",
+      "action": "acknowledge_alert_system"
+    }
+  ]
+}
+```
+
+### 11.4 Scheduled Jobs
+
+The Menu Engineering module requires 4 scheduled jobs for automated analysis, data maintenance, and proactive monitoring.
+
+#### Job 1: Daily Menu Analysis Refresh
+
+**Schedule**: Daily at 2:00 AM (after POS data sync)
+
+**Purpose**: Refresh menu engineering classifications and performance metrics
+
+**Implementation**:
+```typescript
+async function dailyMenuAnalysisJob() {
+  const locations = await getActiveLocations();
+
+  for (const location of locations) {
+    try {
+      // Analyze yesterday's performance
+      const yesterday = subDays(new Date(), 1);
+      const analysisResult = await analyzeMenuPerformance({
+        periodStart: startOfDay(yesterday),
+        periodEnd: endOfDay(yesterday),
+        locationIds: [location.id]
+      });
+
+      // Save snapshot
+      await saveMenuEngineeringSnapshot(analysisResult);
+
+      // Reclassify all menu items
+      await reclassifyAllMenuItems(location.id);
+
+      // Generate recommendations
+      const recommendations = await generateMenuRecommendations(analysisResult);
+      await saveRecommendations(recommendations);
+
+      // Send daily summary email to managers
+      await sendDailySummaryEmail(location.id, analysisResult);
+
+    } catch (error) {
+      logger.error(`Daily menu analysis failed for location ${location.id}`, error);
+    }
+  }
+}
+```
+
+**Cron Expression**: `0 2 * * *`
+
+**Database Operations**:
+- INSERT into `menu_engineering_snapshots`
+- UPDATE `menu_performance_history`
+- INSERT into `menu_optimization_recommendations`
+
+#### Job 2: Weekly Trend Analysis and Forecasting
+
+**Schedule**: Every Monday at 3:00 AM
+
+**Purpose**: Analyze weekly trends and generate forecasts for upcoming week
+
+**Implementation**:
+```typescript
+async function weeklyTrendAnalysisJob() {
+  const locations = await getActiveLocations();
+  const lastWeek = {
+    start: startOfWeek(subWeeks(new Date(), 1)),
+    end: endOfWeek(subWeeks(new Date(), 1))
+  };
+
+  for (const location of locations) {
+    // Analyze last week's performance
+    const weeklyAnalysis = await analyzeMenuPerformance({
+      periodStart: lastWeek.start,
+      periodEnd: lastWeek.end,
+      locationIds: [location.id]
+    });
+
+    // Compare to previous weeks (4-week trend)
+    const trendAnalysis = await analyzeTrends(location.id, 4);
+
+    // Generate forecast for upcoming week
+    const forecast = await generateSalesForecast(location.id, 'weekly');
+
+    // Identify items with significant changes
+    const significantChanges = identifySignificantChanges(weeklyAnalysis, trendAnalysis);
+
+    // Send weekly report to managers
+    await sendWeeklyReportEmail(location.id, {
+      weeklyAnalysis,
+      trendAnalysis,
+      forecast,
+      significantChanges
+    });
+  }
+}
+```
+
+**Cron Expression**: `0 3 * * 1`
+
+**Analysis Includes**:
+- Week-over-week sales trends
+- Classification movement (items changing quadrants)
+- Top performers and bottom performers
+- Seasonal pattern detection
+
+#### Job 3: Cost Alert Monitoring and Evaluation
+
+**Schedule**: Every 30 minutes
+
+**Purpose**: Evaluate active cost alerts and trigger notifications
+
+**Implementation**:
+```typescript
+async function costAlertMonitoringJob() {
+  // Get all active cost alert rules
+  const activeAlerts = await getActiveCostAlerts();
+
+  for (const alert of activeAlerts) {
+    // Get current recipe cost
+    const currentCost = await calculateRecipeCost(alert.recipeId);
+
+    // Evaluate against thresholds
+    const evaluations = await evaluateCostAlerts(alert.recipeId, currentCost.totalCost);
+
+    for (const evaluation of evaluations) {
+      if (evaluation.isTriggered) {
+        // Create alert event
+        await createCostAlertEvent({
+          alertId: alert.id,
+          recipeId: alert.recipeId,
+          currentCost: currentCost.totalCost,
+          threshold: alert.criticalThreshold,
+          severity: evaluation.severity
+        });
+
+        // Send notifications
+        await sendCostAlertNotifications(alert, evaluation);
+      }
+    }
+  }
+
+  // Check for unacknowledged critical alerts (escalation)
+  const unacknowledgedAlerts = await getUnacknowledgedCriticalAlerts();
+  for (const alert of unacknowledgedAlerts) {
+    const hoursSinceCreated = differenceInHours(new Date(), alert.createdAt);
+    if (hoursSinceCreated >= 2) {
+      await escalateCostAlert(alert);
+    }
+  }
+}
+```
+
+**Cron Expression**: `*/30 * * * *` (every 30 minutes)
+
+**Notification Channels**:
+- Email: Immediate for critical alerts
+- SMS: Critical alerts only
+- Dashboard: All alert levels
+- Webhook: Integration with external systems (Slack, Teams)
+
+#### Job 4: Data Archival and Cleanup
+
+**Schedule**: Monthly on 1st at 1:00 AM
+
+**Purpose**: Archive old analysis data and clean up temporary files
+
+**Implementation**:
+```typescript
+async function monthlyDataArchivalJob() {
+  const cutoffDate = subMonths(new Date(), 24); // Archive data older than 24 months
+
+  // Archive old menu engineering snapshots
+  await db.query(`
+    INSERT INTO menu_engineering_snapshots_archive
+    SELECT * FROM menu_engineering_snapshots
+    WHERE analysis_date < ?
+  `, [cutoffDate]);
+
+  await db.query(`
+    DELETE FROM menu_engineering_snapshots
+    WHERE analysis_date < ?
+  `, [cutoffDate]);
+
+  // Clean up resolved cost alerts older than 12 months
+  const alertCutoffDate = subMonths(new Date(), 12);
+  await db.query(`
+    DELETE FROM cost_alerts
+    WHERE status = 'resolved' AND resolved_at < ?
+  `, [alertCutoffDate]);
+
+  // Clean up temporary export files older than 7 days
+  const exportCutoffDate = subDays(new Date(), 7);
+  await cleanupTempFiles('menu-engineering-exports', exportCutoffDate);
+
+  // Vacuum database tables to reclaim space
+  await vacuumTables([
+    'menu_engineering_snapshots',
+    'menu_performance_history',
+    'cost_alerts'
+  ]);
+}
+```
+
+**Cron Expression**: `0 1 1 * *` (1st of month at 1:00 AM)
+
+**Data Retention Policies**:
+- Menu engineering snapshots: 24 months
+- Performance history: 24 months
+- Cost alerts (resolved): 12 months
+- Cost alerts (active): Indefinite
+- Temporary export files: 7 days
+
+### 11.5 Security and Authentication
+
+All Menu Engineering server actions enforce security best practices:
+
+**Authentication**:
+- JWT token validation on all API routes
+- Keycloak integration for SSO
+- Session management with secure cookies
+
+**Authorization (RBAC)**:
+- Permission-based access control
+- Required permissions defined per action
+- Role hierarchy: Admin > Manager > Staff
+
+**Permission Matrix**:
+```typescript
+const menuEngineeringPermissions = {
+  'view_menu_analytics': ['admin', 'manager', 'chef'],
+  'create_menu_analytics': ['admin', 'manager'],
+  'manage_menu_analytics': ['admin', 'manager'],
+  'view_cost_alerts': ['admin', 'manager', 'purchasing_staff'],
+  'manage_cost_alerts': ['admin', 'manager'],
+  'manage_pos_integration': ['admin', 'it_staff'],
+  'view_pos_integration': ['admin', 'manager', 'it_staff'],
+  'export_menu_reports': ['admin', 'manager'],
+  'manage_scheduled_reports': ['admin'],
+  'view_competitor_analysis': ['admin', 'manager'],
+  'manage_competitor_data': ['admin', 'manager'],
+  'view_price_optimization': ['admin', 'manager'],
+};
+```
+
+**Input Validation**:
+- Zod schemas for all inputs
+- SQL injection prevention via parameterized queries
+- XSS protection via input sanitization
+- File upload validation (type, size, content)
+
+**Rate Limiting**:
+- API routes: 50 requests/minute per user
+- Analysis endpoints: 10 requests/minute (computationally expensive)
+- Export endpoints: 5 requests/minute (resource-intensive)
+
+**Audit Logging**:
+- Log all menu engineering operations
+- Capture user, timestamp, action, affected records
+- Retention: 12 months minimum for compliance
+
+### 11.6 Error Handling and Recovery
+
+**Error Categories**:
+1. **Data Quality Errors**: Missing sales data, incomplete recipes
+2. **Integration Errors**: POS system unavailable, API timeouts
+3. **Calculation Errors**: Divide by zero, negative margins
+4. **Resource Errors**: Database connection failures, file system errors
+
+**Error Handling Strategy**:
+```typescript
+async function safeMenuAnalysis(params: MenuAnalysisParams): Promise<MenuAnalysisResult | ErrorResult> {
+  try {
+    // Validate inputs
+    const validated = MenuAnalysisInputSchema.parse(params);
+
+    // Check data quality
+    const dataQuality = await assessDataQuality(validated);
+    if (dataQuality.score < 0.5) {
+      return {
+        error: 'INSUFFICIENT_DATA_QUALITY',
+        message: 'Sales data quality below minimum threshold (50%)',
+        details: dataQuality.issues
+      };
+    }
+
+    // Execute analysis with timeout
+    const result = await Promise.race([
+      analyzeMenuPerformance(validated),
+      timeout(30000, 'Menu analysis timeout after 30 seconds')
+    ]);
+
+    return result;
+
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return { error: 'VALIDATION_ERROR', message: 'Invalid input parameters', details: error.errors };
+    }
+    if (error.code === 'POS_INTEGRATION_FAILED') {
+      return { error: 'POS_UNAVAILABLE', message: 'Unable to sync with POS system', suggestion: 'Retry in 5 minutes' };
+    }
+
+    logger.error('Menu analysis failed', error);
+    return { error: 'UNKNOWN_ERROR', message: 'An unexpected error occurred' };
+  }
+}
+```
+
+**Recovery Mechanisms**:
+- **Retry Logic**: Exponential backoff for API calls (3 retries max)
+- **Fallback Data**: Use cached results if real-time calculation fails
+- **Degraded Mode**: Continue with reduced functionality if subsystems unavailable
+- **Manual Override**: Allow manual data entry if automated sync fails
+
+### 11.7 Performance Optimization
+
+**Caching Strategy**:
+- **Menu analysis results**: 1 hour TTL, invalidate on recipe cost changes
+- **Recipe costs**: 15 minutes TTL, invalidate on inventory changes
+- **POS sync data**: 5 minutes TTL for real-time dashboard
+- **Historical trends**: 24 hours TTL (static historical data)
+
+**Database Indexing**:
+```sql
+-- Performance-critical indexes
+CREATE INDEX idx_sales_recipe_date ON sales_transactions(recipe_id, transaction_date);
+CREATE INDEX idx_inventory_product_location ON inventory_batches(product_id, location_id, received_date);
+CREATE INDEX idx_menu_perf_recipe ON menu_performance_history(recipe_id, analysis_date DESC);
+CREATE INDEX idx_cost_alerts_recipe_active ON cost_alerts(recipe_id, is_active, status);
+```
+
+**Query Optimization**:
+- Use materialized views for frequently accessed aggregations
+- Implement read replicas for reporting queries
+- Batch database operations where possible
+- Use connection pooling (max 20 connections)
+
+**Background Processing**:
+- Queue heavy computations (analysis, reports) in BullMQ
+- Process in worker threads to avoid blocking main thread
+- Implement job priorities (critical > normal > low)
 
 ---
 

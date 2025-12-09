@@ -191,20 +191,19 @@ export function generateMockStockCardData(productId: string): StockCardData {
   // Sort lots by expiry date (ascending)
   lotInformation.sort((a, b) => new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime())
   
-  // Generate movement records
+  // Generate movement records - only IN and OUT transaction types
   const movements: MovementRecord[] = []
-  const transactionTypes: ("IN" | "OUT" | "ADJUSTMENT")[] = ["IN", "OUT", "ADJUSTMENT"]
+  const transactionTypes: ("IN" | "OUT")[] = ["IN", "OUT"]
   const referenceTypes = ["GRN", "SO", "ADJ", "TRF", "PO", "WO", "SR"]
   const reasons = {
-    "IN": ["Purchase Receipt", "Return from Customer", "Transfer In", "Adjustment In"],
-    "OUT": ["Sales Issue", "Transfer Out", "Consumption", "Wastage"],
-    "ADJUSTMENT": ["Physical Count", "Expiry", "Damage", "Quality Control"]
+    "IN": ["Purchase Receipt", "Return from Customer", "Transfer In", "Adjustment In", "Physical Count Increase"],
+    "OUT": ["Sales Issue", "Transfer Out", "Consumption", "Wastage", "Physical Count Decrease", "Expiry", "Damage"]
   }
   const users = ["john.doe", "jane.smith", "mike.wilson", "sarah.johnson"]
-  
+
   let runningQuantity = totalStock
   let runningValue = totalValue
-  
+
   for (let i = 0; i < 20; i++) {
     const { dateString, timeString } = getRandomRecentDate()
     const transactionType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)]
@@ -212,17 +211,15 @@ export function generateMockStockCardData(productId: string): StockCardData {
     const locationIndex = Math.floor(Math.random() * locationStocks.length)
     const reason = reasons[transactionType][Math.floor(Math.random() * reasons[transactionType].length)]
     const user = users[Math.floor(Math.random() * users.length)]
-    
+
     // Generate quantities and values
     let quantityChange = 0
-    
+
     if (transactionType === "IN") {
       quantityChange = Math.floor(Math.random() * 30) + 5
-    } else if (transactionType === "OUT") {
-      quantityChange = -(Math.floor(Math.random() * 20) + 5)
     } else {
-      // Adjustment can be positive or negative
-      quantityChange = Math.floor(Math.random() * 20) - 10
+      // OUT transaction
+      quantityChange = -(Math.floor(Math.random() * 20) + 5)
     }
     
     const unitCost = Math.random() * 3 + 2 // Random unit cost between 2 and 5
@@ -273,16 +270,14 @@ export function generateMockStockCardData(productId: string): StockCardData {
     const { dateString } = getRandomRecentDate(90) // Last 90 days
     const transactionType = transactionTypes[Math.floor(Math.random() * transactionTypes.length)]
     const referenceType = referenceTypes[Math.floor(Math.random() * referenceTypes.length)]
-    
+
     let quantity = 0
-    
+
     if (transactionType === "IN") {
       quantity = Math.floor(Math.random() * 50) + 10
-    } else if (transactionType === "OUT") {
-      quantity = -(Math.floor(Math.random() * 30) + 5)
     } else {
-      // Adjustment can be positive or negative
-      quantity = Math.floor(Math.random() * 20) - 10
+      // OUT transaction
+      quantity = -(Math.floor(Math.random() * 30) + 5)
     }
     
     const unitCost = Math.random() * 3 + 2 // Random unit cost between 2 and 5

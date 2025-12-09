@@ -8,17 +8,21 @@
 - **Status**: Active - For Implementation
 
 ## Related Documents
-- [Business Requirements](./BR-store-requisitions.md)
-- [Use Cases](./UC-store-requisitions.md)
-- [Data Schema](./DS-store-requisitions.md)
-- [Flow Diagrams](./FD-store-requisitions.md)
-- [Validations](./VAL-store-requisitions.md)
+- [Business Requirements](./BR-store-requisitions.md) - Business rules, requirements, and backend specifications
+- [Use Cases](./UC-store-requisitions.md) - User workflows and scenarios
+- [Data Definition](./DD-store-requisitions.md) - Database entity descriptions
+- [Flow Diagrams](./FD-store-requisitions.md) - Visual workflow diagrams
+- [Validations](./VAL-store-requisitions.md) - Validation rules and Zod schemas
+- [Backend Requirements](./BR-store-requisitions.md#10-backend-requirements) - API endpoints, server actions (Section 10 of BR)
+- [Inventory Operations Shared Method](../../shared-methods/inventory-operations/SM-inventory-operations.md) - Inventory transaction patterns
+- [Costing Methods Shared Method](../../shared-methods/inventory-valuation/SM-costing-methods.md) - FIFO/AVG costing integration
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 ---
 
 ## 1. System Architecture

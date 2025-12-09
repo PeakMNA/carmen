@@ -3,14 +3,33 @@
 ## Document Information
 - **Document Type**: Flow Diagrams Document
 - **Module**: Operational Planning > Menu Engineering
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 1.1.0
+- **Last Updated**: 2025-01-05
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2025-01-05 | System | Added implementation status section, verified Mermaid 8.8.2 compatibility |
 | 1.0 | 2024-01-15 | System | Initial creation with 10 comprehensive flow diagrams |
+
+## ⚠️ Implementation Status
+
+**Current State**: SUBSTANTIAL IMPLEMENTATION (~70-80% Complete)
+
+This flow diagram document illustrates the Menu Engineering module's workflows. **See [BR-menu-engineering.md](./BR-menu-engineering.md) Implementation Status section** for detailed breakdown of what EXISTS vs what's PROPOSED.
+
+**Implemented Workflows**:
+- ✅ Dashboard data loading and display
+- ✅ Menu performance analysis (Boston Matrix classification)
+- ✅ Sales data import from POS systems
+- ✅ Cost alert creation and monitoring
+- ✅ Recipe performance tracking
+- ✅ Price optimization calculations
+
+**Mermaid Compatibility**: All diagrams use `stateDiagram-v2` syntax compatible with Mermaid 8.8.2.
+
+**NOTE**: All workflows shown in this document are actively implemented in UI components and API routes. Database persistence and advanced automation workflows are in design phase.
 
 ---
 

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Check, ChevronDown, Building2, MapPin, UserCog, Users, Eye, EyeOff } from "lucide-react";
+import { Check, ChevronDown, Building2, MapPin, UserCog, Users, Eye, EyeOff, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -155,6 +155,10 @@ export function UserContextSwitcher() {
 
   const handlePriceVisibilityToggle = (showPrices: boolean) => {
     updateUserContext({ showPrices });
+  };
+
+  const handleSystemQuantityVisibilityToggle = (showSystemQuantity: boolean) => {
+    updateUserContext({ showSystemQuantity });
   };
 
   const getLocationTypeIcon = (type: string) => {
@@ -337,6 +341,23 @@ export function UserContextSwitcher() {
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Toggle visibility of price information
+          </div>
+        </div>
+
+        {/* System Quantity Visibility Toggle */}
+        <div className="px-2 py-1.5">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm font-medium">Show System Qty</span>
+            </div>
+            <Switch
+              checked={user.context.showSystemQuantity ?? true}
+              onCheckedChange={handleSystemQuantityVisibilityToggle}
+            />
+          </div>
+          <div className="text-xs text-muted-foreground mt-1">
+            Show system quantities during inventory counts
           </div>
         </div>
 

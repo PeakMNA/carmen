@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from "react"
 import { useUser } from '@/lib/context/simple-user-context'
-import { Card, CardContent } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -22,6 +22,9 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { Progress } from "@/components/ui/progress"
 import {
   ArrowUpDown,
   FileDown,
@@ -36,8 +39,38 @@ import {
   Calendar,
   Clock,
   AlertTriangle,
-  CalendarDays
+  CalendarDays,
+  TrendingUp,
+  TrendingDown,
+  Package,
+  DollarSign,
+  Timer,
+  AlertCircle,
+  CheckCircle2,
+  ArrowRight,
+  Trash2,
+  RotateCcw,
+  ShoppingCart,
+  Lightbulb
 } from "lucide-react"
+import {
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  PieChart,
+  Pie,
+  Cell,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  ComposedChart
+} from "recharts"
 import { formatCurrency, formatNumber } from '@/lib/utils/formatters'
 import { GroupedTable, useGroupedTable } from '@/components/inventory/GroupedTable'
 import { ExportButton } from '@/components/inventory/ExportButton'
@@ -319,6 +352,171 @@ export default function InventoryAgingPage() {
     }
   }, [filteredItems])
 
+  // Analytics data for charts
+  const analyticsData = useMemo(() => {
+    // Expiry timeline data - next 90 days
+    const expiryTimeline = []
+    const today = new Date()
+    for (let i = 0; i < 12; i++) {
+      const weekStart = new Date(today)
+      weekStart.setDate(today.getDate() + (i * 7))
+      const weekEnd = new Date(weekStart)
+      weekEnd.setDate(weekStart.getDate() + 7)
+
+      const expiringItems = filteredItems.filter(item => {
+        if (!item.expiryDate) return false
+        const expiry = new Date(item.expiryDate)
+        return expiry >= weekStart && expiry < weekEnd
+      })
+
+      expiryTimeline.push({
+        week: `Week ${i + 1}`,
+        dateRange: `${weekStart.getMonth() + 1}/${weekStart.getDate()}`,
+        items: expiringItems.length,
+        value: expiringItems.reduce((sum, item) => sum + item.value, 0)
+      })
+    }
+
+    // Age bucket distribution
+    const ageBucketData = [
+      {
+        bucket: '0-30 days',
+        items: filteredItems.filter(i => i.ageBucket === '0-30').length,
+        value: filteredItems.filter(i => i.ageBucket === '0-30').reduce((s, i) => s + i.value, 0),
+        color: '#22c55e'
+      },
+      {
+        bucket: '31-60 days',
+        items: filteredItems.filter(i => i.ageBucket === '31-60').length,
+        value: filteredItems.filter(i => i.ageBucket === '31-60').reduce((s, i) => s + i.value, 0),
+        color: '#eab308'
+      },
+      {
+        bucket: '61-90 days',
+        items: filteredItems.filter(i => i.ageBucket === '61-90').length,
+        value: filteredItems.filter(i => i.ageBucket === '61-90').reduce((s, i) => s + i.value, 0),
+        color: '#f97316'
+      },
+      {
+        bucket: '90+ days',
+        items: filteredItems.filter(i => i.ageBucket === '90+').length,
+        value: filteredItems.filter(i => i.ageBucket === '90+').reduce((s, i) => s + i.value, 0),
+        color: '#ef4444'
+      }
+    ]
+
+    // Expiry status distribution
+    const expiryStatusData = [
+      {
+        status: 'Fresh',
+        items: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'good').length,
+        value: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'good').reduce((s, i) => s + i.value, 0),
+        color: '#22c55e'
+      },
+      {
+        status: 'Expiring Soon',
+        items: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'expiring-soon').length,
+        value: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'expiring-soon').reduce((s, i) => s + i.value, 0),
+        color: '#eab308'
+      },
+      {
+        status: 'Critical',
+        items: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'critical').length,
+        value: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'critical').reduce((s, i) => s + i.value, 0),
+        color: '#f97316'
+      },
+      {
+        status: 'Expired',
+        items: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'expired').length,
+        value: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'expired').reduce((s, i) => s + i.value, 0),
+        color: '#ef4444'
+      },
+      {
+        status: 'No Expiry',
+        items: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'no-expiry').length,
+        value: filteredItems.filter(i => getExpiryStatus(i.expiryDate) === 'no-expiry').reduce((s, i) => s + i.value, 0),
+        color: '#94a3b8'
+      }
+    ]
+
+    // Location aging comparison
+    const locationAging = Array.from(new Set(filteredItems.map(i => i.locationName))).map(loc => {
+      const locItems = filteredItems.filter(i => i.locationName === loc)
+      const avgAge = locItems.length > 0 ? locItems.reduce((s, i) => s + i.ageInDays, 0) / locItems.length : 0
+      const expiredCount = locItems.filter(i => getExpiryStatus(i.expiryDate) === 'expired').length
+      const criticalCount = locItems.filter(i => getExpiryStatus(i.expiryDate) === 'critical').length
+      return {
+        location: loc.length > 15 ? loc.substring(0, 12) + '...' : loc,
+        fullName: loc,
+        avgAge: Math.round(avgAge),
+        items: locItems.length,
+        totalValue: locItems.reduce((s, i) => s + i.value, 0),
+        expired: expiredCount,
+        critical: criticalCount,
+        atRisk: expiredCount + criticalCount
+      }
+    }).sort((a, b) => b.avgAge - a.avgAge)
+
+    // Category aging breakdown
+    const categoryAging = Array.from(new Set(filteredItems.map(i => i.category))).map(cat => {
+      const catItems = filteredItems.filter(i => i.category === cat)
+      const avgAge = catItems.length > 0 ? catItems.reduce((s, i) => s + i.ageInDays, 0) / catItems.length : 0
+      const expiredValue = catItems.filter(i => getExpiryStatus(i.expiryDate) === 'expired').reduce((s, i) => s + i.value, 0)
+      return {
+        category: cat,
+        avgAge: Math.round(avgAge),
+        items: catItems.length,
+        totalValue: catItems.reduce((s, i) => s + i.value, 0),
+        expiredValue
+      }
+    }).sort((a, b) => b.avgAge - a.avgAge)
+
+    // Critical items requiring action
+    const criticalItems = filteredItems
+      .filter(item => {
+        const status = getExpiryStatus(item.expiryDate)
+        return status === 'expired' || status === 'critical'
+      })
+      .sort((a, b) => {
+        if (!a.expiryDate) return 1
+        if (!b.expiryDate) return -1
+        return new Date(a.expiryDate).getTime() - new Date(b.expiryDate).getTime()
+      })
+      .slice(0, 10)
+
+    // Oldest items
+    const oldestItems = [...filteredItems]
+      .sort((a, b) => b.ageInDays - a.ageInDays)
+      .slice(0, 10)
+
+    // Value at risk
+    const expiredValue = filteredItems
+      .filter(i => getExpiryStatus(i.expiryDate) === 'expired')
+      .reduce((s, i) => s + i.value, 0)
+    const criticalValue = filteredItems
+      .filter(i => getExpiryStatus(i.expiryDate) === 'critical')
+      .reduce((s, i) => s + i.value, 0)
+    const expiringSoonValue = filteredItems
+      .filter(i => getExpiryStatus(i.expiryDate) === 'expiring-soon')
+      .reduce((s, i) => s + i.value, 0)
+
+    return {
+      expiryTimeline,
+      ageBucketData,
+      expiryStatusData,
+      locationAging,
+      categoryAging,
+      criticalItems,
+      oldestItems,
+      valueAtRisk: {
+        expired: expiredValue,
+        critical: criticalValue,
+        expiringSoon: expiringSoonValue,
+        total: expiredValue + criticalValue + expiringSoonValue
+      }
+    }
+  }, [filteredItems])
+
   // Prepare export data
   const exportData = useMemo(() => {
     const filters = {
@@ -493,8 +691,34 @@ export default function InventoryAgingPage() {
         </div>
       </div>
 
+      {/* Alerts Section */}
+      {(summaryStats.expiredItems > 0 || summaryStats.nearExpiryItems > 0 || analyticsData.valueAtRisk.total > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {summaryStats.expiredItems > 0 && (
+            <Alert variant="destructive">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>Expired Items Require Immediate Attention</AlertTitle>
+              <AlertDescription>
+                {summaryStats.expiredItems} items have expired with a total value of {formatCurrency(analyticsData.valueAtRisk.expired)}.
+                Review and dispose of expired inventory immediately.
+              </AlertDescription>
+            </Alert>
+          )}
+          {summaryStats.nearExpiryItems > 0 && (
+            <Alert className="border-yellow-200 bg-yellow-50">
+              <Timer className="h-4 w-4 text-yellow-600" />
+              <AlertTitle className="text-yellow-800">Items Expiring Soon</AlertTitle>
+              <AlertDescription className="text-yellow-700">
+                {summaryStats.nearExpiryItems} items will expire within 30 days ({formatCurrency(analyticsData.valueAtRisk.critical)} at risk).
+                Consider promotions or priority usage.
+              </AlertDescription>
+            </Alert>
+          )}
+        </div>
+      )}
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-6 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
@@ -503,7 +727,7 @@ export default function InventoryAgingPage() {
                 <p className="text-2xl font-bold">{formatNumber(summaryStats.totalItems)}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <Calendar className="h-6 w-6 text-blue-600" />
+                <Package className="h-6 w-6 text-blue-600" />
               </div>
             </div>
           </CardContent>
@@ -517,7 +741,7 @@ export default function InventoryAgingPage() {
                 <p className="text-2xl font-bold">{formatCurrency(summaryStats.totalValue)}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <span className="text-green-600 text-xl font-semibold">$</span>
+                <DollarSign className="h-6 w-6 text-green-600" />
               </div>
             </div>
           </CardContent>
@@ -541,11 +765,11 @@ export default function InventoryAgingPage() {
           <CardContent className="pt-6">
             <div className="flex justify-between items-center">
               <div>
-                <p className="text-sm text-muted-foreground">Near Expiry Items</p>
-                <p className="text-2xl font-bold">{formatNumber(summaryStats.nearExpiryItems)}</p>
+                <p className="text-sm text-muted-foreground">Near Expiry</p>
+                <p className="text-2xl font-bold text-yellow-600">{formatNumber(summaryStats.nearExpiryItems)}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-yellow-100 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-yellow-600" />
+                <Timer className="h-6 w-6 text-yellow-600" />
               </div>
             </div>
           </CardContent>
@@ -556,69 +780,92 @@ export default function InventoryAgingPage() {
             <div className="flex justify-between items-center">
               <div>
                 <p className="text-sm text-muted-foreground">Expired Items</p>
-                <p className="text-2xl font-bold">{formatNumber(summaryStats.expiredItems)}</p>
+                <p className="text-2xl font-bold text-red-600">{formatNumber(summaryStats.expiredItems)}</p>
               </div>
               <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
-                <AlertTriangle className="h-6 w-6 text-red-600" />
+                <AlertCircle className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex justify-between items-center">
+              <div>
+                <p className="text-sm text-muted-foreground">Value at Risk</p>
+                <p className="text-2xl font-bold text-red-600">{formatCurrency(analyticsData.valueAtRisk.total)}</p>
+              </div>
+              <div className="h-12 w-12 rounded-full bg-red-100 flex items-center justify-center">
+                <TrendingDown className="h-6 w-6 text-red-600" />
               </div>
             </div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Main Content */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            {/* Search and Filters */}
-            <div className="flex flex-col md:flex-row justify-between gap-4">
-              <div className="relative w-full md:w-auto">
-                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-                <Input
-                  type="search"
-                  placeholder="Search by product name, code or batch..."
-                  className="pl-8 w-full md:w-[300px]"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
+      {/* Main Content with Tabs */}
+      <Tabs defaultValue="inventory" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="inventory">Inventory List</TabsTrigger>
+          <TabsTrigger value="analytics">Analytics</TabsTrigger>
+          <TabsTrigger value="actions">Action Center</TabsTrigger>
+        </TabsList>
 
-              <div className="flex flex-wrap gap-2">
-                {viewMode === 'grouped' && (
-                  <div className="flex gap-1">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={expandAll}
-                      className="h-10"
-                    >
-                      <ChevronDown className="h-4 w-4 mr-1" />
-                      Expand All
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={collapseAll}
-                      className="h-10"
-                    >
-                      <ChevronUp className="h-4 w-4 mr-1" />
-                      Collapse All
-                    </Button>
-                    <Select value={groupingMode} onValueChange={(value: "location" | "age") => setGroupingMode(value)}>
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="location">By Location</SelectItem>
-                        <SelectItem value="age">By Age Bucket</SelectItem>
-                      </SelectContent>
-                    </Select>
+        {/* Inventory List Tab */}
+        <TabsContent value="inventory">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-4">
+                {/* Search and Filters */}
+                <div className="flex flex-col md:flex-row justify-between gap-4">
+                  <div className="relative w-full md:w-auto">
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="search"
+                      placeholder="Search by product name, code or batch..."
+                      className="pl-8 w-full md:w-[300px]"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
                   </div>
-                )}
 
-                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Category" />
+                  <div className="flex flex-wrap gap-2">
+                    {viewMode === 'grouped' && (
+                      <div className="flex gap-1">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={expandAll}
+                          className="h-10"
+                        >
+                          <ChevronDown className="h-4 w-4 mr-1" />
+                          Expand All
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={collapseAll}
+                          className="h-10"
+                        >
+                          <ChevronUp className="h-4 w-4 mr-1" />
+                          Collapse All
+                        </Button>
+                        <Select value={groupingMode} onValueChange={(value: "location" | "age") => setGroupingMode(value)}>
+                          <SelectTrigger className="w-[140px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="location">By Location</SelectItem>
+                            <SelectItem value="age">By Age Bucket</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
+
+                    <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                      <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Category" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Categories</SelectItem>
@@ -858,18 +1105,439 @@ export default function InventoryAgingPage() {
               />
             )}
 
-            {/* Summary */}
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <div>
-                Showing {filteredItems.length} of {agingItems.length} inventory items
+                {/* Summary */}
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <div>
+                    Showing {filteredItems.length} of {agingItems.length} inventory items
+                  </div>
+                  <div>
+                    Last updated: {new Date().toLocaleDateString()}
+                  </div>
+                </div>
               </div>
-              <div>
-                Last updated: {new Date().toLocaleDateString()}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Analytics Tab */}
+        <TabsContent value="analytics" className="space-y-4">
+          {/* Expiry Timeline */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5 text-blue-600" />
+                Expiry Timeline (Next 12 Weeks)
+              </CardTitle>
+              <CardDescription>
+                Items expiring in the coming weeks - plan usage and promotions accordingly
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={analyticsData.expiryTimeline}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="dateRange" className="text-xs" />
+                    <YAxis yAxisId="left" className="text-xs" />
+                    <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                    <Tooltip
+                      formatter={(value: number, name: string) => {
+                        if (name === 'value') return [formatCurrency(value), 'Value']
+                        return [value, 'Items']
+                      }}
+                    />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="items" fill="#3b82f6" name="Items Expiring" radius={[4, 4, 0, 0]} />
+                    <Line yAxisId="right" type="monotone" dataKey="value" stroke="#ef4444" strokeWidth={2} name="Value at Risk" dot={{ fill: '#ef4444' }} />
+                  </ComposedChart>
+                </ResponsiveContainer>
               </div>
-            </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Age Bucket Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-orange-600" />
+                  Age Bucket Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={analyticsData.ageBucketData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={90}
+                        paddingAngle={2}
+                        dataKey="items"
+                        nameKey="bucket"
+                        label={({ bucket, percent }) => `${bucket}: ${(percent * 100).toFixed(0)}%`}
+                        labelLine={false}
+                      >
+                        {analyticsData.ageBucketData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip formatter={(value: number) => [value, 'Items']} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  {analyticsData.ageBucketData.map((bucket) => (
+                    <div key={bucket.bucket} className="flex items-center justify-between text-sm">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: bucket.color }} />
+                        <span>{bucket.bucket}</span>
+                      </div>
+                      <span className="font-medium">{formatCurrency(bucket.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Expiry Status Distribution */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertTriangle className="h-5 w-5 text-yellow-600" />
+                  Expiry Status Distribution
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-[250px]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={analyticsData.expiryStatusData} layout="vertical">
+                      <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                      <XAxis type="number" className="text-xs" />
+                      <YAxis dataKey="status" type="category" width={100} className="text-xs" />
+                      <Tooltip formatter={(value: number) => [value, 'Items']} />
+                      <Bar dataKey="items" radius={[0, 4, 4, 0]}>
+                        {analyticsData.expiryStatusData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="mt-4 space-y-2">
+                  {analyticsData.expiryStatusData.filter(s => s.items > 0).map((status) => (
+                    <div key={status.status} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full" style={{ backgroundColor: status.color }} />
+                        <span className="text-sm">{status.status}</span>
+                      </div>
+                      <span className="text-sm font-medium">{formatCurrency(status.value)}</span>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
           </div>
-        </CardContent>
-      </Card>
+
+          {/* Location Aging Comparison */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <MapPin className="h-5 w-5 text-blue-600" />
+                Location Aging Performance
+              </CardTitle>
+              <CardDescription>
+                Average inventory age and at-risk items by location
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-[300px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <ComposedChart data={analyticsData.locationAging}>
+                    <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                    <XAxis dataKey="location" className="text-xs" />
+                    <YAxis yAxisId="left" className="text-xs" />
+                    <YAxis yAxisId="right" orientation="right" className="text-xs" />
+                    <Tooltip
+                      formatter={(value: number, name: string) => {
+                        if (name === 'totalValue') return [formatCurrency(value), 'Total Value']
+                        if (name === 'avgAge') return [`${value} days`, 'Avg Age']
+                        return [value, name]
+                      }}
+                    />
+                    <Legend />
+                    <Bar yAxisId="left" dataKey="avgAge" fill="#f97316" name="Avg Age (days)" radius={[4, 4, 0, 0]} />
+                    <Bar yAxisId="left" dataKey="atRisk" fill="#ef4444" name="At Risk Items" radius={[4, 4, 0, 0]} />
+                    <Line yAxisId="right" type="monotone" dataKey="totalValue" stroke="#3b82f6" strokeWidth={2} name="Total Value" />
+                  </ComposedChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Category Aging Breakdown */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="h-5 w-5 text-purple-600" />
+                Category Aging Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-gray-50/75">
+                    <TableHead>Category</TableHead>
+                    <TableHead className="text-right">Items</TableHead>
+                    <TableHead className="text-right">Avg Age</TableHead>
+                    <TableHead className="text-right">Total Value</TableHead>
+                    <TableHead className="text-right">Expired Value</TableHead>
+                    <TableHead>Age Distribution</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {analyticsData.categoryAging.map((cat) => (
+                    <TableRow key={cat.category}>
+                      <TableCell className="font-medium">{cat.category}</TableCell>
+                      <TableCell className="text-right">{cat.items}</TableCell>
+                      <TableCell className="text-right">
+                        <span className={cat.avgAge > 60 ? 'text-red-600 font-medium' : cat.avgAge > 30 ? 'text-yellow-600' : ''}>
+                          {cat.avgAge} days
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">{formatCurrency(cat.totalValue)}</TableCell>
+                      <TableCell className="text-right text-red-600">{formatCurrency(cat.expiredValue)}</TableCell>
+                      <TableCell>
+                        <Progress
+                          value={Math.min((cat.avgAge / 90) * 100, 100)}
+                          className={`h-2 ${cat.avgAge > 60 ? '[&>div]:bg-red-500' : cat.avgAge > 30 ? '[&>div]:bg-yellow-500' : '[&>div]:bg-green-500'}`}
+                        />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Action Center Tab */}
+        <TabsContent value="actions" className="space-y-4">
+          {/* Value at Risk Summary */}
+          <Card className="border-red-200 bg-red-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-red-700">
+                <AlertTriangle className="h-5 w-5" />
+                Value at Risk Summary
+              </CardTitle>
+              <CardDescription className="text-red-600">
+                Immediate attention required for {formatCurrency(analyticsData.valueAtRisk.total)} worth of inventory
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-lg p-4 border border-red-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Already Expired</span>
+                    <Badge variant="destructive">Critical</Badge>
+                  </div>
+                  <p className="text-2xl font-bold text-red-600">{formatCurrency(analyticsData.valueAtRisk.expired)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Requires immediate disposal</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-orange-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Expiring &lt;30 days</span>
+                    <Badge className="bg-orange-100 text-orange-700 border-orange-200">Urgent</Badge>
+                  </div>
+                  <p className="text-2xl font-bold text-orange-600">{formatCurrency(analyticsData.valueAtRisk.critical)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Priority usage required</p>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-yellow-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm text-muted-foreground">Expiring 30-90 days</span>
+                    <Badge className="bg-yellow-100 text-yellow-700 border-yellow-200">Monitor</Badge>
+                  </div>
+                  <p className="text-2xl font-bold text-yellow-600">{formatCurrency(analyticsData.valueAtRisk.expiringSoon)}</p>
+                  <p className="text-xs text-muted-foreground mt-1">Plan for increased usage</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Critical Items Requiring Action */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <AlertCircle className="h-5 w-5 text-red-600" />
+                  Critical Items (Expired/Near Expiry)
+                </CardTitle>
+                <CardDescription>
+                  Items requiring immediate attention
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {analyticsData.criticalItems.length === 0 ? (
+                    <div className="flex items-center justify-center py-8 text-muted-foreground">
+                      <CheckCircle2 className="h-5 w-5 mr-2 text-green-600" />
+                      No critical items - all inventory is fresh!
+                    </div>
+                  ) : (
+                    analyticsData.criticalItems.map((item) => {
+                      const status = getExpiryStatus(item.expiryDate)
+                      const isExpired = status === 'expired'
+                      return (
+                        <div key={`${item.productId}-${item.lotNumber}`} className={`p-3 rounded-lg border ${isExpired ? 'bg-red-50 border-red-200' : 'bg-orange-50 border-orange-200'}`}>
+                          <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium">{item.productName}</span>
+                                {renderExpiryStatusBadge(status)}
+                              </div>
+                              <div className="text-sm text-muted-foreground mt-1">
+                                {item.productCode} • {item.locationName} • Lot: {item.lotNumber || 'N/A'}
+                              </div>
+                              <div className="flex items-center gap-4 mt-2 text-sm">
+                                <span>Qty: {formatNumber(item.quantity)} {item.unit}</span>
+                                <span>Value: {formatCurrency(item.value)}</span>
+                                {item.expiryDate && (
+                                  <span className={isExpired ? 'text-red-600 font-medium' : 'text-orange-600'}>
+                                    {isExpired ? 'Expired: ' : 'Expires: '}
+                                    {formatDate(item.expiryDate.toISOString())}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <div className="flex gap-1">
+                              {isExpired ? (
+                                <Button size="sm" variant="destructive">
+                                  <Trash2 className="h-4 w-4 mr-1" />
+                                  Dispose
+                                </Button>
+                              ) : (
+                                <>
+                                  <Button size="sm" variant="outline">
+                                    <ShoppingCart className="h-4 w-4 mr-1" />
+                                    Use
+                                  </Button>
+                                  <Button size="sm" variant="outline">
+                                    <RotateCcw className="h-4 w-4 mr-1" />
+                                    Transfer
+                                  </Button>
+                                </>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )
+                    })
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Oldest Inventory Items */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Clock className="h-5 w-5 text-orange-600" />
+                  Oldest Inventory Items
+                </CardTitle>
+                <CardDescription>
+                  Items with longest time in stock
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {analyticsData.oldestItems.map((item, index) => (
+                    <div key={`${item.productId}-${item.lotNumber}-${index}`} className="p-3 rounded-lg border bg-gray-50">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium">{item.productName}</span>
+                            {renderAgeBucketBadge(item.ageBucket)}
+                          </div>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            {item.productCode} • {item.locationName}
+                          </div>
+                          <div className="flex items-center gap-4 mt-2 text-sm">
+                            <span className="font-medium text-orange-600">{item.ageInDays} days old</span>
+                            <span>Qty: {formatNumber(item.quantity)} {item.unit}</span>
+                            <span>Value: {formatCurrency(item.value)}</span>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          <ArrowRight className="h-4 w-4 mr-1" />
+                          Action
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Recommendations */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Lightbulb className="h-5 w-5 text-yellow-600" />
+                Recommended Actions
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                {summaryStats.expiredItems > 0 && (
+                  <div className="p-4 border rounded-lg bg-red-50 border-red-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Trash2 className="h-5 w-5 text-red-600" />
+                      <span className="font-medium text-red-700">Dispose Expired Items</span>
+                    </div>
+                    <p className="text-sm text-red-600 mb-3">
+                      {summaryStats.expiredItems} items have expired. Create disposal records and update inventory.
+                    </p>
+                    <Button size="sm" variant="destructive" className="w-full">
+                      Create Disposal Record
+                    </Button>
+                  </div>
+                )}
+                {summaryStats.nearExpiryItems > 0 && (
+                  <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <ShoppingCart className="h-5 w-5 text-yellow-600" />
+                      <span className="font-medium text-yellow-700">Prioritize Usage</span>
+                    </div>
+                    <p className="text-sm text-yellow-600 mb-3">
+                      {summaryStats.nearExpiryItems} items expire within 30 days. Update recipes and menus to use these items first.
+                    </p>
+                    <Button size="sm" variant="outline" className="w-full border-yellow-300 text-yellow-700 hover:bg-yellow-100">
+                      View Menu Suggestions
+                    </Button>
+                  </div>
+                )}
+                {analyticsData.locationAging.some(l => l.avgAge > 45) && (
+                  <div className="p-4 border rounded-lg bg-blue-50 border-blue-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <RotateCcw className="h-5 w-5 text-blue-600" />
+                      <span className="font-medium text-blue-700">Rebalance Stock</span>
+                    </div>
+                    <p className="text-sm text-blue-600 mb-3">
+                      Some locations have high average age. Consider transferring stock to higher-turnover locations.
+                    </p>
+                    <Button size="sm" variant="outline" className="w-full border-blue-300 text-blue-700 hover:bg-blue-100">
+                      Plan Stock Transfers
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   )
 } 

@@ -4,15 +4,47 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Route**: `/app/(main)/store-operations/wastage-reporting`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
+- **Version**: 1.2.0
+- **Last Updated**: 2025-12-09
 - **Owner**: Store Operations Team
-- **Status**: Draft
+- **Status**: Active
+- **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend UI with 6 pages |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status (Section 1.4), backend requirements (Section 9), inventory valuation integration |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
+
+---
+
+## ✅ IMPLEMENTATION NOTE
+
+**Current State**: IMPLEMENTED - Frontend UI Complete with Mock Data
+
+The Wastage Reporting module frontend has been fully implemented with comprehensive UI pages. Backend integration is pending.
+
+**Implemented Pages**:
+- ✅ **Dashboard** (`/store-operations/wastage-reporting/`) - KPI cards (total wastage, items wasted, pending reviews, wastage rate), monthly trend chart, wastage by reason pie chart, wastage by location bar chart, recent reports table with search/filters
+- ✅ **New Report** (`/store-operations/wastage-reporting/new/`) - Location selection, item search/add, quantity input, reason selection (7 categories), notes per item, photo attachments upload, summary sidebar with total loss calculation
+- ✅ **Reports List** (`/store-operations/wastage-reporting/reports/`) - Status summary cards (all/pending/under_review/approved/rejected), full reports table with bulk selection, filters by location/reason/date, bulk approve/reject actions
+- ✅ **Report Detail** (`/store-operations/wastage-reporting/reports/[id]/`) - Complete item details (batch number, expiry date, cost), wastage reason with description, attachments gallery, activity timeline, review decision section, related reports sidebar
+- ✅ **Analytics** (`/store-operations/wastage-reporting/analytics/`) - Monthly trend with target line, wastage by reason breakdown, weekly stacked bar chart, location comparison with progress bars, category breakdown, top wasted items table, insights & recommendations
+- ✅ **Categories** (`/store-operations/wastage-reporting/categories/`) - Category management with color coding, approval thresholds, usage statistics, approval rules configuration, add/edit/delete categories
+
+**Status Values Implemented**: `pending`, `under_review`, `approved`, `rejected`
+
+**Reason Categories Implemented**: `expiration`, `damage`, `quality`, `spoilage`, `overproduction`, `contamination`, `other`
+
+**Pending Backend Implementation**:
+- ⏳ Database schema and tables
+- ⏳ Server actions for CRUD operations
+- ⏳ Supabase storage for attachments
+- ⏳ Automatic inventory adjustments
+- ⏳ Financial system integration
+
+---
 
 
 ## Overview
@@ -946,6 +978,507 @@ interface WastageConfiguration {
 - **Report Performance**: Historical reports spanning multiple years may require data warehouse implementation to avoid impacting operational database; consider scheduled ETL processes to reporting database.
 
 - **Photo Storage Optimization**: Evaluate Content Delivery Network (CDN) for faster photo loading; implement progressive image loading and thumbnails to reduce bandwidth usage; consider image format optimization (WebP, AVIF).
+
+---
+
+## 9. Backend Implementation Requirements
+
+### 9.1 Server Actions Required
+
+The wastage reporting module requires the following Next.js server actions to implement business logic. All server actions must be type-safe with Zod validation and proper error handling.
+
+#### Wastage Transaction Management (5 actions)
+
+**`createWastageTransaction(data: CreateWastageInput): Promise<ActionResult<WastageHeader>>`**
+- Creates new wastage transaction in "draft" status
+- Validates product exists and stock quantity available
+- Calculates total wastage value based on unit cost
+- Captures user, location, date/time automatically
+- Returns wastage reference number
+
+**`submitWastageForApproval(wastageId: string): Promise<ActionResult<WastageHeader>>`**
+- Validates wastage transaction is complete (required fields, photos if needed)
+- Determines approval level required based on value thresholds
+- Routes to appropriate approvers via workflow engine
+- Updates status to "pending_approval"
+- Sends notifications to approvers
+
+**`updateWastageTransaction(wastageId: string, data: UpdateWastageInput): Promise<ActionResult<WastageHeader>>`**
+- Updates wastage transaction in "draft" status only
+- Re-validates data and recalculates totals
+- Updates audit trail with modification details
+
+**`deleteWastageTransaction(wastageId: string): Promise<ActionResult<void>>`**
+- Soft deletes wastage in "draft" status only
+- Prevents deletion of submitted/approved wastage
+- Maintains audit trail
+
+**`getWastageTransactions(filters: WastageFilters): Promise<ActionResult<WastageHeader[]>>`**
+- Retrieves wastage transactions with filtering, sorting, pagination
+- Applies row-level security based on user location permissions
+- Supports search by wastage number, product, date range, category, status
+
+#### Approval Workflow Management (3 actions)
+
+**`approveWastageTransaction(wastageId: string, comments?: string): Promise<ActionResult<WastageHeader>>`**
+- Validates user has approval permission for value threshold
+- Records approval in wastage_approvals table
+- Creates inventory adjustment transaction if final approval
+- Updates wastage status and routes to next level if needed
+- Sends notifications to submitter and next approver
+
+**`partiallyApproveWastage(wastageId: string, approvedQuantity: number, reason: string): Promise<ActionResult<WastageHeader>>`**
+- Reduces wastage quantity to approved amount
+- Creates inventory adjustment for approved portion
+- Returns remaining quantity to "draft" for resubmission
+- Records partial approval in audit trail
+
+**`rejectWastageTransaction(wastageId: string, reason: string): Promise<ActionResult<WastageHeader>>`**
+- Validates rejection reason provided (minimum 30 characters)
+- Updates wastage status to "rejected"
+- Records rejection in wastage_approvals table
+- Sends notification to submitter with rejection reason
+- Prevents resubmission (new transaction must be created)
+
+#### Inventory Integration (3 actions)
+
+**`createInventoryAdjustmentFromWastage(wastageId: string): Promise<ActionResult<InventoryAdjustment>>`**
+- Creates inventory adjustment reducing stock quantity
+- Links adjustment to wastage transaction for traceability
+- Respects inventory costing method (FIFO/FEFO/Weighted Average)
+- Updates inventory valuation and COGS
+- Validates sufficient stock quantity exists
+
+**`validateStockAvailability(productId: string, locationId: string, quantity: number): Promise<ActionResult<StockValidation>>`**
+- Checks current stock-on-hand for product at location
+- Returns current quantity, unit cost, costing method
+- Warns if wastage quantity exceeds 50% of current stock
+- Prevents negative inventory if configured
+
+**`getProductCostForWastage(productId: string, locationId: string, quantity: number, costingMethod: CostingMethod): Promise<ActionResult<CostDetails>>`**
+- Retrieves unit cost based on costing method
+- For FIFO: Returns oldest batch cost
+- For FEFO: Returns nearest-expiry batch cost
+- For Weighted Average: Calculates average across all batches
+- Returns total wastage value and cost breakdown
+
+#### Photo Management (2 actions)
+
+**`uploadWastagePhoto(wastageId: string, photo: File): Promise<ActionResult<WastagePhoto>>`**
+- Validates file type (JPG, PNG, HEIC) and size (<10MB)
+- Scans for malware before storage
+- Compresses image to target size (500KB)
+- Stores in secure cloud storage with encryption
+- Watermarks with date, time, location, user
+- Returns secure signed URL with expiration
+
+**`deleteWastagePhoto(photoId: string): Promise<ActionResult<void>>`**
+- Removes photo from storage (wastage in "draft" status only)
+- Updates wastage photo count
+- Maintains audit trail of photo deletion
+
+#### Analytics and Reporting (4 actions)
+
+**`getWastageDashboardMetrics(locationId: string, dateRange: DateRange): Promise<ActionResult<DashboardMetrics>>`**
+- Calculates KPIs: total wastage value, count, percentage of COGS
+- Identifies top wastage products, categories, responsible parties
+- Compares current period vs prior period
+- Returns trend data for charts
+
+**`analyzeWastagePatterns(filters: AnalysisFilters): Promise<ActionResult<WastageAnalytics>>`**
+- Performs statistical analysis on wastage data
+- Identifies anomalies and outliers
+- Detects seasonal patterns and correlations
+- Provides predictive insights and recommendations
+
+**`generateWastageReport(reportType: string, filters: ReportFilters): Promise<ActionResult<ReportData>>`**
+- Generates predefined standard reports
+- Supports drill-down from summary to detail
+- Exports to Excel, PDF, CSV formats
+- Respects user security permissions
+
+**`getSupplierQualityWastage(supplierId?: string, dateRange?: DateRange): Promise<ActionResult<SupplierQualityData[]>>`**
+- Retrieves wastage attributed to supplier quality issues
+- Calculates supplier quality metrics
+- Groups by supplier, quality issue type, product
+- Supports supplier performance comparison
+
+#### Configuration Management (2 actions)
+
+**`getWastageConfiguration(locationId?: string): Promise<ActionResult<WastageConfiguration>>`**
+- Retrieves wastage module configuration
+- Returns approval thresholds, alert rules, category settings
+- Supports location-specific overrides
+
+**`updateWastageConfiguration(config: WastageConfigurationInput): Promise<ActionResult<WastageConfiguration>>`**
+- Updates wastage module configuration
+- Validates threshold values and alert rules
+- Requires administrator permission
+- Creates new effective configuration version
+
+---
+
+### 9.2 Integration with Inventory Management System
+
+The wastage reporting module integrates tightly with inventory management to ensure real-time stock accuracy and proper inventory valuation. Integration must support multiple costing methods.
+
+#### Required Shared Methods
+
+The wastage module depends on these inventory service methods (located in `lib/services/inventory.service.ts`):
+
+**`getStockLevel(productId: string, locationId: string): Promise<StockLevel>`**
+- Returns current stock-on-hand quantity
+- Includes batch/lot details with expiry dates for FIFO/FEFO
+- Provides unit cost based on costing method
+- Used for wastage validation and value calculation
+
+**`reserveStock(productId: string, locationId: string, quantity: number, reference: string): Promise<Reservation>`**
+- Reserves stock for pending wastage approval
+- Prevents stock from being allocated elsewhere
+- Links reservation to wastage transaction
+- Released if wastage is rejected
+
+**`createInventoryAdjustment(adjustment: InventoryAdjustmentInput): Promise<InventoryAdjustment>`**
+- Creates adjustment transaction reducing stock
+- Links to source transaction (wastage) for audit trail
+- Applies costing method for valuation
+- Updates inventory value and COGS
+
+**`getConsumptionHistory(productId: string, locationId: string, days: number): Promise<ConsumptionData>`**
+- Returns historical consumption patterns
+- Used for wastage anomaly detection
+- Calculates average and standard deviation
+- Identifies unusual wastage quantities
+
+**`applyInventoryValuation(productId: string, locationId: string, quantity: number, method: CostingMethod): Promise<ValuationResult>`**
+- Applies FIFO, FEFO, or Weighted Average costing
+- Returns total value and unit cost breakdown
+- Updates inventory asset value
+- Creates journal entry for financial posting
+
+#### FIFO (First-In-First-Out) Costing
+
+**Used for**: Non-perishable items with batch tracking (dry goods, canned items, supplies)
+
+**Implementation**:
+- When wastage is approved, system identifies oldest inventory batches first
+- Reduces quantity from oldest batches until wastage quantity is satisfied
+- If oldest batch insufficient, moves to next oldest batch
+- Wastage value = sum of (batch_quantity × batch_cost) across selected batches
+
+**Server Action Integration**:
+```typescript
+// Example: Get FIFO cost for wastage
+const costDetails = await getAvailableStockFIFO(
+  productId,
+  locationId,
+  wastageQuantity
+);
+// Returns: [{ batchNumber, quantity, unitCost, expiryDate }, ...]
+
+// Apply FIFO costing for inventory adjustment
+const valuation = await applyInventoryValuation(
+  productId,
+  locationId,
+  wastageQuantity,
+  'FIFO'
+);
+```
+
+**Integration Point**: `tb_inventory_transaction.batch_number` tracking
+
+**Data Requirements**:
+- Batch numbers on all inventory receipts
+- Receipt dates for FIFO sequencing
+- Batch-level cost tracking
+
+#### FEFO (First-Expired-First-Out) Costing
+
+**Used for**: Perishable food items, beverages, ingredients with expiry dates
+
+**Implementation**:
+- System prioritizes stock with nearest expiry dates
+- Reduces quantity from nearest-expiry batches first
+- Prevents wastage of fresher stock when older stock available
+- Wastage value = sum of (batch_quantity × batch_cost) for nearest-expiry batches
+
+**Server Action Integration**:
+```typescript
+// Example: Get FEFO cost for wastage
+const costDetails = await getAvailableStockFEFO(
+  productId,
+  locationId,
+  wastageQuantity
+);
+// Returns batches sorted by expiry date (nearest first)
+
+// Apply FEFO costing
+const valuation = await applyInventoryValuation(
+  productId,
+  locationId,
+  wastageQuantity,
+  'FEFO'
+);
+```
+
+**Integration Point**: `tb_inventory.expiry_date` sorting
+
+**Data Requirements**:
+- Expiry dates on all perishable inventory
+- Batch/lot tracking for traceability
+- Shelf-life monitoring
+
+**Special Handling for Expired Items**:
+- Wastage of expired items auto-approved if within 24 hours of expiry
+- System flags expired items proactively for wastage recording
+- Expiry date validation prevents future-dated expiry
+
+#### Weighted Average Costing
+
+**Used for**: Inventory valuation and transfer pricing when batch-level tracking not feasible
+
+**Implementation**:
+- System calculates average cost across all batches in location
+- Weighted average = total_inventory_value ÷ total_inventory_quantity
+- All wastage valued at current weighted average cost
+- Recalculated after each inventory transaction (receipt, adjustment, transfer)
+
+**Server Action Integration**:
+```typescript
+// Example: Calculate weighted average cost
+const avgCost = await calculateWeightedAverageCost(
+  productId,
+  locationId
+);
+// Returns: { averageCost, totalQuantity, totalValue }
+
+// Apply weighted average costing
+const valuation = await applyInventoryValuation(
+  productId,
+  locationId,
+  wastageQuantity,
+  'WeightedAverage'
+);
+```
+
+**Integration Point**: Inventory costing configuration at product level
+
+**Data Requirements**:
+- Current inventory balance (quantity and value)
+- Recent receipt costs for recalculation
+- Costing method flag at product master level
+
+#### Inventory Adjustment Transaction Flow
+
+**Sequence for Approved Wastage**:
+
+1. **Wastage Approval** → Triggers inventory adjustment creation
+2. **Stock Validation** → Verify sufficient stock exists
+3. **Cost Calculation** → Apply costing method (FIFO/FEFO/Weighted Average)
+4. **Adjustment Creation** → Create inventory transaction reducing stock
+5. **Inventory Update** → Reduce stock-on-hand quantity
+6. **Valuation Update** → Reduce inventory asset value
+7. **GL Posting** → Post wastage expense to GL accounts
+8. **Link Transactions** → Link wastage to inventory adjustment for traceability
+
+**Data Consistency Requirements**:
+- Inventory adjustment must be atomic (all-or-nothing)
+- If GL posting fails, adjustment must be reversible
+- Concurrent wastage approvals must use optimistic locking
+- Audit trail must capture all transaction linkages
+
+---
+
+### 9.3 Integration with Workflow Engine
+
+The wastage module uses a centralized workflow engine for multi-level approval routing based on value thresholds.
+
+#### Workflow Types
+
+**Auto-Approve Workflow**:
+- For low-value wastage below threshold (e.g., <$50)
+- For expired items within 24 hours of expiry date
+- Immediate approval without manual intervention
+- Audit trail records auto-approval rule applied
+
+**Sequential Approval Workflow**:
+- For medium to high-value wastage
+- Each approval level must complete before next level begins
+- Example: Department Manager → Store Manager → Finance Manager
+- Rejection at any level terminates workflow
+
+**Parallel Approval Workflow** (Future Enhancement):
+- Multiple approvers at same level can approve concurrently
+- Example: Store Manager + Department Manager both approve
+- Workflow proceeds when ALL parallel approvers complete
+
+#### Workflow API Calls
+
+**`createWorkflowInstance(workflowType: string, context: WorkflowContext): Promise<WorkflowInstance>`**
+- Creates new workflow instance for wastage transaction
+- Determines approval levels based on value and configuration
+- Assigns approvers based on organizational hierarchy
+- Returns workflow instance ID for tracking
+
+**`routeToNextApprover(workflowInstanceId: string, approvalAction: ApprovalAction): Promise<WorkflowStep>`**
+- Advances workflow to next step after approval
+- Determines next approver in sequence
+- Sends notifications to next approver
+- Completes workflow if final approval reached
+
+**`handleApprovalAction(workflowInstanceId: string, action: 'approved' | 'rejected', comments?: string): Promise<WorkflowResult>`**
+- Records approval action in workflow history
+- Routes to next level or completes workflow
+- Triggers inventory adjustment if final approval
+- Sends notifications to relevant parties
+
+**`checkWorkflowStatus(workflowInstanceId: string): Promise<WorkflowStatus>`**
+- Retrieves current workflow status
+- Returns pending approvers and approval history
+- Calculates time elapsed since submission
+- Identifies overdue approvals requiring escalation
+
+#### Approval Delegation
+
+**`delegateApproval(fromUserId: string, toUserId: string, dateRange: DateRange): Promise<Delegation>`**
+- Creates delegation when approver is unavailable
+- Temporary delegation for specific time period
+- Audit trail records delegation and approver on vacation
+- Notifications sent to delegate
+
+#### Escalation Rules
+
+**Automatic Escalation**:
+- If approval pending >48 hours, escalate to next level
+- Send email notification to escalation contact
+- Record escalation in workflow history
+- Continue escalation every 24 hours until resolved
+
+---
+
+### 9.4 Database Schema Requirements
+
+The wastage module requires 5 database tables (detailed in [DD-wastage-reporting.md](./DD-wastage-reporting.md)):
+
+1. **tb_wastage_header**: Main wastage transaction (18 core fields + audit fields)
+2. **tb_wastage_line_item**: Individual wastage line items (16 fields + audit)
+3. **tb_wastage_photo**: Photo attachments with metadata (13 fields)
+4. **tb_wastage_approval**: Approval workflow history (14 fields + audit)
+5. **tb_wastage_configuration**: System configuration (15 settings fields)
+
+**Total Fields**: ~90 database fields across 5 tables
+
+**Key Indexes Required**:
+- wastage_number (unique index for fast lookup)
+- wastage_date + location_id (common filter combination)
+- doc_status (frequently filtered in queries)
+- created_by + wastage_date (user wastage history)
+- product_id + wastage_date (product wastage analysis)
+
+**Foreign Key Constraints**:
+- wastage_header_id in line_item, photo, approval tables
+- product_id → tb_products
+- location_id → tb_locations
+- created_by, approved_by → tb_users
+- supplier_id → tb_vendors (for quality issues)
+
+---
+
+### 9.5 Scheduled Jobs Requirements
+
+#### Daily Wastage Summary Job
+**Schedule**: Daily at 2:00 AM local time
+
+**Purpose**: Aggregate wastage data for reporting and analytics
+
+**Actions**:
+- Calculate daily wastage totals by location, category, product
+- Update wastage KPI metrics (wastage as % of COGS)
+- Generate daily wastage summary report for managers
+- Identify locations with unusually high wastage for alerts
+- Cache analytics data for dashboard performance
+
+**Implementation**: Cron job or scheduled task calling `generateDailyWastageSummary()` server action
+
+#### Pending Approval Escalation Job
+**Schedule**: Hourly during business hours (6 AM - 11 PM)
+
+**Purpose**: Escalate overdue wastage approvals
+
+**Actions**:
+- Query wastage transactions with pending approvals >48 hours
+- Send escalation notifications to next approval level
+- Update wastage records with escalation flag
+- Log escalation in audit trail
+
+**Implementation**: Cron job calling `escalatePendingApprovals()` server action
+
+#### Photo Archive Job
+**Schedule**: Daily at 3:00 AM local time
+
+**Purpose**: Archive old photos to cold storage for cost optimization
+
+**Actions**:
+- Identify photos older than 2 years
+- Move to cold storage tier (AWS S3 Glacier, Azure Archive)
+- Update photo records with archived flag and new storage path
+- Maintain retrieval capability for audit requirements (7-year retention)
+
+**Implementation**: Cron job calling `archiveOldPhotos()` server action
+
+#### Wastage Anomaly Detection Job
+**Schedule**: Daily at 1:00 AM local time
+
+**Purpose**: Identify unusual wastage patterns for fraud prevention
+
+**Actions**:
+- Calculate statistical baselines for wastage by product, user, location
+- Detect outliers (>3 standard deviations from mean)
+- Identify suspicious patterns (same user, same product, repeated high values)
+- Generate fraud alerts for investigation
+- Flag transactions for management review
+
+**Implementation**: Cron job calling `detectWastageAnomalies()` server action
+
+---
+
+### 9.6 File Upload and Storage Requirements
+
+#### Photo Storage Architecture
+
+**Storage Provider**: Cloud storage with encryption (AWS S3, Azure Blob Storage, Google Cloud Storage)
+
+**Storage Structure**:
+```
+/wastage-photos/
+  /{year}/
+    /{month}/
+      /{wastage_id}/
+        /original_{photo_id}.jpg
+        /thumbnail_{photo_id}.jpg
+        /watermarked_{photo_id}.jpg
+```
+
+**Upload Pipeline**:
+1. **Client-side**: Compress image to target size (500KB) before upload
+2. **Server-side validation**: Check file type, size, malware scan
+3. **Image processing**: Generate thumbnail (150x150), apply watermark
+4. **Secure storage**: Upload to cloud storage with encryption
+5. **URL generation**: Create signed URL with 1-hour expiration for viewing
+6. **Database record**: Store photo metadata in tb_wastage_photo
+
+**Security Requirements**:
+- Encryption at rest (AES-256)
+- Encryption in transit (TLS 1.2+)
+- Signed URLs with expiration (prevent unauthorized access)
+- Malware scanning before storage
+- Access logs for audit trail
+
+**Performance Optimization**:
+- Client-side compression reduces upload time and bandwidth
+- Thumbnail generation for fast list views
+- CDN integration for faster photo loading (future enhancement)
+- Progressive image loading (load thumbnail first, then full resolution)
 
 ---
 

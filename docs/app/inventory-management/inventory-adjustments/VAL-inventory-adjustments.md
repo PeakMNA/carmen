@@ -3,8 +3,8 @@
 ## Module Information
 - **Module**: Inventory Management
 - **Sub-Module**: Inventory Adjustments
-- **Version**: 2.0.0
-- **Last Updated**: 2025-01-10
+- **Version**: 2.1.0
+- **Last Updated**: 2025-12-09
 - **Status**: Active
 
 **IMPORTANT**: Inventory adjustments use the **shared costing methods infrastructure**. This document includes validation rules specific to adjustments plus references shared validations from SM-costing-methods.md.
@@ -27,6 +27,8 @@ This document defines comprehensive validation rules for the Inventory Adjustmen
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 2.0.0 | 2025-01-10 | Development Team | Updated for shared costing methods |
+| 2.1.0 | 2025-12-09 | Development Team | Updated VAL-INV-ADJ-003 with type-specific adjustment reasons (IN/OUT), added VAL-INV-ADJ-007 costing rules based on type |
 ---
 
 ## Validation Categories
@@ -132,55 +134,91 @@ async function validateAdjustmentDate(date: Date): Promise<void> {
 
 ---
 
-### VAL-INV-ADJ-003: Adjustment Reason Validity
-**Rule**: Adjustment reason must be one of the 8 predefined valid reasons.
+### VAL-INV-ADJ-003: Adjustment Reason Validity (Type-Specific)
+**Rule**: Adjustment reason must be valid for the selected adjustment type. Stock OUT and Stock IN adjustments have different valid reason sets.
 
 **Layer**: Client + Server
-**Error Message**: "Invalid adjustment reason."
+**Error Message**: "Invalid adjustment reason for selected type."
 **Implementation**:
 ```typescript
-const VALID_ADJUSTMENT_REASONS = [
-  'physical_count_variance',
-  'damaged_goods',
-  'spoilage',
-  'waste',
-  'sample',
-  'promotion',
-  'conversion',
-  'inter_department_transfer'
-] as const;
+// Type-specific adjustment reasons based on actual implementation
+const ADJUSTMENT_REASONS = {
+  // Stock OUT reasons (7 options) - for decreasing inventory
+  OUT: [
+    { value: 'damaged', label: 'Damaged Goods' },
+    { value: 'expired', label: 'Expired Items' },
+    { value: 'theft_loss', label: 'Theft / Loss' },
+    { value: 'spoilage', label: 'Spoilage' },
+    { value: 'count_variance', label: 'Physical Count Variance' },
+    { value: 'quality_rejection', label: 'Quality Control Rejection' },
+    { value: 'other', label: 'Other' }
+  ],
+  // Stock IN reasons (5 options) - for increasing inventory
+  IN: [
+    { value: 'count_variance', label: 'Physical Count Variance' },
+    { value: 'found_items', label: 'Found Items' },
+    { value: 'return_to_stock', label: 'Return to Stock' },
+    { value: 'system_correction', label: 'System Correction' },
+    { value: 'other', label: 'Other' }
+  ]
+} as const;
 
-const adjustmentReasonSchema = z.enum(VALID_ADJUSTMENT_REASONS, {
-  errorMap: () => ({ message: "Invalid adjustment reason" })
-});
+// Extract valid values for each type
+const VALID_OUT_REASONS = ADJUSTMENT_REASONS.OUT.map(r => r.value);
+const VALID_IN_REASONS = ADJUSTMENT_REASONS.IN.map(r => r.value);
 
-// Display labels for UI
-const REASON_LABELS: Record<typeof VALID_ADJUSTMENT_REASONS[number], string> = {
-  'physical_count_variance': 'Physical Count Variance',
-  'damaged_goods': 'Damaged Goods',
-  'spoilage': 'Spoilage',
-  'waste': 'Waste',
-  'sample': 'Sample',
-  'promotion': 'Promotion',
-  'conversion': 'Unit Conversion',
-  'inter_department_transfer': 'Inter-Department Transfer'
-};
+// Zod schema with type discrimination
+const adjustmentReasonOutSchema = z.enum(
+  ['damaged', 'expired', 'theft_loss', 'spoilage', 'count_variance', 'quality_rejection', 'other'],
+  { errorMap: () => ({ message: "Invalid OUT adjustment reason" }) }
+);
 
-// Validation function
-function validateAdjustmentReason(reason: string): void {
-  const result = adjustmentReasonSchema.safeParse(reason);
+const adjustmentReasonInSchema = z.enum(
+  ['count_variance', 'found_items', 'return_to_stock', 'system_correction', 'other'],
+  { errorMap: () => ({ message: "Invalid IN adjustment reason" }) }
+);
 
-  if (!result.success) {
-    throw new ValidationError(
-      `Invalid adjustment reason. Must be one of: ${VALID_ADJUSTMENT_REASONS.join(', ')}`
-    );
+// Type-aware validation function
+function validateAdjustmentReason(
+  reason: string,
+  adjustmentType: 'IN' | 'OUT'
+): void {
+  if (adjustmentType === 'OUT') {
+    const result = adjustmentReasonOutSchema.safeParse(reason);
+    if (!result.success) {
+      throw new ValidationError(
+        `Invalid OUT adjustment reason. Must be one of: ${VALID_OUT_REASONS.join(', ')}`
+      );
+    }
+  } else if (adjustmentType === 'IN') {
+    const result = adjustmentReasonInSchema.safeParse(reason);
+    if (!result.success) {
+      throw new ValidationError(
+        `Invalid IN adjustment reason. Must be one of: ${VALID_IN_REASONS.join(', ')}`
+      );
+    }
   }
+}
+
+// Get available reasons for UI dropdown based on type
+function getAvailableReasons(adjustmentType: 'IN' | 'OUT') {
+  return ADJUSTMENT_REASONS[adjustmentType];
 }
 ```
 
+**Reason Mapping by Type**:
+
+| Adjustment Type | Valid Reasons | Count |
+|-----------------|---------------|-------|
+| Stock OUT | damaged, expired, theft_loss, spoilage, count_variance, quality_rejection, other | 7 |
+| Stock IN | count_variance, found_items, return_to_stock, system_correction, other | 5 |
+
 **Test Scenarios**:
-- ✅ Valid: 'physical_count_variance', 'damaged_goods', 'spoilage', etc.
-- ❌ Invalid: 'theft', 'loss', 'other', '', null
+- ✅ Valid (OUT): 'damaged', 'expired', 'theft_loss', 'spoilage', 'count_variance', 'quality_rejection', 'other'
+- ✅ Valid (IN): 'count_variance', 'found_items', 'return_to_stock', 'system_correction', 'other'
+- ❌ Invalid (OUT): 'found_items', 'return_to_stock' (IN-only reasons)
+- ❌ Invalid (IN): 'damaged', 'expired', 'theft_loss' (OUT-only reasons)
+- ❌ Invalid (Both): '', null, 'unknown_reason'
 
 ---
 
@@ -366,11 +404,13 @@ function validateItemQuantityDirection(
 
 ---
 
-### VAL-INV-ADJ-007: Unit Cost Validity
-**Rule**: Unit cost must be non-negative and within reasonable ranges.
+### VAL-INV-ADJ-007: Unit Cost Validity (Type-Specific Costing Rules)
+**Rule**: Unit cost behavior depends on adjustment type:
+- **Stock OUT**: Uses system average cost automatically (read-only, no user input)
+- **Stock IN**: Requires manual unit cost entry (starts at 0, user must enter)
 
 **Layer**: Client + Server
-**Error Message**: "Invalid unit cost."
+**Error Message**: "Invalid unit cost for adjustment type."
 **Implementation**:
 ```typescript
 const unitCostSchema = z.number()
@@ -378,44 +418,81 @@ const unitCostSchema = z.number()
   .finite("Unit cost must be a finite number")
   .max(999999.99, "Unit cost exceeds maximum value");
 
-// Additional validation for zero cost items
+// Type-specific costing validation based on actual implementation
 function validateUnitCost(
   item: InventoryItem,
   unitCost: number,
-  adjustmentReason: AdjustmentReason
+  adjustmentType: 'IN' | 'OUT'
 ): void {
   // Basic validation
   unitCostSchema.parse(unitCost);
 
-  // Warning for zero-cost adjustments (except samples/promotions)
-  if (unitCost === 0 &&
-      adjustmentReason !== 'sample' &&
-      adjustmentReason !== 'promotion') {
-    console.warn(
-      `Zero unit cost for adjustment reason '${adjustmentReason}'. Verify if correct.`
-    );
-  }
+  if (adjustmentType === 'OUT') {
+    // Stock OUT: System automatically uses product's average cost
+    // User cannot modify - validate it matches product.avgCost
+    const expectedCost = item.avgCost || 0;
 
-  // Variance check against item's average cost
-  const avgCost = item.averageCost || 0;
-  if (avgCost > 0) {
-    const variance = Math.abs(unitCost - avgCost) / avgCost;
-
-    // Warn if cost differs by more than 50% from average
-    if (variance > 0.5) {
-      console.warn(
-        `Unit cost (${unitCost}) differs significantly from item average cost (${avgCost}). Variance: ${(variance * 100).toFixed(1)}%`
+    if (Math.abs(unitCost - expectedCost) > 0.01) {
+      throw new ValidationError(
+        `OUT adjustment unit cost must match system average cost. ` +
+        `Expected: ${expectedCost.toFixed(2)}, Provided: ${unitCost.toFixed(2)}`
       );
     }
+  } else if (adjustmentType === 'IN') {
+    // Stock IN: User must manually enter cost
+    // Zero cost requires confirmation as it affects inventory valuation
+    if (unitCost === 0) {
+      console.warn(
+        `Zero unit cost for IN adjustment will affect inventory valuation. ` +
+        `Item: ${item.name}, Quantity will be added at $0.00 cost.`
+      );
+    }
+
+    // Variance check for IN adjustments - warn if significantly different from avg
+    const avgCost = item.avgCost || 0;
+    if (avgCost > 0 && unitCost > 0) {
+      const variance = Math.abs(unitCost - avgCost) / avgCost;
+
+      // Warn if cost differs by more than 50% from average
+      if (variance > 0.5) {
+        console.warn(
+          `IN adjustment unit cost (${unitCost.toFixed(2)}) differs significantly ` +
+          `from item average cost (${avgCost.toFixed(2)}). ` +
+          `Variance: ${(variance * 100).toFixed(1)}%. This will affect weighted average cost.`
+        );
+      }
+    }
+  }
+}
+
+// Pre-fill cost based on adjustment type (used in form initialization)
+function getInitialUnitCost(
+  product: Product,
+  adjustmentType: 'IN' | 'OUT'
+): number {
+  if (adjustmentType === 'OUT') {
+    // OUT: Auto-populate with system average cost (read-only)
+    return product.avgCost || 0;
+  } else {
+    // IN: Start at 0, user must manually enter
+    return 0;
   }
 }
 ```
 
+**Costing Rules Summary**:
+
+| Type | Cost Source | User Editable | Default Value |
+|------|-------------|---------------|---------------|
+| Stock OUT | product.avgCost | ❌ No (read-only) | System average cost |
+| Stock IN | Manual entry | ✅ Yes (required) | 0 (user must enter) |
+
 **Test Scenarios**:
-- ✅ Valid: cost=25.50
-- ✅ Valid: cost=0 (for sample/promotion)
-- ✅ Valid (with warning): cost=0 (for other reasons)
-- ✅ Valid (with warning): cost=50 when avgCost=100 (50% variance)
+- ✅ Valid (OUT): cost=25.50 when product.avgCost=25.50 (matches system)
+- ✅ Valid (IN): cost=30.00 (user-entered value)
+- ✅ Valid (IN): cost=0 (with warning about inventory valuation impact)
+- ✅ Valid (IN, warning): cost=50 when avgCost=100 (50% variance warning)
+- ❌ Invalid (OUT): cost=30.00 when product.avgCost=25.50 (must match system)
 - ❌ Invalid: cost=-10 (negative)
 - ❌ Invalid: cost=1000000 (exceeds max)
 - ❌ Invalid: cost=NaN, cost=Infinity
@@ -993,89 +1070,124 @@ async function calculateBalance(
 
 ---
 
-### VAL-INV-ADJ-106: GL Account Mapping Validation
-**Rule**: Adjustment reason and type must map to valid GL accounts per BR-INV-ADJ-005.
+### VAL-INV-ADJ-106: GL Account Mapping Validation (Type-Specific)
+**Rule**: All adjustments use standardized GL accounts. Same accounts for all reasons, with debit/credit direction determined by adjustment type.
+
+**GL Accounts Used**:
+- **1310**: Raw Materials Inventory (Asset)
+- **5110**: Inventory Variance (Expense)
 
 **Layer**: Server
-**Error Message**: "Invalid GL account mapping for adjustment reason and type."
+**Error Message**: "Invalid GL account mapping for adjustment type."
 **Implementation**:
 ```typescript
 interface GLAccountMapping {
-  reason: AdjustmentReason;
   type: AdjustmentType;
   debitAccount: string;
   creditAccount: string;
+  description: string;
 }
 
-const GL_ACCOUNT_MAPPINGS: GLAccountMapping[] = [
-  // IN adjustments
-  { reason: 'physical_count_variance', type: 'IN', debitAccount: '1100', creditAccount: '5100' },
+// Simplified GL mapping - same accounts for all reasons within each type
+const GL_ACCOUNT_MAPPINGS: Record<'IN' | 'OUT', GLAccountMapping> = {
+  // Stock IN: Increase inventory (debit), decrease variance expense (credit)
+  IN: {
+    type: 'IN',
+    debitAccount: '1310',  // Raw Materials Inventory
+    creditAccount: '5110', // Inventory Variance
+    description: 'Stock IN increases inventory asset, reduces variance expense'
+  },
+  // Stock OUT: Increase variance expense (debit), decrease inventory (credit)
+  OUT: {
+    type: 'OUT',
+    debitAccount: '5110',  // Inventory Variance
+    creditAccount: '1310', // Raw Materials Inventory
+    description: 'Stock OUT increases variance expense, reduces inventory asset'
+  }
+};
 
-  // OUT adjustments
-  { reason: 'physical_count_variance', type: 'OUT', debitAccount: '5100', creditAccount: '1100' },
-  { reason: 'damaged_goods', type: 'OUT', debitAccount: '5200', creditAccount: '1100' },
-  { reason: 'spoilage', type: 'OUT', debitAccount: '5200', creditAccount: '1100' },
-  { reason: 'waste', type: 'OUT', debitAccount: '5200', creditAccount: '1100' },
-  { reason: 'sample', type: 'OUT', debitAccount: '5300', creditAccount: '1100' },
-  { reason: 'promotion', type: 'OUT', debitAccount: '5400', creditAccount: '1100' },
-  { reason: 'conversion', type: 'OUT', debitAccount: '1100', creditAccount: '1100' },
-  { reason: 'inter_department_transfer', type: 'OUT', debitAccount: '1100', creditAccount: '1100' }
-];
-
+// Type-specific GL account validation (reason-independent)
 function validateGLAccountMapping(
-  reason: AdjustmentReason,
-  type: AdjustmentType
+  adjustmentType: 'IN' | 'OUT'
 ): GLAccountMapping {
-  const mapping = GL_ACCOUNT_MAPPINGS.find(
-    m => m.reason === reason && m.type === type
-  );
+  const mapping = GL_ACCOUNT_MAPPINGS[adjustmentType];
 
   if (!mapping) {
     throw new ValidationError(
-      `No GL account mapping found for reason '${reason}' with type '${type}'`
+      `No GL account mapping found for adjustment type '${adjustmentType}'`
     );
   }
 
   return mapping;
 }
 
-// Validate accounts exist and are active
-async function validateGLAccounts(
-  debitAccount: string,
-  creditAccount: string
-): Promise<void> {
-  const accounts = await getGLAccounts([debitAccount, creditAccount]);
+// Generate journal entries based on type (not reason)
+function generateJournalEntries(
+  adjustmentType: 'IN' | 'OUT',
+  totalCost: number
+): JournalEntry[] {
+  const mapping = GL_ACCOUNT_MAPPINGS[adjustmentType];
 
-  for (const code of [debitAccount, creditAccount]) {
+  return [
+    {
+      accountCode: mapping.debitAccount,
+      accountName: mapping.debitAccount === '1310' ? 'Raw Materials Inventory' : 'Inventory Variance',
+      debitAmount: totalCost,
+      creditAmount: 0
+    },
+    {
+      accountCode: mapping.creditAccount,
+      accountName: mapping.creditAccount === '1310' ? 'Raw Materials Inventory' : 'Inventory Variance',
+      debitAmount: 0,
+      creditAmount: totalCost
+    }
+  ];
+}
+
+// Validate accounts exist and are active
+async function validateGLAccounts(): Promise<void> {
+  const requiredAccounts = ['1310', '5110'];
+  const accounts = await getGLAccounts(requiredAccounts);
+
+  for (const code of requiredAccounts) {
     const account = accounts.find(a => a.code === code);
 
     if (!account) {
       throw new ValidationError(
-        `GL account ${code} not found`
+        `Required GL account ${code} not found`
       );
     }
 
     if (!account.isActive) {
       throw new ValidationError(
-        `GL account ${code} is inactive`
-      );
-    }
-
-    if (account.isControlAccount) {
-      throw new ValidationError(
-        `Cannot post directly to control account ${code}`
+        `Required GL account ${code} is inactive`
       );
     }
   }
 }
 ```
 
+**GL Account Mapping Summary**:
+
+| Adjustment Type | Debit Account | Credit Account | Effect |
+|-----------------|---------------|----------------|--------|
+| Stock IN | 1310 Raw Materials Inventory | 5110 Inventory Variance | ↑ Inventory Asset |
+| Stock OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory | ↓ Inventory Asset |
+
+**Costing Rules Applied**:
+
+| Type | Unit Cost Source | Journal Entry Total |
+|------|------------------|---------------------|
+| Stock IN | Manual entry (user-entered) | Qty × User-entered cost |
+| Stock OUT | product.avgCost (system) | Qty × System average cost |
+
 **Test Scenarios**:
-- ✅ Valid: reason='damaged_goods', type='OUT' → 5200 DR, 1100 CR
-- ✅ Valid: reason='physical_count_variance', type='IN' → 1100 DR, 5100 CR
-- ❌ Invalid: reason='conversion', type='IN' (no mapping)
-- ❌ Invalid: debit account not found
-- ❌ Invalid: credit account inactive
+- ✅ Valid (IN): Any IN reason → 1310 DR, 5110 CR
+- ✅ Valid (OUT): Any OUT reason → 5110 DR, 1310 CR
+- ✅ Valid (OUT): reason='damaged', total=$500 → 5110 DR $500, 1310 CR $500
+- ✅ Valid (IN): reason='found_items', total=$300 → 1310 DR $300, 5110 CR $300
+- ❌ Invalid: GL account 1310 not found
+- ❌ Invalid: GL account 5110 inactive
 
 ---
 
@@ -2688,3 +2800,4 @@ These shared validations are applied in:
 |---------|------|--------|---------|
 | 1.0.0 | 2025-01-10 | Development Team | Initial validation rules based on business requirements, use cases, and technical specifications |
 | 2.0.0 | 2025-01-10 | Development Team | Updated to align with shared costing methods infrastructure, added references to SM-costing-methods.md and SM-period-end-snapshots.md, updated VAL-INV-ADJ-104 and VAL-INV-ADJ-105 for shared transaction system |
+| 2.1.0 | 2025-12-09 | Development Team | Major update to reflect actual implementation: VAL-INV-ADJ-003 rewritten with type-specific adjustment reasons (OUT: 7 reasons, IN: 5 reasons), VAL-INV-ADJ-007 updated with type-specific costing rules (OUT uses system avgCost, IN requires manual entry), VAL-INV-ADJ-106 updated with simplified GL mapping (1310/5110 for all reasons) |

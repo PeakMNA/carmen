@@ -12,6 +12,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-01-12 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 
 ---
 
@@ -29,11 +30,14 @@ This document provides comprehensive visual workflows for the Store Requisitions
 - Error handling and exception flows
 
 **Related Documents**:
-- [Business Requirements](./BR-store-requisitions.md) - Business rules and functional requirements
+- [Business Requirements](./BR-store-requisitions.md) - Business rules, functional requirements, and backend specifications
 - [Use Cases](./UC-store-requisitions.md) - Detailed user scenarios
 - [Technical Specification](./TS-store-requisitions.md) - System architecture
-- [Data Schema](./DS-store-requisitions.md) - Database structure
-- [Validations](./VAL-store-requisitions.md) - Validation rules (to be created)
+- [Data Definition](./DD-store-requisitions.md) - Database entity descriptions
+- [Validations](./VAL-store-requisitions.md) - Validation rules and Zod schemas
+- [Backend Requirements](./BR-store-requisitions.md#10-backend-requirements) - API endpoints, database schema (Section 10 of BR)
+- [Inventory Operations Shared Method](../../shared-methods/inventory-operations/SM-inventory-operations.md) - Inventory transaction patterns
+- [Costing Methods Shared Method](../../shared-methods/inventory-valuation/SM-costing-methods.md) - FIFO/AVG costing integration
 
 ---
 
@@ -1497,7 +1501,10 @@ Update these flow diagrams when:
 - [Use Cases](./UC-store-requisitions.md) - Detailed user workflows and scenarios
 - [Technical Specification](./TS-store-requisitions.md) - System architecture and component design
 - [Data Schema](./DS-store-requisitions.md) - Database structure and relationships
-- [Validations](./VAL-store-requisitions.md) - Validation rules and Zod schemas (to be created)
+- [Validations](./VAL-store-requisitions.md) - Validation rules and Zod schemas
+- [Backend Requirements](./BR-store-requisitions.md#10-backend-requirements) - Backend API and service requirements (Section 10 of BR)
+- [Inventory Operations Shared Method](../../shared-methods/inventory-operations/SM-inventory-operations.md) - Inventory transaction patterns
+- [Costing Methods Shared Method](../../shared-methods/inventory-valuation/SM-costing-methods.md) - FIFO/AVG costing integration
 
 ---
 

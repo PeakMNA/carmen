@@ -108,15 +108,13 @@ export function MovementHistory({ params, isLoading }: MovementHistoryProps) {
     currentPage * itemsPerPage
   )
 
-  // Get transaction type badge
+  // Get transaction type badge - only IN and OUT are valid types
   const getTransactionTypeBadge = (type: string) => {
     switch (type) {
       case 'IN':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">In</Badge>
       case 'OUT':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Out</Badge>
-      case 'ADJUSTMENT':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Adjustment</Badge>
       default:
         return null
     }
@@ -296,7 +294,7 @@ export function MovementHistory({ params, isLoading }: MovementHistoryProps) {
             </PopoverContent>
           </Popover>
           
-          {/* Transaction Type Filter */}
+          {/* Transaction Type Filter - only IN and OUT are valid types */}
           <Select
             value={transactionType}
             onValueChange={setTransactionType}
@@ -308,7 +306,6 @@ export function MovementHistory({ params, isLoading }: MovementHistoryProps) {
               <SelectItem value="ALL">All Types</SelectItem>
               <SelectItem value="IN">In</SelectItem>
               <SelectItem value="OUT">Out</SelectItem>
-              <SelectItem value="ADJUSTMENT">Adjustment</SelectItem>
             </SelectContent>
           </Select>
           

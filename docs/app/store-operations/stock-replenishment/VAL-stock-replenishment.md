@@ -3,15 +3,35 @@
 **Module**: Store Operations
 **Sub-Module**: Stock Replenishment
 **Document Type**: Validations (VAL)
-**Version**: 1.0.0
-**Last Updated**: 2025-11-12
-**Status**: Draft
+**Version**: 1.2.0
+**Last Updated**: 2025-12-09
+**Status**: Active
+**Implementation Status**: PARTIALLY IMPLEMENTED (Frontend validation exists, backend pending)
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend validation |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+
+---
+
+**✅ IMPLEMENTATION NOTE**: The Stock Replenishment module frontend has been implemented with client-side validation in forms. The validation rules in this document are followed in the UI implementation using React Hook Form and Zod schemas. Backend validation and database constraints are pending.
+
+**Implemented Validation Contexts**:
+- ✅ **New Request Form** (`/store-operations/stock-replenishment/new/`) - Location selection, item validation, quantity limits, priority selection
+- ✅ **Request Approval** (`/store-operations/stock-replenishment/requests/[id]/`) - Status transitions, authorization checks
+- ✅ **Par Level Monitoring** (`/store-operations/stock-replenishment/stock-levels/`) - Threshold validation (40% reorder, 30% minimum)
+
+**Validation Status**:
+- ✅ Client-side validation in forms - IMPLEMENTED
+- ⏳ Server-side business rules - PENDING (using mock data)
+- ⏳ Database constraints - PENDING (schema not deployed)
+
+See BR-stock-replenishment.md Section 1.4 for complete implementation details.
+
 ---
 
 ## 1. Overview
@@ -1643,7 +1663,7 @@ export type RequestApproval = z.infer<typeof RequestApprovalSchema>;
 - **Business Requirements**: [BR-stock-replenishment.md](./BR-stock-replenishment.md)
 - **Use Cases**: [UC-stock-replenishment.md](./UC-stock-replenishment.md)
 - **Technical Specification**: [TS-stock-replenishment.md](./TS-stock-replenishment.md)
-- **Data Schema**: [DS-stock-replenishment.md](./DS-stock-replenishment.md)
+- **Data Schema**: [DD-stock-replenishment.md](./DD-stock-replenishment.md)
 - **Flow Diagrams**: [FD-stock-replenishment.md](./FD-stock-replenishment.md)
 - **Store Requisitions Validations**: [VAL-store-requisitions.md](../store-requisitions/VAL-store-requisitions.md)
 
@@ -1654,8 +1674,10 @@ export type RequestApproval = z.infer<typeof RequestApprovalSchema>;
 - **Author**: Documentation Team
 - **Reviewed By**: Business Analyst, QA Lead, Security Team
 - **Approved By**: Technical Lead, Operations Manager
-- **Next Review**: 2025-12-12
+- **Next Review**: 2026-01-09
 - **Version History**:
+  - v1.2.0 (2025-12-09): Updated to reflect implemented frontend validation
+  - v1.1.0 (2025-12-05): Added implementation status
   - v1.0.0 (2025-11-12): Initial comprehensive validation rules document
 
 ---

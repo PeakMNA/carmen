@@ -38,15 +38,13 @@ export function StockCardValuation({ data }: StockCardValuationProps) {
     currentPage * itemsPerPage
   )
   
-  // Get transaction type badge
+  // Get transaction type badge - only IN and OUT are valid types
   const getTransactionTypeBadge = (type: string) => {
     switch (type) {
       case 'IN':
         return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">In</Badge>
       case 'OUT':
         return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Out</Badge>
-      case 'ADJUSTMENT':
-        return <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">Adjustment</Badge>
       default:
         return null
     }
@@ -74,7 +72,7 @@ export function StockCardValuation({ data }: StockCardValuationProps) {
     }
   }
   
-  // Calculate summary
+  // Calculate summary - only IN and OUT transaction types
   const summary = {
     currentStock: valuation.length > 0 ? valuation[valuation.length - 1].runningQuantity : 0,
     currentValue: valuation.length > 0 ? valuation[valuation.length - 1].runningValue : 0,
@@ -84,10 +82,7 @@ export function StockCardValuation({ data }: StockCardValuationProps) {
       .reduce((sum, v) => sum + v.quantity, 0),
     totalOut: Math.abs(valuation
       .filter(v => v.transactionType === "OUT")
-      .reduce((sum, v) => sum + v.quantity, 0)),
-    totalAdjustment: valuation
-      .filter(v => v.transactionType === "ADJUSTMENT")
-      .reduce((sum, v) => sum + v.quantity, 0)
+      .reduce((sum, v) => sum + v.quantity, 0))
   }
   
   return (

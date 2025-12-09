@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Inventory Management - Period End
 - **Component**: Period End Management
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
-- **Status**: Draft - For Implementation
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
+- **Status**: Active
 
 ## Related Documents
 - [Business Requirements](./BR-period-end.md)
@@ -19,6 +19,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-09 | Development Team | Updated state diagrams with correct status values (open→closing→closed→reopened), updated checklist from 4 to 11 validation items |
 ---
 
 ## 1. Introduction
@@ -179,9 +180,11 @@ flowchart TD
 
     BeginTx --> CreatePeriod[(Create tb_period_end Record<br/>Status: Open)]
 
-    CreatePeriod --> CreateTasks[(Create Default Tasks:<br/>1. Complete Physical Count<br/>2. Reconcile Adjustments<br/>3. Review Variances<br/>4. Post Period Entries)]
+    CreatePeriod --> CreateTasks[(Create 11 Validation Items:<br/>Inventory counts, Movements,<br/>Adjustments, Returns, Costing,<br/>GL entries, Allocations,<br/>Variance, Audit, Reports,<br/>Management approval)]
 
     CreateTasks --> LogActivity[(Log Activity:<br/>Action: Create<br/>User, IP, Timestamp)]
+
+    Note over CreateTasks: Creates 11 default<br/>validation items
 
     LogActivity --> CommitTx[Commit Transaction]
 
@@ -206,19 +209,19 @@ flowchart TD
     style LogActivity fill:#fff4e6
 ```
 
-### 3.2 Period Closure Workflow
+### 3.2 Period Closure Workflow (As Implemented)
 
 ```mermaid
 flowchart TD
-    Start([User: Close Period]) --> CheckStatus{Period Status<br/>= In Progress?}
+    Start([User: Close Period]) --> CheckStatus{Period Status<br/>= Closing?}
 
-    CheckStatus -->|No| ErrorStatus[Error: Must Be In Progress]
+    CheckStatus -->|No| ErrorStatus[Error: Must Be In Closing Status]
     CheckStatus -->|Yes| CheckPerm{User Has Close<br/>Permission?}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
-    CheckPerm -->|Yes| ValidateTasks{All Required<br/>Tasks Complete?}
+    CheckPerm -->|Yes| ValidateTasks{All 11 Validation<br/>Items Complete?}
 
-    ValidateTasks -->|No| ErrorTasks[Error: Incomplete Tasks<br/>Display Task List]
+    ValidateTasks -->|No| ErrorTasks[Error: Incomplete Items<br/>Display Checklist]
     ValidateTasks -->|Yes| ValidateTxn{All Transactions<br/>Posted?}
 
     ValidateTxn -->|No| ErrorTxn[Warning: Unposted Transactions<br/>Show Count]
@@ -270,7 +273,7 @@ flowchart TD
     style LogClose fill:#fff4e6
 ```
 
-### 3.3 Period Re-Open Workflow
+### 3.3 Period Re-Open Workflow (As Implemented)
 
 ```mermaid
 flowchart TD
@@ -302,7 +305,7 @@ flowchart TD
 
     Backup --> PreserveOriginal[(Store Original Close Info:<br/>Original Completed By<br/>Original Completed At)]
 
-    PreserveOriginal --> UpdateStatus[(Update Period:<br/>Status = Open<br/>Reopened By, At, Reason<br/>Clear Completed By/At)]
+    PreserveOriginal --> UpdateStatus[(Update Period:<br/>Status = Reopened<br/>Reopened By, At, Reason<br/>Preserve Completed By/At)]
 
     UpdateStatus --> LogReopen[(Log Activity:<br/>Action: Reopen<br/>User, IP, Timestamp<br/>Reason, Original Info)]
 
@@ -335,13 +338,13 @@ flowchart TD
     style Backup fill:#fff4e6
 ```
 
-### 3.4 Task Completion Workflow
+### 3.4 Task Completion Workflow (As Implemented)
 
 ```mermaid
 flowchart TD
-    Start([User: Mark Task Complete]) --> CheckPeriod{Period Status<br/>= Open or<br/>In Progress?}
+    Start([User: Mark Task Complete]) --> CheckPeriod{Period Status<br/>= Open, Closing,<br/>or Reopened?}
 
-    CheckPeriod -->|No| ErrorStatus[Error: Cannot Complete Tasks<br/>in Closed/Void Period]
+    CheckPeriod -->|No| ErrorStatus[Error: Cannot Complete Tasks<br/>in Closed Period]
     CheckPeriod -->|Yes| CheckPerm{User Has Task<br/>Complete Permission?}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
@@ -367,15 +370,15 @@ flowchart TD
 
     UpdateTask --> LogActivity[(Log Activity:<br/>Action: Task Complete<br/>Task Name, User, IP)]
 
-    LogActivity --> CheckAll{All Required<br/>Tasks Complete?}
+    LogActivity --> CheckAll{All 11<br/>Tasks Complete?}
 
     CheckAll -->|No| CommitTx[Commit Transaction]
     CheckAll -->|Yes| AutoProgress{Period Status<br/>= Open?}
 
-    AutoProgress -->|Yes| UpdatePeriod[(Update Period:<br/>Status = In Progress<br/>Auto-transition)]
+    AutoProgress -->|Yes| UpdatePeriod[(Update Period:<br/>Status = Closing<br/>Auto-transition)]
     AutoProgress -->|No| CommitTx
 
-    UpdatePeriod --> LogStatus[(Log Activity:<br/>Action: Status Change<br/>Open → In Progress)]
+    UpdatePeriod --> LogStatus[(Log Activity:<br/>Action: Status Change<br/>Open → Closing)]
 
     LogStatus --> CommitTx
 
@@ -460,45 +463,45 @@ flowchart TD
 
 ## 4. State Transition Diagrams
 
-### 4.1 Period Status Lifecycle
+### 4.1 Period Status Lifecycle (As Implemented)
 
 ```mermaid
 stateDiagram-v2
     [*] --> Open: Create Period
 
-    Open --> InProgress: Start Close Process<br/>(First Task Started)
-    Open --> Void: Cancel Period<br/>(No Transactions)
+    Open --> Closing: Start Close Process<br/>(User Initiates)
 
-    InProgress --> Closed: Complete Period End<br/>(All Tasks Done)
-    InProgress --> Open: Cancel/Reset
-    InProgress --> Void: Cancel Period<br/>(No Transactions)
+    Closing --> Closed: Complete Period End<br/>(All 11 Tasks Done)
+    Closing --> Open: Cancel/Reset
 
-    Closed --> Open: Re-open Period<br/>(Most Recent Only)
+    Closed --> Reopened: Re-open Period<br/>(Most Recent Only)
 
-    Void --> [*]: Permanently Cancelled
+    Reopened --> Closed: Re-close Period<br/>(After Corrections)
 
     note right of Open
-        Default status
+        Default status (green badge)
         Transactions allowed
         Tasks can be worked on
     end note
 
-    note right of InProgress
-        Active closing
+    note right of Closing
+        Active closing (yellow badge)
         Only one at a time
-        Transactions allowed
+        11 validation items
+        Transactions still allowed
     end note
 
     note right of Closed
-        Finalized
+        Finalized (gray badge)
         Transactions blocked
         Can re-open most recent
     end note
 
-    note right of Void
-        Cancelled
-        No transactions posted
-        Cannot be recovered
+    note right of Reopened
+        Re-opened (blue badge)
+        Allows corrections
+        Transactions allowed
+        Must re-close
     end note
 ```
 

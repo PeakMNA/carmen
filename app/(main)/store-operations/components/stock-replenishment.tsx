@@ -14,14 +14,19 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from 'recharts';
-import { 
-  AlertTriangle, 
+import {
+  AlertTriangle,
   ArrowUp,
   Package,
   TrendingUp,
   Search,
-  Filter
+  Filter,
+  Warehouse,
+  ArrowLeftRight,
+  Truck,
+  ChevronRight
 } from 'lucide-react';
+import Link from 'next/link';
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from '@/components/ui/select';
 
 interface Item {
@@ -36,7 +41,7 @@ interface Item {
   maxLevel: number
   parLevel: number
   onOrder: number
-  reorderPoint: number
+  transferTrigger: number
   lastPrice: number
   lastVendor: string
   status: string
@@ -69,7 +74,7 @@ const StockReplenishmentDashboard = () => {
       maxLevel: 100,
       parLevel: 80,
       onOrder: 50,
-      reorderPoint: 40,
+      transferTrigger: 40,
       lastPrice: 45.99,
       lastVendor: 'Thai Beverage Co.',
       status: 'low',
@@ -89,7 +94,7 @@ const StockReplenishmentDashboard = () => {
       maxLevel: 80,
       parLevel: 60,
       onOrder: 0,
-      reorderPoint: 30,
+      transferTrigger: 30,
       lastPrice: 28.50,
       lastVendor: 'Global Coffee Suppliers',
       status: 'normal',
@@ -101,6 +106,30 @@ const StockReplenishmentDashboard = () => {
 
   return (
     <div className="space-y-4">
+      {/* Page Header */}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <Warehouse className="h-7 w-7 text-green-600" />
+          Internal Stock Transfers
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          Request inventory transfers from central store to operational locations
+        </p>
+      </div>
+
+      {/* Info Alert */}
+      <Alert className="border-green-200 bg-green-50">
+        <ArrowLeftRight className="h-4 w-4 text-green-600" />
+        <AlertDescription className="text-green-800">
+          <strong>INTERNAL TRANSFERS:</strong> This module manages transfers between hotel locations (kitchen, bar, outlets).
+          For ordering from external suppliers, use{" "}
+          <Link href="/operational-planning/inventory-planning/reorder" className="underline font-medium hover:text-green-900">
+            Supplier Reorder Planning
+          </Link>{" "}
+          in Inventory Planning.
+        </AlertDescription>
+      </Alert>
+
       {/* Header Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
@@ -187,7 +216,7 @@ const StockReplenishmentDashboard = () => {
             {/* First Row - Title and Create Button */}
             <div className="flex justify-between items-center">
               <CardTitle>Inventory Status</CardTitle>
-              <Button>Create Requisition</Button>
+              <Button>Request Transfer</Button>
             </div>
             
             {/* Second Row - Search and Filters with justify-between */}
@@ -227,7 +256,7 @@ const StockReplenishmentDashboard = () => {
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Product</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Current Stock</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">PAR Level</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Reorder Point</th>
+                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Transfer Trigger</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">On Order</th>
                   <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Order Amount</th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Order Unit</th>
@@ -268,12 +297,12 @@ const StockReplenishmentDashboard = () => {
                         </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
-                        <span className={`${item.currentStock < item.reorderPoint ? 'text-red-500 font-medium' : ''}`}>
+                        <span className={`${item.currentStock < item.transferTrigger ? 'text-red-500 font-medium' : ''}`}>
                           {item.currentStock}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{item.parLevel}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{item.reorderPoint}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-right">{item.transferTrigger}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-right">
                         <span className="text-gray-500">{item.onOrder}</span>
                       </td>
@@ -318,6 +347,31 @@ const StockReplenishmentDashboard = () => {
                 })}
               </tbody>
             </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Cross-link to Supplier Reorder Planning */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div className="flex items-start gap-3">
+              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
+                <Truck className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <p className="font-medium text-blue-900">Need to order from suppliers?</p>
+                <p className="text-sm text-blue-700">
+                  Optimize purchase orders with EOQ and reorder point calculations.
+                </p>
+              </div>
+            </div>
+            <Link href="/operational-planning/inventory-planning/reorder">
+              <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                Go to Supplier Reorder Planning
+                <ChevronRight className="h-4 w-4 ml-2" />
+              </Button>
+            </Link>
           </div>
         </CardContent>
       </Card>

@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Inventory Management - Period End
 - **Component**: Period End Management
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
-- **Status**: Draft - For Implementation
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
+- **Status**: Active
 
 ## Related Documents
 - [Business Requirements](./BR-period-end.md)
@@ -19,6 +19,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-09 | Development Team | Updated enum_period_status values (open, closing, closed, reopened), expanded default tasks to 11 validation items, added period summary structure |
 ---
 
 ## 1. Overview
@@ -107,13 +108,13 @@ model PeriodEnd {
 }
 ```
 
-**enum_period_status**:
+**enum_period_status** (as implemented):
 ```prisma
 enum enum_period_status {
   open          // Period created, ready for work
-  in_progress   // Period actively being closed
+  closing       // Period actively being closed, validation in progress
   closed        // Period finalized and locked
-  void          // Period cancelled (no transactions)
+  reopened      // Period re-opened after being closed (for corrections)
 }
 ```
 
@@ -136,10 +137,23 @@ enum enum_period_status {
 - **cancel_reason**: Reason for cancellation (min 50 chars)
 
 **Business Rules**:
-- Only one period can be in `in_progress` status at a time
+- Only one period can be in `closing` status at a time
 - Periods must align with calendar months
 - Cannot create duplicate period_id
 - Cannot delete periods (use soft delete via deleted_at)
+
+**Period Summary Structure** (as implemented):
+```typescript
+interface PeriodSummary {
+  openingValue: number;       // Currency amount at period start
+  closingValue: number;       // Currency amount at period end
+  adjustments: number;        // Total adjustment value
+  movementsIn: number;        // Count of inbound movements
+  movementsOut: number;       // Count of outbound movements
+  varianceAmount: number;     // Calculated variance
+  variancePercentage: number; // Variance as percentage
+}
+```
 
 ---
 
@@ -204,11 +218,18 @@ enum enum_task_status {
 }
 ```
 
-**Default Tasks** (created automatically with new period):
-1. Complete Physical Count (sequence: 1)
-2. Reconcile Inventory Adjustments (sequence: 2)
-3. Review Variances (sequence: 3)
-4. Post Period End Entries (sequence: 4)
+**Default Validation Items** (created automatically with new period - 11 items as implemented):
+1. All inventory counts completed (sequence: 1)
+2. Stock movements recorded (sequence: 2)
+3. Adjustments posted (sequence: 3)
+4. Returns processed (sequence: 4)
+5. Costing calculations finalized (sequence: 5)
+6. GL entries reconciled (sequence: 6)
+7. Department allocations completed (sequence: 7)
+8. Variance analysis completed (sequence: 8)
+9. Audit trail verified (sequence: 9)
+10. Reports generated (sequence: 10)
+11. Management approval obtained (sequence: 11)
 
 **Field Descriptions**:
 - **period_end_id**: Foreign key to parent period

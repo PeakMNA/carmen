@@ -3,15 +3,35 @@
 **Module**: Store Operations
 **Sub-Module**: Stock Replenishment
 **Document Type**: Use Cases (UC)
-**Version**: 1.0.0
-**Last Updated**: 2025-11-12
-**Status**: Draft
+**Version**: 1.2.0
+**Last Updated**: 2025-12-09
+**Status**: Active
+**Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented UI pages and workflows |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status markers |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+
+---
+
+**✅ IMPLEMENTATION NOTE**: The Stock Replenishment module has been implemented with a complete frontend UI supporting the use cases documented below. The implementation includes:
+
+- **Dashboard** (`/store-operations/stock-replenishment`) - Critical alerts, consumption analytics, stock trends
+- **New Request** (`/store-operations/stock-replenishment/new`) - Create replenishment requests
+- **Requests List** (`/store-operations/stock-replenishment/requests`) - View and filter requests
+- **Request Detail** (`/store-operations/stock-replenishment/requests/[id]`) - Approval workflow
+- **Stock Levels** (`/store-operations/stock-replenishment/stock-levels`) - Par level monitoring
+- **History** (`/store-operations/stock-replenishment/history`) - Completed transfers
+
+**Status Values**: `pending`, `approved`, `in_transit`, `completed`, `rejected`, `cancelled`
+**Priority Values**: `standard`, `high`, `urgent`
+
+See BR-stock-replenishment.md Section 1.4 for detailed implementation status.
+
 ---
 
 ## 1. Overview
@@ -1322,7 +1342,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 
 - **Business Requirements**: [BR-stock-replenishment.md](./BR-stock-replenishment.md)
 - **Technical Specification**: [TS-stock-replenishment.md](./TS-stock-replenishment.md)
-- **Data Schema**: [DS-stock-replenishment.md](./DS-stock-replenishment.md)
+- **Data Schema**: [DD-stock-replenishment.md](./DD-stock-replenishment.md)
 - **Flow Diagrams**: [FD-stock-replenishment.md](./FD-stock-replenishment.md)
 - **Validations**: [VAL-stock-replenishment.md](./VAL-stock-replenishment.md)
 
@@ -1333,8 +1353,10 @@ This document describes detailed use cases for the Stock Replenishment module, c
 - **Author**: Documentation Team
 - **Reviewed By**: Operations Manager, Store Managers, Warehouse Manager
 - **Approved By**: Chief Operations Officer
-- **Next Review**: 2025-12-12
+- **Next Review**: 2026-01-09
 - **Version History**:
+  - v1.2.0 (2025-12-09): Updated to reflect implemented UI pages and workflows
+  - v1.1.0 (2025-12-05): Added implementation status markers
   - v1.0.0 (2025-11-12): Initial use cases document
 
 ---

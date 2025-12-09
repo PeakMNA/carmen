@@ -5,7 +5,7 @@
 - **Sub-Module**: Purchase Request Templates
 - **Route**: `/procurement/purchase-request-templates`
 - **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Last Updated**: 2025-12-04
 - **Owner**: Procurement Team
 - **Status**: Active
 
@@ -14,6 +14,7 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System Documentation | Initial version |
 | 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
+| 1.2.0 | 2025-12-04 | Documentation Team | Aligned with prototype - simplified item fields, updated status/type values |
 
 
 ---
@@ -23,6 +24,7 @@
 This document defines the complete data schema for the Purchase Request Templates sub-module, including table structures, relationships, indexes, and constraints. The schema supports template management, item tracking, version control, soft deletes, and audit trails.
 
 **Related Documents**:
+- [Backend Requirements](./BE-purchase-request-templates.md)
 - [Business Requirements](./BR-purchase-request-templates.md)
 - [Technical Specification](./TS-purchase-request-templates.md)
 
@@ -39,22 +41,21 @@ This document defines the complete data schema for the Purchase Request Template
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique template identifier |
-| template_number | VARCHAR(20) | NOT NULL, UNIQUE | Human-readable template number (TPL-YYYY-NNN) |
-| description | TEXT | NOT NULL, CHECK (length >= 10) | Template description/notes |
+| template_number | VARCHAR(20) | NOT NULL, UNIQUE | Human-readable template number (TPL-YY-NNNN) |
+| description | VARCHAR(500) | NOT NULL, CHECK (length >= 10) | Template description/notes |
 | department_id | UUID | NOT NULL, FOREIGN KEY → departments(id) | Assigned department |
-| request_type | VARCHAR(20) | NOT NULL, CHECK (value IN types) | Template classification (standard, recurring, emergency, seasonal) |
-| status | VARCHAR(20) | NOT NULL, DEFAULT 'draft' | Lifecycle status (draft, active, inactive, archived) |
+| request_type | VARCHAR(20) | NOT NULL, DEFAULT 'goods' | Template classification (goods, services, capital) |
+| status | VARCHAR(20) | NOT NULL, DEFAULT 'draft' | Lifecycle status (draft, active, inactive) |
 | is_default | BOOLEAN | NOT NULL, DEFAULT false | Default template flag for department |
 | estimated_total | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Sum of all item totals |
-| currency | VARCHAR(3) | NOT NULL, DEFAULT 'USD' | Base currency code |
-| version | INTEGER | NOT NULL, DEFAULT 1 | Optimistic locking version |
+| currency | VARCHAR(3) | NOT NULL, DEFAULT 'THB' | Base currency code |
 | usage_count | INTEGER | NOT NULL, DEFAULT 0 | Number of times converted to PR |
-| last_used_date | TIMESTAMP | NULL | Last conversion to PR timestamp |
-| created_date | TIMESTAMP | NOT NULL, DEFAULT NOW() | Creation timestamp |
+| last_used_at | TIMESTAMP WITH TIME ZONE | NULL | Last conversion to PR timestamp |
+| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT NOW() | Creation timestamp |
 | created_by | UUID | NOT NULL, FOREIGN KEY → users(id) | Creator user ID |
-| updated_date | TIMESTAMP | NOT NULL, DEFAULT NOW() | Last modification timestamp |
+| updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT NOW() | Last modification timestamp |
 | updated_by | UUID | NOT NULL, FOREIGN KEY → users(id) | Last modifier user ID |
-| deleted_at | TIMESTAMP | NULL | Soft delete timestamp |
+| deleted_at | TIMESTAMP WITH TIME ZONE | NULL | Soft delete timestamp |
 | deleted_by | UUID | NULL, FOREIGN KEY → users(id) | User who deleted |
 
 **Indexes**:
@@ -71,9 +72,8 @@ This document defines the complete data schema for the Purchase Request Template
 
 **Check Constraints**:
 - `chk_template_description_length`: length(description) >= 10
-- `chk_template_request_type`: request_type IN ('standard', 'recurring', 'emergency', 'seasonal')
-- `chk_template_status`: status IN ('draft', 'active', 'inactive', 'archived')
-- `chk_template_currency`: currency IN ('USD', 'EUR', 'GBP', 'THB')
+- `chk_template_request_type`: request_type IN ('goods', 'services', 'capital')
+- `chk_template_status`: status IN ('draft', 'active', 'inactive')
 - `chk_template_estimated_total`: estimated_total >= 0
 
 ---
@@ -90,59 +90,43 @@ This document defines the complete data schema for the Purchase Request Template
 | template_id | UUID | NOT NULL, FOREIGN KEY → purchase_request_templates(id) ON DELETE CASCADE | Parent template |
 | line_number | INTEGER | NOT NULL | Display order (1-based) |
 | item_code | VARCHAR(50) | NOT NULL | Product/SKU code |
-| description | TEXT | NOT NULL, CHECK (length >= 5) | Item description |
-| uom | VARCHAR(10) | NOT NULL, FOREIGN KEY → product_order_units(code) | Unit of measure (from centralized lookup) |
-| quantity | DECIMAL(15,3) | NOT NULL, CHECK (>= 0) | Ordered quantity |
+| description | VARCHAR(500) | NOT NULL, CHECK (length >= 5) | Item description |
+| uom | VARCHAR(20) | NOT NULL | Unit of measure (KG, EA, BTL, CTN, etc.) |
+| quantity | DECIMAL(10,3) | NOT NULL, CHECK (> 0) | Ordered quantity |
 | unit_price | DECIMAL(15,2) | NOT NULL, CHECK (>= 0) | Price per unit |
-| currency | VARCHAR(3) | NOT NULL, DEFAULT 'USD' | Item currency |
-| currency_rate | DECIMAL(15,6) | NOT NULL, DEFAULT 1.0, CHECK (> 0) | Exchange rate to base currency |
-| discount_rate | DECIMAL(5,2) | NOT NULL, DEFAULT 0.00, CHECK (>= 0 AND <= 100) | Discount percentage |
-| tax_rate | DECIMAL(5,2) | NOT NULL, DEFAULT 0.00, CHECK (>= 0 AND <= 100) | Tax percentage |
-| tax_included | BOOLEAN | NOT NULL, DEFAULT false | Whether tax is included in unit price |
-| base_amount | DECIMAL(15,2) | NOT NULL | quantity × unit_price |
-| discount_amount | DECIMAL(15,2) | NOT NULL | base_amount × (discount_rate / 100) |
-| net_amount | DECIMAL(15,2) | NOT NULL | base_amount - discount_amount |
-| tax_amount | DECIMAL(15,2) | NOT NULL | Calculated tax amount |
-| total_amount | DECIMAL(15,2) | NOT NULL | net_amount + tax_amount |
+| currency | VARCHAR(3) | NOT NULL, DEFAULT 'THB' | Item currency |
+| total_amount | DECIMAL(15,2) | NOT NULL | quantity × unit_price (calculated) |
 | budget_code | VARCHAR(50) | NOT NULL | Budget allocation code |
 | account_code | VARCHAR(50) | NOT NULL | GL account code |
-| department | VARCHAR(50) | NOT NULL | Department code |
-| tax_code | VARCHAR(20) | NOT NULL | Tax treatment code |
-| notes | TEXT | NULL | Optional item notes |
-| created_date | TIMESTAMP | NOT NULL, DEFAULT NOW() | Creation timestamp |
+| department | VARCHAR(100) | NOT NULL | Department code |
+| tax_code | VARCHAR(20) | NOT NULL | Tax treatment code (VAT7, VAT0, EXEMPT) |
+| created_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT NOW() | Creation timestamp |
 | created_by | UUID | NOT NULL, FOREIGN KEY → users(id) | Creator user ID |
-| updated_date | TIMESTAMP | NOT NULL, DEFAULT NOW() | Last modification timestamp |
+| updated_at | TIMESTAMP WITH TIME ZONE | NOT NULL, DEFAULT NOW() | Last modification timestamp |
 | updated_by | UUID | NOT NULL, FOREIGN KEY → users(id) | Last modifier user ID |
-| deleted_at | TIMESTAMP | NULL | Soft delete timestamp |
-| deleted_by | UUID | NULL, FOREIGN KEY → users(id) | User who deleted |
+
+> **Note**: Advanced pricing fields (discount_rate, tax_rate, tax_included, currency_rate, base_amount, discount_amount, net_amount, tax_amount) are planned for Phase 2.
 
 **Indexes**:
 - `idx_template_items_template_id` ON template_id (for fetching items by template)
 - `idx_template_items_line_number` ON (template_id, line_number) (for sorting)
 - `idx_template_items_item_code` ON (template_id, item_code) (for duplicate checking)
-- `idx_template_items_deleted` ON deleted_at (for soft delete filtering)
 
 **Unique Constraints**:
-- UNIQUE (template_id, item_code) WHERE deleted_at IS NULL (no duplicate item codes per template)
-- UNIQUE (template_id, line_number) WHERE deleted_at IS NULL (unique line numbers)
+- UNIQUE (template_id, item_code) (no duplicate item codes per template)
+- UNIQUE (template_id, line_number) (unique line numbers)
 
 **Check Constraints**:
 - `chk_item_description_length`: length(description) >= 5
-- `chk_item_quantity`: quantity >= 0 AND quantity <= 999999
-- `chk_item_unit_price`: unit_price >= 0 AND unit_price <= 99999999.99
-- `chk_item_currency`: currency IN ('USD', 'EUR', 'GBP', 'THB')
-- `chk_item_currency_rate`: currency_rate > 0
-- `chk_item_discount_rate`: discount_rate >= 0 AND discount_rate <= 100
-- `chk_item_tax_rate`: tax_rate >= 0 AND tax_rate <= 100
-- `chk_item_amounts`: base_amount >= 0 AND net_amount >= 0 AND total_amount >= 0
-- `chk_item_uom`: uom EXISTS IN product_order_units(code) -- validated via foreign key
-- `chk_item_tax_code`: tax_code IN ('VAT7', 'VAT0', 'EXEMPT', 'VAT_REDUCED')
+- `chk_item_quantity`: quantity > 0
+- `chk_item_unit_price`: unit_price >= 0
+- `chk_item_total_amount`: total_amount >= 0
+- `chk_item_tax_code`: tax_code IN ('VAT7', 'VAT0', 'EXEMPT')
 
 **Foreign Key Relationships**:
 - template_id → purchase_request_templates(id) ON DELETE CASCADE (deleting template removes all items)
 - created_by → users(id)
 - updated_by → users(id)
-- deleted_by → users(id)
 
 ---
 
@@ -170,7 +154,8 @@ This document defines the complete data schema for the Purchase Request Template
 - template_cloned, template_activated, template_inactivated
 - template_set_default, template_remove_default
 - item_added, item_updated, item_deleted
-- template_converted_to_pr
+
+> **Note**: template_converted_to_pr action will be added in Phase 2 when Template→PR conversion is implemented.
 
 ---
 

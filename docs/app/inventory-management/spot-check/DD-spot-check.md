@@ -4,29 +4,31 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Spot Check
 - **Route**: `/app/(main)/inventory-management/spot-check`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-11
+- **Version**: 2.1.0
+- **Last Updated**: 2025-12-09
 - **Owner**: Inventory Management Team
-- **Status**: Draft
+- **Status**: Implemented
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-01-11 | System | Initial version |
+| 1.0.0 | 2025-01-11 | System | Initial version (planned database design) |
+| 2.0.0 | 2025-12-06 | System | Updated to reflect actual TypeScript implementation |
+| 2.1.0 | 2025-12-09 | System | Updated for 2-step wizard, revised SelectionMethod, added Zustand store types |
 
 ---
 
 ## Overview
 
-This document defines the data structures for the Spot Check sub-module. **IMPORTANT**: Spot Check shares the same database tables (`tb_count_stock` and `tb_count_stock_detail`) with Physical Count Management, differentiated by the `count_stock_type` field value ('spot' vs 'physical').
+This document defines the data structures for the Spot Check sub-module as currently implemented in the prototype.
 
-**Key Data Characteristics**:
-- **Type Discriminator**: `count_stock_type = 'spot'` identifies spot check records
-- **Shared Schema**: Same table structure as Physical Count Management
-- **Business Rules**: Different workflows and validation rules despite shared schema
-- **Data Isolation**: No technical isolation; logical separation via type field
+**Current Implementation**: The prototype uses TypeScript interfaces with mock data. No database integration exists yet.
 
-**⚠️ Note**: This document provides text descriptions only. No SQL code is included.
+**Data Layer Architecture**:
+- **Types**: Defined in `app/(main)/inventory-management/spot-check/types.ts`
+- **Mock Data**: Defined in `lib/mock-data/spot-checks.ts`
+- **State Management**: React useState/useMemo hooks + Zustand (`useCountStore`)
+- **Form Validation**: React Hook Form + Zod schemas
 
 **Related Documents**:
 - [Business Requirements](./BR-spot-check.md)
@@ -34,582 +36,501 @@ This document defines the data structures for the Spot Check sub-module. **IMPOR
 - [Technical Specification](./TS-spot-check.md)
 - [Flow Diagrams](./FD-spot-check.md)
 - [Validations](./VAL-spot-check.md)
-- [Physical Count Management Data Definition](../physical-count-management/DD-physical-count-management.md) - Shared schema reference
 
 ---
 
-## Entity Descriptions
+## Type Definitions
 
-### Spot Check Session (tb_count_stock)
+### Core Enums and Types
 
-**Table Name**: `tb_count_stock`
-**Shared With**: Physical Count Management (differentiated by `count_stock_type`)
+#### SpotCheckType
 
-**Purpose**: Represents a spot check verification session for selected products at a specific location. Records the session metadata, workflow state, and summary information.
+**Purpose**: Defines the category of spot check being performed.
 
-**Scope**: One record per spot check session. Typically 2-10 spot checks per location per week.
+```typescript
+type SpotCheckType = 'random' | 'targeted' | 'high-value' | 'variance-based' | 'cycle-count';
+```
 
-**Lifecycle**:
-1. **Creation**: Record created when user initiates spot check with location selection
-2. **Product Addition**: Status remains 'pending' while products are added
-3. **Active Counting**: Status changes to 'in_progress' when counting begins
-4. **Completion**: Status changes to 'completed' when all items counted and adjustments posted
-5. **Cancellation**: Status changes to 'cancelled' if spot check abandoned
-6. **Retention**: Records retained indefinitely with soft delete (deleted_at)
+| Value | Description | Use Case |
+|-------|-------------|----------|
+| `random` | System-selected random sample | Routine verification |
+| `targeted` | Specific items of interest | Investigation |
+| `high-value` | Expensive items focus | Risk management |
+| `variance-based` | Items with historical variance | Problem resolution |
+| `cycle-count` | Part of regular counting cycle | Scheduled maintenance |
 
-**Record Volume Estimates**:
-- Active records: ~50-100 per location (current month)
-- Monthly growth: ~20-30 per location
-- Annual total: ~240-360 per location
-- 5-year projection: ~1,200-1,800 records per location
+#### SpotCheckStatus
 
-### Spot Check Detail (tb_count_stock_detail)
+**Purpose**: Tracks the lifecycle state of a spot check session.
 
-**Table Name**: `tb_count_stock_detail`
-**Shared With**: Physical Count Management
+```typescript
+type SpotCheckStatus = 'draft' | 'pending' | 'in-progress' | 'completed' | 'cancelled' | 'on-hold';
+```
 
-**Purpose**: Represents individual product line items within a spot check session. Records expected quantity, actual counted quantity, and calculated variance for each product.
+| Value | Description | Transitions From | Transitions To |
+|-------|-------------|------------------|----------------|
+| `draft` | Initial creation state | - | pending |
+| `pending` | Ready to start | draft | in-progress, cancelled |
+| `in-progress` | Active counting | pending, on-hold | completed, on-hold, cancelled |
+| `on-hold` | Temporarily paused | in-progress | in-progress, cancelled |
+| `completed` | Finished (final) | in-progress | - |
+| `cancelled` | Terminated (final) | pending, in-progress, on-hold | - |
 
-**Scope**: Multiple records per spot check session (1 to 50 products per spot check, typically 5-15).
+#### ItemCheckStatus
 
-**Lifecycle**:
-1. **Creation**: Record created when product added to spot check
-2. **Expected Quantity**: Populated from Inventory Transaction System integration
-3. **Counting**: `actual_qty` entered by storekeeper, `variance_qty` and `variance_pct` calculated
-4. **Completion**: `is_counted` set to true, `adjustment_posted` set to true after adjustment
-5. **Retention**: Retained with parent spot check session
+**Purpose**: Tracks the status of individual item counts within a spot check.
 
-**Record Volume Estimates**:
-- Details per spot check: 5-15 products (average 10)
-- Active details: ~500-1,500 per location (current month)
-- Monthly growth: ~200-300 per location
-- Annual total: ~2,400-3,600 per location
-- 5-year projection: ~12,000-18,000 details per location
+```typescript
+type ItemCheckStatus = 'pending' | 'counted' | 'variance' | 'skipped';
+```
+
+| Value | Description |
+|-------|-------------|
+| `pending` | Awaiting count |
+| `counted` | Count entered, no variance |
+| `variance` | Count entered, variance detected |
+| `skipped` | Item skipped with reason |
+
+#### ItemCondition
+
+**Purpose**: Records the physical condition of counted items.
+
+```typescript
+type ItemCondition = 'good' | 'damaged' | 'expired' | 'missing';
+```
+
+| Value | Description | Impact |
+|-------|-------------|--------|
+| `good` | Normal condition | No additional action |
+| `damaged` | Physical damage detected | May require write-off |
+| `expired` | Past expiration date | Requires removal |
+| `missing` | Cannot be located | Full variance |
+
+#### Priority
+
+**Purpose**: Indicates urgency level of spot check.
+
+```typescript
+type Priority = 'low' | 'medium' | 'high' | 'critical';
+```
+
+| Value | Visual | Description |
+|-------|--------|-------------|
+| `low` | Gray badge | Routine check |
+| `medium` | Blue badge | Standard priority |
+| `high` | Orange badge | Urgent attention |
+| `critical` | Red badge | Immediate action |
+
+#### SelectionMethod
+
+**Purpose**: Defines how items are selected for the spot check in the 2-step creation wizard.
+
+```typescript
+type SelectionMethod = 'random' | 'high-value' | 'manual';
+```
+
+| Value | Description | Use Case |
+|-------|-------------|----------|
+| `random` | System generates random selection | Routine verification, unbiased sampling |
+| `high-value` | Automatically selects highest-value items | Risk management, high-cost items |
+| `manual` | User selects individual items | Targeted investigation, specific concerns |
 
 ---
 
-## Field Definitions
+## Entity Interfaces
 
-### tb_count_stock (Spot Check Session)
+### SpotCheck Interface
 
-For complete field definitions, see [Physical Count Management DD](../physical-count-management/DD-physical-count-management.md). Key spot-check-specific notes below:
+**Purpose**: Represents a complete spot check session with all metadata and items.
 
-#### count_stock_type
-- **Data Type**: enum_count_stock_type
-- **Allowed Values**: 'physical', 'spot'
-- **Required**: Yes
-- **Default**: 'physical'
-- **For Spot Checks**: Always 'spot'
-- **Purpose**: Discriminates spot checks from physical counts in shared table
-- **Indexed**: Yes (for filtering queries)
+**Location**: `app/(main)/inventory-management/spot-check/types.ts`
 
-#### count_stock_no
-- **Format for Spot Checks**: SPOT-YYYY-NNNNNN
-- **Example**: SPOT-2024-000015
-- **Unique**: Yes (across both physical counts and spot checks)
-- **Generated**: Auto-generated on creation
+```typescript
+interface SpotCheck {
+  // Identification
+  id: string;
+  checkNumber: string;                    // Format: SC-YYMMDD-XXXX
+  checkType: SpotCheckType;
+  status: SpotCheckStatus;
+  priority: Priority;
 
-#### doc_status
-- **Spot Check Workflow**: pending → in_progress → completed OR cancelled
-- **Differences from Physical Count**:
-  - Spot checks can have multiple active per location (no one-active-per-location rule)
-  - Quicker transitions (typically completed within same day)
-  - No 'voided' status (only 'cancelled' available)
+  // Location
+  locationId: string;
+  locationName: string;
+  departmentId: string;
+  departmentName: string;
 
-#### info JSON Field
-- **Spot Check Specific Fields**:
-  - total_items: Number of products in spot check
-  - items_counted: Number of products actually counted
-  - total_variance_value: Monetary impact of all variances
-  - high_variance_items: Count of items exceeding variance threshold
-  - supervisor_approved: Boolean indicating all high variance items approved
-  - approved_by: User ID of approving supervisor (if applicable)
-  - approved_at: Timestamp of approval (if applicable)
-  - template_id: Reference to template used (future feature)
-  - template_name: Name of template used (future feature)
+  // Assignment
+  assignedTo: string;
+  assignedToName: string;
+  scheduledDate: Date;
+  startedAt: Date | null;
+  completedAt: Date | null;
+  dueDate: Date | null;
 
-**Example info JSON** (for Spot Check):
-```json
-{
-  "total_items": 10,
-  "items_counted": 10,
-  "total_variance_value": -125.50,
-  "high_variance_items": 1,
-  "supervisor_approved": true,
-  "approved_by": "user-550e8400-e29b-41d4-a716-446655440001",
-  "approved_at": "2024-01-15T14:00:00Z",
-  "template_id": null,
-  "template_name": null
+  // Items
+  items: SpotCheckItem[];
+  totalItems: number;
+  countedItems: number;
+  matchedItems: number;
+  varianceItems: number;
+
+  // Metrics
+  accuracy: number;                       // Percentage 0-100
+  totalValue: number;                     // Currency value
+  varianceValue: number;                  // Currency value
+
+  // Details
+  reason: string;
+  notes: string;
+
+  // Audit
+  createdBy: string;
+  createdAt: Date;
+  updatedAt: Date;
 }
 ```
 
-### tb_count_stock_detail (Spot Check Detail)
+#### Field Specifications
 
-For complete field definitions, see [Physical Count Management DD](../physical-count-management/DD-physical-count-management.md). Key spot-check-specific notes below:
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique identifier (UUID format) |
+| `checkNumber` | string | Yes | Business reference number |
+| `checkType` | SpotCheckType | Yes | Category of spot check |
+| `status` | SpotCheckStatus | Yes | Current lifecycle state |
+| `priority` | Priority | Yes | Urgency level |
+| `locationId` | string | Yes | Reference to location |
+| `locationName` | string | Yes | Display name of location |
+| `departmentId` | string | No | Reference to department |
+| `departmentName` | string | No | Display name of department |
+| `assignedTo` | string | Yes | User ID of assignee |
+| `assignedToName` | string | Yes | Display name of assignee |
+| `scheduledDate` | Date | Yes | When check is scheduled |
+| `startedAt` | Date | null | No | When counting began |
+| `completedAt` | Date | null | No | When check was completed |
+| `dueDate` | Date | null | No | Due date for completion |
+| `items` | SpotCheckItem[] | Yes | Array of items to check |
+| `totalItems` | number | Yes | Total count of items |
+| `countedItems` | number | Yes | Count of completed items |
+| `matchedItems` | number | Yes | Items with zero variance |
+| `varianceItems` | number | Yes | Items with variance |
+| `accuracy` | number | Yes | Percentage accuracy (0-100) |
+| `totalValue` | number | Yes | Total monetary value |
+| `varianceValue` | number | Yes | Total variance value |
+| `reason` | string | No | Reason for spot check |
+| `notes` | string | No | Additional notes |
+| `createdBy` | string | Yes | User who created |
+| `createdAt` | Date | Yes | Creation timestamp |
+| `updatedAt` | Date | Yes | Last update timestamp |
 
-#### info JSON Field
-- **Spot Check Specific Fields**:
-  - product_cost: Product cost for variance value calculation
-  - variance_value: Monetary variance (variance_qty * product_cost)
-  - high_variance: Boolean flag if exceeds threshold (>5% or >$100)
-  - requires_approval: Boolean if supervisor approval needed
-  - approved: Boolean indicating supervisor approved this item
-  - approved_by: User ID of approving supervisor
-  - approved_at: Timestamp of approval
-  - recount_requested: Boolean if supervisor requested recount
-  - last_count_date: Date of last physical or spot count for this product
-  - bin_location: Physical storage location (shelf/bin identifier)
+### SpotCheckItem Interface
 
-**Example info JSON** (for Spot Check Detail):
-```json
-{
-  "product_cost": 15.00,
-  "variance_value": -75.00,
-  "high_variance": true,
-  "requires_approval": true,
-  "approved": true,
-  "approved_by": "user-supervisor-123",
-  "approved_at": "2024-01-15T14:00:00Z",
-  "recount_requested": false,
-  "last_count_date": "2024-01-01T00:00:00Z",
-  "bin_location": "COOLER-A-SHELF-2"
+**Purpose**: Represents an individual product line item within a spot check.
+
+```typescript
+interface SpotCheckItem {
+  // Identification
+  id: string;
+  itemId: string;
+  itemCode: string;
+  itemName: string;
+  category: string;
+  unit: string;
+  location: string;
+
+  // Quantities
+  systemQuantity: number;
+  countedQuantity: number | null;
+  variance: number;
+  variancePercent: number;
+
+  // Status
+  condition: ItemCondition;
+  status: ItemCheckStatus;
+
+  // Tracking
+  countedBy: string | null;
+  countedAt: Date | null;
+  notes: string;
+
+  // Value
+  value: number;
+  lastCountDate: Date | null;
+}
+```
+
+#### Field Specifications
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `id` | string | Yes | Unique identifier |
+| `itemId` | string | Yes | Reference to product |
+| `itemCode` | string | Yes | Product SKU/code |
+| `itemName` | string | Yes | Product display name |
+| `category` | string | Yes | Product category |
+| `unit` | string | Yes | Unit of measure |
+| `location` | string | Yes | Storage location |
+| `systemQuantity` | number | Yes | Expected quantity |
+| `countedQuantity` | number | null | No | Actual counted quantity |
+| `variance` | number | Yes | Quantity difference |
+| `variancePercent` | number | Yes | Percentage difference |
+| `condition` | ItemCondition | Yes | Physical condition |
+| `status` | ItemCheckStatus | Yes | Counting status |
+| `countedBy` | string | null | No | Who performed count |
+| `countedAt` | Date | null | No | When counted |
+| `notes` | string | No | Item-specific notes |
+| `value` | number | Yes | Monetary value |
+| `lastCountDate` | Date | null | No | Previous count date |
+
+### SpotCheckFormData Interface
+
+**Purpose**: Form data structure for creating new spot checks via the 2-step wizard.
+
+```typescript
+interface SpotCheckFormData {
+  // Step 1 - Location Selection
+  locationId: string;
+  departmentId: string;
+  assignedTo: string;
+  scheduledDate: Date;
+
+  // Step 2 - Method & Items
+  selectionMethod: SelectionMethod;   // 'random' | 'high-value' | 'manual'
+  itemCount: number;                  // 10 | 20 | 50
+  selectedItems: string[];            // Item IDs for manual selection
+}
+```
+
+#### Field Specifications
+
+| Field | Type | Required | Default | Step | Description |
+|-------|------|----------|---------|------|-------------|
+| `locationId` | string | Yes | - | 1 | Target location |
+| `departmentId` | string | No | '' | 1 | Target department (optional) |
+| `assignedTo` | string | Yes | - | 1 | Assigned staff |
+| `scheduledDate` | Date | Yes | Today | 1 | Scheduled date |
+| `selectionMethod` | SelectionMethod | Yes | 'random' | 2 | How items are selected |
+| `itemCount` | number | Yes | 20 | 2 | Number of items (10, 20, or 50) |
+| `selectedItems` | string[] | Conditional | [] | 2 | Item IDs when method is 'manual' |
+
+#### Item Count Options
+
+```typescript
+const ITEM_COUNT_OPTIONS = [10, 20, 50] as const;
+```
+
+| Option | Description |
+|--------|-------------|
+| 10 | Quick spot check, minimal items |
+| 20 | Standard spot check (default) |
+| 50 | Comprehensive spot check |
+
+### CountStore Interface (Zustand)
+
+**Purpose**: Manages active spot checks state across the application using Zustand.
+
+**Location**: Used in `app/(main)/inventory-management/spot-check/active/page.tsx`
+
+```typescript
+interface CountStore {
+  // State
+  activeCounts: SpotCheck[];
+
+  // Actions
+  addCount: (count: SpotCheck) => void;
+  updateCount: (id: string, updates: Partial<SpotCheck>) => void;
+  removeCount: (id: string) => void;
+}
+```
+
+#### Store Fields
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `activeCounts` | SpotCheck[] | Array of active (pending, in-progress, on-hold) spot checks |
+| `addCount` | function | Add a new spot check to active counts |
+| `updateCount` | function | Update an existing spot check by ID |
+| `removeCount` | function | Remove a spot check from active counts (on completion/cancellation) |
+
+#### Usage Example
+
+```typescript
+// In active/page.tsx
+import { useCountStore } from '@/lib/stores/count-store';
+
+function ActiveSpotChecksPage() {
+  const activeCounts = useCountStore((state) => state.activeCounts);
+  const updateCount = useCountStore((state) => state.updateCount);
+
+  // Filter and display active counts
+  const pendingCounts = activeCounts.filter(c => c.status === 'pending');
+  const inProgressCounts = activeCounts.filter(c => c.status === 'in-progress');
+
+  return (/* ... */);
 }
 ```
 
 ---
 
-## Relationships
+## Mock Data Structure
 
-### Spot Check Session Relationships
+### mockSpotChecks Array
 
-**Parent Relationships** (Spot Check depends on):
-- **tb_location**: One location has many spot checks
-  - Foreign Key: `location_id` references `tb_location(id)`
-  - Cardinality: Many-to-One (mandatory)
-  - Cascade: No cascade delete (preserve audit trail)
-  - Notes: Location must exist and be active; user must have access
+**Location**: `lib/mock-data/spot-checks.ts`
 
-- **tb_user** (Created By): One user creates many spot checks
-  - Foreign Key: `created_by` references `tb_user(id)`
-  - Cardinality: Many-to-One (mandatory)
-  - Cascade: No cascade delete (preserve creator reference)
+**Purpose**: Provides sample data for prototype development and testing.
 
-- **tb_user** (Updated By): One user updates many spot checks
-  - Foreign Key: `updated_by` references `tb_user(id)`
-  - Cardinality: Many-to-One (mandatory)
-  - Cascade: No cascade delete (preserve updater reference)
+```typescript
+export const mockSpotChecks: SpotCheck[] = [
+  {
+    id: 'sc-001',
+    checkNumber: 'SC-251206-0001',
+    checkType: 'random',
+    status: 'completed',
+    priority: 'medium',
+    // ... complete record
+  },
+  // ... more records
+];
+```
 
-**Child Relationships** (Depends on Spot Check):
-- **tb_count_stock_detail**: One spot check has many detail lines
-  - Foreign Key: `tb_count_stock_detail(count_stock_id)` references `tb_count_stock(id)`
-  - Cardinality: One-to-Many (optional, but typically 1-50 details)
-  - Cascade: No cascade delete (soft delete only)
-  - Notes: Details created as products are added; max 50 per spot check
+### Helper Functions
 
-### Spot Check Detail Relationships
+**Purpose**: Provide data access patterns for the mock data layer.
 
-**Parent Relationships** (Detail depends on):
-- **tb_count_stock**: One spot check has many details
-  - Foreign Key: `count_stock_id` references `tb_count_stock(id)`
-  - Cardinality: Many-to-One (mandatory)
-  - Cascade: No cascade delete (soft delete only)
+```typescript
+// Get summary counts by status
+export function getSpotCheckSummary(): StatusSummary;
 
-- **tb_product**: One product appears in many spot check details
-  - Foreign Key: `product_id` references `tb_product(id)`
-  - Cardinality: Many-to-One (mandatory)
-  - Cascade: No cascade delete (preserve product reference)
-  - Notes: Product must exist and be active when added
+// Get single spot check by ID
+export function getSpotCheckById(id: string): SpotCheck | undefined;
 
-- **tb_unit**: One unit of measure used in many details
-  - Foreign Key: `unit_id` references `tb_unit(id)`
-  - Cardinality: Many-to-One (optional)
-  - Cascade: No cascade delete (preserve unit reference)
+// Filter spot checks by status
+export function getSpotChecksByStatus(status: SpotCheckStatus): SpotCheck[];
 
-- **tb_inventory_transaction** (Adjustment): One inventory transaction can be referenced by one spot check detail
-  - Foreign Key: `adjustment_transaction_id` references `tb_inventory_transaction(id)`
-  - Cardinality: One-to-One (optional, only after adjustment posted)
-  - Cascade: No cascade delete (preserve transaction reference)
+// Get active (pending + in-progress) spot checks
+export function getActiveSpotChecks(): SpotCheck[];
 
-**Child Relationships**: None
+// Get overdue spot checks
+export function getOverdueSpotChecks(): SpotCheck[];
+
+// Get dashboard statistics
+export function getSpotCheckDashboardStats(): DashboardStats;
+```
 
 ---
 
-## Indexing Strategy
+## Calculated Fields
 
-### Indexes on tb_count_stock
+### Variance Calculation
 
-**Note**: These indexes apply to all records in `tb_count_stock`, including both spot checks and physical counts.
+**Purpose**: Determine discrepancy between expected and actual quantities.
 
-1. **Primary Key Index**:
-   - Columns: `id`
-   - Type: B-tree, Unique
-   - Purpose: Uniquely identify each spot check session
+```typescript
+// Variance quantity (can be negative or positive)
+variance = countedQuantity - systemQuantity;
 
-2. **Business Key Index**:
-   - Columns: `count_stock_no`
-   - Type: B-tree, Unique, Partial (WHERE deleted_at IS NULL)
-   - Purpose: Enforce unique spot check numbers, enable fast lookup by number
+// Variance percentage (relative to system quantity)
+if (systemQuantity > 0) {
+  variancePercent = (variance / systemQuantity) * 100;
+} else if (countedQuantity > 0) {
+  variancePercent = 100; // System shows 0, found some
+} else {
+  variancePercent = 0; // Both zero
+}
+```
 
-3. **Type and Status Composite Index**:
-   - Columns: `count_stock_type`, `doc_status`
-   - Type: B-tree, Partial (WHERE deleted_at IS NULL)
-   - Purpose: Filter spot checks by status efficiently
-   - Example Query: "Show all completed spot checks"
+### Accuracy Calculation
 
-4. **Location and Type Composite Index**:
-   - Columns: `location_id`, `count_stock_type`
-   - Type: B-tree, Partial (WHERE deleted_at IS NULL)
-   - Purpose: Filter spot checks by location efficiently
-   - Example Query: "Show all spot checks for Main Kitchen"
+**Purpose**: Determine overall accuracy of the spot check.
 
-5. **Created Date Index**:
-   - Columns: `created_at`
-   - Type: B-tree, Descending
-   - Purpose: Sort spot checks by date, enable date range queries
-   - Example Query: "Show spot checks from last 7 days"
+```typescript
+// Matched items = items with zero variance
+accuracy = (matchedItems / totalItems) * 100;
+```
 
-6. **Workflow Stage Index** (if workflow enabled):
-   - Columns: `workflow_current_stage`
-   - Type: B-tree, Partial (WHERE workflow_current_stage IS NOT NULL)
-   - Purpose: Filter spot checks by workflow stage
+### Status Counts
 
-### Indexes on tb_count_stock_detail
+**Purpose**: Aggregate counts for dashboard display.
 
-**Note**: These indexes apply to all detail records, including both spot checks and physical counts.
-
-1. **Primary Key Index**:
-   - Columns: `id`
-   - Type: B-tree, Unique
-   - Purpose: Uniquely identify each detail line
-
-2. **Foreign Key Index (Spot Check)**:
-   - Columns: `count_stock_id`
-   - Type: B-tree
-   - Purpose: Fast lookup of all products in a spot check
-   - Example Query: "Get all products for spot check SPOT-2024-000015"
-
-3. **Foreign Key Index (Product)**:
-   - Columns: `product_id`
-   - Type: B-tree
-   - Purpose: Find all spot checks containing a specific product
-   - Example Query: "Show spot check history for Chicken Breast"
-
-4. **Composite Index (Spot Check + Product)**:
-   - Columns: `count_stock_id`, `product_id`
-   - Type: B-tree, Unique, Partial (WHERE deleted_at IS NULL)
-   - Purpose: Enforce one product per spot check, fast joins
-   - Example Query: Join spot check session with details
-
-5. **Counted Status Index**:
-   - Columns: `is_counted`
-   - Type: B-tree, Partial (WHERE is_counted = false)
-   - Purpose: Find uncounted products in spot check
-   - Example Query: "Show uncounted products in this spot check"
-
-6. **Adjustment Posted Index**:
-   - Columns: `adjustment_posted`
-   - Type: B-tree, Partial (WHERE adjustment_posted = false)
-   - Purpose: Find products pending adjustment posting
-   - Example Query: "Show products with unposted adjustments"
+```typescript
+interface StatusSummary {
+  all: number;
+  pending: number;
+  inProgress: number;
+  completed: number;
+  cancelled: number;
+  onHold: number;
+}
+```
 
 ---
 
-## Data Integrity Rules
+## Data Validation Rules
 
-### Referential Integrity
+### Required Field Rules
 
-1. **Location Reference**:
-   - `location_id` must reference valid record in `tb_location`
-   - Location must not be soft-deleted (`tb_location.deleted_at IS NULL`)
-   - Enforced by foreign key constraint and application logic
+| Entity | Field | Rule |
+|--------|-------|------|
+| SpotCheck | id | Non-empty string |
+| SpotCheck | checkNumber | Format: SC-YYMMDD-XXXX |
+| SpotCheck | checkType | Valid SpotCheckType enum |
+| SpotCheck | status | Valid SpotCheckStatus enum |
+| SpotCheck | locationId | Non-empty string |
+| SpotCheck | assignedTo | Non-empty string |
+| SpotCheck | scheduledDate | Valid Date |
+| SpotCheckItem | id | Non-empty string |
+| SpotCheckItem | itemId | Non-empty string |
+| SpotCheckItem | systemQuantity | >= 0 |
 
-2. **Product Reference**:
-   - `product_id` must reference valid record in `tb_product`
-   - Product should be active (`tb_product.is_active = true`) when added
-   - Enforced by foreign key constraint and validation logic
+### Business Rules
 
-3. **User References**:
-   - `created_by` and `updated_by` must reference valid users in `tb_user`
-   - Enforced by foreign key constraints
-
-4. **Spot Check Detail Parent**:
-   - `count_stock_id` must reference valid spot check in `tb_count_stock`
-   - Parent spot check must have `count_stock_type = 'spot'`
-   - Enforced by foreign key constraint and application validation
-
-### Domain Integrity
-
-1. **Quantity Constraints**:
-   - `expected_qty` >= 0 (CHECK constraint)
-   - `actual_qty` >= 0 (CHECK constraint)
-   - `variance_qty` can be positive or negative (no constraint)
-   - All quantities: decimal(15,2) precision
-
-2. **Status Values**:
-   - `doc_status` must be valid enum value: 'pending', 'in_progress', 'completed', 'cancelled'
-   - Status transitions follow business rules (see workflow diagram in FD document)
-
-3. **Type Value**:
-   - `count_stock_type` must be 'spot' for spot checks
-   - Enforced by enum constraint and application logic
-
-4. **Date Constraints**:
-   - `end_date` must be NULL or after `start_date` (CHECK constraint)
-   - `end_date` cannot be in future (application validation)
-   - `created_at` and `updated_at` automatically set by database
-
-### Entity Integrity
-
-1. **Primary Keys**:
-   - `id` (UUID) is primary key for both tables
-   - Generated using `gen_random_uuid()` function
-   - Guaranteed unique across all records
-
-2. **Business Keys**:
-   - `count_stock_no` must be unique across all spot checks and physical counts
-   - Format: SPOT-YYYY-NNNNNN for spot checks
-   - Enforced by unique index
-
-3. **Required Fields**:
-   - Spot Check Session: `location_id`, `count_stock_type`, `start_date`, `doc_status`, `created_by`, `updated_by`
-   - Spot Check Detail: `count_stock_id`, `product_id`, `sequence_no`, `created_by`, `updated_by`
+| Rule | Description |
+|------|-------------|
+| BR-DD-001 | countedQuantity must be >= 0 when provided |
+| BR-DD-002 | variance = countedQuantity - systemQuantity |
+| BR-DD-003 | variancePercent calculated from variance/systemQuantity |
+| BR-DD-004 | completedAt only set when status = 'completed' |
+| BR-DD-005 | startedAt set when status transitions to 'in-progress' |
+| BR-DD-006 | items array cannot be empty for non-draft spot checks |
+| BR-DD-007 | countedItems <= totalItems |
+| BR-DD-008 | matchedItems + varianceItems = countedItems |
 
 ---
 
-## Database Triggers
+## Data Relationships
 
-### Automatic Timestamp Updates
+### Entity Relationship Diagram
 
-**Trigger Name**: `trg_update_timestamp_count_stock`
-**Table**: `tb_count_stock`
-**Event**: BEFORE UPDATE
-**Purpose**: Automatically update `updated_at` timestamp on every record modification
+```
+┌─────────────────┐       1:N        ┌──────────────────┐
+│   SpotCheck     │─────────────────▶│  SpotCheckItem   │
+├─────────────────┤                  ├──────────────────┤
+│ id              │                  │ id               │
+│ checkNumber     │                  │ itemId           │
+│ checkType       │                  │ itemCode         │
+│ status          │                  │ itemName         │
+│ priority        │                  │ category         │
+│ locationId      │◀─ ─ ─ ─ ─ ─ ─ ─ ─│ location         │
+│ departmentId    │                  │ systemQuantity   │
+│ assignedTo      │                  │ countedQuantity  │
+│ items[]─────────│──────────────────│ variance         │
+│ ...             │                  │ variancePercent  │
+└─────────────────┘                  │ condition        │
+                                     │ status           │
+                                     │ ...              │
+                                     └──────────────────┘
+```
 
-**Logic** (described in text):
-- Before any UPDATE operation
-- Set `updated_at` = current timestamp
-- Applies to all columns (including status changes, quantity updates)
+### Reference Data (External)
 
-**Trigger Name**: `trg_update_timestamp_count_stock_detail`
-**Table**: `tb_count_stock_detail`
-**Event**: BEFORE UPDATE
-**Purpose**: Same as above, for detail records
-
-### Audit Logging Trigger
-
-**Trigger Name**: `trg_audit_count_stock`
-**Table**: `tb_count_stock`
-**Event**: AFTER INSERT, UPDATE, DELETE
-**Purpose**: Log all changes to spot check sessions for audit trail
-
-**Logic** (described in text):
-- After INSERT, UPDATE, or DELETE
-- Log operation type, user ID, timestamp
-- Log old and new values (for UPDATE)
-- Store in separate audit table `tb_audit_log`
-
-### Validation Trigger (if enabled)
-
-**Trigger Name**: `trg_validate_count_stock_detail`
-**Table**: `tb_count_stock_detail`
-**Event**: BEFORE INSERT, UPDATE
-**Purpose**: Enforce business rules at database level
-
-**Validation Rules** (described in text):
-1. Product cannot appear twice in same spot check
-2. `actual_qty` must be >= 0
-3. If `is_counted` = true, `actual_qty` must not be NULL
-4. If `adjustment_posted` = true, `adjustment_transaction_id` must not be NULL
-
-**Note**: Most validations performed at application layer; triggers provide final safety net.
-
-### Variance Calculation Trigger (optional)
-
-**Trigger Name**: `trg_calculate_variance`
-**Table**: `tb_count_stock_detail`
-**Event**: BEFORE INSERT, UPDATE
-**Purpose**: Automatically calculate variance_qty and variance_pct when actual_qty changes
-
-**Calculation Logic** (described in text):
-- If `actual_qty` changes or `expected_qty` changes:
-  - `variance_qty` = `actual_qty` - `expected_qty`
-  - If `expected_qty` > 0:
-    - `variance_pct` = (`variance_qty` / `expected_qty`) * 100
-  - Else:
-    - `variance_pct` = NULL
-
-**Note**: Variance calculation typically handled at application layer for performance; trigger provides consistency guarantee.
-
----
-
-## Data Archival Strategy
-
-### Archival Policy
-
-**Active Data** (Primary Database):
-- **Timeframe**: Current fiscal year + 1 year
-- **Example**: If current year is 2024, retain 2023 and 2024 spot checks
-- **Access**: Full read/write access for authorized users
-
-**Archived Data** (Secondary Storage):
-- **Timeframe**: 2-7 years
-- **Purpose**: Historical analysis, audit compliance, trend reporting
-- **Access**: Read-only, slower retrieval time
-
-**Purged Data** (Deleted):
-- **Timeframe**: > 7 years
-- **Purpose**: Regulatory compliance (7-year retention for financial records)
-- **Process**: Irreversibly deleted with proper approval and logging
-
-### Archival Process
-
-**Schedule**: Annually, at fiscal year end
-
-**Steps** (described in text):
-1. Identify spot checks older than retention period (created_at < 2 years ago)
-2. Export data to archival storage (cold storage, data warehouse)
-3. Verify archival integrity (checksum, record count)
-4. Soft delete from primary database (set `deleted_at` = archive date)
-5. Purge soft-deleted records older than 7 years (permanent deletion)
-6. Update audit log with archival actions
-
-**Restoration Process** (if needed):
-1. Locate archived data by date range and spot check number
-2. Import from archival storage to temporary table
-3. Provide read-only access to authorized users
-4. Re-archive after analysis complete
-
----
-
-## Performance Considerations
-
-### Query Optimization
-
-**Common Queries** (estimated execution time targets):
-
-1. **List Spot Checks by Location** (< 100ms):
-   - Query: Find all spot checks for location in date range
-   - Index Used: `location_id`, `count_stock_type`, `created_at`
-   - Optimization: Composite index on (location_id, count_stock_type, created_at)
-
-2. **Get Spot Check Details** (< 50ms):
-   - Query: Find all products in spot check with product names
-   - Index Used: `count_stock_id` (detail), join with tb_product
-   - Optimization: Include product data in query to avoid N+1
-
-3. **Find Uncounted Products** (< 50ms):
-   - Query: Find products in spot check with is_counted = false
-   - Index Used: `count_stock_id`, partial index on `is_counted`
-   - Optimization: Partial index improves filter performance
-
-4. **Variance Analysis Query** (< 200ms):
-   - Query: Aggregate variance data across all completed spot checks for location
-   - Index Used: Composite on (location_id, count_stock_type, doc_status)
-   - Optimization: Materialized view for frequently accessed aggregates
-
-5. **Approval Queue Query** (< 100ms):
-   - Query: Find all high variance items requiring approval
-   - Index Used: JSONB GIN index on `info` field for "requires_approval" = true
-   - Optimization: Separate table for approval queue (future enhancement)
-
-### Table Size Projections
-
-**tb_count_stock** (Spot Check Sessions):
-- Average record size: ~500 bytes (including JSON fields)
-- Records per location per year: ~240-360
-- 10 locations: ~2,400-3,600 records/year
-- 5-year projection: ~12,000-18,000 records (6-9 MB)
-
-**tb_count_stock_detail** (Spot Check Details):
-- Average record size: ~400 bytes
-- Details per spot check: ~10 products
-- 10 locations: ~24,000-36,000 records/year
-- 5-year projection: ~120,000-180,000 records (48-72 MB)
-
-**Total Estimated Size** (5 years, 10 locations): 54-81 MB (manageable without partitioning)
-
-### Optimization Techniques
-
-1. **Partial Indexes**: Only index active records (deleted_at IS NULL)
-2. **Composite Indexes**: Combine frequently filtered columns
-3. **JSONB Indexing**: GIN indexes on JSON fields for fast queries
-4. **Query Plan Analysis**: Regular EXPLAIN ANALYZE to identify slow queries
-5. **Connection Pooling**: Prisma connection pool (10-50 connections)
-6. **Read Replicas**: Separate read-only database for reports (future)
-
----
-
-## Security Considerations
-
-### Row-Level Security (RLS)
-
-**Policy on tb_count_stock**:
-- **SELECT Policy**: Users can view spot checks for locations they have access to
-  - Logic: `location_id IN (SELECT location_id FROM tb_user_location WHERE user_id = current_user_id())`
-  - Enforced at database level, transparent to application
-
-- **INSERT Policy**: Users can create spot checks for locations they have access to
-  - Logic: Same as SELECT + user has 'create_spot_check' permission
-
-- **UPDATE Policy**: Users can update spot checks they created OR have supervisor role
-  - Logic: `created_by = current_user_id() OR current_user_has_role('supervisor')`
-
-- **DELETE Policy**: Not allowed (soft delete only via UPDATE)
-
-**Policy on tb_count_stock_detail**:
-- **SELECT Policy**: Inherit from parent spot check (via `count_stock_id` join)
-- **INSERT/UPDATE Policy**: Same as parent spot check
-- **DELETE Policy**: Not allowed (soft delete only)
-
-### Column-Level Security (future enhancement)
-
-**Sensitive Columns** (future):
-- `approved_by`, `approved_at` in info JSON: Only visible to supervisor+ roles
-- Variance value > $1000: Only visible to manager+ roles
-
-### Data Encryption
-
-**At Rest**: PostgreSQL transparent data encryption (TDE) via Supabase
-**In Transit**: TLS 1.3 for all database connections
-**Sensitive Fields**: No PII or payment data in spot check tables (no additional encryption needed)
-
----
-
-## Backup and Recovery
-
-### Backup Strategy
-
-**Frequency**:
-- **Full Backup**: Daily at 2 AM UTC
-- **Incremental Backup**: Every 4 hours
-- **Transaction Log Backup**: Continuous (WAL archiving)
-
-**Retention**:
-- Daily backups: 30 days
-- Weekly backups: 12 months
-- Monthly backups: 7 years (compliance)
-
-**Storage**:
-- Primary: Supabase automated backups
-- Secondary: AWS S3 cold storage
-- Geographic redundancy: Multi-region replication
-
-### Recovery Procedures
-
-**Point-in-Time Recovery (PITR)**:
-- **RPO** (Recovery Point Objective): < 5 minutes (transaction log)
-- **RTO** (Recovery Time Objective): < 1 hour (restore from backup)
-- **Process**: Restore latest full backup + apply transaction logs up to failure point
-
-**Disaster Recovery**:
-- **Scenario**: Complete database loss
-- **Process**: Restore from geographic backup, validate data integrity, switch DNS
-- **RTO**: < 4 hours
-
-**Data Corruption Recovery**:
-- **Scenario**: Accidental deletion or data corruption
-- **Process**: Identify affected records by timestamp, restore from backup to temp table, merge good data
-- **RTO**: Variable (depends on corruption scope)
+| Reference | Description | Used In |
+|-----------|-------------|---------|
+| Location | Store/warehouse locations | SpotCheck.locationId |
+| Department | Organizational units | SpotCheck.departmentId |
+| User | System users | SpotCheck.assignedTo, createdBy |
+| Product | Inventory items | SpotCheckItem.itemId |
 
 ---
 
@@ -617,164 +538,124 @@ For complete field definitions, see [Physical Count Management DD](../physical-c
 
 ### Example Spot Check Session
 
-**Spot Check 1: Daily High-Value Check - Main Kitchen**
-```
-Record Type: Spot Check Session (tb_count_stock)
+```typescript
+const exampleSpotCheck: SpotCheck = {
+  id: 'sc-001',
+  checkNumber: 'SC-251206-0001',
+  checkType: 'high-value',
+  status: 'completed',
+  priority: 'high',
 
-id: 550e8400-e29b-41d4-a716-446655440001
-count_stock_no: SPOT-2024-000015
-count_stock_type: spot
-start_date: 2024-01-15 08:00:00 UTC
-end_date: 2024-01-15 08:45:00 UTC
-location_id: 440e8400-e29b-41d4-a716-446655440001
-location_name: Main Kitchen
-doc_status: completed
-description: Daily high-value protein verification
-note: null
-info: {
-  "total_items": 5,
-  "items_counted": 5,
-  "total_variance_value": -75.50,
-  "high_variance_items": 1,
-  "supervisor_approved": true,
-  "approved_by": "user-supervisor-001",
-  "approved_at": "2024-01-15T08:40:00Z"
-}
-workflow_id: null
-workflow_name: null
-workflow_current_stage: null
-workflow_history: null
-created_at: 2024-01-15 07:55:00 UTC
-created_by: user-storekeeper-001
-updated_at: 2024-01-15 08:45:05 UTC
-updated_by: user-coordinator-001
-deleted_at: null
-```
+  locationId: 'loc-001',
+  locationName: 'Main Kitchen',
+  departmentId: 'dept-001',
+  departmentName: 'Kitchen Operations',
 
-**Detail Lines for Spot Check 1**:
+  assignedTo: 'user-001',
+  assignedToName: 'John Smith',
+  scheduledDate: new Date('2025-12-06'),
+  startedAt: new Date('2025-12-06T09:00:00'),
+  completedAt: new Date('2025-12-06T09:45:00'),
+  dueDate: new Date('2025-12-06'),
 
-```
-Detail 1: Chicken Breast (High Variance - Approved)
-id: 660e8400-e29b-41d4-a716-446655440011
-count_stock_id: 550e8400-e29b-41d4-a716-446655440001
-sequence_no: 1
-product_id: prod-660e8400-001 (Chicken Breast)
-product_code: MEAT-CHKN-001
-product_name: Chicken Breast, Boneless, Skinless
-unit_id: unit-kg
-unit_name: Kilogram
-expected_qty: 100.00
-actual_qty: 95.00
-variance_qty: -5.00
-variance_pct: -5.00
-is_counted: true
-adjustment_posted: true
-adjustment_transaction_id: adj-770e8400-001
-note: Found 5kg expired, removed from inventory
-info: {
-  "product_cost": 15.00,
-  "variance_value": -75.00,
-  "high_variance": true,
-  "requires_approval": true,
-  "approved": true,
-  "approved_by": "user-supervisor-001",
-  "approved_at": "2024-01-15T08:40:00Z",
-  "recount_requested": false,
-  "last_count_date": "2024-01-01T00:00:00Z",
-  "bin_location": "COOLER-A-SHELF-2"
-}
+  items: [/* array of SpotCheckItem */],
+  totalItems: 5,
+  countedItems: 5,
+  matchedItems: 4,
+  varianceItems: 1,
 
-Detail 2: Beef Tenderloin (Match)
-sequence_no: 2
-product_name: Beef Tenderloin, Prime Cut
-expected_qty: 25.00
-actual_qty: 25.00
-variance_qty: 0.00
-variance_pct: 0.00
-(... other fields similar to Detail 1)
+  accuracy: 80,
+  totalValue: 1500.00,
+  varianceValue: -75.00,
 
-Detail 3: Salmon Fillet (Small Overage)
-sequence_no: 3
-product_name: Salmon Fillet, Atlantic, Fresh
-expected_qty: 50.00
-actual_qty: 50.50
-variance_qty: 0.50
-variance_pct: 1.00
-note: Small overage, within acceptable range
-(... other fields similar)
+  reason: 'Daily high-value protein verification',
+  notes: 'Found expired chicken breast, removed from inventory',
 
-Detail 4: Lamb Chops (Match)
-sequence_no: 4
-product_name: Lamb Chops, Frenched, Premium
-expected_qty: 15.00
-actual_qty: 15.00
-variance_qty: 0.00
-variance_pct: 0.00
-
-Detail 5: Duck Breast (Small Shortage)
-sequence_no: 5
-product_name: Duck Breast, Magret, Whole
-expected_qty: 20.00
-actual_qty: 19.50
-variance_qty: -0.50
-variance_pct: -2.50
-note: Small shortage, within acceptable range
+  createdBy: 'user-001',
+  createdAt: new Date('2025-12-06T08:55:00'),
+  updatedAt: new Date('2025-12-06T09:45:00'),
+};
 ```
 
-### Example Spot Check Session 2: Cancelled
+### Example Spot Check Item
 
-```
-Spot Check 2: Cancelled Spot Check - Dry Storage
+```typescript
+const exampleItem: SpotCheckItem = {
+  id: 'item-001',
+  itemId: 'prod-001',
+  itemCode: 'MEAT-CHKN-001',
+  itemName: 'Chicken Breast, Boneless, Skinless',
+  category: 'Meat & Poultry',
+  unit: 'kg',
+  location: 'Cooler A, Shelf 2',
 
-count_stock_no: SPOT-2024-000016
-count_stock_type: spot
-start_date: 2024-01-15 10:00:00 UTC
-end_date: null
-location_id: 440e8400-e29b-41d4-a716-446655440002 (Dry Storage)
-location_name: Dry Storage
-doc_status: cancelled
-description: Weekly dry goods verification
-note: Cancelled - Location access unavailable due to maintenance
-info: {
-  "total_items": 3,
-  "items_counted": 1,
-  "total_variance_value": 0.00,
-  "high_variance_items": 0,
-  "supervisor_approved": false,
-  "cancellation_reason": "Location access unavailable",
-  "cancelled_by": "user-supervisor-002",
-  "cancelled_at": "2024-01-15T10:30:00Z"
-}
-created_at: 2024-01-15 09:55:00 UTC
-created_by: user-storekeeper-002
-updated_at: 2024-01-15 10:30:00 UTC
-updated_by: user-supervisor-002
+  systemQuantity: 100.00,
+  countedQuantity: 95.00,
+  variance: -5.00,
+  variancePercent: -5.00,
+
+  condition: 'expired',
+  status: 'variance',
+
+  countedBy: 'user-001',
+  countedAt: new Date('2025-12-06T09:15:00'),
+  notes: 'Found 5kg expired, removed from inventory',
+
+  value: 1500.00,
+  lastCountDate: new Date('2025-12-01'),
+};
 ```
+
+---
+
+## Future Database Design
+
+### Planned Database Tables
+
+When database integration is implemented, the following schema is planned:
+
+**tb_spot_check** (Spot Check Sessions)
+- Primary key: `id` (UUID)
+- Business key: `check_number` (unique)
+- Foreign keys: `location_id`, `department_id`, `assigned_to`, `created_by`
+- Status tracking with workflow support
+- JSON field for extensible metadata
+
+**tb_spot_check_item** (Spot Check Items)
+- Primary key: `id` (UUID)
+- Foreign key: `spot_check_id`
+- Product reference: `product_id`
+- Quantity fields: `system_qty`, `counted_qty`, `variance_qty`, `variance_pct`
+- Audit fields: `counted_by`, `counted_at`
+
+### Migration Path
+
+1. Create Prisma schema matching TypeScript interfaces
+2. Generate database migrations
+3. Implement server actions for CRUD operations
+4. Replace mock data helpers with database queries
+5. Add real-time synchronization
 
 ---
 
 ## Glossary
 
-- **Spot Check Session**: Single instance of targeted inventory verification
-- **Spot Check Detail**: Individual product line within spot check session
-- **Type Discriminator**: Field value that differentiates record types in shared table
-- **Expected Quantity**: System-calculated inventory balance from transaction history
-- **Actual Quantity**: Physical count performed by storekeeper
-- **Variance**: Difference between expected and actual (positive = overage, negative = shortage)
-- **High Variance**: Variance exceeding threshold (>5% or >$100) requiring approval
-- **Adjustment Transaction**: Inventory transaction posted to correct balance based on variance
-- **Soft Delete**: Marking record as deleted (deleted_at timestamp) without physical removal
-- **Row-Level Security (RLS)**: Database-level security that filters rows based on user permissions
-- **Point-in-Time Recovery (PITR)**: Restoring database to specific timestamp using transaction logs
+| Term | Definition |
+|------|------------|
+| Spot Check | Targeted inventory verification of selected products |
+| Check Type | Classification of spot check purpose |
+| System Quantity | Expected quantity from inventory system |
+| Counted Quantity | Physical count performed during verification |
+| Variance | Difference between system and counted quantities |
+| Item Condition | Physical state of item during count |
+| Selection Method | How items are chosen for spot check (random, high-value, manual) |
+| Check Number | Business reference number (SC-YYMMDD-XXXX) |
+| Accuracy | Percentage of items with matching counts |
+| Variance Value | Monetary impact of quantity discrepancies |
+| Active Count | Spot check with pending, in-progress, or on-hold status |
+| Count Store | Zustand store managing active spot check state |
+| Item Count | Number of items to include in a spot check (10, 20, or 50) |
 
 ---
 
 **Document End**
-
-> 📝 **Data Definition Summary**:
-> - **Shared Schema**: Uses same tables as Physical Count Management
-> - **Type Discriminator**: count_stock_type = 'spot' identifies spot checks
-> - **Session Table**: tb_count_stock (header data, workflow state)
-> - **Detail Table**: tb_count_stock_detail (product lines, variances)
-> - **Estimated Size**: 54-81 MB for 5 years, 10 locations
-> - **Security**: Row-Level Security (RLS) enforces location-based access

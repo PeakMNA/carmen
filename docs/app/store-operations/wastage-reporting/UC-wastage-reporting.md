@@ -4,15 +4,33 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Route**: `/app/(main)/store-operations/wastage-reporting`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
+- **Version**: 1.2.0
+- **Last Updated**: 2025-12-09
 - **Owner**: Store Operations Team
-- **Status**: Draft
+- **Status**: Active
+- **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend workflows |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
+
+---
+
+## ✅ IMPLEMENTATION NOTE
+
+The Wastage Reporting module frontend has been fully implemented with 6 pages supporting the core use cases in this document. Backend integration is pending.
+
+**Implemented Workflows**:
+- ✅ **UC-WAST-001: Record Wastage** - New Report page with item selection, quantity, reason, notes, attachments
+- ✅ **UC-WAST-002: View Wastage Reports** - Reports list with status filtering, bulk selection
+- ✅ **UC-WAST-003: Approve/Reject Wastage** - Report detail page with review decision section
+- ✅ **UC-WAST-004: View Wastage Analytics** - Analytics page with charts, trends, insights
+- ✅ **UC-WAST-005: Manage Categories** - Categories page with add/edit/delete, approval rules
+
+See [BR-wastage-reporting.md](./BR-wastage-reporting.md) for complete implementation details.
 
 ---
 

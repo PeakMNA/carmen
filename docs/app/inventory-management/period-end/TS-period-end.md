@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Inventory Management - Period End
 - **Component**: Period End Management
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-11
-- **Status**: Draft - For Implementation
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
+- **Status**: Active
 
 ## Related Documents
 - [Business Requirements](./BR-period-end.md)
@@ -19,6 +19,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-09 | Development Team | Updated status values (open, closing, closed, reopened), expanded validation checklist to 11 items |
 ---
 
 ## 1. Architecture Overview
@@ -43,7 +44,7 @@ The Period End Management sub-module follows the application's three-tier archit
 │  (Server Actions + Business Logic + Validation)             │
 ├─────────────────────────────────────────────────────────────┤
 │  • Period CRUD Operations (Create, Read, Update, Delete)    │
-│  • Period Status Transitions (Open → In Progress → Closed)  │
+│  • Period Status Transitions (Open → Closing → Closed → Reopened)  │
 │  • Checklist Task Management (Mark Complete, Reset)         │
 │  • Period Closure Validation (All tasks complete, etc.)     │
 │  • Period Re-open Workflow (Authorization + Audit)          │
@@ -434,7 +435,7 @@ async function PeriodDetailPage({
 /inventory-management/period-end
   ?startDate=2024-01-01
   &endDate=2024-12-31
-  &status=in_progress
+  &status=closing
   &page=1
   &pageSize=20
 ```
@@ -442,7 +443,7 @@ async function PeriodDetailPage({
 **Query Parameters**:
 - `startDate`: Filter by period start date (ISO format)
 - `endDate`: Filter by period end date (ISO format)
-- `status`: Filter by status (open, in_progress, closed, void)
+- `status`: Filter by status (open, closing, closed, reopened)
 - `page`: Current page number (default: 1)
 - `pageSize`: Items per page (default: 20)
 
@@ -686,7 +687,7 @@ User                    Client                  Server Action            Databas
   |                       |                           |  completed           |
   |                       |                           |<---------------------|
   |                       |                           |  Validate: Status    |
-  |                       |                           |  = 'in_progress'     |
+  |                       |                           |  = 'closing'         |
   |                       |                           |<---------------------|
   |                       |                           |  UPDATE period_end   |
   |                       |                           |  SET status='closed' |
@@ -730,10 +731,10 @@ export async function closePeriod(periodId: string) {
     }
 
     // 3. Validate status
-    if (period.status !== 'in_progress') {
+    if (period.status !== 'closing') {
       return {
         success: false,
-        error: `Cannot close period with status '${period.status}'. Must be 'in_progress'.`
+        error: `Cannot close period with status '${period.status}'. Must be 'closing'.`
       }
     }
 
@@ -769,7 +770,7 @@ export async function closePeriod(periodId: string) {
           actionBy: session.user.id,
           actionByName: session.user.name,
           ipAddress: getClientIp(),
-          fromStatus: 'in_progress',
+          fromStatus: 'closing',
           toStatus: 'closed',
           notes: `Period ${period.periodName} closed`
         }
@@ -830,10 +831,10 @@ User                    Client                  Server Action            Databas
   |                       |                           |  recent closed       |
   |                       |                           |<---------------------|
   |                       |                           |  Validate: No future |
-  |                       |                           |  'in_progress'       |
+  |                       |                           |  'closing'           |
   |                       |                           |<---------------------|
   |                       |                           |  UPDATE period_end   |
-  |                       |                           |  SET status='open'   |
+  |                       |                           |  SET status='reopened'|
   |                       |                           |  reopen fields       |
   |                       |                           |--------------------->|
   |                       |                           |  INSERT activity     |
@@ -903,18 +904,18 @@ export async function reopenPeriod(periodId: string, reason: string) {
       }
     }
 
-    // 5. Validate no future in-progress periods
-    const futureInProgress = await prisma.periodEnd.count({
+    // 5. Validate no future closing periods
+    const futureClosing = await prisma.periodEnd.count({
       where: {
-        status: 'in_progress',
+        status: 'closing',
         startDate: { gt: period.startDate }
       }
     })
 
-    if (futureInProgress > 0) {
+    if (futureClosing > 0) {
       return {
         success: false,
-        error: 'Cannot re-open period. A future period is already in progress.'
+        error: 'Cannot re-open period. A future period is already in closing status.'
       }
     }
 
@@ -924,7 +925,7 @@ export async function reopenPeriod(periodId: string, reason: string) {
       const updatedPeriod = await tx.periodEnd.update({
         where: { id: periodId },
         data: {
-          status: 'open',
+          status: 'reopened',
           originalCompletedBy: period.completedBy,
           originalCompletedAt: period.completedAt,
           reopenedBy: session.user.id,
@@ -947,7 +948,7 @@ export async function reopenPeriod(periodId: string, reason: string) {
           actionByName: session.user.name,
           ipAddress: getClientIp(),
           fromStatus: 'closed',
-          toStatus: 'open',
+          toStatus: 'reopened',
           reason: reason,
           notes: `Period ${period.periodName} re-opened by ${session.user.name}`
         }
@@ -1233,8 +1234,9 @@ export function PeriodListFilters() {
         onChange={setStatus}
         options={[
           { value: 'open', label: 'Open' },
-          { value: 'in_progress', label: 'In Progress' },
-          { value: 'closed', label: 'Closed' }
+          { value: 'closing', label: 'Closing' },
+          { value: 'closed', label: 'Closed' },
+          { value: 'reopened', label: 'Reopened' }
         ]}
       />
 
@@ -2366,10 +2368,10 @@ export async function closePeriod(periodId: string): Promise<ActionResponse> {
       return { success: false, error: 'Period not found' }
     }
 
-    if (period.status !== 'in_progress') {
+    if (period.status !== 'closing') {
       return {
         success: false,
-        error: `Cannot close period with status '${period.status}'`
+        error: `Cannot close period with status '${period.status}'. Must be 'closing'.`
       }
     }
 
@@ -2634,12 +2636,12 @@ describe('Period Actions', () => {
       expect(result.error).toContain('task(s) not completed')
     })
 
-    it('should fail when status not in_progress', async () => {
-      // Mock period with wrong status
+    it('should fail when status not closing', async () => {
+      // Mock period with wrong status (not 'closing')
       const result = await closePeriod('period-3')
 
       expect(result.success).toBe(false)
-      expect(result.error).toContain('status')
+      expect(result.error).toContain('closing')
     })
   })
 
@@ -2776,8 +2778,8 @@ test.describe('Period End Closure Workflow', () => {
   })
 
   test('should complete period closure workflow', async ({ page }) => {
-    // Click on "In Progress" period
-    await page.click('tr[data-status="in_progress"]')
+    // Click on "Closing" period
+    await page.click('tr[data-status="closing"]')
 
     // Navigate to Checklist tab
     await page.click('button[data-tab="checklist"]')
@@ -2809,8 +2811,8 @@ test.describe('Period End Closure Workflow', () => {
   })
 
   test('should prevent closure with incomplete tasks', async ({ page }) => {
-    // Click on "In Progress" period
-    await page.click('tr[data-status="in_progress"]')
+    // Click on "Closing" period
+    await page.click('tr[data-status="closing"]')
 
     // Navigate to Checklist tab
     await page.click('button[data-tab="checklist"]')
@@ -2830,7 +2832,7 @@ test.describe('Period End Closure Workflow', () => {
     await expect(page.locator('.toast')).toContainText('task(s) not completed')
 
     // Verify status NOT updated
-    await expect(page.locator('.status-badge')).toHaveText('In Progress')
+    await expect(page.locator('.status-badge')).toHaveText('Closing')
   })
 
   test('should complete re-open workflow', async ({ page }) => {
@@ -2931,7 +2933,7 @@ CREATE TABLE period_end (
   CONSTRAINT fk_period_end_reopened_by FOREIGN KEY (reopened_by) REFERENCES users(id),
   CONSTRAINT fk_period_end_created_by FOREIGN KEY (created_by) REFERENCES users(id),
   CONSTRAINT fk_period_end_modified_by FOREIGN KEY (modified_by) REFERENCES users(id),
-  CONSTRAINT chk_period_end_status CHECK (status IN ('open', 'in_progress', 'closed', 'void'))
+  CONSTRAINT chk_period_end_status CHECK (status IN ('open', 'closing', 'closed', 'reopened'))
 );
 
 -- Create period_task table
@@ -3114,7 +3116,7 @@ export interface PeriodEnd {
   periodName: string                  // "January 2024"
   startDate: Date
   endDate: Date
-  status: 'open' | 'in_progress' | 'closed' | 'void'
+  status: 'open' | 'closing' | 'closed' | 'reopened'
   completedBy: string | null
   completedAt: Date | null
   notes: string | null
@@ -3326,7 +3328,7 @@ model PeriodActivity {
 | Foreign Key | period_task | FK_period_task_period_end_id | Reference period_end table (CASCADE) |
 | Check | period_task | CHK_period_task_status | Validate status enum values |
 | Foreign Key | period_activity | FK_period_activity_period_end_id | Reference period_end table (CASCADE) |
-| Trigger | period_end | TRG_single_in_progress | Enforce single "in_progress" period |
+| Trigger | period_end | TRG_single_closing | Enforce single "closing" period |
 | Trigger | inventory_transaction | TRG_check_period_before_post | Prevent posting to closed periods |
 
 ---
@@ -3483,7 +3485,7 @@ This Technical Specification document provides a comprehensive blueprint for imp
 2. Complete implementation of Period End module (3 documents: BR ✅, UC ✅, TS ✅)
 3. Move to Task 5: Generate Fractional Inventory documentation (BR, UC, TS only)
 
-**Document Status**: Draft - Ready for Review
+**Document Status**: Active - Revision 1.1.0 (2025-12-09)
 
 ---
 

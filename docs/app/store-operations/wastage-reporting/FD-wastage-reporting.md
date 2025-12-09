@@ -3,15 +3,35 @@
 ## Module Information
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
+- **Version**: 1.2.0
+- **Last Updated**: 2025-12-09
 - **Owner**: Store Operations Team
-- **Status**: Draft
+- **Status**: Active
+- **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend workflows |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning, verified Mermaid 8.8.2 compatibility |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
+
+---
+
+## ✅ IMPLEMENTATION NOTE
+
+The Wastage Reporting module frontend has been fully implemented with workflows that follow these flow diagrams. Backend processing is pending.
+
+**Implemented Workflows**:
+- ✅ **Record Wastage Flow** - New Report page: Select location → Search/add items → Set quantity/reason → Add notes → Upload photos → Submit
+- ✅ **View Reports Flow** - Reports list: Filter by status → Search → Select items → Bulk actions or view detail
+- ✅ **Approval Flow** - Report detail: Review item details → Check attachments → Add review notes → Approve/Reject
+- ✅ **Analytics Flow** - Analytics page: Select date range → View trends → Analyze by reason/location/category → Review insights
+- ✅ **Category Management Flow** - Categories page: View categories → Add/Edit category → Configure approval rules → Toggle active status
+
+**Status Transitions Implemented**: `pending` → `under_review` → `approved` OR `rejected`
+
+See [BR-wastage-reporting.md](./BR-wastage-reporting.md) for complete implementation details.
 
 ---
 

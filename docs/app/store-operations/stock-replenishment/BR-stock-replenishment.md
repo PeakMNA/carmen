@@ -3,14 +3,17 @@
 **Module**: Store Operations
 **Sub-Module**: Stock Replenishment
 **Document Type**: Business Requirements (BR)
-**Version**: 1.0.0
-**Last Updated**: 2025-11-12
-**Status**: Draft
+**Version**: 1.2.0
+**Last Updated**: 2025-12-09
+**Status**: Active
+**Implementation Status**: IMPLEMENTED (Frontend UI Complete, Backend Mock Data)
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect actual implementation - 6 pages implemented with mock data |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status, backend requirements, inventory integration references |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ## 1. Executive Summary
@@ -60,6 +63,81 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 - Manufacturing/production planning (handled by Production module)
 - Demand forecasting algorithms (basic patterns only)
 - External warehouse management systems
+
+### 1.4 Implementation Status
+
+✅ **IMPLEMENTED**: The Stock Replenishment module frontend has been fully implemented with comprehensive UI pages and mock data infrastructure.
+
+**Implemented Pages**:
+- ✅ **Dashboard** (`app/(main)/store-operations/stock-replenishment/page.tsx`)
+  - Critical alerts section with items below reorder point
+  - Consumption analytics with period selector
+  - Stock trends visualization
+  - Quick actions for creating requests and viewing stock levels
+
+- ✅ **New Request** (`app/(main)/store-operations/stock-replenishment/new/page.tsx`)
+  - Location selector for destination
+  - Item search with current stock display
+  - Quantity input with par level reference
+  - Priority selection (standard, high, urgent)
+  - Reason/notes field
+
+- ✅ **Requests List** (`app/(main)/store-operations/stock-replenishment/requests/page.tsx`)
+  - Status filtering (pending, approved, in_transit, completed, rejected, cancelled)
+  - Priority filtering
+  - Search functionality
+  - Request summary cards with status badges
+
+- ✅ **Request Detail** (`app/(main)/store-operations/stock-replenishment/requests/[id]/page.tsx`)
+  - Full request details view
+  - Line items display
+  - Approval/rejection workflow buttons
+  - Timeline/history section
+  - Comments section
+
+- ✅ **Stock Levels** (`app/(main)/store-operations/stock-replenishment/stock-levels/page.tsx`)
+  - Par level monitoring dashboard
+  - Current stock vs par level comparison
+  - Items below reorder point highlighted
+  - Location-based filtering
+
+- ✅ **History** (`app/(main)/store-operations/stock-replenishment/history/page.tsx`)
+  - Completed transfers history
+  - Date filtering
+  - Transfer details view
+
+**Implemented Mock Data** (`lib/mock-data/stock-replenishment.ts`):
+- ✅ Critical alerts data structure
+- ✅ Par level configurations
+- ✅ Stock level data by location
+- ✅ Replenishment requests with status tracking
+- ✅ Transfer history data
+
+**Status Values Implemented**:
+- `pending` - Request submitted, awaiting approval
+- `approved` - Request approved, pending transfer
+- `in_transit` - Items dispatched, en route
+- `completed` - Transfer received and confirmed
+- `rejected` - Request rejected with reason
+- `cancelled` - Request cancelled by requestor
+
+**Priority Values Implemented**:
+- `standard` - Normal processing time
+- `high` - Expedited processing
+- `urgent` - Immediate attention required
+
+**Par Level Thresholds**:
+- Reorder Point: 40% of par level
+- Minimum Level: 30% of par level (critical threshold)
+
+**Pending Backend Implementation**:
+- ❌ Database schema (6 tables documented in DD-stock-replenishment.md)
+- ❌ Server actions for business logic
+- ❌ Real-time inventory monitoring system
+- ❌ Automated recommendation engine
+- ❌ Integration with inventory management system
+- ❌ Integration with purchasing system
+- ❌ Integration with workflow engine
 
 ---
 
@@ -309,7 +387,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 - To Location (destination = requesting location)
 - Request Date
 - Required By Date
-- Status (pending, approved, in_transit, completed, cancelled)
+- Status (pending, approved, in_transit, completed, rejected, cancelled)
 - Line Items:
   - Product
   - Requested Quantity
@@ -1256,11 +1334,212 @@ Replenishment Request → Approval → Transfer → Inventory Transactions → I
 
 ---
 
-## 9. Related Documents
+## 9. Backend Implementation Requirements
+
+### 9.1 Server Actions Required
+
+The following Next.js server actions must be implemented to support the replenishment workflows:
+
+**Par Level Management**:
+- `createParLevel(locationId, productId, parLevel, leadTime)` - Configure new par level
+- `updateParLevel(configId, parLevel, justification)` - Update existing par level
+- `getParLevelsByLocation(locationId)` - Retrieve all par levels for location
+- `approveParLevelChange(configId, approverComments)` - Manager approval
+
+**Inventory Monitoring**:
+- `monitorInventoryLevels()` - Real-time monitoring job (scheduled)
+- `generateReplenishmentRecommendations(locationId)` - Create recommendations
+- `getActiveAlerts(locationId)` - Retrieve current alerts
+
+**Replenishment Requests**:
+- `createReplenishmentRequest(items, requiredDate, priority)` - Create request
+- `submitReplenishmentRequest(requestId)` - Submit for approval
+- `approveReplenishmentRequest(requestId, approvals, comments)` - Approve/reject
+- `getReplenishmentRequests(status, locationId)` - Query requests
+
+**Stock Transfers**:
+- `createStockTransfer(requestId)` - Generate transfer from approved request
+- `updateTransferStatus(transferId, status)` - Update transfer lifecycle
+- `confirmTransferReceipt(transferId, receivedItems, signature)` - Complete receipt
+- `getStockTransfers(locationId, status)` - Query transfers
+
+**Consumption Analytics**:
+- `analyzeConsumptionPatterns(locationId, productId, period)` - Calculate patterns
+- `generateConsumptionReport(locationId, startDate, endDate)` - Create reports
+- `identifySlowMovingItems(locationId, turnThreshold)` - Flag slow movers
+
+### 9.2 Integration with Inventory Management System
+
+**Inventory Valuation Methods** (Reference: `lib/types/inventory.ts` and related modules):
+
+The Stock Replenishment module MUST integrate with the inventory management system's valuation and costing methods:
+
+**FIFO (First-In-First-Out)**:
+- Used for: Non-perishable items with batch tracking
+- Implementation: When creating transfer transactions, system pulls oldest stock first
+- Server Action: `getAvailableStockFIFO(productId, locationId, quantity)` returns oldest batches
+- Integration Point: `tb_inventory_transaction.batch_number` tracking
+
+**FEFO (First-Expired-First-Out)**:
+- Used for: Perishable items, food products
+- Implementation: Prioritize stock with nearest expiry dates
+- Server Action: `getAvailableStockFEFO(productId, locationId, quantity)` returns nearest-expiry batches
+- Integration Point: `tb_inventory.expiry_date` sorting
+- Business Rule: Reject transfers if receiving location cannot use before expiry
+
+**Weighted Average Costing**:
+- Used for: Inventory valuation and transfer pricing
+- Implementation: Calculate average cost across all batches
+- Server Action: `calculateWeightedAverageCost(productId, locationId)` returns current avg cost
+- Integration Point: Stock transfer values calculated using weighted average
+- Update Trigger: Recalculate on every receipt transaction
+
+**Integration Architecture**:
+
+```
+Replenishment System                    Inventory System
+───────────────────                    ────────────────
+
+Stock Level Check  ──────────────────> tb_inventory (read)
+                                       ├── product_id
+                                       ├── location_id
+                                       ├── quantity_on_hand
+                                       ├── quantity_reserved
+                                       └── batch_number / expiry_date
+
+Transfer Dispatch  ──────────────────> createInventoryTransaction()
+                                       └── type: 'transfer_issue'
+                                           ├── Source location stock ↓
+                                           ├── Apply FIFO/FEFO logic
+                                           └── Record weighted avg cost
+
+Transfer Receipt   ──────────────────> createInventoryTransaction()
+                                       └── type: 'transfer_receipt'
+                                           ├── Destination location stock ↑
+                                           ├── Preserve batch/expiry data
+                                           └── Update weighted avg cost
+
+Pattern Analysis   ──────────────────> tb_inventory_transaction (read)
+                                       └── WHERE type = 'issue'
+                                           └── Calculate consumption metrics
+```
+
+**Required Shared Methods** (to be implemented in `lib/services/inventory.service.ts`):
+
+- `getStockLevel(productId, locationId): Promise<StockLevel>` - Current stock with FIFO/FEFO details
+- `reserveStock(productId, locationId, quantity, referenceId): Promise<Reservation>` - Reserve for transfer
+- `releaseStockReservation(reservationId): Promise<void>` - Cancel reservation
+- `createTransferIssue(items[], fromLocation, transferRef): Promise<Transaction[]>` - Issue from warehouse
+- `createTransferReceipt(items[], toLocation, transferRef): Promise<Transaction[]>` - Receipt at location
+- `getConsumptionHistory(productId, locationId, startDate, endDate): Promise<Transaction[]>` - For analytics
+- `applyInventoryValuation(productId, locationId, method): Promise<ValuationResult>` - FIFO/FEFO/WeightedAvg
+
+**Data Consistency Requirements**:
+- All inventory transactions must be atomic (use database transactions)
+- Stock reservations must prevent overselling
+- Batch/lot tracking mandatory for FIFO/FEFO items
+- Expiry date validation required before transfer receipt
+- Weighted average cost recalculation on every receipt
+- Consumption pattern cache updated daily via scheduled job
+
+### 9.3 Integration with Workflow Engine
+
+**Approval Workflow Configuration** (Reference workflow engine integration patterns):
+
+The replenishment approval process follows configurable workflow rules:
+
+**Workflow Routing Rules**:
+```typescript
+// Pseudo-code for approval routing
+interface ApprovalRule {
+  condition: {
+    requestValue?: { min?: number; max?: number }
+    priority?: 'urgent' | 'standard' | 'scheduled'
+    itemCount?: { min?: number; max?: number }
+    department?: string
+  }
+  approvers: {
+    role: string
+    level: number  // 1 = first approver, 2 = second, etc.
+    required: boolean
+  }[]
+  timeoutHours: number
+  escalationPath: string[]
+}
+```
+
+**Standard Approval Tiers**:
+- Tier 1 (<$1,000): Warehouse Manager only (auto-route)
+- Tier 2 ($1,000-$5,000): Warehouse Manager + Department Manager (sequential)
+- Tier 3 (>$5,000): Warehouse Manager + Department Manager + Finance (parallel after WH approval)
+- Tier 4 (Emergency): Department Manager pre-approval → Warehouse Manager execution
+
+**Server Actions for Workflow**:
+- `routeRequestForApproval(requestId): Promise<WorkflowInstance>` - Create workflow instance
+- `getApprovalStatus(requestId): Promise<WorkflowStatus>` - Check approval progress
+- `submitApprovalDecision(requestId, approverId, decision, comments): Promise<void>` - Record decision
+- `escalateOverdueApproval(requestId): Promise<void>` - Escalate after timeout
+
+### 9.4 Database Schema Requirements
+
+**Required Tables** (see DD-stock-replenishment.md for complete DDL):
+
+1. `tb_par_level_config` - Par level configurations
+2. `tb_replenishment_request` - Request headers
+3. `tb_replenishment_request_detail` - Request line items
+4. `tb_stock_transfer` - Transfer documents
+5. `tb_stock_transfer_detail` - Transfer line items with batch tracking
+6. `tb_consumption_pattern` - Cached analytics (updated daily)
+
+**Database Relationships**:
+- `tb_par_level_config.product_id` → `tb_product.product_id` (FK)
+- `tb_par_level_config.location_id` → `tb_location.location_id` (FK)
+- `tb_replenishment_request_detail.request_id` → `tb_replenishment_request.request_id` (FK)
+- `tb_stock_transfer.source_request_id` → `tb_replenishment_request.request_id` (FK)
+- `tb_stock_transfer_detail.transfer_id` → `tb_stock_transfer.transfer_id` (FK)
+
+**Indexes Required for Performance**:
+- `idx_par_level_location_product` on `tb_par_level_config(location_id, product_id)`
+- `idx_request_status_date` on `tb_replenishment_request(status, request_date)`
+- `idx_transfer_status_location` on `tb_stock_transfer(status, from_location_id, to_location_id)`
+- `idx_consumption_location_product_date` on `tb_consumption_pattern(location_id, product_id, analysis_date)`
+
+### 9.5 Scheduled Jobs Requirements
+
+**Background Jobs** (to be implemented using cron or scheduled tasks):
+
+1. **Inventory Monitoring Job** (every 5 minutes):
+   - Check all items with configured par levels
+   - Compare current stock against reorder points
+   - Generate alerts for items below thresholds
+   - Create automatic replenishment recommendations
+
+2. **Consumption Analysis Job** (daily at 2:00 AM):
+   - Analyze previous day's consumption transactions
+   - Update consumption pattern cache
+   - Calculate trend metrics (7-day, 30-day averages)
+   - Identify pattern changes (>25% variation)
+   - Generate pattern change alerts
+
+3. **Par Level Suggestion Job** (weekly on Sundays):
+   - Review consumption patterns for all items
+   - Calculate suggested par level adjustments
+   - Generate par level review recommendations
+   - Identify slow-moving items (turnover <2)
+
+4. **Transfer Timeout Monitor** (hourly):
+   - Check for overdue approvals (>4 hours urgent, >24 hours standard)
+   - Check for overdue transfers (>48 hours dispatched)
+   - Generate escalation notifications
+   - Update performance metrics
+
+---
+
+## 10. Related Documents
 
 - **Use Cases**: [UC-stock-replenishment.md](./UC-stock-replenishment.md)
 - **Technical Specification**: [TS-stock-replenishment.md](./TS-stock-replenishment.md)
-- **Data Schema**: [DS-stock-replenishment.md](./DS-stock-replenishment.md)
+- **Data Schema**: [DD-stock-replenishment.md](./DD-stock-replenishment.md)
 - **Flow Diagrams**: [FD-stock-replenishment.md](./FD-stock-replenishment.md)
 - **Validations**: [VAL-stock-replenishment.md](./VAL-stock-replenishment.md)
 - **Store Requisitions**: [BR-store-requisitions.md](../store-requisitions/BR-store-requisitions.md)
@@ -1273,8 +1552,10 @@ Replenishment Request → Approval → Transfer → Inventory Transactions → I
 - **Author**: Documentation Team
 - **Reviewed By**: Operations Manager, Warehouse Manager, Store Managers
 - **Approved By**: Chief Operations Officer
-- **Next Review**: 2025-12-12
+- **Next Review**: 2026-01-09
 - **Version History**:
+  - v1.2.0 (2025-12-09): Updated to reflect actual implementation - 6 pages with mock data
+  - v1.1.0 (2025-12-05): Added implementation status, backend requirements
   - v1.0.0 (2025-11-12): Initial business requirements document
 
 ---

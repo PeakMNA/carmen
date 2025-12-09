@@ -1,3 +1,34 @@
+/**
+ * ============================================================================
+ * INVENTORY ADJUSTMENT LIST COMPONENT
+ * ============================================================================
+ *
+ * Displays a searchable, filterable, and sortable list of inventory adjustments.
+ * This is the main data display component used on the Inventory Adjustments
+ * landing page.
+ *
+ * FEATURES:
+ * - Full-text search across all adjustment fields
+ * - Filter by status (Draft, Posted, Voided), type (IN, OUT), or location
+ * - Sort by any column (date, type, status, location, items, value)
+ * - Row click navigation to adjustment detail page
+ * - Context menu with actions (View, Edit, Delete for drafts)
+ *
+ * DATA FLOW:
+ * 1. Mock data loaded (TODO: Replace with API call)
+ * 2. Search filter applied to all fields
+ * 3. Status/Type/Location filters applied
+ * 4. Sort configuration applied
+ * 5. Rendered in table format with status badges
+ *
+ * TODO: Replace mock data with API integration:
+ * - GET /api/inventory-adjustments?search=&status=&type=&location=&sort=&order=
+ * - Implement server-side pagination for large datasets
+ * - Add loading states and error handling
+ *
+ * ============================================================================
+ */
+
 'use client'
 
 import { useState, useMemo } from "react"
@@ -24,7 +55,16 @@ import { FilterSortOptions } from "./filter-sort-options"
 import StatusBadge  from "@/components/ui/custom-status-badge"
 
 
-// Mock data - replace with actual API call
+// ============================================================================
+// MOCK DATA
+// ============================================================================
+// Sample adjustment records for development and testing.
+// Each record includes: id, date, type (IN/OUT), status, location, reason,
+// item count, and total monetary value.
+//
+// TODO: Replace with API call to GET /api/inventory-adjustments
+// ============================================================================
+
 const mockAdjustments = [
   {
     id: "ADJ-2024-001",
@@ -108,16 +148,55 @@ const mockAdjustments = [
   }
 ]
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+/**
+ * InventoryAdjustmentList - Tabular list of all inventory adjustments
+ *
+ * Provides a comprehensive view of all adjustment records with:
+ * - Search bar for quick filtering by any field
+ * - Filter/Sort options via FilterSortOptions component
+ * - Clickable rows to navigate to adjustment details
+ * - Dropdown menu with contextual actions
+ *
+ * @returns The adjustment list table with search, filter, and sort controls
+ */
 export function InventoryAdjustmentList() {
   const router = useRouter()
+
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
+
+  /** Current search query - filters across all adjustment fields */
   const [searchQuery, setSearchQuery] = useState("")
+
+  /** Active filter values (status, type, or location values) */
   const [activeFilters, setActiveFilters] = useState<string[]>([])
+
+  /** Sort configuration - which field and ascending/descending order */
   const [sortConfig, setSortConfig] = useState({ field: "date", order: "desc" })
 
+  // ============================================================================
+  // COMPUTED VALUES
+  // ============================================================================
+
+  /**
+   * Filtered and sorted adjustment data
+   *
+   * Applies a three-stage processing pipeline:
+   * 1. Search filter - matches query against all adjustment fields
+   * 2. Category filter - matches status, type, or location
+   * 3. Sort - orders by selected field in specified direction
+   *
+   * Uses useMemo for performance optimization on large datasets.
+   */
   const filteredAndSortedData = useMemo(() => {
     let filtered = mockAdjustments
 
-    // Apply search
+    // Stage 1: Apply search filter across all fields
     if (searchQuery) {
       filtered = filtered.filter(item =>
         Object.values(item).some(value =>
@@ -126,7 +205,7 @@ export function InventoryAdjustmentList() {
       )
     }
 
-    // Apply filters
+    // Stage 2: Apply category filters (status, type, or location)
     if (activeFilters.length > 0) {
       filtered = filtered.filter(item =>
         activeFilters.some(filter =>
@@ -137,25 +216,32 @@ export function InventoryAdjustmentList() {
       )
     }
 
-    // Apply sorting
+    // Stage 3: Apply sorting with type-aware comparison
     return [...filtered].sort((a: any, b: any) => {
       const aValue = a[sortConfig.field]
       const bValue = b[sortConfig.field]
-      
+
+      // String comparison using localeCompare for proper alphabetic ordering
       if (typeof aValue === 'string') {
         return sortConfig.order === 'asc'
           ? aValue.localeCompare(bValue)
           : bValue.localeCompare(aValue)
       }
-      
+
+      // Numeric comparison for numbers
       return sortConfig.order === 'asc'
         ? aValue - bValue
         : bValue - aValue
     })
   }, [mockAdjustments, searchQuery, activeFilters, sortConfig])
 
+  // ============================================================================
+  // RENDER
+  // ============================================================================
+
   return (
     <div className="space-y-4">
+      {/* Search and Filter Controls */}
       <div className="flex items-center gap-4">
         <div className="relative flex-1">
           <SearchIcon className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
@@ -172,6 +258,7 @@ export function InventoryAdjustmentList() {
         />
       </div>
 
+      {/* Adjustments Data Table */}
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -189,7 +276,11 @@ export function InventoryAdjustmentList() {
           </TableHeader>
           <TableBody>
             {filteredAndSortedData.map((adjustment) => (
-              <TableRow key={adjustment.id}>
+              <TableRow
+                key={adjustment.id}
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => router.push(`/inventory-management/inventory-adjustments/${adjustment.id}`)}
+              >
                 <TableCell className="font-medium">
                   {adjustment.id}
                 </TableCell>
@@ -218,12 +309,31 @@ export function InventoryAdjustmentList() {
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end">
                       <DropdownMenuItem
-                        onClick={() => router.push(`/inventory-management/inventory-adjustments/${adjustment.id}`)}
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          router.push(`/inventory-management/inventory-adjustments/${adjustment.id}`)
+                        }}
                       >
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuItem>Delete</DropdownMenuItem>
+                      {adjustment.status === "Draft" && (
+                        <>
+                          <DropdownMenuItem
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              router.push(`/inventory-management/inventory-adjustments/${adjustment.id}/edit`)
+                            }}
+                          >
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={(e) => e.stopPropagation()}
+                            className="text-destructive"
+                          >
+                            Delete
+                          </DropdownMenuItem>
+                        </>
+                      )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </TableCell>

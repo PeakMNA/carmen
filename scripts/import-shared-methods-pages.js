@@ -1,255 +1,299 @@
-#!/usr/bin/env node
-
 /**
- * Import Shared Methods Documentation to Wiki.js
+ * Wiki.js Shared Methods Module Documentation Import Script
  *
- * This script imports shared methods documentation including:
- * - Inventory Operations
- * - Inventory Valuation
+ * Imports all shared-methods sub-module documentation to Wiki.js
  *
- * Usage: node import-shared-methods-pages.js
+ * Sub-modules:
+ * - inventory-operations (1 page)
+ * - inventory-valuation (multiple pages including SM, BR, UC, DD, FD, VAL, API docs, guides)
  */
 
 const fs = require('fs');
 const path = require('path');
 
+// Configuration
 const API_URL = 'http://dev.blueledgers.com:3993/graphql';
-const API_KEY = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGkiOjIsImdycCI6MSwiaWF0IjoxNzYzOTgyMzk4LCJleHAiOjE3OTU1Mzk5OTgsImF1ZCI6InVybjp3aWtpLmpzIiwiaXNzIjoidXJuOndpa2kuanMifQ.HxwsX-8T1uxyiqPfHxgxLYLiALvKseYOq8P9m-TBgPMLhUBt9PAkePgP9mWwg41kafe3zeXwy9AqVE-LisPMJD6kZqsQRkCmD9HyabKmBxmWNfbmDwG07c4mgXnnPqCizOkIRpYd_IYXWA4y_3NszSXaKJj4UV4sFKFlPzYwBV6YehWbyyjaa119pvl9sw9MD2PPWIvKLgm_m-CSO4epYejx1k8105OrQX2yazEVSzkaIfvUjLCiYyIJDUjJ69Lbu2888_Qj8h5C0tS7mNUn9i8h1SY3S4GZHcuLZ0lKnHOOQOl9T4vYa-4jn7GA_vRRWWo-KLx1etCWLfhG0InPUg';
+const API_KEY = 'eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJhcGkiOjEsImdycCI6MSwiaWF0IjoxNzYzOTc5OTYwLCJleHAiOjE3OTU1Mzc1NjAsImF1ZCI6InVybjp3aWtpLmpzIiwiaXNzIjoidXJuOndpa2kuanMifQ.hRZIwCPcBSorxd5S23Bx_HNsWdGg8u_4T5blA3UDn_8oPw5WbEkTQcaPcfzx8j8uTSEtbXcZfZR4_dfTJ5MZ3lLoU2P0pRLHaRw6_6YpQMcMvse_t0Vwk24UzVrpvqf-jCcf6p_aUMjXV_gKYPfi4oF_YUem65VWEfm3bmbKxuSFGpVI5LR-lCyVQT92_vvbJ-ZJwZHUGLNs56mlWjjVsh3QIHvy2tO8BzmxpDRzICtV8lqJECRKRQrZTL1yAaMIKqmlOBy9pu955CZSq7ulQECtDdKsi1Ehx1G9ka5ZcvHVskJ2oLzZhAyrTozwJm282eHEkZ-8ybghAcvkwgHSSA';
+const DOCS_DIR = '/Users/peak/Documents/GitHub/carmen/docs/app/shared-methods';
 
-const BASE_DIR = 'docs/app/shared-methods';
-
-/**
- * GraphQL mutation to create a new page
- */
-const CREATE_PAGE_MUTATION = `
-mutation CreatePage(
-  $content: String!
-  $description: String!
-  $editor: String!
-  $isPublished: Boolean!
-  $isPrivate: Boolean!
-  $locale: String!
-  $path: String!
-  $tags: [String]!
-  $title: String!
-) {
-  pages {
-    create(
-      content: $content
-      description: $description
-      editor: $editor
-      isPublished: $isPublished
-      isPrivate: $isPrivate
-      locale: $locale
-      path: $path
-      tags: $tags
-      title: $title
-    ) {
-      responseResult {
-        succeeded
-        errorCode
-        slug
-        message
-      }
-      page {
-        id
-        path
-        title
-      }
-    }
-  }
-}
-`;
-
-/**
- * GraphQL mutation to update an existing page
- */
-const UPDATE_PAGE_MUTATION = `
-mutation UpdatePage(
-  $id: Int!
-  $content: String!
-  $description: String!
-  $editor: String!
-  $isPublished: Boolean!
-  $isPrivate: Boolean!
-  $locale: String!
-  $path: String!
-  $tags: [String]!
-  $title: String!
-) {
-  pages {
-    update(
-      id: $id
-      content: $content
-      description: $description
-      editor: $editor
-      isPublished: $isPublished
-      isPrivate: $isPrivate
-      locale: $locale
-      path: $path
-      tags: $tags
-      title: $title
-    ) {
-      responseResult {
-        succeeded
-        errorCode
-        slug
-        message
-      }
-      page {
-        id
-        path
-        title
-      }
-    }
-  }
-}
-`;
-
-/**
- * GraphQL query to find page by path
- */
-const GET_PAGE_BY_PATH_QUERY = `
-query GetPageByPath($path: String!, $locale: String!) {
-  pages {
-    singleByPath(path: $path, locale: $locale) {
-      id
-      path
-      title
-    }
-  }
-}
-`;
-
-/**
- * Shared Methods landing page content
- */
-const SHARED_METHODS_LANDING = {
-  path: 'shared-methods',
-  title: 'Shared Methods',
-  description: 'Application-wide shared methods and services documentation',
-  tags: ['shared-methods', 'documentation', 'services', 'landing-page']
-};
-
-/**
- * Module configurations
- */
-const MODULES = {
-  'inventory-operations': {
-    title: 'Inventory Operations',
-    description: 'Standardized inventory operations: balance tracking, transaction recording, state management',
-    wikiPath: 'inventory-operations',
-    files: ['SM-inventory-operations.md']
+// Page definitions for shared-methods sub-modules
+const pages = [
+  // Shared Methods Index
+  {
+    path: 'shared-methods',
+    title: 'Shared Methods',
+    file: 'README.md',
+    description: 'Shared methods and reusable business logic documentation'
   },
-  'inventory-valuation': {
+
+  // Inventory Operations
+  {
+    path: 'shared-methods/inventory-operations',
+    title: 'Inventory Operations',
+    file: 'inventory-operations/SM-inventory-operations.md',
+    description: 'Shared methods for inventory operations'
+  },
+
+  // Inventory Valuation - Index
+  {
+    path: 'shared-methods/inventory-valuation',
     title: 'Inventory Valuation',
-    description: 'Calculate inventory costs using FIFO or Periodic Average costing methods',
-    wikiPath: 'inventory-valuation',
-    files: ['SM-inventory-valuation.md', 'SM-costing-methods.md', 'SM-periodic-average.md']
-  }
-};
+    file: null,
+    description: 'Inventory valuation methods, costing, and period management',
+    isIndex: true,
+    indexFor: 'inventory-valuation'
+  },
 
-/**
- * Extract title from markdown content
- */
-function extractTitle(content, filename) {
-  const match = content.match(/^#\s+(.+)$/m);
-  if (match) {
-    return match[1].trim();
+  // Inventory Valuation - Core Documentation
+  {
+    path: 'shared-methods/inventory-valuation/business-requirements',
+    title: 'Business Requirements - Inventory Valuation',
+    file: 'inventory-valuation/BR-inventory-valuation.md',
+    description: 'Business requirements for inventory valuation'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/use-cases',
+    title: 'Use Cases - Inventory Valuation',
+    file: 'inventory-valuation/UC-inventory-valuation.md',
+    description: 'Use cases for inventory valuation'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/data-definition',
+    title: 'Data Definition - Inventory Valuation',
+    file: 'inventory-valuation/DD-inventory-valuation.md',
+    description: 'Data definitions and schemas for inventory valuation'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/flow-diagrams',
+    title: 'Flow Diagrams - Inventory Valuation',
+    file: 'inventory-valuation/FD-inventory-valuation.md',
+    description: 'Process and data flow diagrams for inventory valuation'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/validations',
+    title: 'Validations - Inventory Valuation',
+    file: 'inventory-valuation/VAL-inventory-valuation.md',
+    description: 'Validation rules for inventory valuation'
+  },
+
+  // Inventory Valuation - Shared Methods
+  {
+    path: 'shared-methods/inventory-valuation/costing-methods',
+    title: 'Costing Methods',
+    file: 'inventory-valuation/SM-costing-methods.md',
+    description: 'Shared methods for inventory costing calculations'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/inventory-valuation-methods',
+    title: 'Inventory Valuation Methods',
+    file: 'inventory-valuation/SM-inventory-valuation.md',
+    description: 'Core inventory valuation shared methods'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/period-end-snapshots',
+    title: 'Period End Snapshots',
+    file: 'inventory-valuation/SM-period-end-snapshots.md',
+    description: 'Period-end snapshot methods for inventory valuation'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/period-management',
+    title: 'Period Management',
+    file: 'inventory-valuation/SM-period-management.md',
+    description: 'Period management shared methods'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/periodic-average',
+    title: 'Periodic Average',
+    file: 'inventory-valuation/SM-periodic-average.md',
+    description: 'Periodic average costing method'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/transaction-types-and-cost-layers',
+    title: 'Transaction Types and Cost Layers',
+    file: 'inventory-valuation/SM-transaction-types-and-cost-layers.md',
+    description: 'Transaction types and cost layer management'
+  },
+
+  // Inventory Valuation - API Documentation
+  {
+    path: 'shared-methods/inventory-valuation/api-reference',
+    title: 'API Reference - Inventory Valuation',
+    file: 'inventory-valuation/api-reference.md',
+    description: 'API reference for inventory valuation'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/lot-based-costing-api',
+    title: 'Lot-Based Costing API',
+    file: 'inventory-valuation/API-lot-based-costing.md',
+    description: 'API for lot-based costing operations'
+  },
+
+  // Inventory Valuation - Configuration & Settings
+  {
+    path: 'shared-methods/inventory-valuation/inventory-settings',
+    title: 'Inventory Settings',
+    file: 'inventory-valuation/PC-inventory-settings.md',
+    description: 'Inventory valuation settings and configuration'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/schema-alignment',
+    title: 'Schema Alignment',
+    file: 'inventory-valuation/SCHEMA-ALIGNMENT.md',
+    description: 'Database schema alignment documentation'
+  },
+
+  // Inventory Valuation - Capabilities & Roadmap
+  {
+    path: 'shared-methods/inventory-valuation/current-capabilities',
+    title: 'Current Capabilities',
+    file: 'inventory-valuation/CURRENT-CAPABILITIES.md',
+    description: 'Current inventory valuation capabilities'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/enhancements-roadmap',
+    title: 'Enhancements Roadmap',
+    file: 'inventory-valuation/ENHANCEMENTS-ROADMAP.md',
+    description: 'Future enhancements roadmap'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/enhancement-comparison',
+    title: 'Enhancement Comparison',
+    file: 'inventory-valuation/ENHANCEMENT-COMPARISON.md',
+    description: 'Comparison of enhancement options'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/enhancement-faq',
+    title: 'Enhancement FAQ',
+    file: 'inventory-valuation/ENHANCEMENT-FAQ.md',
+    description: 'Frequently asked questions about enhancements'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/visual-roadmap',
+    title: 'Visual Roadmap',
+    file: 'inventory-valuation/VISUAL-ROADMAP.md',
+    description: 'Visual representation of the roadmap'
+  },
+  {
+    path: 'shared-methods/inventory-valuation/whats-coming',
+    title: "What's Coming",
+    file: 'inventory-valuation/WHATS-COMING.md',
+    description: 'Upcoming features and improvements'
+  },
+
+  // Inventory Valuation - User Guide
+  {
+    path: 'shared-methods/inventory-valuation/period-close-guide',
+    title: 'Period Close User Guide',
+    file: 'inventory-valuation/USER-GUIDE-period-close.md',
+    description: 'User guide for period close process'
   }
-  return filename
-    .replace(/\.md$/, '')
-    .replace(/-/g, ' ')
-    .replace(/\b\w/g, l => l.toUpperCase());
+];
+
+// Generate index content for inventory valuation sub-module
+function generateInventoryValuationIndex() {
+  return `# Inventory Valuation
+
+## Overview
+
+Comprehensive documentation for inventory valuation methods, costing calculations, and period management in Carmen ERP.
+
+## Core Documentation
+
+### [Business Requirements](./inventory-valuation/business-requirements)
+Functional requirements and business rules for inventory valuation.
+
+### [Use Cases](./inventory-valuation/use-cases)
+User scenarios and interaction flows.
+
+### [Data Definition](./inventory-valuation/data-definition)
+Database schemas and data models.
+
+### [Flow Diagrams](./inventory-valuation/flow-diagrams)
+Visual process and data flows.
+
+### [Validations](./inventory-valuation/validations)
+Input validation and business rule enforcement.
+
+## Shared Methods
+
+### [Costing Methods](./inventory-valuation/costing-methods)
+Core costing calculation methods (FIFO, LIFO, Weighted Average, etc.)
+
+### [Inventory Valuation Methods](./inventory-valuation/inventory-valuation-methods)
+Main inventory valuation shared methods.
+
+### [Period End Snapshots](./inventory-valuation/period-end-snapshots)
+Methods for creating period-end inventory snapshots.
+
+### [Period Management](./inventory-valuation/period-management)
+Accounting period management methods.
+
+### [Periodic Average](./inventory-valuation/periodic-average)
+Periodic average costing implementation.
+
+### [Transaction Types and Cost Layers](./inventory-valuation/transaction-types-and-cost-layers)
+Transaction type handling and cost layer management.
+
+## API Documentation
+
+### [API Reference](./inventory-valuation/api-reference)
+Complete API reference for inventory valuation.
+
+### [Lot-Based Costing API](./inventory-valuation/lot-based-costing-api)
+API for lot-based costing operations.
+
+## Configuration
+
+### [Inventory Settings](./inventory-valuation/inventory-settings)
+System settings and configuration options.
+
+### [Schema Alignment](./inventory-valuation/schema-alignment)
+Database schema alignment documentation.
+
+## Roadmap & Capabilities
+
+### [Current Capabilities](./inventory-valuation/current-capabilities)
+Current system capabilities overview.
+
+### [Enhancements Roadmap](./inventory-valuation/enhancements-roadmap)
+Planned enhancements and timeline.
+
+### [Enhancement Comparison](./inventory-valuation/enhancement-comparison)
+Comparison of enhancement options.
+
+### [Enhancement FAQ](./inventory-valuation/enhancement-faq)
+Frequently asked questions.
+
+### [Visual Roadmap](./inventory-valuation/visual-roadmap)
+Visual representation of planned features.
+
+### [What's Coming](./inventory-valuation/whats-coming)
+Upcoming features preview.
+
+## User Guides
+
+### [Period Close Guide](./inventory-valuation/period-close-guide)
+Step-by-step guide for period close process.
+
+## Related Documentation
+
+- [Shared Methods Index](../shared-methods)
+- [Inventory Operations](../shared-methods/inventory-operations)
+`;
 }
 
-/**
- * Extract description from markdown content
- */
-function extractDescription(content) {
-  const lines = content.split('\n');
-  let descLines = [];
-  let foundHeading = false;
-
-  for (let line of lines) {
-    if (line.match(/^#/)) {
-      foundHeading = true;
-      continue;
-    }
-    if (foundHeading && line.trim()) {
-      descLines.push(line.trim());
-      if (descLines.length >= 3) break;
-    }
-  }
-
-  return descLines.join(' ').substring(0, 200);
-}
-
-/**
- * Determine tags based on file path and name
- */
-function determineTags(moduleName, filename) {
-  const tags = ['shared-methods', moduleName];
-
-  if (filename.startsWith('SM-')) tags.push('shared-method');
-  if (filename.includes('inventory')) tags.push('inventory');
-  if (filename.includes('valuation')) tags.push('valuation');
-  if (filename.includes('costing')) tags.push('costing');
-  if (filename.includes('operations')) tags.push('operations');
-
-  return tags;
-}
-
-/**
- * Check if page exists by path
- */
-async function getPageByPath(wikiPath) {
-  try {
-    const response = await fetch(API_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY}`
-      },
-      body: JSON.stringify({
-        query: GET_PAGE_BY_PATH_QUERY,
-        variables: {
-          path: wikiPath,
-          locale: 'en'
+// Check if page exists
+async function checkPageExists(pagePath) {
+  const query = `
+    query {
+      pages {
+        single(path: "${pagePath}", locale: "en") {
+          id
+          path
         }
-      })
-    });
-
-    const result = await response.json();
-
-    if (result.data?.pages?.singleByPath) {
-      return result.data.pages.singleByPath;
+      }
     }
-    return null;
-  } catch (error) {
-    console.error(`   ⚠️ Error checking page:`, error.message);
-    return null;
-  }
-}
-
-/**
- * Create a page in Wiki.js
- */
-async function createPage(wikiPath, title, description, content, tags) {
-  console.log(`\n📄 Creating page: ${wikiPath}`);
-  console.log(`   Title: ${title}`);
-
-  const variables = {
-    content: content,
-    description: description || 'Shared Methods Documentation',
-    editor: 'markdown',
-    isPublished: true,
-    isPrivate: false,
-    locale: 'en',
-    path: wikiPath,
-    tags: tags,
-    title: title
-  };
+  `;
 
   try {
     const response = await fetch(API_URL, {
@@ -258,53 +302,137 @@ async function createPage(wikiPath, title, description, content, tags) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${API_KEY}`
       },
-      body: JSON.stringify({
-        query: CREATE_PAGE_MUTATION,
-        variables: variables
-      })
+      body: JSON.stringify({ query })
     });
 
     const result = await response.json();
+    return result.data?.pages?.single?.id || null;
+  } catch (error) {
+    return null;
+  }
+}
 
-    if (result.errors) {
-      console.error(`   ❌ GraphQL Error:`, result.errors[0].message);
-      return { success: false, path: wikiPath, error: result.errors[0].message };
+// Create a new page
+async function createPage(page) {
+  let content;
+
+  if (page.isIndex && page.indexFor === 'inventory-valuation') {
+    content = generateInventoryValuationIndex();
+  } else if (page.file) {
+    const filePath = path.join(DOCS_DIR, page.file);
+    if (!fs.existsSync(filePath)) {
+      console.log(`   ⚠️  File not found: ${page.file}`);
+      return false;
     }
+    content = fs.readFileSync(filePath, 'utf8');
+    // Remove any null bytes and control characters
+    content = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  } else {
+    console.log(`   ⚠️  No content source for: ${page.path}`);
+    return false;
+  }
+
+  const mutation = `
+    mutation {
+      pages {
+        create(
+          content: ${JSON.stringify(content)}
+          description: ${JSON.stringify(page.description)}
+          editor: "markdown"
+          isPublished: true
+          isPrivate: false
+          locale: "en"
+          path: ${JSON.stringify(page.path)}
+          tags: ["shared-methods", "documentation"]
+          title: ${JSON.stringify(page.title)}
+        ) {
+          responseResult {
+            succeeded
+            errorCode
+            slug
+            message
+          }
+          page {
+            id
+          }
+        }
+      }
+    }
+  `;
+
+  try {
+    const response = await fetch(API_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${API_KEY}`
+      },
+      body: JSON.stringify({ query: mutation })
+    });
+
+    const result = await response.json();
 
     if (result.data?.pages?.create?.responseResult?.succeeded) {
-      console.log(`   ✅ Created! Page ID: ${result.data.pages.create.page.id}`);
-      return { success: true, path: wikiPath, id: result.data.pages.create.page.id, action: 'created' };
+      console.log(`   ✅ Created: ${page.title} (ID: ${result.data.pages.create.page.id})`);
+      return true;
     } else {
-      const errorMsg = result.data?.pages?.create?.responseResult?.message || 'Unknown error';
-      console.error(`   ❌ Failed:`, errorMsg);
-      return { success: false, path: wikiPath, error: errorMsg };
+      console.log(`   ❌ Failed to create: ${result.data?.pages?.create?.responseResult?.message || JSON.stringify(result.errors || result)}`);
+      return false;
     }
   } catch (error) {
-    console.error(`   ❌ Error:`, error.message);
-    return { success: false, path: wikiPath, error: error.message };
+    console.log(`   ❌ Error: ${error.message}`);
+    return false;
   }
 }
 
-/**
- * Update an existing page in Wiki.js
- */
-async function updatePage(pageId, wikiPath, title, description, content, tags) {
-  console.log(`\n📝 Updating page: ${wikiPath}`);
-  console.log(`   Title: ${title}`);
-  console.log(`   Page ID: ${pageId}`);
+// Update existing page
+async function updatePage(pageId, page) {
+  let content;
 
-  const variables = {
-    id: pageId,
-    content: content,
-    description: description || 'Shared Methods Documentation',
-    editor: 'markdown',
-    isPublished: true,
-    isPrivate: false,
-    locale: 'en',
-    path: wikiPath,
-    tags: tags,
-    title: title
-  };
+  if (page.isIndex && page.indexFor === 'inventory-valuation') {
+    content = generateInventoryValuationIndex();
+  } else if (page.file) {
+    const filePath = path.join(DOCS_DIR, page.file);
+    if (!fs.existsSync(filePath)) {
+      console.log(`   ⚠️  File not found: ${page.file}`);
+      return false;
+    }
+    content = fs.readFileSync(filePath, 'utf8');
+    // Remove any null bytes and control characters
+    content = content.replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '');
+  } else {
+    console.log(`   ⚠️  No content source for: ${page.path}`);
+    return false;
+  }
+
+  const mutation = `
+    mutation {
+      pages {
+        update(
+          id: ${pageId}
+          content: ${JSON.stringify(content)}
+          description: ${JSON.stringify(page.description)}
+          editor: "markdown"
+          isPublished: true
+          isPrivate: false
+          locale: "en"
+          path: ${JSON.stringify(page.path)}
+          tags: ["shared-methods", "documentation"]
+          title: ${JSON.stringify(page.title)}
+        ) {
+          responseResult {
+            succeeded
+            errorCode
+            slug
+            message
+          }
+          page {
+            id
+          }
+        }
+      }
+    }
+  `;
 
   try {
     const response = await fetch(API_URL, {
@@ -313,183 +441,75 @@ async function updatePage(pageId, wikiPath, title, description, content, tags) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${API_KEY}`
       },
-      body: JSON.stringify({
-        query: UPDATE_PAGE_MUTATION,
-        variables: variables
-      })
+      body: JSON.stringify({ query: mutation })
     });
 
     const result = await response.json();
 
-    if (result.errors) {
-      console.error(`   ❌ GraphQL Error:`, result.errors[0].message);
-      return { success: false, path: wikiPath, error: result.errors[0].message };
-    }
-
     if (result.data?.pages?.update?.responseResult?.succeeded) {
-      console.log(`   ✅ Updated! Page ID: ${result.data.pages.update.page.id}`);
-      return { success: true, path: wikiPath, id: result.data.pages.update.page.id, action: 'updated' };
+      console.log(`   ✅ Updated: ${page.title} (ID: ${pageId})`);
+      return true;
     } else {
-      const errorMsg = result.data?.pages?.update?.responseResult?.message || 'Unknown error';
-      console.error(`   ❌ Failed:`, errorMsg);
-      return { success: false, path: wikiPath, error: errorMsg };
+      console.log(`   ❌ Failed to update: ${result.data?.pages?.update?.responseResult?.message || JSON.stringify(result.errors || result)}`);
+      return false;
     }
   } catch (error) {
-    console.error(`   ❌ Error:`, error.message);
-    return { success: false, path: wikiPath, error: error.message };
+    console.log(`   ❌ Error: ${error.message}`);
+    return false;
   }
 }
 
-/**
- * Create or update a page
- */
-async function upsertPage(wikiPath, title, description, content, tags) {
-  // Check if page exists
-  const existingPage = await getPageByPath(wikiPath);
+// Main import function
+async function importPages() {
+  console.log('╔════════════════════════════════════════════════════════════╗');
+  console.log('║     Wiki.js Shared Methods Documentation Import            ║');
+  console.log('╚════════════════════════════════════════════════════════════╝');
+  console.log('');
+  console.log(`📁 Source directory: ${DOCS_DIR}`);
+  console.log(`📝 Total pages to import: ${pages.length}`);
+  console.log('');
+  console.log('Sub-modules:');
+  console.log('  • Shared Methods Index (1 page)');
+  console.log('  • Inventory Operations (1 page)');
+  console.log('  • Inventory Valuation (23 pages)');
+  console.log('');
 
-  if (existingPage) {
-    return await updatePage(existingPage.id, wikiPath, title, description, content, tags);
-  } else {
-    return await createPage(wikiPath, title, description, content, tags);
-  }
-}
+  let successCount = 0;
+  let failCount = 0;
 
-/**
- * Find markdown files in a directory (non-recursive)
- */
-function findMarkdownFiles(dir) {
-  const files = [];
+  for (const page of pages) {
+    console.log(`📄 Processing: ${page.path}`);
 
-  if (!fs.existsSync(dir)) {
-    return files;
-  }
+    // Check if page already exists
+    const existingId = await checkPageExists(page.path);
 
-  const entries = fs.readdirSync(dir, { withFileTypes: true });
-
-  for (const entry of entries) {
-    if (entry.isFile() && entry.name.endsWith('.md')) {
-      if (!entry.name.includes('.backup') && !entry.name.startsWith('.')) {
-        files.push(path.join(dir, entry.name));
-      }
-    }
-  }
-
-  return files;
-}
-
-/**
- * Import a single module
- */
-async function importModule(moduleName, config, results) {
-  console.log(`\n${'='.repeat(60)}`);
-  console.log(`📦 IMPORTING: ${config.title}`);
-  console.log('='.repeat(60));
-
-  const wikiBasePath = config.wikiPath || moduleName;
-
-  // Import documentation files
-  const moduleDir = path.join(BASE_DIR, moduleName);
-  const files = findMarkdownFiles(moduleDir);
-
-  console.log(`   Found ${files.length} documentation files`);
-
-  for (const filePath of files) {
-    const filename = path.basename(filePath);
-    const content = fs.readFileSync(filePath, 'utf-8');
-    const title = extractTitle(content, filename);
-    const description = extractDescription(content);
-    const docName = filename.replace('.md', '').toLowerCase();
-    const wikiPath = `shared-methods/${wikiBasePath}/${docName}`;
-    const tags = determineTags(moduleName, filename);
-
-    const result = await upsertPage(wikiPath, title, description, content, tags);
-
-    if (result.success) {
-      results.success.push(result);
+    if (existingId) {
+      // Update existing page
+      const success = await updatePage(existingId, page);
+      if (success) successCount++;
+      else failCount++;
     } else {
-      results.failed.push(result);
+      // Create new page
+      const success = await createPage(page);
+      if (success) successCount++;
+      else failCount++;
     }
-
-    await new Promise(resolve => setTimeout(resolve, 300));
-  }
-}
-
-/**
- * Main import function
- */
-async function importSharedMethods() {
-  console.log('🚀 Starting Shared Methods documentation import...\n');
-  console.log(`📂 Base directory: ${BASE_DIR}`);
-
-  const results = {
-    success: [],
-    failed: []
-  };
-
-  // Step 1: Create/update main shared-methods landing page (README.md)
-  console.log('\n' + '='.repeat(60));
-  console.log('📝 STEP 1: Importing Main Shared Methods Landing Page');
-  console.log('='.repeat(60));
-
-  const readmePath = path.join(BASE_DIR, 'README.md');
-  if (fs.existsSync(readmePath)) {
-    const readmeContent = fs.readFileSync(readmePath, 'utf-8');
-    const mainResult = await upsertPage(
-      SHARED_METHODS_LANDING.path,
-      SHARED_METHODS_LANDING.title,
-      SHARED_METHODS_LANDING.description,
-      readmeContent,
-      SHARED_METHODS_LANDING.tags
-    );
-
-    if (mainResult.success) {
-      results.success.push(mainResult);
-    } else {
-      results.failed.push(mainResult);
-    }
-
-    await new Promise(resolve => setTimeout(resolve, 500));
   }
 
-  // Step 2: Import each module
-  console.log('\n' + '='.repeat(60));
-  console.log('📝 STEP 2: Importing Module Documentation');
-  console.log('='.repeat(60));
+  console.log('');
+  console.log('╔════════════════════════════════════════════════════════════╗');
+  console.log('║                     Import Summary                          ║');
+  console.log('╚════════════════════════════════════════════════════════════╝');
+  console.log(`✅ Successful: ${successCount}`);
+  console.log(`❌ Failed: ${failCount}`);
+  console.log(`📊 Total: ${pages.length}`);
 
-  for (const [moduleName, config] of Object.entries(MODULES)) {
-    await importModule(moduleName, config, results);
+  if (failCount > 0) {
+    console.log('');
+    console.log('⚠️  Some pages failed to import. Please check the errors above.');
+    process.exit(1);
   }
-
-  // Summary
-  console.log('\n' + '='.repeat(60));
-  console.log('📊 IMPORT SUMMARY');
-  console.log('='.repeat(60));
-  console.log(`✅ Successfully processed: ${results.success.length} pages`);
-  console.log(`❌ Failed: ${results.failed.length} pages`);
-
-  if (results.success.length > 0) {
-    console.log('\n✅ Successfully processed pages:');
-    results.success.forEach(({ path, action }) => {
-      console.log(`   - /en/${path} (${action})`);
-    });
-  }
-
-  if (results.failed.length > 0) {
-    console.log('\n❌ Failed pages:');
-    results.failed.forEach(({ path, error }) => {
-      console.log(`   - ${path}: ${error}`);
-    });
-  }
-
-  console.log('\n' + '='.repeat(60));
-  console.log('🔗 ACCESS YOUR PAGES');
-  console.log('='.repeat(60));
-  console.log('Main page: http://dev.blueledgers.com:3993/en/shared-methods');
-  console.log('\n✨ Import complete!\n');
 }
 
 // Run the import
-importSharedMethods().catch(error => {
-  console.error('Fatal error:', error);
-  process.exit(1);
-});
+importPages().catch(console.error);

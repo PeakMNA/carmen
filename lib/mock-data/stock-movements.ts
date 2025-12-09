@@ -11,7 +11,7 @@ export interface MovementRecord {
   productId: string
   productCode: string
   productName: string
-  transactionType: 'IN' | 'OUT' | 'ADJUSTMENT'
+  transactionType: 'IN' | 'OUT'
   reason: string
   lotNumber?: string
   quantityBefore: number
@@ -29,11 +29,9 @@ export interface MovementHistoryData {
   summary: {
     totalIn: number
     totalOut: number
-    totalAdjustment: number
     netChange: number
     totalValueIn: number
     totalValueOut: number
-    totalValueAdjustment: number
     netValueChange: number
     transactionCount: number
   }
@@ -65,11 +63,10 @@ export const generateMockMovementHistory = (params: BalanceReportParams): Moveme
     'SR': 'Store Requisition'
   }
   
-  // Transaction reasons
+  // Transaction reasons - only IN and OUT types
   const reasons = {
-    'IN': ['Purchase Receipt', 'Return from Customer', 'Transfer In', 'Adjustment In'],
-    'OUT': ['Sales Issue', 'Transfer Out', 'Consumption', 'Wastage'],
-    'ADJUSTMENT': ['Physical Count', 'Expiry', 'Damage', 'Quality Control']
+    'IN': ['Purchase Receipt', 'Return from Customer', 'Transfer In', 'Adjustment In', 'Physical Count Increase'],
+    'OUT': ['Sales Issue', 'Transfer Out', 'Consumption', 'Wastage', 'Physical Count Decrease', 'Expiry', 'Damage']
   }
   
   // Users
@@ -96,31 +93,25 @@ export const generateMockMovementHistory = (params: BalanceReportParams): Moveme
     { id: 'loc3', name: 'Main Kitchen' }
   ]
   
-  // Generate 50 random movement records
+  // Generate 50 random movement records - only IN and OUT transaction types
   for (let i = 0; i < 50; i++) {
     const { dateString, timeString } = getRandomRecentDate()
-    const transactionType = ['IN', 'OUT', 'ADJUSTMENT'][Math.floor(Math.random() * 3)] as 'IN' | 'OUT' | 'ADJUSTMENT'
+    const transactionType = ['IN', 'OUT'][Math.floor(Math.random() * 2)] as 'IN' | 'OUT'
     const referenceType = Object.keys(referenceTypes)[Math.floor(Math.random() * Object.keys(referenceTypes).length)] as 'GRN' | 'SO' | 'ADJ' | 'TRF' | 'PO' | 'WO' | 'SR'
     const product = products[Math.floor(Math.random() * products.length)]
     const location = locations[Math.floor(Math.random() * locations.length)]
     const reason = reasons[transactionType][Math.floor(Math.random() * reasons[transactionType].length)]
     const user = users[Math.floor(Math.random() * users.length)]
-    
+
     // Generate quantities and values
     const quantityBefore = Math.floor(Math.random() * 1000)
     let quantityChange = 0
-    
+
     if (transactionType === 'IN') {
       quantityChange = Math.floor(Math.random() * 100) + 1
-    } else if (transactionType === 'OUT') {
-      quantityChange = -Math.floor(Math.random() * Math.min(100, quantityBefore)) - 1
     } else {
-      // Adjustment can be positive or negative
-      quantityChange = Math.floor(Math.random() * 50) - 25
-      // Ensure we don't go negative
-      if (quantityBefore + quantityChange < 0) {
-        quantityChange = -quantityBefore
-      }
+      // OUT transaction
+      quantityChange = -Math.floor(Math.random() * Math.min(100, quantityBefore)) - 1
     }
     
     const quantityAfter = quantityBefore + quantityChange
@@ -161,37 +152,28 @@ export const generateMockMovementHistory = (params: BalanceReportParams): Moveme
     return dateB.getTime() - dateA.getTime()
   })
   
-  // Calculate summary
+  // Calculate summary - only IN and OUT transaction types
   const summary = records.reduce((acc, record) => {
     if (record.transactionType === 'IN') {
       acc.totalIn += record.quantityChange
       acc.totalValueIn += record.valueChange
-    } else if (record.transactionType === 'OUT') {
+    } else {
+      // OUT transaction
       acc.totalOut += Math.abs(record.quantityChange)
       acc.totalValueOut += Math.abs(record.valueChange)
-    } else {
-      if (record.quantityChange > 0) {
-        acc.totalAdjustment += record.quantityChange
-        acc.totalValueAdjustment += record.valueChange
-      } else {
-        acc.totalAdjustment += record.quantityChange
-        acc.totalValueAdjustment += record.valueChange
-      }
     }
-    
+
     acc.netChange += record.quantityChange
     acc.netValueChange += record.valueChange
     acc.transactionCount++
-    
+
     return acc
   }, {
     totalIn: 0,
     totalOut: 0,
-    totalAdjustment: 0,
     netChange: 0,
     totalValueIn: 0,
     totalValueOut: 0,
-    totalValueAdjustment: 0,
     netValueChange: 0,
     transactionCount: 0
   })

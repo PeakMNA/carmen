@@ -236,6 +236,9 @@ export type {
 // Location management types
 export * from './location-management'
 
+// Period end types
+export * from './period-end'
+
 // Type utilities and guards
 export * from './guards'
 export * from './converters'

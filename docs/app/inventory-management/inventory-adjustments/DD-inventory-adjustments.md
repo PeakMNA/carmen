@@ -1,12 +1,16 @@
 # DS-INV-ADJ: Inventory Adjustments Data Definition
 
-**Document Version**: 2.0 (Aligned with Shared Methods)
-**Last Updated**: 2025-01-10
+**Document Version**: 2.1 (Type-Specific Reasons)
+**Last Updated**: 2025-12-09
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.1.0 | 2025-12-09 | Documentation Team | Updated enum_adjustment_reason to type-specific (IN/OUT), added costing rules |
+| 2.0.0 | 2025-11-19 | Documentation Team | Aligned with Shared Methods |
+| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+
 **Module**: Inventory Management
 **Sub-Module**: Inventory Adjustments
 
@@ -17,8 +21,6 @@
 This document provides comprehensive data schema documentation for the Inventory Adjustments module. It shows how inventory adjustments integrate with the **shared inventory transaction system** (`tb_inventory_transaction_closing_balance`) using the `parent_lot_no` pattern to create ADJUSTMENT-type transactions that reference parent LOT transactions.
 
 **IMPORTANT**: Inventory adjustments do NOT use standalone tables. They use the **shared costing methods infrastructure** defined in the Shared Methods documentation.
-
-| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
 
 **Related Documents**:
 - [BR-INV-ADJ: Business Requirements](./BR-inventory-adjustments.md)
@@ -834,25 +836,41 @@ DRAFT → POSTED → VOIDED
 
 ### enum_adjustment_reason
 
-**Purpose**: Business reason for inventory adjustment
+**Purpose**: Business reason for inventory adjustment. **Type-specific** - different reasons available for Stock IN vs Stock OUT.
 
 **Values**:
 ```sql
-CREATE TYPE enum_adjustment_reason AS ENUM (
-  'physical_count_variance',      -- Cycle count discrepancy
-  'damaged_goods',                -- Items damaged/unsellable
-  'spoilage',                     -- Expired/spoiled items
-  'waste',                        -- Production/preparation waste
-  'sample',                       -- Samples given to customers
-  'promotion',                    -- Promotional items
-  'conversion',                   -- Unit of measure conversion
-  'inter_department_transfer'     -- Between departments at same location
+-- Stock OUT reasons (for decreasing inventory)
+CREATE TYPE enum_adjustment_reason_out AS ENUM (
+  'damaged',              -- Damaged Goods: Items damaged during storage/handling
+  'expired',              -- Expired Items: Items past expiration date
+  'theft_loss',           -- Theft / Loss: Missing items, theft, unknown loss
+  'spoilage',             -- Spoilage: Perishable items spoiled before expiration
+  'count_variance',       -- Physical Count Variance: Discrepancy during count (decrease)
+  'quality_rejection',    -- Quality Control Rejection: Items failed QC inspection
+  'other'                 -- Other: Requires free-text description
+);
+
+-- Stock IN reasons (for increasing inventory)
+CREATE TYPE enum_adjustment_reason_in AS ENUM (
+  'count_variance',       -- Physical Count Variance: Discrepancy during count (increase)
+  'found_items',          -- Found Items: Previously missing items located
+  'return_to_stock',      -- Return to Stock: Items returned from production/service
+  'system_correction',    -- System Correction: Data entry error corrections
+  'other'                 -- Other: Requires free-text description
 );
 ```
 
 **Usage**:
-- Stored in `tb_inventory_transaction_detail.info` JSON field as `{"reason": "damaged_goods"}`
-- Determines GL account mapping for journal generation
+- Stored in `tb_inventory_transaction_detail.info` JSON field as `{"reason": "damaged"}`
+- Reason dropdown dynamically filters based on selected adjustment type (IN/OUT)
+- Determines GL account mapping for journal generation:
+  - All Stock IN → Debit 1310 Raw Materials Inventory, Credit 5110 Inventory Variance
+  - All Stock OUT → Debit 5110 Inventory Variance, Credit 1310 Raw Materials Inventory
+
+**Costing Rules by Type**:
+- Stock OUT: Unit cost = product's average cost (automatically populated, read-only)
+- Stock IN: Unit cost must be manually entered (required, affects inventory valuation)
 
 ---
 

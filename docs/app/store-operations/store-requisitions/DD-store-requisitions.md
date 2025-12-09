@@ -14,6 +14,7 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-01-12 | Documentation Team | Initial version from data-struc/schema.prisma |
 | 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
+| 1.2.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 
 
 ---
@@ -30,11 +31,14 @@ This document defines the database schema for the Store Requisitions module, whi
 - **Focus on**: WHAT data is stored, WHY it exists, HOW it relates - all in descriptive text
 
 **Related Documents**:
-- [Business Requirements](./BR-store-requisitions.md) - Business rules and requirements
+- [Business Requirements](./BR-store-requisitions.md) - Business rules, requirements, and backend specifications
 - [Technical Specification](./TS-store-requisitions.md) - System architecture and components
 - [Use Cases](./UC-store-requisitions.md) - User workflows and scenarios
-- [Flow Diagrams](./FD-store-requisitions.md) - Visual workflow diagrams (to be created)
-- [Validations](./VAL-store-requisitions.md) - Validation rules and schemas (to be created)
+- [Flow Diagrams](./FD-store-requisitions.md) - Visual workflow diagrams
+- [Validations](./VAL-store-requisitions.md) - Validation rules and Zod schemas
+- [Backend Requirements](./BR-store-requisitions.md#10-backend-requirements) - API endpoints and database schema (Section 10 of BR)
+- [Inventory Operations Shared Method](../../shared-methods/inventory-operations/SM-inventory-operations.md) - Inventory transaction patterns
+- [Costing Methods Shared Method](../../shared-methods/inventory-valuation/SM-costing-methods.md) - FIFO/AVG costing integration
 
 **Schema Source**: This schema is extracted from `/docs/app/data-struc/schema.prisma` lines 1688-1787 (authoritative source).
 

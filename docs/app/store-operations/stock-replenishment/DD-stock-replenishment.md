@@ -3,15 +3,40 @@
 **Module**: Store Operations
 **Sub-Module**: Stock Replenishment
 **Document Type**: Data Schema (DS)
-**Version**: 1.0.0
-**Last Updated**: 2025-11-15
-**Status**: Proposed
+**Version**: 1.2.0
+**Last Updated**: 2025-12-09
+**Status**: Partially Implemented
+**Implementation Status**: FRONTEND IMPLEMENTED (Mock data exists, database tables pending)
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented mock data structures |
+| 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status, clarified proposed state |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+
+---
+
+**✅ IMPLEMENTATION NOTE**: The Stock Replenishment module has been implemented with:
+
+**Implemented (Mock Data)**:
+- ✅ Mock data structures in `lib/mock-data/stock-replenishment.ts`
+- ✅ Status values: `pending`, `approved`, `in_transit`, `completed`, `rejected`, `cancelled`
+- ✅ Priority values: `standard`, `high`, `urgent`
+- ✅ Critical alerts data
+- ✅ Par level configurations
+- ✅ Stock level data by location
+- ✅ Replenishment requests with status tracking
+- ✅ Transfer history data
+
+**Pending (Database)**:
+- ❌ Database tables not yet created
+- ❌ Prisma migrations pending
+- ❌ Server actions pending
+
+See BR-stock-replenishment.md Section 1.4 for full implementation status.
+
 ---
 
 ## 1. Overview
@@ -809,8 +834,9 @@ All tables include:
 - **Author**: Documentation Team
 - **Reviewed By**: Database Architect, Technical Lead
 - **Approved By**: Chief Technology Officer
-- **Next Review**: 2025-12-12
+- **Next Review**: 2026-01-09
 - **Version History**:
+  - v1.2.0 (2025-12-09): Updated to reflect implemented mock data structures
   - v1.0.0 (2025-11-12): Initial proposed schema documentation
 
 ---

@@ -4,15 +4,16 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Period End
 - **Route**: `/inventory-management/period-end`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-11
+- **Version**: 1.1.0
+- **Last Updated**: 2025-12-09
 - **Owner**: Inventory Management Team / Finance Team
-- **Status**: Draft
+- **Status**: Active
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-01-11 | System | Initial version based on UI prototype and SM-period-end-snapshots.md |
+| 1.1.0 | 2025-12-09 | Development Team | Updated to match actual implementation: corrected status values (open, closing, closed, reopened), expanded validation checklist to 11 items, added period summary metrics |
 
 
 ## Overview
@@ -56,15 +57,21 @@ The system must support monthly accounting period management with clear status t
 - **Period Name**: Display name (e.g., "January 2024")
 - **Start Date**: First day of month (00:00:00)
 - **End Date**: Last day of month (23:59:59)
-- **Status Values**: Open, In Progress, Closed
+- **Status Values**: `open`, `closing`, `closed`, `reopened`
 - **Calendar Alignment**: Periods always align with calendar months
 
 **Status Lifecycle**:
 ```
-Open → In Progress → Closed
-  ↑                      ↓
-  └──────── Re-open ─────┘
+Open → Closing → Closed
+  ↑                  ↓
+  └───── Reopened ───┘
 ```
+
+**Status Badge Colors** (as implemented):
+- `open`: Green (bg-green-100, text-green-800)
+- `closing`: Yellow (bg-yellow-100, text-yellow-800)
+- `closed`: Gray (bg-gray-100, text-gray-800)
+- `reopened`: Blue (bg-blue-100, text-blue-800)
 
 **Acceptance Criteria**:
 - System displays period list showing all periods with ID, name, dates, status, completion info, notes
@@ -86,9 +93,18 @@ The system must provide a detailed view of individual periods with comprehensive
 **Period Information Display**:
 - Period ID, Period Name
 - Start Date, End Date (formatted for user locale)
-- Current Status with color-coded badge (Blue=Open, Yellow=In Progress, Green=Closed)
+- Current Status with color-coded badge (Green=Open, Yellow=Closing, Gray=Closed, Blue=Reopened)
 - Completed By (user name), Completed At (date/time) - for Closed status
 - Notes (free-text field for period-specific comments)
+
+**Period Summary Metrics** (as implemented):
+- Opening Value (currency formatted)
+- Closing Value (currency formatted)
+- Adjustments Value (currency formatted)
+- Movements IN count
+- Movements OUT count
+- Variance Amount (currency formatted)
+- Variance Percentage
 
 **Task Checklist Display**:
 - List of required tasks with completion status
@@ -119,11 +135,18 @@ The system must provide a detailed view of individual periods with comprehensive
 
 The system must enforce a structured workflow for closing periods, ensuring all prerequisite tasks are completed before allowing closure.
 
-**Pre-Close Validation Checklist**:
-1. **Complete Physical Count**: Verify all scheduled physical counts for the period are committed
-2. **Reconcile Inventory Adjustments**: Verify all adjustments are reviewed and approved
-3. **Review Variances**: Verify variance analysis is complete and documented
-4. **Post Period End Entries**: Verify all financial postings are complete (future enhancement - GL integration)
+**Pre-Close Validation Checklist** (11 items as implemented):
+1. **All inventory counts completed**: Verify all scheduled physical counts and spot checks are finalized
+2. **Stock movements recorded**: Verify all stock movements (receipts, issues, transfers) are posted
+3. **Adjustments posted**: Verify all inventory adjustments are approved and posted
+4. **Returns processed**: Verify all return transactions are processed
+5. **Costing calculations finalized**: Verify weighted average cost calculations are complete
+6. **GL entries reconciled**: Verify inventory GL entries match sub-ledger totals
+7. **Department allocations completed**: Verify inter-department transfers and allocations are posted
+8. **Variance analysis completed**: Verify variance reports reviewed and documented
+9. **Audit trail verified**: Verify all transactions have proper audit documentation
+10. **Reports generated**: Verify period-end reports (stock status, valuation) are generated
+11. **Management approval obtained**: Verify management sign-off on period closure
 
 **Workflow Steps**:
 1. User clicks "Complete Period End" button
@@ -136,8 +159,8 @@ The system must enforce a structured workflow for closing periods, ensuring all 
 8. System displays success message and refreshes period detail view
 
 **Acceptance Criteria**:
-- "Complete Period End" button only enabled when status is "In Progress"
-- System prevents closure if any checklist task is incomplete
+- "Complete Period End" button only enabled when status is "closing"
+- System prevents closure if any of the 11 checklist tasks is incomplete
 - Confirmation dialog clearly lists all period statistics (total adjustments, final balance - future)
 - Closure action is atomic (all succeed or all fail)
 - User receives clear feedback on closure success or failure reason
@@ -154,28 +177,34 @@ The system must control period status transitions with proper authorization and 
 
 **Status Transition Rules**:
 
-**Open → In Progress**:
-- Trigger: First checklist task is started or user explicitly moves to "In Progress"
+**Open → Closing**:
+- Trigger: User initiates period close process
 - Authorization: Inventory Coordinator or higher
-- Validation: No other period is currently "In Progress"
-- Effect: Period becomes active for closing activities
+- Validation: No other period is currently "closing"
+- Effect: Period becomes active for closing activities, checklist validation begins
 
-**In Progress → Closed**:
-- Trigger: User clicks "Complete Period End" button after all tasks completed
+**Closing → Closed**:
+- Trigger: User clicks "Complete Period End" button after all 11 checklist tasks completed
 - Authorization: Inventory Manager or Financial Manager
-- Validation: All checklist tasks completed, all transactions posted
+- Validation: All 11 checklist tasks completed, all transactions posted
 - Effect: Period locked, transactions can no longer post to this period
 
-**Closed → Open (Re-open)**:
+**Closed → Reopened**:
 - Trigger: Authorized user explicitly re-opens period
 - Authorization: Financial Manager or System Administrator ONLY
 - Validation:
   - Must be most recent closed period (cannot re-open historical periods)
   - Reason required (minimum 100 characters) explaining why re-open is necessary
-- Effect: Period unlocked, transactions can be posted again, status returns to "Open"
+- Effect: Period status changes to "reopened", allows additional corrections
 
-**Open → Closed (Skip In Progress)**:
-- NOT ALLOWED - Must go through "In Progress" to ensure proper workflow
+**Reopened → Closed**:
+- Trigger: User completes corrections and re-closes period
+- Authorization: Inventory Manager or Financial Manager
+- Validation: All validation items verified
+- Effect: Period re-locked
+
+**Open → Closed (Skip Closing)**:
+- NOT ALLOWED - Must go through "closing" status to ensure proper workflow
 
 **Acceptance Criteria**:
 - System enforces status transition rules at API level (not just UI)
@@ -382,11 +411,11 @@ The system should provide a dashboard view showing period health and completion 
 
 ### Period Status Rules
 
-- **BR-PE-001**: New periods default to "Open" status upon creation
-- **BR-PE-002**: Periods transition from "Open" to "In Progress" when first checklist task is started or user explicitly changes status
-- **BR-PE-003**: Periods transition from "In Progress" to "Closed" only when all checklist tasks are completed and authorized user approves closure
-- **BR-PE-004**: Only one period can be in "In Progress" status at any given time across the entire system
-- **BR-PE-005**: Closed periods are immutable (cannot be edited) except for authorized re-opens
+- **BR-PE-001**: New periods default to "open" status upon creation
+- **BR-PE-002**: Periods transition from "open" to "closing" when user initiates period close process
+- **BR-PE-003**: Periods transition from "closing" to "closed" only when all 11 checklist tasks are completed and authorized user approves closure
+- **BR-PE-004**: Only one period can be in "closing" status at any given time across the entire system
+- **BR-PE-005**: Closed periods are immutable (cannot be edited) except for authorized re-opens (status changes to "reopened")
 
 ### Period Closure Rules
 
@@ -399,7 +428,18 @@ The system should provide a dashboard view showing period health and completion 
 
 ### Period Checklist Rules
 
-- **BR-PE-012**: Default checklist includes 4 standard tasks: Complete Physical Count, Reconcile Inventory Adjustments, Review Variances, Post Period End Entries
+- **BR-PE-012**: Default checklist includes 11 validation items (as implemented):
+  1. All inventory counts completed
+  2. Stock movements recorded
+  3. Adjustments posted
+  4. Returns processed
+  5. Costing calculations finalized
+  6. GL entries reconciled
+  7. Department allocations completed
+  8. Variance analysis completed
+  9. Audit trail verified
+  10. Reports generated
+  11. Management approval obtained
 - **BR-PE-013**: Custom tasks can be added to checklist by Inventory Manager (future enhancement)
 - **BR-PE-014**: Tasks can be marked complete by Inventory Coordinator or higher roles
 - **BR-PE-015**: Tasks cannot be unmarked once completed (audit trail integrity)
@@ -415,8 +455,8 @@ The system should provide a dashboard view showing period health and completion 
 
 ### Transaction Posting Rules
 
-- **BR-PE-022**: Inventory transactions can only post to periods with status "Open" or "In Progress"
-- **BR-PE-023**: Transactions cannot be posted to "Closed" periods (enforced at transaction validation layer)
+- **BR-PE-022**: Inventory transactions can only post to periods with status "open", "closing", or "reopened"
+- **BR-PE-023**: Transactions cannot be posted to "closed" periods (enforced at transaction validation layer)
 - **BR-PE-024**: Transactions posted to period must have transaction date within period date range
 - **BR-PE-025**: Backdating transactions to closed periods is NOT allowed (even with administrator override)
 
@@ -450,7 +490,7 @@ interface PeriodEnd {
   endDate: Date;                  // Last day of month (23:59:59)
 
   // Period status
-  status: 'open' | 'in_progress' | 'closed' | 'void';
+  status: 'open' | 'closing' | 'closed' | 'reopened';
   completedBy?: string;           // User ID who closed period
   completedAt?: Date;             // When period was closed
   notes?: string;                 // Period-specific notes/comments (max 1000 chars)
@@ -607,8 +647,8 @@ interface PeriodActivity {
 
 ### Usability
 
-- **NFR-PE-013**: Period status must be clearly indicated with color-coded badges (Blue=Open, Yellow=In Progress, Green=Closed, Gray=Void)
-- **NFR-PE-014**: Task checklist progress must be visually apparent (e.g., "2 of 4 tasks completed")
+- **NFR-PE-013**: Period status must be clearly indicated with color-coded badges (Green=Open, Yellow=Closing, Gray=Closed, Blue=Reopened)
+- **NFR-PE-014**: Task checklist progress must be visually apparent (e.g., "5 of 11 tasks completed")
 - **NFR-PE-015**: Confirmation dialogs for critical operations (Close, Reopen, Cancel) must clearly explain implications
 - **NFR-PE-016**: Period list must support sorting by any column (date, status, period name)
 

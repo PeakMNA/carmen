@@ -4,14 +4,16 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Inventory Adjustments
 - **Document Type**: Flow Diagrams (FD)
-- **Version**: 2.0.0
-- **Last Updated**: 2025-01-10
+- **Version**: 2.1.0
+- **Last Updated**: 2025-12-09
 - **Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.1.0 | 2025-12-09 | Documentation Team | Updated GL account mapping to use 1310/5110, type-specific reasons, costing rules |
+| 2.0.0 | 2025-01-10 | Documentation Team | Aligned with shared methods infrastructure |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 **IMPORTANT**: Inventory adjustments use the **shared costing methods infrastructure** for all stock transactions and lot tracking. This document references the shared transaction system defined in the Shared Methods documentation.
@@ -75,7 +77,7 @@ flowchart TD
 
     UserAction -->|Type search| SearchInput["User types in search bar:<br/><br/>Debounce 300ms:<br/>setSearchQuery(input.value)"]
 
-    UserAction -->|Click filter| OpenFilter["User clicks filter button:<br/><br/>Show filter popover with:<br/>- Status: Draft, Posted, Voided<br/>- Type: IN, OUT<br/>- Location: All accessible<br/>- Reason: 8 predefined"]
+    UserAction -->|Click filter| OpenFilter["User clicks filter button:<br/><br/>Show filter popover with:<br/>- Status: Draft, Posted, Voided<br/>- Type: IN, OUT<br/>- Location: All accessible<br/>- Reason: Type-specific (see below)"]
 
     UserAction -->|Click sort| ClickColumn["User clicks column header:<br/><br/>Toggle sort direction:<br/>IF currentField = clickedField:<br/>  order = order === 'asc'<br/>    ? 'desc' : 'asc'<br/>ELSE:<br/>  field = clickedField<br/>  order = 'asc'"]
 
@@ -459,17 +461,17 @@ flowchart TD
 
     LoopItems --> CheckType{Adjustment<br/>type?}
 
-    CheckType -->|IN| DetermineINAccounts["Determine GL accounts (IN):<br/><br/>debit_account = '1100'<br/>  (Inventory Asset)<br/><br/>CASE adjustment_reason:<br/>  'physical_count_variance' -><br/>    credit_account = '5100' (COGS)<br/>  'conversion' -><br/>    credit_account = '5300'<br/>      (Sample Expense)<br/>  DEFAULT -><br/>    credit_account = '5100' (COGS)"]
+    CheckType -->|IN| DetermineINAccounts["Determine GL accounts (IN):<br/><br/>// ALL Stock IN adjustments use<br/>// same GL accounts:<br/>debit_account = '1310'<br/>  (Raw Materials Inventory)<br/>credit_account = '5110'<br/>  (Inventory Variance)<br/><br/>// Valid IN reasons:<br/>- count_variance<br/>- found_items<br/>- return_to_stock<br/>- system_correction<br/>- other"]
 
-    CheckType -->|OUT| DetermineOUTAccounts["Determine GL accounts (OUT):<br/><br/>credit_account = '1100'<br/>  (Inventory Asset)<br/><br/>CASE adjustment_reason:<br/>  'damaged_goods',<br/>  'spoilage',<br/>  'waste' -><br/>    debit_account = '5200'<br/>      (Waste Expense)<br/>  'sample',<br/>  'promotion' -><br/>    debit_account = '5300'<br/>      (Sample Expense)<br/>  'physical_count_variance',<br/>  'inter_department_transfer' -><br/>    debit_account = '5100' (COGS)"]
+    CheckType -->|OUT| DetermineOUTAccounts["Determine GL accounts (OUT):<br/><br/>// ALL Stock OUT adjustments use<br/>// same GL accounts:<br/>debit_account = '5110'<br/>  (Inventory Variance)<br/>credit_account = '1310'<br/>  (Raw Materials Inventory)<br/><br/>// Valid OUT reasons:<br/>- damaged, expired, theft_loss<br/>- spoilage, count_variance<br/>- quality_rejection, other"]
 
-    DetermineINAccounts --> CreateDebitIN["Create debit entry (IN):<br/><br/>line_number++<br/><br/>INSERT INTO<br/>  tb_adjustment_journal_entry<br/>VALUES:<br/>  journal_header_id,<br/>  line_number,<br/>  account_code: '1100',<br/>  account_name: 'Inventory Asset',<br/>  debit: item.total_cost,<br/>  credit: 0,<br/>  department_id,<br/>  reference: adjustment_id"]
+    DetermineINAccounts --> CreateDebitIN["Create debit entry (IN):<br/><br/>line_number++<br/><br/>INSERT INTO<br/>  tb_adjustment_journal_entry<br/>VALUES:<br/>  journal_header_id,<br/>  line_number,<br/>  account_code: '1310',<br/>  account_name: 'Raw Materials Inventory',<br/>  debit: item.total_cost,<br/>  credit: 0,<br/>  department_id,<br/>  reference: adjustment_id<br/><br/>// Unit cost: User entered (required)"]
 
-    CreateDebitIN --> CreateCreditIN["Create credit entry (IN):<br/><br/>line_number++<br/><br/>INSERT entry with:<br/>  account_code: credit_account,<br/>  debit: 0,<br/>  credit: item.total_cost"]
+    CreateDebitIN --> CreateCreditIN["Create credit entry (IN):<br/><br/>line_number++<br/><br/>INSERT entry with:<br/>  account_code: '5110',<br/>  account_name: 'Inventory Variance',<br/>  debit: 0,<br/>  credit: item.total_cost"]
 
-    DetermineOUTAccounts --> CreateDebitOUT["Create debit entry (OUT):<br/><br/>line_number++<br/><br/>INSERT entry with:<br/>  account_code: debit_account,<br/>  debit: item.total_cost,<br/>  credit: 0"]
+    DetermineOUTAccounts --> CreateDebitOUT["Create debit entry (OUT):<br/><br/>line_number++<br/><br/>INSERT entry with:<br/>  account_code: '5110',<br/>  account_name: 'Inventory Variance',<br/>  debit: item.total_cost,<br/>  credit: 0<br/><br/>// Unit cost: Auto from avg cost"]
 
-    CreateDebitOUT --> CreateCreditOUT["Create credit entry (OUT):<br/><br/>line_number++<br/><br/>INSERT entry with:<br/>  account_code: '1100',<br/>  account_name: 'Inventory Asset',<br/>  debit: 0,<br/>  credit: item.total_cost"]
+    CreateDebitOUT --> CreateCreditOUT["Create credit entry (OUT):<br/><br/>line_number++<br/><br/>INSERT entry with:<br/>  account_code: '1310',<br/>  account_name: 'Raw Materials Inventory',<br/>  debit: 0,<br/>  credit: item.total_cost"]
 
     CreateCreditIN --> MoreItems{More items?}
     CreateCreditOUT --> MoreItems
@@ -506,13 +508,18 @@ flowchart TD
 
 **GL Account Mapping Summary**:
 
-| Adjustment Type | Reason | Debit Account | Credit Account |
-|----------------|--------|---------------|----------------|
-| IN | Physical Count Variance | 1100 Inventory | 5100 COGS |
-| IN | Conversion | 1100 Inventory | 5300 Sample |
-| OUT | Damaged/Spoilage/Waste | 5200 Waste | 1100 Inventory |
-| OUT | Sample/Promotion | 5300 Sample | 1100 Inventory |
-| OUT | Physical Count | 5100 COGS | 1100 Inventory |
+| Adjustment Type | Reasons | Debit Account | Credit Account | Unit Cost |
+|----------------|---------|---------------|----------------|-----------|
+| IN | count_variance, found_items, return_to_stock, system_correction, other | 1310 Raw Materials Inventory | 5110 Inventory Variance | User entered (required) |
+| OUT | damaged, expired, theft_loss, spoilage, count_variance, quality_rejection, other | 5110 Inventory Variance | 1310 Raw Materials Inventory | Auto (avg cost) |
+
+**Type-Specific Reasons**:
+- **Stock OUT (7 options)**: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
+- **Stock IN (5 options)**: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
+
+**Costing Rules**:
+- **Stock OUT**: Unit cost automatically uses product's average cost (no manual entry)
+- **Stock IN**: Unit cost must be manually entered (required, affects inventory valuation)
 
 **Validation Rules**:
 - Debits must equal credits (tolerance: $0.01)

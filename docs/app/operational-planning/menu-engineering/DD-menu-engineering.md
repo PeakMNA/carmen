@@ -3,14 +3,35 @@
 ## Document Information
 - **Document Type**: Data Schema Document
 - **Module**: Operational Planning > Menu Engineering
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 1.1.0
+- **Last Updated**: 2025-01-05
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1 | 2025-01-05 | System | Added implementation status section |
 | 1.0 | 2024-01-15 | System | Initial data schema document created |
+
+## ⚠️ Implementation Status
+
+**Current State**: DATA SCHEMA PROPOSED (~30% Implemented via TypeScript Types)
+
+This data definition document describes the complete database schema for the Menu Engineering module. **See [BR-menu-engineering.md](./BR-menu-engineering.md) Implementation Status section** for detailed breakdown of what EXISTS vs what's PROPOSED.
+
+**What EXISTS**:
+- ✅ TypeScript type definitions (`lib/types/menu-engineering.ts`) matching all proposed schemas
+- ✅ In-memory data structures for UI components
+- ✅ API response models with full type safety
+
+**What's PROPOSED** (NOT YET in PostgreSQL):
+- ❌ All 11 database tables defined in this document
+- ❌ Indexes, constraints, and relationships
+- ❌ Triggers and stored procedures
+- ❌ Data migration scripts
+- ❌ Seed data
+
+**NOTE**: The Menu Engineering module currently operates with TypeScript types and API-level data structures. Full PostgreSQL schema implementation is planned for Phase 2.
 
 ---
 

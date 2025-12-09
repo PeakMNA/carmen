@@ -5,7 +5,7 @@
 - **Sub-Module**: Purchase Request Templates
 - **Route**: `/procurement/purchase-request-templates`
 - **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Last Updated**: 2025-12-04
 - **Owner**: Procurement Team
 - **Status**: Draft
 
@@ -13,6 +13,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System Documentation | Initial version |
+| 1.1.0 | 2025-12-04 | Documentation Team | Aligned with prototype implementation - simplified item fields, removed fictional features |
 
 
 ## Overview
@@ -54,7 +55,7 @@ The system must allow authorized users to create new purchase request templates 
 
 **Acceptance Criteria**:
 - Users can initiate template creation from the templates list page
-- System generates unique template numbers with pattern TPL-YYYY-NNN
+- System generates unique template numbers with pattern TPL-YY-NNNN
 - Template creation form includes fields for: description/notes, department assignment, request type
 - Templates can be created in draft mode for iterative development
 - System automatically captures creation timestamp and creator user ID
@@ -129,7 +130,7 @@ The system must enable users to create new templates based on existing ones, cop
 
 **Acceptance Criteria**:
 - Clone action creates exact copy of template with all items
-- Cloned template receives new unique template number (TPL-YYYY-NNN)
+- Cloned template receives new unique template number (TPL-YY-NNNN)
 - System appends "(Copy)" or similar identifier to description for clarity
 - All item specifications are copied: codes, quantities, prices, budget codes
 - Cloned template is created in draft status regardless of source status
@@ -166,18 +167,18 @@ The system must allow designation of templates as "default" for specific departm
 The system must provide comprehensive item management capabilities within templates, including adding new items, editing existing items, deleting items, and maintaining proper item specifications and calculations.
 
 **Acceptance Criteria**:
-- Users can add unlimited items to templates via item form dialog
+- Users can add items to templates via item form dialog
 - Item form validates all required fields: item code, description, UOM, quantity, unit price, budget code, account code, department, tax code
-- System calculates amounts automatically: base amount, discount amount, net amount, tax amount, total amount
-- Formula: totalAmount = (quantity × unitPrice) - discountAmount + taxAmount
+- System calculates total amount automatically: totalAmount = quantity × unitPrice
 - Users can edit existing items by clicking table rows or dedicated edit button
 - Item deletion requires confirmation for each item
-- Items display in sortable, filterable table with all specifications visible
+- Items display in table with all specifications visible
 - System prevents duplicate item codes within same template
-- Multi-currency support: each item can specify currency and exchange rate
-- Tax treatment options: tax included in price or added separately
+- Currency field defaults to template currency (THB)
 
-**Related Requirements**: FR-TPL-001 (Create Template), BR-TPL-008 (Item Validation), BR-TPL-010 (Amount Calculations)
+> **Note**: Advanced item features (discount rates, tax calculations, multi-currency with exchange rates) planned for Phase 2.
+
+**Related Requirements**: FR-TPL-001 (Create Template), BR-TPL-008 (Item Validation), BR-TPL-021 (Amount Calculations)
 
 ---
 
@@ -189,15 +190,13 @@ The system must provide powerful filtering and search capabilities to help users
 **Acceptance Criteria**:
 - Filter by template number with partial match support
 - Filter by description/notes with keyword search
-- Filter by request type (standard, recurring, emergency, etc.)
-- Filter by status (draft, active, inactive, archived)
-- Filter by department (Kitchen, Housekeeping, Maintenance, etc.)
-- Filter by estimated total amount range (min/max)
+- Filter by request type (goods, services, capital)
+- Filter by status (draft, active, inactive)
+- Filter by department
 - Multiple filters can be combined (AND logic)
 - Filter state persists during user session
 - Clear filters button resets all filters to defaults
 - Filter results update in real-time as criteria change
-- Search highlights matching text in results
 
 **Related Requirements**: FR-TPL-009 (View Mode Switching), NFR-TPL-002 (Search Performance)
 
@@ -246,40 +245,36 @@ The system must support efficient bulk operations on multiple templates simultan
 ## Business Rules
 
 ### General Rules
-- **BR-TPL-001**: Template numbers must follow pattern TPL-YYYY-NNN where YYYY is year and NNN is sequential number (e.g., TPL-2024-001)
+- **BR-TPL-001**: Template numbers must follow pattern TPL-YY-NNNN where YY is 2-digit year and NNNN is 4-digit sequential number (e.g., TPL-24-0001)
 - **BR-TPL-002**: Templates must be assigned to exactly one department at creation and assignment cannot be changed after items are added
 - **BR-TPL-003**: Template descriptions/notes field is required with minimum 10 characters to ensure meaningful identification
-- **BR-TPL-004**: Templates can exist in states: Draft, Active, Inactive, Archived with specific state transition rules
+- **BR-TPL-004**: Templates can exist in states: Draft, Active, Inactive with specific state transition rules (no Archived status in current prototype)
 
 ### Data Validation Rules
 - **BR-TPL-008**: Item code is required, must be unique within template, minimum 3 characters, alphanumeric with hyphens allowed
 - **BR-TPL-009**: Item description is required, minimum 5 characters, maximum 500 characters
 - **BR-TPL-010**: UOM (Unit of Measure) is required and must be a valid value from the centralized Product Order Unit lookup table
-- **BR-TPL-011**: Quantity must be non-negative number (>= 0), maximum 999,999 units
-- **BR-TPL-012**: Unit price must be non-negative number, maximum 99,999,999.99 per currency
-- **BR-TPL-013**: Budget code is required, must be active and valid for selected department
-- **BR-TPL-014**: Account code is required, must be active and valid for transaction type
-- **BR-TPL-015**: Department selection is required and must match template's assigned department
-- **BR-TPL-016**: Tax code is required, must be from approved list: VAT7, VAT0, EXEMPT, VAT_REDUCED
-- **BR-TPL-017**: Currency must be from approved list: USD, EUR, GBP, THB with appropriate exchange rates
-- **BR-TPL-018**: Currency exchange rate must be positive number greater than 0 when using non-base currency
+- **BR-TPL-011**: Quantity must be positive number (> 0), reasonable maximum for operational needs
+- **BR-TPL-012**: Unit price must be non-negative number (>= 0)
+- **BR-TPL-013**: Budget code is required for financial tracking
+- **BR-TPL-014**: Account code is required for GL integration
+- **BR-TPL-015**: Department selection is required
+- **BR-TPL-016**: Tax code is required, must be from approved list: VAT7, VAT0, EXEMPT
+- **BR-TPL-017**: Currency must be valid currency code (default: THB)
 
 ### Workflow Rules
 - **BR-TPL-005**: Templates in Active status can be edited only by users with edit permission; Draft templates can be edited by creators
 - **BR-TPL-006**: Templates cannot be deleted if marked as default; must remove default status first
 - **BR-TPL-007**: Only one template per department can have default status at any time; setting new default removes previous
-- **BR-TPL-019**: Template status transitions: Draft → Active (manual), Active → Inactive (manual), Inactive → Archived (after 6 months), Archived → Active (requires approval)
+- **BR-TPL-019**: Template status transitions: Draft → Active (requires items), Active ↔ Inactive (manual)
 - **BR-TPL-020**: Templates must contain at least one item before status can be changed from Draft to Active
 
 ### Calculation Rules
-- **BR-TPL-010**: Base Amount = Quantity × Unit Price (rounded to 2 decimal places)
-- **BR-TPL-021**: Discount Amount = Base Amount × (Discount Rate / 100) (rounded to 2 decimal places)
-- **BR-TPL-022**: Net Amount = Base Amount - Discount Amount (rounded to 2 decimal places)
-- **BR-TPL-023**: Tax Amount = Net Amount × (Tax Rate / 100) (rounded to 2 decimal places)
-- **BR-TPL-024**: Total Amount = Net Amount + Tax Amount (rounded to 2 decimal places)
-- **BR-TPL-025**: When tax is included in price: Net Amount = Total Amount / (1 + Tax Rate/100), Tax Amount = Total Amount - Net Amount
-- **BR-TPL-026**: Estimated Template Total = SUM(all item total amounts) in base currency
-- **BR-TPL-027**: Multi-currency conversion: Item Total in Base Currency = Item Total Amount × Currency Exchange Rate
+- **BR-TPL-021**: Total Amount = Quantity × Unit Price (rounded to 2 decimal places)
+- **BR-TPL-022**: Estimated Template Total = SUM(all item total amounts)
+- **BR-TPL-023**: Template total automatically recalculated when items are added, edited, or deleted
+
+> **Note**: Advanced calculations (discount rates, tax rates, tax-inclusive pricing, multi-currency conversion) are planned for Phase 2 implementation.
 
 ### Security Rules
 - **BR-TPL-028**: Template creation requires "Create Purchase Request Template" permission
@@ -308,43 +303,44 @@ interface PurchaseRequestTemplate {
   id: string;                           // Unique identifier (UUID)
 
   // Core identification
-  templateNumber: string;               // Unique template number (TPL-YYYY-NNN format)
+  templateNumber: string;               // Unique template number (TPL-YY-NNNN format)
   description: string;                  // Template description/notes (10-500 chars)
 
   // Categorization
   departmentId: string;                 // Department assignment (Kitchen, Housekeeping, etc.)
   department?: Department;              // Navigation property to Department entity
-  requestType: 'standard' | 'recurring' | 'emergency' | 'seasonal'; // Template classification
+  requestType: 'goods' | 'services' | 'capital'; // Template classification
 
   // Status management
-  status: 'draft' | 'active' | 'inactive' | 'archived'; // Template lifecycle status
+  status: 'draft' | 'active' | 'inactive'; // Template lifecycle status
   isDefault: boolean;                   // Default template flag for department
 
   // Financial summary (calculated fields)
   estimatedTotal: number;               // Sum of all item totals (2 decimals)
-  currency: string;                     // Base currency code (USD, EUR, GBP, THB)
+  currency: string;                     // Base currency code (default: THB)
 
   // Template items
   items: TemplateItem[];                // Collection of line items in template
 
-  // Metadata
-  version: number;                      // Optimistic locking version number
+  // Usage tracking
   usageCount: number;                   // Number of times template has been used
-  lastUsedDate: Date | null;            // Last time template was converted to PR
+  lastUsedAt: Date | null;              // Last time template was converted to PR
 
   // Audit fields
-  createdDate: Date;                    // Template creation timestamp
+  createdAt: Date;                      // Template creation timestamp
   createdBy: string;                    // Creator user ID
   createdByName?: string;               // Creator display name
-  updatedDate: Date;                    // Last modification timestamp
+  updatedAt: Date;                      // Last modification timestamp
   updatedBy: string;                    // Last modifier user ID
   updatedByName?: string;               // Last modifier display name
+  deletedAt?: Date;                     // Soft delete timestamp
+  deletedBy?: string;                   // User who deleted
 }
 ```
 
 ### TemplateItem Entity
 
-**Purpose**: Represents individual line items within a purchase request template, capturing complete product specifications, quantities, pricing, and financial allocations for standardized procurement.
+**Purpose**: Represents individual line items within a purchase request template, capturing product specifications, quantities, pricing, and financial allocations.
 
 **Conceptual Structure**:
 
@@ -360,42 +356,31 @@ interface TemplateItem {
 
   // Quantity and measurement
   uom: string;                          // Unit of Measure (KG, EA, BTL, CTN, etc.)
-  quantity: number;                     // Ordered quantity (> 0, max 999,999)
+  quantity: number;                     // Ordered quantity (> 0)
 
   // Pricing
-  unitPrice: number;                    // Price per unit (2 decimals, 0-99,999,999.99)
-  currency: string;                     // Item currency (USD, EUR, GBP, THB)
-  currencyRate: number;                 // Exchange rate to base currency (> 0)
-
-  // Discounts and adjustments
-  discountRate: number;                 // Discount percentage (0-100)
-  taxRate: number;                      // Tax percentage (0-100)
-  taxIncluded: boolean;                 // Whether tax is included in unit price
-
-  // Calculated amounts (all 2 decimals)
-  baseAmount: number;                   // quantity × unitPrice
-  discountAmount: number;               // baseAmount × (discountRate / 100)
-  netAmount: number;                    // baseAmount - discountAmount
-  taxAmount: number;                    // netAmount × (taxRate / 100)
-  totalAmount: number;                  // netAmount + taxAmount
+  unitPrice: number;                    // Price per unit (2 decimals, >= 0)
+  currency: string;                     // Item currency (default: THB)
+  totalAmount: number;                  // quantity × unitPrice (calculated)
 
   // Financial coding
   budgetCode: string;                   // Budget allocation code (required)
   accountCode: string;                  // General ledger account code (required)
-  department: string;                   // Department code (Kitchen, Housekeeping, etc.)
-  taxCode: string;                      // Tax treatment code (VAT7, VAT0, EXEMPT, etc.)
+  department: string;                   // Department code
+  taxCode: string;                      // Tax treatment code (VAT7, VAT0, EXEMPT)
 
   // Metadata
   lineNumber: number;                   // Display order within template (1-based)
-  notes: string | null;                 // Optional item-specific notes
 
   // Audit fields
-  createdDate: Date;                    // Item creation timestamp
+  createdAt: Date;                      // Item creation timestamp
   createdBy: string;                    // Creator user ID
-  updatedDate: Date;                    // Last modification timestamp
+  updatedAt: Date;                      // Last modification timestamp
   updatedBy: string;                    // Last modifier user ID
 }
 ```
+
+> **Note**: Advanced pricing fields (discountRate, taxRate, taxIncluded, currencyRate, calculated amounts like baseAmount, discountAmount, netAmount, taxAmount) are planned for Phase 2.
 
 ### Department Data Definition (Reference)
 
@@ -607,7 +592,7 @@ interface Department {
 
 ### Glossary
 - **Template**: Reusable blueprint for creating purchase requests with predefined items and specifications
-- **Template Number**: Unique identifier for templates following TPL-YYYY-NNN pattern
+- **Template Number**: Unique identifier for templates following TPL-YY-NNNN pattern
 - **UOM (Unit of Measure)**: Standard unit for measuring item quantities, sourced from centralized Product Order Unit lookup
 - **Budget Code**: Financial coding for budget allocation and tracking
 - **Account Code**: General ledger account code for financial categorization
@@ -619,9 +604,10 @@ interface Department {
 - **Bulk Operation**: Action performed on multiple templates simultaneously
 
 ### References
+- [Backend Requirements](./BE-purchase-request-templates.md)
 - [Technical Specification](./TS-purchase-request-templates.md)
+- [Data Definition](./DD-purchase-request-templates.md)
 - [Use Cases](./UC-purchase-request-templates.md)
-- [Data Schema](./DS-purchase-request-templates.md)
 - [Flow Diagrams](./FD-purchase-request-templates.md)
 - [Validation Rules](./VAL-purchase-request-templates.md)
 - [Purchase Requests Business Requirements](../purchase-requests/BR-purchase-requests.md)

@@ -63,7 +63,7 @@ export interface MovementRecord {
   referenceType: string
   locationId: string
   locationName: string
-  transactionType: "IN" | "OUT" | "ADJUSTMENT"
+  transactionType: "IN" | "OUT"
   reason: string
   lotNumber?: string
   quantityBefore: number
@@ -79,7 +79,7 @@ export interface MovementRecord {
 export interface ValuationRecord {
   date: string
   reference: string
-  transactionType: "IN" | "OUT" | "ADJUSTMENT"
+  transactionType: "IN" | "OUT"
   quantity: number
   unitCost: number
   value: number

@@ -336,31 +336,43 @@ The Inventory Adjustments module provides:
 
 ### Reason Code Management
 
-#### FR-INV-ADJ-012: Predefined Adjustment Reasons
+#### FR-INV-ADJ-012: Type-Specific Adjustment Reasons
 **Priority**: High
-**User Story**: As a Storekeeper, I want to select from predefined adjustment reasons so that adjustments are categorized consistently for reporting.
+**User Story**: As a Storekeeper, I want to select from predefined adjustment reasons based on the adjustment type so that adjustments are categorized consistently for reporting.
 
 **Requirements**:
-- Reason dropdown with predefined values:
-  - Physical Count Variance
-  - Damaged Goods
-  - Expired Items
-  - Quality Control Rejection
-  - Theft/Loss
-  - System Reconciliation
-  - Spot Check Variance
-  - Production Yield Variance
+- Reason dropdown with type-specific predefined values:
+
+  **Stock IN Reasons**:
+  - Physical Count Variance - Count revealed more inventory than system
+  - Found Items - Previously unaccounted inventory discovered
+  - Return to Stock - Items returned to inventory
+  - System Correction - Correcting system errors
+  - Other - Free-text reason required
+
+  **Stock OUT Reasons**:
+  - Damaged Goods - Items physically damaged and unusable
+  - Expired Items - Items past expiration date
+  - Theft/Loss - Missing items from theft or unexplained loss
+  - Spoilage - Perishable items spoiled
+  - Physical Count Variance - Count revealed less inventory than system
+  - Quality Control Rejection - Items failing quality standards
+  - Other - Free-text reason required
+
 - Allow free-text description for additional details
 - Reason required for all adjustments
+- Reason options change dynamically based on selected type
 - Reason displayed in list and detail views
 
 **Acceptance Criteria**:
-- ✅ All predefined reasons available in dropdown
+- ✅ IN-specific reasons available when type is IN
+- ✅ OUT-specific reasons available when type is OUT
+- ✅ Reason dropdown updates when type changes
 - ✅ Reason selection required
-- ✅ Description field optional
-- ✅ Reason displayed consistently
+- ✅ Description field optional (required for "Other")
+- ✅ Reason displayed consistently in list and detail
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/components/inventory-adjustment-list.tsx:35, 45, 55, 65, 75, 85, 95, 105` (reason values in mock data)
+**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/new/page.tsx:52-77` (adjustmentReasons object with IN/OUT specific values)
 
 ---
 

@@ -13,6 +13,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System Documentation | Initial version |
+| 1.1.0 | 2025-12-04 | Documentation Team | Aligned with prototype - simplified item validations, updated status/type values |
 
 ---
 
@@ -22,22 +23,24 @@ This document defines all validation rules for the Purchase Request Templates mo
 
 **Related Documents**:
 - [Business Requirements](./BR-purchase-request-templates.md) - Business rules reference
+- [Backend Requirements](./BE-purchase-request-templates.md) - API and server action specifications
 - [Technical Specification](./TS-purchase-request-templates.md) - Implementation details
+- [Data Definition](./DD-purchase-request-templates.md) - Database schema
 
 ---
 
 ## Template-Level Validation Rules
 
 ### VR-TPL-001: Template Number Format
-**Rule**: Template number must follow pattern TPL-YYYY-NNN
+**Rule**: Template number must follow pattern TPL-YY-NNNN
 
 **Validation Type**: System-generated (not user input)
 
 **Implementation**:
-- Format: TPL-{YYYY}-{NNN}
-- YYYY = Current year (4 digits)
-- NNN = Sequential number (3 digits, zero-padded)
-- Example: TPL-2024-001, TPL-2024-015
+- Format: TPL-{YY}-{NNNN}
+- YY = Current year (2 digits)
+- NNNN = Sequential number (4 digits, zero-padded)
+- Example: TPL-24-0001, TPL-24-0015
 
 **Error Messages**: N/A (system-generated, cannot fail)
 
@@ -98,7 +101,7 @@ departmentId: z.string()
 **Client-Side Validation** (Zod):
 ```
 requestType: z.enum(
-  ['standard', 'recurring', 'emergency', 'seasonal'],
+  ['goods', 'services', 'capital'],
   { errorMap: () => ({ message: "Invalid request type" }) }
 )
 ```
@@ -107,7 +110,7 @@ requestType: z.enum(
 
 **Error Messages**:
 - Empty: "Request type is required"
-- Invalid: "Request type must be: standard, recurring, emergency, or seasonal"
+- Invalid: "Request type must be: goods, services, or capital"
 
 **Business Rule Reference**: BR-TPL-004
 
@@ -121,7 +124,7 @@ requestType: z.enum(
 **Client-Side Validation** (Zod):
 ```
 status: z.enum(
-  ['draft', 'active', 'inactive', 'archived'],
+  ['draft', 'active', 'inactive'],
   { errorMap: () => ({ message: "Invalid status" }) }
 )
 ```
@@ -131,34 +134,33 @@ status: z.enum(
 **State Transition Validation**:
 - DRAFT → ACTIVE: Requires at least 1 item (VR-TPL-020)
 - ACTIVE → INACTIVE: Always allowed
-- INACTIVE → ACTIVE: Requires manager approval
-- Any → ARCHIVED: Only via automated process
+- INACTIVE → ACTIVE: Always allowed (template still has items)
 
 **Error Messages**:
-- Invalid status: "Status must be: draft, active, inactive, or archived"
+- Invalid status: "Status must be: draft, active, or inactive"
 - Invalid transition: "Cannot activate template without items"
 
-**Business Rule Reference**: BR-TPL-004, BR-TPL-019, BR-TPL-020
+**Business Rule Reference**: BR-TPL-004, BR-TPL-020
 
 ---
 
 ### VR-TPL-006: Currency Valid
-**Rule**: Currency must be from approved list
+**Rule**: Currency must be from approved list (default: THB)
 
 **Validation Type**: Enum validation
 
 **Client-Side Validation** (Zod):
 ```
 currency: z.enum(
-  ['USD', 'EUR', 'GBP', 'THB'],
+  ['THB', 'USD', 'EUR', 'GBP'],
   { errorMap: () => ({ message: "Invalid currency" }) }
-)
+).default('THB')
 ```
 
 **Server-Side Validation**: Same Zod schema + database check constraint
 
 **Error Messages**:
-- Invalid: "Currency must be: USD, EUR, GBP, or THB"
+- Invalid: "Currency must be: THB, USD, EUR, or GBP"
 
 **Business Rule Reference**: BR-TPL-017
 
@@ -239,24 +241,22 @@ uom: z.string()
 
 ---
 
-### VR-ITEM-004: Quantity Non-Negative
-**Rule**: Quantity must be non-negative number between 0 and 999,999
+### VR-ITEM-004: Quantity Positive
+**Rule**: Quantity must be a positive number greater than 0
 
 **Validation Type**: Number validation, range validation
 
 **Client-Side Validation** (Zod):
 ```
 quantity: z.number()
-  .min(0, "Quantity cannot be negative")
-  .max(999999, "Quantity cannot exceed 999,999")
+  .positive("Quantity must be greater than 0")
   .multipleOf(0.001, "Quantity can have maximum 3 decimal places")
 ```
 
 **Server-Side Validation**: Same Zod schema + database check constraint
 
 **Error Messages**:
-- Negative: "Quantity cannot be negative"
-- Too large: "Quantity cannot exceed 999,999"
+- Zero/Negative: "Quantity must be greater than 0"
 - Too many decimals: "Quantity can have maximum 3 decimal places"
 
 **Business Rule Reference**: BR-TPL-011
@@ -264,7 +264,7 @@ quantity: z.number()
 ---
 
 ### VR-ITEM-005: Unit Price Non-Negative
-**Rule**: Unit price must be non-negative, maximum 99,999,999.99
+**Rule**: Unit price must be non-negative (≥ 0)
 
 **Validation Type**: Number validation, range validation
 
@@ -272,7 +272,6 @@ quantity: z.number()
 ```
 unitPrice: z.number()
   .min(0, "Unit price cannot be negative")
-  .max(99999999.99, "Unit price cannot exceed 99,999,999.99")
   .multipleOf(0.01, "Unit price must have exactly 2 decimal places")
 ```
 
@@ -280,7 +279,6 @@ unitPrice: z.number()
 
 **Error Messages**:
 - Negative: "Unit price cannot be negative"
-- Too large: "Unit price cannot exceed 99,999,999.99"
 - Invalid decimals: "Unit price must have exactly 2 decimal places"
 
 **Business Rule Reference**: BR-TPL-012
@@ -379,7 +377,7 @@ department: z.string()
 **Client-Side Validation** (Zod):
 ```
 taxCode: z.enum(
-  ['VAT7', 'VAT0', 'EXEMPT', 'VAT_REDUCED'],
+  ['VAT7', 'VAT0', 'EXEMPT'],
   { errorMap: () => ({ message: "Invalid tax code" }) }
 )
 ```
@@ -388,101 +386,34 @@ taxCode: z.enum(
 
 **Error Messages**:
 - Empty: "Tax code is required"
-- Invalid: "Tax code must be one of: VAT7, VAT0, EXEMPT, VAT_REDUCED"
+- Invalid: "Tax code must be one of: VAT7, VAT0, or EXEMPT"
 
 **Business Rule Reference**: BR-TPL-016
 
 ---
 
-### VR-ITEM-010: Currency Exchange Rate Positive
-**Rule**: Currency exchange rate must be positive number greater than 0
-
-**Validation Type**: Number validation, range validation
-
-**Client-Side Validation** (Zod):
-```
-currencyRate: z.number()
-  .min(0.000001, "Exchange rate must be greater than 0")
-  .multipleOf(0.000001, "Exchange rate can have maximum 6 decimal places")
-```
-
-**Server-Side Validation**: Same Zod schema
-
-**Error Messages**:
-- Zero/Negative: "Exchange rate must be greater than 0"
-- Invalid decimals: "Exchange rate can have maximum 6 decimal places"
-
-**Business Rule Reference**: BR-TPL-018
-
----
-
-### VR-ITEM-011: Discount Rate Range
-**Rule**: Discount rate must be between 0 and 100 (percentage)
-
-**Validation Type**: Number validation, range validation
-
-**Client-Side Validation** (Zod):
-```
-discountRate: z.number()
-  .min(0, "Discount rate cannot be negative")
-  .max(100, "Discount rate cannot exceed 100")
-  .multipleOf(0.01, "Discount rate can have maximum 2 decimal places")
-```
-
-**Server-Side Validation**: Same Zod schema
-
-**Error Messages**:
-- Negative: "Discount rate cannot be negative"
-- Too high: "Discount rate cannot exceed 100%"
-
-**Business Rule Reference**: Implied from amount calculations
-
----
-
-### VR-ITEM-012: Tax Rate Range
-**Rule**: Tax rate must be between 0 and 100 (percentage)
-
-**Validation Type**: Number validation, range validation
-
-**Client-Side Validation** (Zod):
-```
-taxRate: z.number()
-  .min(0, "Tax rate cannot be negative")
-  .max(100, "Tax rate cannot exceed 100")
-  .multipleOf(0.01, "Tax rate can have maximum 2 decimal places")
-```
-
-**Server-Side Validation**: Same Zod schema
-
-**Error Messages**:
-- Negative: "Tax rate cannot be negative"
-- Too high: "Tax rate cannot exceed 100%"
-
-**Business Rule Reference**: Implied from amount calculations
+> **Phase 2 Planned Validations**: VR-ITEM-010 (Currency Exchange Rate), VR-ITEM-011 (Discount Rate), and VR-ITEM-012 (Tax Rate) will be added when advanced pricing features are implemented.
 
 ---
 
 ## Cross-Field Validation Rules
 
-### VR-CROSS-001: Amount Calculations Consistency
-**Rule**: Calculated amounts must follow formulas and be internally consistent
+### VR-CROSS-001: Total Amount Calculation
+**Rule**: Total amount must equal quantity × unit price
 
 **Validation Type**: Cross-field calculation validation
 
-**Formulas** (All amounts rounded to 2 decimal places):
-1. baseAmount = quantity × unitPrice
-2. discountAmount = baseAmount × (discountRate / 100)
-3. netAmount = baseAmount - discountAmount
-4. taxAmount = netAmount × (taxRate / 100) [if tax not included]
-5. OR taxAmount = totalAmount - (totalAmount / (1 + taxRate/100)) [if tax included]
-6. totalAmount = netAmount + taxAmount
+**Formula** (Rounded to 2 decimal places):
+- totalAmount = quantity × unitPrice
 
-**Server-Side Validation**: Calculate all amounts server-side and verify consistency
+**Server-Side Validation**: Calculate total amount server-side and verify consistency
 
 **Error Messages**:
 - "Amount calculation error. Please refresh and try again."
 
-**Business Rule Reference**: BR-TPL-021 through BR-TPL-027
+**Business Rule Reference**: BR-TPL-016
+
+> **Phase 2**: More complex calculations (discount, tax, multi-currency conversions) will be added in a future release.
 
 ---
 
@@ -630,13 +561,10 @@ taxRate: z.number()
 | VR-ITEM-003 | Zod | Zod | CHECK | Field |
 | VR-ITEM-004 | Zod | Zod | CHECK | Field |
 | VR-ITEM-005 | Zod | Zod | CHECK | Field |
-| VR-ITEM-006 | Zod | Integration | N/A | Field |
-| VR-ITEM-007 | Zod | Integration | N/A | Field |
-| VR-ITEM-008 | Zod | Cross-check | N/A | Warning |
+| VR-ITEM-006 | Zod | Required | N/A | Field |
+| VR-ITEM-007 | Zod | Required | N/A | Field |
+| VR-ITEM-008 | Zod | Required | N/A | Field |
 | VR-ITEM-009 | Zod | Zod | CHECK | Field |
-| VR-ITEM-010 | Zod | Zod | CHECK | Field |
-| VR-ITEM-011 | Zod | Zod | N/A | Field |
-| VR-ITEM-012 | Zod | Zod | N/A | Field |
 | VR-CROSS-001 | Calculation | Calculation | N/A | Cross-field |
 | VR-CROSS-002 | Warning | Count | N/A | Business |
 | VR-CROSS-003 | Disable | Logic | N/A | Business |
@@ -646,6 +574,8 @@ taxRate: z.number()
 | VR-PERM-002 | Hide/Disable | Permission | N/A | Permission |
 | VR-PERM-003 | Hide/Disable | Permission | N/A | Permission |
 | VR-PERM-004 | Hide/Disable | Permission | N/A | Permission |
+
+> **Phase 2 Validations**: VR-ITEM-010 (Currency Exchange Rate), VR-ITEM-011 (Discount Rate), and VR-ITEM-012 (Tax Rate) will be added when advanced pricing features are implemented.
 
 ---
 

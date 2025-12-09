@@ -60,6 +60,11 @@ export function SimpleUserProvider({ children }: { children: React.ReactNode }) 
       updatedUser.context.showPrices = contextUpdates.showPrices
     }
 
+    // Update system quantity visibility if provided
+    if (contextUpdates.showSystemQuantity !== undefined) {
+      updatedUser.context.showSystemQuantity = contextUpdates.showSystemQuantity
+    }
+
     setUser(updatedUser)
     console.log('User context updated:', updatedUser.context)
   }, [user])

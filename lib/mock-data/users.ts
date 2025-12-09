@@ -57,6 +57,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'dept-001')!,
       currentLocation: mockLocations.find(l => l.id === 'loc-006')!,
       showPrices: false,
+      showSystemQuantity: true,
     }
   },
   {
@@ -95,6 +96,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'dept-003')!,
       currentLocation: mockLocations.find(l => l.id === 'loc-002')!,
       showPrices: true,
+      showSystemQuantity: true,
     }
   },
   {
@@ -133,6 +135,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'dept-001')!,
       currentLocation: mockLocations.find(l => l.id === 'loc-001')!,
       showPrices: true,
+      showSystemQuantity: true,
     }
   },
   {
@@ -171,6 +174,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'dept-002')!,
       currentLocation: mockLocations.find(l => l.id === 'loc-001')!,
       showPrices: true,
+      showSystemQuantity: true,
     }
   },
   {
@@ -209,6 +213,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'dept-005')!,
       currentLocation: mockLocations.find(l => l.id === 'loc-006')!,
       showPrices: true,
+      showSystemQuantity: true,
     }
   },
   {
@@ -247,6 +252,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'procurement')!,
       currentLocation: mockLocations.find(l => l.id === 'central-warehouse')!,
       showPrices: true,
+      showSystemQuantity: true,
     }
   },
   {
@@ -283,6 +289,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'housekeeping')!,
       currentLocation: mockLocations.find(l => l.id === 'main-hotel')!,
       showPrices: false,
+      showSystemQuantity: true,
     }
   },
   {
@@ -319,6 +326,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'fb')!,
       currentLocation: mockLocations.find(l => l.id === 'pool-bar')!,
       showPrices: false,
+      showSystemQuantity: true,
     }
   },
   {
@@ -354,6 +362,7 @@ export const mockUsers: User[] = [
       currentDepartment: mockDepartments.find(d => d.id === 'administration')!,
       currentLocation: mockLocations.find(l => l.id === 'admin-office')!,
       showPrices: true,
+      showSystemQuantity: true,
     }
   }
 ];

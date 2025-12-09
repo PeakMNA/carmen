@@ -75,6 +75,8 @@ export interface UserContext {
   currentLocation: Location;
   // UI preferences
   showPrices?: boolean;
+  // Inventory counting preferences
+  showSystemQuantity?: boolean; // Show/hide system quantity during physical counts and spot checks
 }
 
 export interface User extends UserProfile {

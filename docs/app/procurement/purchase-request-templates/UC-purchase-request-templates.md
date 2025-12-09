@@ -13,6 +13,9 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System Documentation | Initial version |
+| 1.1.0 | 2025-12-04 | Documentation Team | Aligned with prototype - simplified item fields, updated status/type values, marked Template→PR as Phase 2 |
+| 1.2.0 | 2025-12-04 | Documentation Team | Converted Use Case Diagram to Mermaid 8.8.2 format with actor-use case relationships |
+| 1.3.0 | 2025-12-04 | Documentation Team | Added comprehensive Traceability Matrices (Master, Business Rules, Validation Rules, Document Cross-Reference, Test Coverage, Implementation Status) |
 
 ---
 
@@ -24,8 +27,9 @@ The use cases are organized into categories: User Use Cases (interactive workflo
 
 **Related Documents**:
 - [Business Requirements](./BR-purchase-request-templates.md)
+- [Backend Requirements](./BE-purchase-request-templates.md)
 - [Technical Specification](./TS-purchase-request-templates.md)
-- [Data Schema](./DS-purchase-request-templates.md)
+- [Data Definition](./DD-purchase-request-templates.md)
 - [Flow Diagrams](./FD-purchase-request-templates.md)
 - [Validation Rules](./VAL-purchase-request-templates.md)
 
@@ -66,54 +70,168 @@ Automated processes and integrations that interact with the template system
 
 ## Use Case Diagram
 
+```mermaid
+flowchart TB
+    %% Primary Actors
+    PS((Purchasing<br/>Staff))
+    BUY((Buyer))
+    DM((Department<br/>Manager))
+    PM((Purchasing<br/>Manager))
+
+    %% System Actors
+    PRM[(Purchase Request<br/>Module)]
+    BMM[(Budget<br/>Management)]
+    VMM[(Vendor<br/>Management)]
+
+    %% User Use Cases
+    UC001([UC-TPL-001<br/>Create Template])
+    UC002([UC-TPL-002<br/>View Template])
+    UC003([UC-TPL-003<br/>Edit Template])
+    UC004([UC-TPL-004<br/>Delete Template])
+    UC005([UC-TPL-005<br/>Clone Template])
+    UC006([UC-TPL-006<br/>Set Default])
+    UC007([UC-TPL-007<br/>Add Item])
+    UC008([UC-TPL-008<br/>Edit Item])
+    UC009([UC-TPL-009<br/>Delete Item])
+    UC010([UC-TPL-010<br/>Search/Filter])
+    UC011([UC-TPL-011<br/>Bulk Operations])
+
+    %% Integration Use Cases
+    UC201([UC-TPL-201<br/>Convert to PR])
+    UC202([UC-TPL-202<br/>Validate Budget])
+    UC203([UC-TPL-203<br/>Fetch Catalog])
+
+    %% Purchasing Staff connections
+    PS --> UC001
+    PS --> UC002
+    PS --> UC003
+    PS --> UC004
+    PS --> UC005
+    PS --> UC007
+    PS --> UC008
+    PS --> UC009
+    PS --> UC010
+
+    %% Buyer connections
+    BUY --> UC001
+    BUY --> UC003
+    BUY --> UC004
+    BUY --> UC005
+    BUY --> UC008
+    BUY --> UC010
+
+    %% Department Manager connections
+    DM --> UC002
+    DM --> UC006
+    DM --> UC009
+
+    %% Purchasing Manager connections
+    PM --> UC006
+    PM --> UC011
+
+    %% System Actor connections
+    PRM --> UC201
+    BMM --> UC202
+    VMM --> UC203
+
+    %% Include relationships
+    UC003 -.->|includes| UC007
+    UC003 -.->|includes| UC008
+    UC003 -.->|includes| UC009
+    UC001 -.->|includes| UC007
+    UC011 -.->|includes| UC004
+    UC011 -.->|includes| UC005
+
+    style PS fill:#fff3e0
+    style BUY fill:#fff3e0
+    style DM fill:#fff3e0
+    style PM fill:#fff3e0
+    style PRM fill:#e3f2fd
+    style BMM fill:#e3f2fd
+    style VMM fill:#e3f2fd
+    style UC201 fill:#ffcdd2
 ```
-                        ┌─────────────────────────────────────────┐
-                        │ Purchase Request Templates System       │
-                        └────────────┬────────────────────────────┘
-                                     │
-         ┌───────────────────────────┼───────────────────────────┐
-         │                           │                           │
-         │                           │                           │
-   ┌─────▼──────┐             ┌─────▼──────┐           ┌───────▼────────┐
-   │ Purchasing │             │   Buyer    │           │   Department   │
-   │   Staff    │             │            │           │    Manager     │
-   └─────┬──────┘             └─────┬──────┘           └───────┬────────┘
-         │                           │                          │
-    [UC-TPL-001]                [UC-TPL-001]              [UC-TPL-002]
-    [UC-TPL-002]                [UC-TPL-003]              [UC-TPL-006]
-    [UC-TPL-003]                [UC-TPL-004]              [UC-TPL-009]
-    [UC-TPL-004]                [UC-TPL-005]             (view & approve)
-    [UC-TPL-005]                [UC-TPL-008]
-    [UC-TPL-007]                [UC-TPL-010]
-    [UC-TPL-008]
-    [UC-TPL-009]
-    [UC-TPL-010]
 
+### Use Case Diagram - Actor Responsibilities
 
-                                     │
-                             ┌───────▼─────────┐
-                             │   Purchasing    │
-                             │     Manager     │
-                             └───────┬─────────┘
-                                     │
-                                [UC-TPL-006]
-                                [UC-TPL-011]
-                            (set default templates)
+```mermaid
+flowchart LR
+    %% Actors
+    PS((Purchasing Staff))
+    BUY((Buyer))
+    DM((Dept Manager))
+    PM((Purchasing Mgr))
 
+    %% Use Cases grouped by category
+    UC001([Create Template])
+    UC002([View Template])
+    UC003([Edit Template])
+    UC004([Delete Template])
+    UC005([Clone Template])
+    UC006([Set Default])
+    UC007([Add Item])
+    UC008([Edit Item])
+    UC009([Delete Item])
+    UC010([Search/Filter])
+    UC011([Bulk Operations])
 
-   ┌──────────────┐         ┌──────────────┐         ┌──────────────┐
-   │   Purchase   │         │    Budget    │         │    Vendor    │
-   │   Request    │         │  Management  │         │  Management  │
-   │    Module    │         │    Module    │         │    Module    │
-   └──────┬───────┘         └──────┬───────┘         └──────┬───────┘
-          │                        │                         │
-     [UC-TPL-201]              [UC-TPL-202]             [UC-TPL-203]
-   (template to PR)         (budget validation)     (catalog integration)
+    %% Integration
+    UC201([Convert to PR<br/>Phase 2])
+    UC202([Validate Budget])
+    UC203([Fetch Catalog])
+
+    %% System Actors
+    PRM[(PR Module)]
+    BMM[(Budget Mgmt)]
+    VMM[(Vendor Mgmt)]
+
+    PS --- UC001
+    PS --- UC002
+    PS --- UC003
+    PS --- UC004
+    PS --- UC005
+    PS --- UC007
+    PS --- UC008
+    PS --- UC009
+    PS --- UC010
+
+    BUY --- UC001
+    BUY --- UC003
+    BUY --- UC004
+    BUY --- UC005
+    BUY --- UC008
+    BUY --- UC010
+
+    DM --- UC002
+    DM --- UC006
+    DM --- UC009
+
+    PM --- UC006
+    PM --- UC011
+
+    UC201 --- PRM
+    UC202 --- BMM
+    UC203 --- VMM
+
+    style PS fill:#fff3e0
+    style BUY fill:#fff3e0
+    style DM fill:#fff3e0
+    style PM fill:#fff3e0
+    style PRM fill:#e3f2fd
+    style BMM fill:#e3f2fd
+    style VMM fill:#e3f2fd
+    style UC201 fill:#ffcdd2
 ```
 
 **Legend**:
-- **Primary Actors** (top): Purchasing Staff, Buyer, Department Manager, Purchasing Manager
-- **System Actors** (bottom): Purchase Request Module, Budget Management, Vendor Management
+- **Circle nodes** `(( ))`: Human actors (Primary Actors)
+- **Cylinder nodes** `[( )]`: System actors (External modules)
+- **Stadium nodes** `([ ])`: Use cases
+- **Solid lines** `---`: Actor-to-use-case associations
+- **Dashed arrows** `-.->`: Include relationships between use cases
+- **Orange fill**: Primary actors
+- **Blue fill**: System actors
+- **Red fill**: Phase 2 use case (UC-TPL-201 - Template to PR conversion)
 
 ---
 
@@ -128,13 +246,13 @@ Automated processes and integrations that interact with the template system
 | UC-TPL-004 | Delete Template | Purchasing Staff, Buyer | Medium | Simple | User |
 | UC-TPL-005 | Clone Template | Purchasing Staff, Buyer | Medium | Simple | User |
 | UC-TPL-006 | Set Default Template | Purchasing Manager | Medium | Simple | User |
-| UC-TPL-007 | Add Item to Template | Purchasing Staff, Buyer | High | Medium | User |
-| UC-TPL-008 | Edit Template Item | Purchasing Staff, Buyer | High | Medium | User |
+| UC-TPL-007 | Add Item to Template | Purchasing Staff, Buyer | High | Simple | User |
+| UC-TPL-008 | Edit Template Item | Purchasing Staff, Buyer | High | Simple | User |
 | UC-TPL-009 | Delete Template Item | Purchasing Staff, Buyer | Medium | Simple | User |
 | UC-TPL-010 | Search and Filter Templates | All Users | High | Simple | User |
 | UC-TPL-011 | Bulk Template Operations | Purchasing Staff, Buyer | Medium | Medium | User |
 | **Integration Use Cases** | | | | | |
-| UC-TPL-201 | Convert Template to Purchase Request | Purchase Request Module | High | Medium | Integration |
+| UC-TPL-201 | Convert Template to Purchase Request | Purchase Request Module | High | Medium | Integration (Phase 2) |
 | UC-TPL-202 | Validate Budget Codes | Budget Management | High | Simple | Integration |
 | UC-TPL-203 | Fetch Vendor Catalog Data | Vendor Management | Medium | Simple | Integration |
 
@@ -163,7 +281,7 @@ Automated processes and integrations that interact with the template system
 - At least one department, budget code, and account code exist in the system
 
 **Postconditions**:
-- **Success**: New template is created with unique TPL-YYYY-NNN number and stored in database; template appears in templates list
+- **Success**: New template is created with unique TPL-YY-NNNN number and stored in database; template appears in templates list
 - **Failure**: Template not created; user receives clear error message explaining validation failure
 
 **Main Flow** (Happy Path):
@@ -171,10 +289,10 @@ Automated processes and integrations that interact with the template system
 2. System displays template creation form with empty fields
 3. User enters template description (e.g., "Monthly Office Supplies Order")
 4. User selects department from dropdown (e.g., "Kitchen")
-5. User selects request type (e.g., "Standard" or "Recurring")
+5. User selects request type (e.g., "Goods", "Services", or "Capital")
 6. User clicks "Create" button
 7. System validates input fields against business rules
-8. System generates unique template number (e.g., TPL-2024-015)
+8. System generates unique template number (e.g., TPL-24-0015)
 9. System creates template record with status "Draft"
 10. System redirects user to template detail page in edit mode
 11. System displays success message "Template created successfully"
@@ -208,7 +326,7 @@ Automated processes and integrations that interact with the template system
 
 **Exc-1B: Duplicate Template** (At step 8)
 - System detects duplicate description for same department
-- System displays warning "Similar template exists: TPL-2024-010. Do you want to continue?"
+- System displays warning "Similar template exists: TPL-24-0010. Do you want to continue?"
 - User chooses: Continue or Cancel
 - If Continue, proceed to step 9
 - If Cancel, return to step 3 for editing
@@ -221,7 +339,7 @@ Automated processes and integrations that interact with the template system
 - Use case ends
 
 **Business Rules**:
-- **BR-TPL-001**: Template numbers must follow TPL-YYYY-NNN pattern
+- **BR-TPL-001**: Template numbers must follow TPL-YY-NNNN pattern
 - **BR-TPL-002**: Templates must be assigned to exactly one department
 - **BR-TPL-003**: Description must be minimum 10 characters
 - **BR-TPL-028**: Requires "Create Purchase Request Template" permission
@@ -578,7 +696,7 @@ Automated processes and integrations that interact with the template system
 1. User views template detail page via [UC-TPL-002](#uc-tpl-002-view-template-details)
 2. User clicks "Clone" button in template header
 3. System creates new template record with:
-   - New unique template number (e.g., TPL-2024-016)
+   - New unique template number (e.g., TPL-24-0016)
    - Description appended with "(Copy)" (e.g., "Office Supplies (Copy)")
    - Same department as source
    - Same request type as source
@@ -590,7 +708,7 @@ Automated processes and integrations that interact with the template system
    - Same tax codes and currency settings
 5. System captures creation timestamp and creator user ID
 6. System redirects user to new template's detail page in edit mode
-7. System displays success message "Template cloned successfully as TPL-2024-016"
+7. System displays success message "Template cloned successfully as TPL-24-0016"
 8. User can immediately edit cloned template to make desired changes
 9. Use case ends
 
@@ -637,7 +755,7 @@ Automated processes and integrations that interact with the template system
 - Use case ends
 
 **Business Rules**:
-- **BR-TPL-001**: Cloned template receives new unique TPL-YYYY-NNN number
+- **BR-TPL-001**: Cloned template receives new unique TPL-YY-NNNN number
 - **BR-TPL-004**: Cloned template always starts in "Draft" status
 - **BR-TPL-028**: Requires "Create Purchase Request Template" permission
 
@@ -683,8 +801,8 @@ Automated processes and integrations that interact with the template system
 2. User clicks "Set as Default" action button for desired template
 3. System checks if another template is already default for this department
 4. If another default exists, system displays confirmation dialog:
-   - "TPL-2024-005 is currently the default template for Kitchen department"
-   - "Replace with TPL-2024-016 as the new default?"
+   - "TPL-24-0005 is currently the default template for Kitchen department"
+   - "Replace with TPL-24-0016 as the new default?"
    - "Set Default" and "Cancel" buttons
 5. User confirms by clicking "Set Default" button
 6. System removes default flag (isDefault = false) from previous default template
@@ -704,7 +822,7 @@ Automated processes and integrations that interact with the template system
 **Alt-6B: Remove Default Status** (At step 2)
 - 2a. Template is already default
 - 2b. User clicks "Remove Default" button instead
-- 2c. System displays confirmation "Remove default status from TPL-2024-016?"
+- 2c. System displays confirmation "Remove default status from TPL-24-0016?"
 - 2d. User confirms
 - 2e. System sets isDefault = false
 - 2f. System records activity log entry
@@ -792,24 +910,16 @@ Automated processes and integrations that interact with the template system
    - UOM (Unit of Measure, e.g., "KG")
    - Quantity (e.g., 100)
 4. User enters pricing information:
-   - Currency (e.g., "USD") from dropdown
-   - Currency exchange rate (auto-populated, editable)
+   - Currency (e.g., "THB") from dropdown
    - Unit price (e.g., 5.50)
-   - Tax included checkbox (default: unchecked)
-   - Discount rate percentage (optional, default: 0)
-   - Tax rate percentage (e.g., 7 for VAT7)
-5. System calculates amounts in real-time as user types:
-   - Base Amount = Quantity (100) × Unit Price (5.50) = 550.00
-   - Discount Amount = Base Amount × (Discount Rate / 100) = 0.00
-   - Net Amount = Base Amount - Discount Amount = 550.00
-   - Tax Amount = Net Amount × (Tax Rate / 100) = 38.50
-   - Total Amount = Net Amount + Tax Amount = 588.50
+5. System calculates Total Amount in real-time:
+   - Total Amount = Quantity (100) × Unit Price (5.50) = 550.00
 6. User enters financial coding:
    - Budget code (e.g., "BUD-2024-001") from dropdown
    - Account code (e.g., "5001") from dropdown
-   - Department (auto-filled from template, may be different if multi-dept)
-   - Tax code (e.g., "VAT7") from dropdown
-7. User reviews calculated amounts displayed in form
+   - Department (auto-filled from template)
+   - Tax code (e.g., "VAT7", "VAT0", or "EXEMPT") from dropdown
+7. User reviews calculated total displayed in form
 8. User clicks "Add" button
 9. System validates all fields against business rules
 10. System checks for duplicate item code within template
@@ -821,24 +931,11 @@ Automated processes and integrations that interact with the template system
 16. System displays success message "Item added successfully"
 17. Use case ends
 
+> **Note**: Advanced pricing features (discount rate, tax rate, tax included, currency exchange rate) are planned for Phase 2.
+
 **Alternative Flows**:
 
-**Alt-7A: Tax Included in Price** (At step 4)
-- 4a. User checks "Tax Included" checkbox
-- 4b. System changes calculation formula:
-   - Net Amount = Total Amount / (1 + Tax Rate/100)
-   - Tax Amount = Total Amount - Net Amount
-- 4c. System displays recalculated breakdown
-- Resume at step 6
-
-**Alt-7B: Apply Adjustments** (At step 4)
-- 4a. User toggles "Apply Discount" and/or "Apply Tax" switches
-- 4b. If discount disabled: Discount Amount = 0
-- 4c. If tax disabled: Tax Amount = 0
-- 4d. System recalculates totals accordingly
-- Resume at step 6
-
-**Alt-7C: Select from Product Catalog** (At step 3)
+**Alt-7A: Select from Product Catalog** (At step 3)
 - 3a. User clicks "Browse Catalog" button
 - 3b. System displays product catalog modal
 - 3c. User selects product from catalog
@@ -846,26 +943,20 @@ Automated processes and integrations that interact with the template system
 - 3e. User enters quantity
 - Resume at step 4 with auto-filled values
 
-**Alt-7D: Multi-Currency Item** (At step 4)
-- 4a. User selects currency other than base currency (e.g., EUR instead of USD)
-- 4b. System displays currency exchange rate field (editable)
-- 4c. System fetches current exchange rate from currency service
-- 4d. User can accept or override exchange rate
-- 4e. System calculates all amounts in selected currency
-- 4f. System notes conversion rate for future reference
-- Resume at step 6
+> **Phase 2 Planned Flows**: Tax Included in Price, Apply Discount/Tax Adjustments, and Multi-Currency with Exchange Rate will be supported in a future release.
 
 **Exception Flows**:
 
 **Exc-7A: Field Validation Failure** (At step 9)
 - System detects validation errors:
-  - Item code empty or less than 3 characters
+  - Item code empty or invalid format
   - Description empty or less than 5 characters
   - UOM not selected
-  - Quantity ≤ 0 or > 999,999
-  - Unit price < 0 or > 99,999,999.99
-  - Budget code invalid or inactive
-  - Account code invalid or inactive
+  - Quantity ≤ 0
+  - Unit price < 0
+  - Budget code not selected
+  - Account code not selected
+  - Tax code not selected
 - System displays inline validation errors next to affected fields
 - User corrects errors
 - Resume at step 8
@@ -877,13 +968,7 @@ Automated processes and integrations that interact with the template system
 - User changes item code to unique value
 - Resume at step 8
 
-**Exc-7C: Budget Code Not Available** (At step 6)
-- Selected budget code is exhausted or not available for department
-- System displays warning "Budget code BUD-2024-001 may not have sufficient funds"
-- User can choose different budget code or proceed anyway
-- Resume at step 8
-
-**Exc-7D: Database Insert Failure** (At step 11)
+**Exc-7C: Database Insert Failure** (At step 11)
 - Database insertion fails
 - System logs error
 - System displays "Unable to add item. Please try again."
@@ -892,26 +977,27 @@ Automated processes and integrations that interact with the template system
 - Use case ends if cancelled
 
 **Business Rules**:
-- **BR-TPL-008**: Item code required, 3-50 characters, alphanumeric with hyphens
+- **BR-TPL-008**: Item code required, alphanumeric with hyphens
 - **BR-TPL-009**: Description required, 5-500 characters
 - **BR-TPL-010**: UOM must be from approved list (KG, EA, BTL, CTN, etc.)
-- **BR-TPL-011**: Quantity must be positive, max 999,999
-- **BR-TPL-012**: Unit price non-negative, max 99,999,999.99
-- **BR-TPL-013** through **BR-TPL-018**: Budget code, account code, department, tax code, currency validation
-- **BR-TPL-021** through **BR-TPL-027**: Amount calculation formulas
+- **BR-TPL-011**: Quantity must be positive
+- **BR-TPL-012**: Unit price non-negative
+- **BR-TPL-013**: Budget code required
+- **BR-TPL-014**: Account code required
+- **BR-TPL-015**: Tax code required (VAT7, VAT0, EXEMPT)
+- **BR-TPL-016**: Total Amount = Quantity × Unit Price
 
 **Related Requirements**:
 - FR-TPL-007: Manage Template Items
-- BR-TPL-010: Amount calculation rules
 - NFR-TPL-012: Inline validation with clear error messages
 
-**UI Mockups**: Item form dialog with all input fields and calculated amounts
+**UI Mockups**: Item form dialog with basic input fields and calculated total
 
 **Notes**:
-- Amounts calculate in real-time as user types for immediate feedback
-- Currency conversion uses rates at time of item creation
+- Total Amount calculates in real-time as user types
 - Item form includes tooltips explaining each field
 - User can cancel at any time to discard item without saving
+- Advanced pricing (discount, tax calculations) planned for Phase 2
 
 ---
 
@@ -941,11 +1027,10 @@ Automated processes and integrations that interact with the template system
 4. User modifies desired fields (any combination of):
    - Quantity (e.g., change from 100 to 150)
    - Unit price (e.g., update to reflect new vendor pricing)
-   - Discount rate or tax rate
    - Budget code or account code
    - Tax code
-5. System recalculates amounts in real-time as user modifies fields
-6. User reviews updated calculated amounts
+5. System recalculates Total Amount in real-time as user modifies fields
+6. User reviews updated total
 7. User clicks "Save" button
 8. System validates modified fields against business rules
 9. System checks for duplicate item code (if code was changed)
@@ -977,13 +1062,6 @@ Automated processes and integrations that interact with the template system
 - 1f. System displays success indicator (checkmark animation)
 - Use case ends (full form dialog not shown)
 
-**Alt-8C: Change Currency** (At step 4)
-- 4a. User changes currency dropdown (e.g., from USD to EUR)
-- 4b. System prompts "Convert existing amounts or reset?"
-- 4c. If Convert: System applies exchange rate to unit price
-- 4d. If Reset: User must re-enter unit price in new currency
-- Resume at step 5 with recalculated amounts
-
 **Exception Flows**:
 
 **Exc-8A: Validation Failure** (At step 8)
@@ -999,14 +1077,7 @@ Automated processes and integrations that interact with the template system
 - User changes to unique code or reverts to original
 - Resume at step 7
 
-**Exc-8C: Budget Code Changed to Invalid** (At step 8)
-- User changed budget code to inactive or invalid code
-- System displays error "Budget code BUD-2023-001 is no longer active"
-- System suggests alternative active budget codes
-- User selects valid budget code
-- Resume at step 7
-
-**Exc-8D: Database Update Failure** (At step 10)
+**Exc-8C: Database Update Failure** (At step 10)
 - Database update fails
 - System logs error
 - System displays "Unable to update item. Please try again."
@@ -1015,8 +1086,8 @@ Automated processes and integrations that interact with the template system
 - Use case ends if cancelled
 
 **Business Rules**:
-- Same validation rules as UC-TPL-007 (BR-TPL-008 through BR-TPL-018)
-- **BR-TPL-021** through **BR-TPL-027**: Amount recalculation formulas
+- Same validation rules as UC-TPL-007 (BR-TPL-008 through BR-TPL-016)
+- **BR-TPL-016**: Total Amount = Quantity × Unit Price
 
 **Includes**:
 - [UC-TPL-007: Add Item to Template](#uc-tpl-007-add-item-to-template) (shares same validation logic)
@@ -1028,10 +1099,9 @@ Automated processes and integrations that interact with the template system
 **UI Mockups**: Same item form dialog as Add Item, pre-filled with existing values
 
 **Notes**:
-- Amounts recalculate automatically as user edits fields
-- Original values shown for reference if significant price change detected
+- Total Amount recalculates automatically as user edits quantity or unit price
 - Inline table editing available for quick quantity/price updates
-- Full form required for changing budget codes or tax treatments
+- Full form required for changing budget codes or tax codes
 
 ---
 
@@ -1160,8 +1230,8 @@ Automated processes and integrations that interact with the template system
 4. User selects filter criteria:
    - Filter by template number (text input with partial match)
    - Filter by description/notes (keyword search)
-   - Filter by request type dropdown (standard, recurring, emergency, seasonal)
-   - Filter by status dropdown (draft, active, inactive, archived)
+   - Filter by request type dropdown (goods, services, capital)
+   - Filter by status dropdown (draft, active, inactive)
    - Filter by department dropdown (Kitchen, Housekeeping, Maintenance, etc.)
    - Filter by estimated total amount range (min/max inputs)
 5. User enters search values (e.g., searches for "office" in description)
@@ -1297,7 +1367,7 @@ Automated processes and integrations that interact with the template system
 9. System completes all operations
 10. System displays summary results:
     - "Successfully processed 14 of 15 templates"
-    - "1 template failed: TPL-2024-005 (Default template cannot be deleted)"
+    - "1 template failed: TPL-24-0005 (Default template cannot be deleted)"
 11. System deselects all templates
 12. System refreshes templates list
 13. Use case ends
@@ -1317,7 +1387,7 @@ Automated processes and integrations that interact with the template system
 - 4b. System confirms "Clone 15 templates?"
 - 4c. User confirms
 - 4d. System creates copies of all selected templates
-- 4e. Each clone gets new TPL-YYYY-NNN number
+- 4e. Each clone gets new TPL-YY-NNNN number
 - 4f. Each clone description appended with "(Copy)"
 - 4g. All clones start in "Draft" status
 - Resume at step 10 with success count
@@ -1404,6 +1474,8 @@ Automated processes and integrations that interact with the template system
 ## Integration Use Cases
 
 ### UC-TPL-201: Convert Template to Purchase Request
+
+> **Phase 2**: This integration use case is planned for a future release. Template→PR conversion is not yet implemented in the current prototype.
 
 **Description**: Automated conversion of template to purchase request when user initiates "Use Template" action from Purchase Requests module.
 
@@ -1935,24 +2007,171 @@ If Vendor Management unavailable:
 
 ---
 
-## Use Case Traceability Matrix
+## Traceability Matrices
 
-| Use Case | Functional Req | Business Rule | Test Case | Status |
-|----------|----------------|---------------|-----------|--------|
-| UC-TPL-001 | FR-TPL-001 | BR-TPL-001, BR-TPL-002, BR-TPL-003, BR-TPL-028 | TC-TPL-001 | To Implement |
-| UC-TPL-002 | FR-TPL-002 | BR-TPL-032, BR-TPL-005 | TC-TPL-002 | To Implement |
-| UC-TPL-003 | FR-TPL-003 | BR-TPL-005, BR-TPL-020, BR-TPL-029 | TC-TPL-003 | To Implement |
-| UC-TPL-004 | FR-TPL-004 | BR-TPL-006, BR-TPL-030 | TC-TPL-004 | To Implement |
-| UC-TPL-005 | FR-TPL-005 | BR-TPL-001, BR-TPL-004, BR-TPL-028 | TC-TPL-005 | To Implement |
-| UC-TPL-006 | FR-TPL-006 | BR-TPL-007, BR-TPL-006, BR-TPL-031 | TC-TPL-006 | To Implement |
-| UC-TPL-007 | FR-TPL-007 | BR-TPL-008 through BR-TPL-018, BR-TPL-021 through BR-TPL-027 | TC-TPL-007 | To Implement |
-| UC-TPL-008 | FR-TPL-007 | BR-TPL-008 through BR-TPL-018, BR-TPL-021 through BR-TPL-027 | TC-TPL-008 | To Implement |
-| UC-TPL-009 | FR-TPL-007 | BR-TPL-020 | TC-TPL-009 | To Implement |
-| UC-TPL-010 | FR-TPL-008 | - | TC-TPL-010 | To Implement |
-| UC-TPL-011 | FR-TPL-010 | BR-TPL-033, BR-TPL-006, BR-TPL-001 | TC-TPL-011 | To Implement |
-| UC-TPL-201 | Integration | BR-TPL-004, BR-TPL-020 | TC-TPL-201 | To Implement |
-| UC-TPL-202 | Integration | - | TC-TPL-202 | To Implement |
-| UC-TPL-203 | Integration | - | TC-TPL-203 | To Implement |
+### Use Case to Requirements Traceability
+
+```mermaid
+flowchart LR
+    subgraph UC[Use Cases]
+        UC001([UC-TPL-001])
+        UC002([UC-TPL-002])
+        UC003([UC-TPL-003])
+        UC004([UC-TPL-004])
+        UC005([UC-TPL-005])
+        UC006([UC-TPL-006])
+        UC007([UC-TPL-007])
+        UC008([UC-TPL-008])
+        UC009([UC-TPL-009])
+        UC010([UC-TPL-010])
+        UC011([UC-TPL-011])
+    end
+
+    subgraph FR[Functional Requirements]
+        FR001[FR-TPL-001]
+        FR002[FR-TPL-002]
+        FR003[FR-TPL-003]
+        FR004[FR-TPL-004]
+        FR005[FR-TPL-005]
+        FR006[FR-TPL-006]
+        FR007[FR-TPL-007]
+        FR008[FR-TPL-008]
+        FR009[FR-TPL-009]
+        FR010[FR-TPL-010]
+    end
+
+    UC001 --> FR001
+    UC002 --> FR002
+    UC003 --> FR003
+    UC004 --> FR004
+    UC005 --> FR005
+    UC006 --> FR006
+    UC007 --> FR007
+    UC008 --> FR007
+    UC009 --> FR007
+    UC010 --> FR008
+    UC010 --> FR009
+    UC011 --> FR010
+
+    style UC fill:#e8f5e9
+    style FR fill:#e3f2fd
+```
+
+### Master Traceability Matrix
+
+| Use Case ID | Use Case Name | Functional Req | Business Rules | Validation Rules | Test Cases | UI Components | Status |
+|-------------|---------------|----------------|----------------|------------------|------------|---------------|--------|
+| UC-TPL-001 | Create Template | FR-TPL-001 | BR-TPL-001, BR-TPL-002, BR-TPL-003, BR-TPL-028 | VR-TPL-001, VR-TPL-002, VR-TPL-003, VR-TPL-004 | TC-TPL-001-01 to TC-TPL-001-08 | CreatePage, TemplateForm | To Implement |
+| UC-TPL-002 | View Template | FR-TPL-002 | BR-TPL-032, BR-TPL-005 | - | TC-TPL-002-01 to TC-TPL-002-05 | DetailPage, TemplateDetail | To Implement |
+| UC-TPL-003 | Edit Template | FR-TPL-003 | BR-TPL-005, BR-TPL-020, BR-TPL-029 | VR-TPL-002, VR-TPL-003, VR-TPL-004, VR-TPL-005 | TC-TPL-003-01 to TC-TPL-003-10 | EditPage, TemplateForm | To Implement |
+| UC-TPL-004 | Delete Template | FR-TPL-004 | BR-TPL-006, BR-TPL-030 | - | TC-TPL-004-01 to TC-TPL-004-06 | DeleteDialog | To Implement |
+| UC-TPL-005 | Clone Template | FR-TPL-005 | BR-TPL-001, BR-TPL-004, BR-TPL-028 | VR-TPL-001 | TC-TPL-005-01 to TC-TPL-005-04 | CloneAction | To Implement |
+| UC-TPL-006 | Set Default | FR-TPL-006 | BR-TPL-007, BR-TPL-006, BR-TPL-031 | - | TC-TPL-006-01 to TC-TPL-006-05 | DefaultToggle | To Implement |
+| UC-TPL-007 | Add Item | FR-TPL-007 | BR-TPL-008 to BR-TPL-017, BR-TPL-021 | VR-ITEM-001 to VR-ITEM-010 | TC-TPL-007-01 to TC-TPL-007-12 | ItemFormDialog | To Implement |
+| UC-TPL-008 | Edit Item | FR-TPL-007 | BR-TPL-008 to BR-TPL-017, BR-TPL-021 | VR-ITEM-001 to VR-ITEM-010 | TC-TPL-008-01 to TC-TPL-008-08 | ItemFormDialog | To Implement |
+| UC-TPL-009 | Delete Item | FR-TPL-007 | BR-TPL-020 | VR-TPL-020 | TC-TPL-009-01 to TC-TPL-009-05 | ItemDeleteDialog | To Implement |
+| UC-TPL-010 | Search/Filter | FR-TPL-008, FR-TPL-009 | - | - | TC-TPL-010-01 to TC-TPL-010-08 | FilterPanel, SearchBar | To Implement |
+| UC-TPL-011 | Bulk Operations | FR-TPL-010 | BR-TPL-033, BR-TPL-006, BR-TPL-001 | - | TC-TPL-011-01 to TC-TPL-011-06 | BulkActionsBar | To Implement |
+| UC-TPL-201 | Convert to PR | Integration | BR-TPL-004, BR-TPL-020 | - | TC-TPL-201-01 to TC-TPL-201-05 | ConversionService | Phase 2 |
+| UC-TPL-202 | Validate Budget | Integration | BR-TPL-013 | VR-ITEM-006 | TC-TPL-202-01 to TC-TPL-202-04 | BudgetValidation | To Implement |
+| UC-TPL-203 | Fetch Catalog | Integration | - | - | TC-TPL-203-01 to TC-TPL-203-04 | CatalogBrowser | To Implement |
+
+### Business Rules Traceability
+
+| Business Rule | Description | Use Cases | Validation Rule | Enforcement |
+|---------------|-------------|-----------|-----------------|-------------|
+| BR-TPL-001 | Template number pattern TPL-YY-NNNN | UC-TPL-001, UC-TPL-005, UC-TPL-011 | VR-TPL-001 | Server-side |
+| BR-TPL-002 | Single department assignment | UC-TPL-001, UC-TPL-003 | VR-TPL-003 | Client + Server |
+| BR-TPL-003 | Description min 10 chars | UC-TPL-001, UC-TPL-003 | VR-TPL-002 | Client + Server |
+| BR-TPL-004 | Valid status values | UC-TPL-001, UC-TPL-003, UC-TPL-005, UC-TPL-201 | VR-TPL-005 | Client + Server |
+| BR-TPL-005 | Edit permission rules | UC-TPL-002, UC-TPL-003 | - | Server-side |
+| BR-TPL-006 | Default deletion protection | UC-TPL-004, UC-TPL-006, UC-TPL-011 | - | Server-side |
+| BR-TPL-007 | One default per department | UC-TPL-006 | - | Server-side |
+| BR-TPL-008 | Item code required | UC-TPL-007, UC-TPL-008 | VR-ITEM-001 | Client + Server |
+| BR-TPL-009 | Item description required | UC-TPL-007, UC-TPL-008 | VR-ITEM-002 | Client + Server |
+| BR-TPL-010 | Valid UOM | UC-TPL-007, UC-TPL-008 | VR-ITEM-003 | Client + Server |
+| BR-TPL-011 | Positive quantity | UC-TPL-007, UC-TPL-008 | VR-ITEM-004 | Client + Server |
+| BR-TPL-012 | Non-negative unit price | UC-TPL-007, UC-TPL-008 | VR-ITEM-005 | Client + Server |
+| BR-TPL-013 | Budget code required | UC-TPL-007, UC-TPL-008, UC-TPL-202 | VR-ITEM-006 | Client + Server |
+| BR-TPL-014 | Account code required | UC-TPL-007, UC-TPL-008 | VR-ITEM-007 | Client + Server |
+| BR-TPL-015 | Department required | UC-TPL-007, UC-TPL-008 | VR-ITEM-008 | Client + Server |
+| BR-TPL-016 | Tax code required | UC-TPL-007, UC-TPL-008 | VR-ITEM-009 | Client + Server |
+| BR-TPL-017 | Valid currency | UC-TPL-007, UC-TPL-008 | VR-TPL-006 | Client + Server |
+| BR-TPL-019 | Status transitions | UC-TPL-003 | VR-TPL-005 | Server-side |
+| BR-TPL-020 | Min items for Active | UC-TPL-003, UC-TPL-009, UC-TPL-201 | VR-TPL-020 | Server-side |
+| BR-TPL-021 | Total calculation | UC-TPL-007, UC-TPL-008 | VR-ITEM-010 | Client + Server |
+| BR-TPL-022 | Template total sum | UC-TPL-007, UC-TPL-008, UC-TPL-009 | - | Client + Server |
+| BR-TPL-023 | Auto-recalculation | UC-TPL-007, UC-TPL-008, UC-TPL-009 | - | Client-side |
+| BR-TPL-028 | Create permission | UC-TPL-001, UC-TPL-005 | - | Server-side |
+| BR-TPL-029 | Edit permission | UC-TPL-003 | - | Server-side |
+| BR-TPL-030 | Delete permission | UC-TPL-004 | - | Server-side |
+| BR-TPL-031 | Default management permission | UC-TPL-006 | - | Server-side |
+| BR-TPL-032 | View permission | UC-TPL-002 | - | Server-side |
+| BR-TPL-033 | Bulk operations permission | UC-TPL-011 | - | Server-side |
+
+### Validation Rules Traceability
+
+| Validation Rule | Field | Use Cases | Business Rule | Error Message | Enforcement |
+|-----------------|-------|-----------|---------------|---------------|-------------|
+| VR-TPL-001 | templateNumber | UC-TPL-001, UC-TPL-005 | BR-TPL-001 | System-generated | Server |
+| VR-TPL-002 | description | UC-TPL-001, UC-TPL-003 | BR-TPL-003 | Description must be at least 10 characters | Client + Server |
+| VR-TPL-003 | departmentId | UC-TPL-001, UC-TPL-003 | BR-TPL-002 | Department is required | Client + Server |
+| VR-TPL-004 | requestType | UC-TPL-001, UC-TPL-003 | BR-TPL-004 | Request type must be: goods, services, or capital | Client + Server |
+| VR-TPL-005 | status | UC-TPL-003 | BR-TPL-004, BR-TPL-019 | Status must be: draft, active, or inactive | Client + Server |
+| VR-TPL-006 | currency | UC-TPL-007, UC-TPL-008 | BR-TPL-017 | Currency must be: THB, USD, EUR, or GBP | Client + Server |
+| VR-TPL-020 | items | UC-TPL-003, UC-TPL-009 | BR-TPL-020 | Cannot activate template without items | Server |
+| VR-ITEM-001 | itemCode | UC-TPL-007, UC-TPL-008 | BR-TPL-008 | Item code must be at least 3 characters | Client + Server |
+| VR-ITEM-002 | description | UC-TPL-007, UC-TPL-008 | BR-TPL-009 | Description must be at least 5 characters | Client + Server |
+| VR-ITEM-003 | uom | UC-TPL-007, UC-TPL-008 | BR-TPL-010 | Unit of measure is required | Client + Server |
+| VR-ITEM-004 | quantity | UC-TPL-007, UC-TPL-008 | BR-TPL-011 | Quantity must be greater than 0 | Client + Server |
+| VR-ITEM-005 | unitPrice | UC-TPL-007, UC-TPL-008 | BR-TPL-012 | Unit price cannot be negative | Client + Server |
+| VR-ITEM-006 | budgetCode | UC-TPL-007, UC-TPL-008 | BR-TPL-013 | Budget code is required | Client + Server |
+| VR-ITEM-007 | accountCode | UC-TPL-007, UC-TPL-008 | BR-TPL-014 | Account code is required | Client + Server |
+| VR-ITEM-008 | department | UC-TPL-007, UC-TPL-008 | BR-TPL-015 | Department is required | Client + Server |
+| VR-ITEM-009 | taxCode | UC-TPL-007, UC-TPL-008 | BR-TPL-016 | Tax code is required | Client + Server |
+| VR-ITEM-010 | totalAmount | UC-TPL-007, UC-TPL-008 | BR-TPL-021 | Total = Quantity × Unit Price | Client |
+
+### Document Cross-Reference Matrix
+
+| Document | Type | Related Use Cases | Purpose |
+|----------|------|-------------------|---------|
+| BR-purchase-request-templates.md | Business Requirements | All | Business rules, functional requirements |
+| DD-purchase-request-templates.md | Data Definition | All | Database schema, entity definitions |
+| TS-purchase-request-templates.md | Technical Spec | All | Architecture, component design |
+| FD-purchase-request-templates.md | Flow Diagrams | All | Visual workflows, state diagrams |
+| VAL-purchase-request-templates.md | Validation Rules | UC-TPL-001, UC-TPL-003, UC-TPL-007, UC-TPL-008 | Field validations, error messages |
+| BE-purchase-request-templates.md | Backend Requirements | All | Server actions, API contracts |
+| UC-purchase-request-templates.md | Use Cases | - | Actor interactions, scenarios |
+
+### Test Case Coverage Matrix
+
+| Use Case | Unit Tests | Integration Tests | E2E Tests | Total Tests |
+|----------|------------|-------------------|-----------|-------------|
+| UC-TPL-001 | 5 | 2 | 1 | 8 |
+| UC-TPL-002 | 3 | 1 | 1 | 5 |
+| UC-TPL-003 | 6 | 3 | 1 | 10 |
+| UC-TPL-004 | 4 | 1 | 1 | 6 |
+| UC-TPL-005 | 2 | 1 | 1 | 4 |
+| UC-TPL-006 | 3 | 1 | 1 | 5 |
+| UC-TPL-007 | 8 | 3 | 1 | 12 |
+| UC-TPL-008 | 5 | 2 | 1 | 8 |
+| UC-TPL-009 | 3 | 1 | 1 | 5 |
+| UC-TPL-010 | 5 | 2 | 1 | 8 |
+| UC-TPL-011 | 4 | 1 | 1 | 6 |
+| UC-TPL-201 | 3 | 1 | 1 | 5 |
+| UC-TPL-202 | 2 | 1 | 1 | 4 |
+| UC-TPL-203 | 2 | 1 | 1 | 4 |
+| **Total** | **55** | **21** | **14** | **90** |
+
+### Implementation Status Summary
+
+| Category | Total | Implemented | In Progress | Planned | Phase 2 |
+|----------|-------|-------------|-------------|---------|---------|
+| Use Cases | 14 | 0 | 0 | 13 | 1 |
+| Functional Requirements | 10 | 0 | 0 | 10 | 0 |
+| Business Rules | 26 | 0 | 0 | 26 | 0 |
+| Validation Rules | 17 | 0 | 0 | 17 | 0 |
+| Test Cases | 90 | 0 | 0 | 85 | 5 |
 
 ---
 
@@ -1967,7 +2186,7 @@ If Vendor Management unavailable:
 - **Alternative Flow**: Valid variation from main flow for different scenarios
 - **Exception Flow**: Error handling and recovery paths when problems occur
 - **Template**: Reusable blueprint for creating purchase requests with predefined items
-- **Line Item**: Individual product entry within a template with specifications and pricing
+- **Line Item**: Individual product entry within a template with item code, description, quantity, unit price, and financial coding
 - **Bulk Operation**: Action performed on multiple templates simultaneously
 - **Default Template**: Template marked as preferred choice for a department
 - **Clone**: Action to create exact copy of existing template
