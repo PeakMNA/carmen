@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Documentation Team | Initial version |
 
 ---
@@ -64,7 +65,7 @@ flowchart TD
 
     Rules --> Operations([Operational Phase])
     Operations --> Trans[Operational Transactions]
-    Trans --> Auto{Auto-Post<br/>Enabled?}
+    Trans --> Auto{Auto-Post<br>Enabled?}
 
     Auto -->|Yes| Engine[Posting Engine]
     Engine --> Eval[Evaluate Mapping Rules]
@@ -73,7 +74,7 @@ flowchart TD
 
     Auto -->|No| Manual[Manual Journal Entry]
     Manual --> Validate[Validate Balanced Entry]
-    Validate --> Auth{Approval<br/>Required?}
+    Validate --> Auth{Approval<br>Required?}
     Auth -->|Yes| Approve[Route for Approval]
     Approve --> Approved{Approved?}
     Approved -->|No| Rejected([End: Rejected])
@@ -86,7 +87,7 @@ flowchart TD
 
     Reporting --> TB[Generate Trial Balance]
     TB --> FS[Financial Statements]
-    FS --> Close{Period<br/>Close?}
+    FS --> Close{Period<br>Close?}
 
     Close -->|Yes| PeriodClose[Execute Period Close]
     PeriodClose --> Lock[Lock Period]
@@ -140,11 +141,11 @@ flowchart TD
     Event --> Consumer[Posting Engine Consumes Event]
     Consumer --> Fetch[Retrieve Transaction Details]
 
-    Fetch --> Check1{Transaction<br/>Already Posted?}
+    Fetch --> Check1{Transaction<br>Already Posted?}
     Check1 -->|Yes| Duplicate([Ignore Duplicate])
     Check1 -->|No| Continue1[Continue Processing]
 
-    Continue1 --> Check2{Period<br/>Open?}
+    Continue1 --> Check2{Period<br>Open?}
     Check2 -->|No| Error1[/Error: Period Closed/]
     Error1 --> Queue1[(Add to Error Queue)]
     Queue1 --> Notify1[/Notify Finance Team/]
@@ -152,7 +153,7 @@ flowchart TD
     Check2 -->|Yes| CallMapping[Call Mapping Rule Engine]
     CallMapping --> EvalRules[Evaluate Rules by Priority]
 
-    EvalRules --> Match{Rule<br/>Matched?}
+    EvalRules --> Match{Rule<br>Matched?}
     Match -->|No| Unmapped[(Add to Unmapped Queue)]
     Unmapped --> Notify2[/Notify Finance Team/]
     Notify2 --> End1([End: Manual Review Required])
@@ -161,25 +162,25 @@ flowchart TD
     GetAccounts --> GetDims[Get Dimension Mappings]
 
     GetDims --> Construct[Construct Journal Entry Lines]
-    Construct --> AddTax{Taxable<br/>Transaction?}
+    Construct --> AddTax{Taxable<br>Transaction?}
     AddTax -->|Yes| TaxLine[Add Tax Line]
     AddTax -->|No| Continue2[Continue]
     TaxLine --> Continue2
 
-    Continue2 --> MultiCurr{Foreign<br/>Currency?}
+    Continue2 --> MultiCurr{Foreign<br>Currency?}
     MultiCurr -->|Yes| Convert[Convert to Base Currency]
     MultiCurr -->|No| Continue3[Continue]
     Convert --> Continue3
 
     Continue3 --> Validate[Validate Balanced Entry]
-    Validate --> Balanced{Debits =<br/>Credits?}
+    Validate --> Balanced{Debits =<br>Credits?}
     Balanced -->|No| Error2[/Error: Unbalanced Entry/]
     Error2 --> Queue2[(Add to Error Queue)]
     Queue2 --> Notify3[/Notify Finance Team/]
 
     Balanced -->|Yes| Lock[Optimistic Locking Check]
-    Lock --> Conflict{Concurrent<br/>Posting?}
-    Conflict -->|Yes| Retry{Retry<br/>Count < 3?}
+    Lock --> Conflict{Concurrent<br>Posting?}
+    Conflict -->|Yes| Retry{Retry<br>Count < 3?}
     Retry -->|Yes| Wait[Wait with Backoff]
     Wait --> Lock
     Retry -->|No| Error3[/Error: Concurrent Conflict/]
@@ -252,23 +253,23 @@ flowchart TD
     Account2 --> Amount2[Enter Amount]
     Amount2 --> Dims2[Assign Dimensions]
 
-    Dims2 --> More{More<br/>Lines?}
+    Dims2 --> More{More<br>Lines?}
     More -->|Yes| AddLine[Add Another Line]
-    AddLine --> SelectType{Debit or<br/>Credit?}
+    AddLine --> SelectType{Debit or<br>Credit?}
     SelectType -->|Debit| Account1
     SelectType -->|Credit| Account2
 
     More -->|No| Calculate[Calculate Balance]
-    Calculate --> Balanced{Debits =<br/>Credits?}
+    Calculate --> Balanced{Debits =<br>Credits?}
     Balanced -->|No| Warning[/Show Balance Warning/]
     Warning --> Dims2
 
-    Balanced -->|Yes| Attach{Attach<br/>Documents?}
+    Balanced -->|Yes| Attach{Attach<br>Documents?}
     Attach -->|Yes| Upload[Upload Supporting Docs]
     Attach -->|No| Continue1[Continue]
     Upload --> Continue1
 
-    Continue1 --> Notes{Add<br/>Notes?}
+    Continue1 --> Notes{Add<br>Notes?}
     Notes -->|Yes| AddNotes[Enter Internal Notes]
     Notes -->|No| Continue2[Continue]
     AddNotes --> Continue2
@@ -287,15 +288,15 @@ flowchart TD
     ServerOK -->|No| ReturnErrors[/Return Validation Errors/]
     ReturnErrors --> ShowErrors
 
-    ServerOK -->|Yes| PeriodCheck{Period<br/>Open?}
+    ServerOK -->|Yes| PeriodCheck{Period<br>Open?}
     PeriodCheck -->|No| ErrorPeriod[/Error: Period Closed/]
     ErrorPeriod --> ShowErrors
 
-    PeriodCheck -->|Yes| AccountCheck{All Accounts<br/>Active?}
+    PeriodCheck -->|Yes| AccountCheck{All Accounts<br>Active?}
     AccountCheck -->|No| ErrorAccount[/Error: Inactive Account/]
     ErrorAccount --> ShowErrors
 
-    AccountCheck -->|Yes| AuthCheck{Amount Exceeds<br/>User Authority?}
+    AccountCheck -->|Yes| AuthCheck{Amount Exceeds<br>User Authority?}
     AuthCheck -->|Yes| RouteApproval[Route for Approval]
     RouteApproval --> WaitApproval[Status: Pending Approval]
     WaitApproval --> Approver[Controller Reviews]
@@ -353,13 +354,13 @@ flowchart TD
 flowchart TD
     Start([Request Account Assignment]) --> Input[/Transaction Data/]
     Input --> Extract[Extract Criteria]
-    Extract --> Query[Query Active Rules<br/>ORDER BY Priority ASC]
+    Extract --> Query[Query Active Rules<br>ORDER BY Priority ASC]
 
     Query --> Rules[(Get Rules)]
-    Rules --> Loop{More Rules<br/>to Evaluate?}
+    Rules --> Loop{More Rules<br>to Evaluate?}
 
     Loop -->|No| NoMatch[No Rule Matched]
-    NoMatch --> DefaultRule{Use Default<br/>Rule?}
+    NoMatch --> DefaultRule{Use Default<br>Rule?}
     DefaultRule -->|Yes| Default[Apply Default Rule]
     Default --> ReturnDefault[Return Default Accounts]
     ReturnDefault --> End1([End: Default])
@@ -367,34 +368,34 @@ flowchart TD
     Error --> End2([End: Unmapped])
 
     Loop -->|Yes| NextRule[Get Next Rule]
-    NextRule --> CheckActive{Rule<br/>Active?}
+    NextRule --> CheckActive{Rule<br>Active?}
     CheckActive -->|No| Loop
 
-    CheckActive -->|Yes| CheckDates{Current Date<br/>in Range?}
+    CheckActive -->|Yes| CheckDates{Current Date<br>in Range?}
     CheckDates -->|No| Loop
 
     CheckDates -->|Yes| EvalCriteria[Evaluate Rule Criteria]
-    EvalCriteria --> CheckDoc{document_type<br/>Matches?}
+    EvalCriteria --> CheckDoc{document_type<br>Matches?}
     CheckDoc -->|No| Loop
 
-    CheckDoc -->|Yes| CheckTrans{transaction_type<br/>Matches?}
+    CheckDoc -->|Yes| CheckTrans{transaction_type<br>Matches?}
     CheckTrans -->|No| Loop
 
-    CheckTrans -->|Yes| CheckCat{category<br/>Matches?}
+    CheckTrans -->|Yes| CheckCat{category<br>Matches?}
     CheckCat -->|No| Loop
 
-    CheckCat -->|Yes| CheckDept{department<br/>Matches?}
+    CheckCat -->|Yes| CheckDept{department<br>Matches?}
     CheckDept -->|No| Loop
 
-    CheckDept -->|Yes| CheckLoc{location<br/>Matches?}
+    CheckDept -->|Yes| CheckLoc{location<br>Matches?}
     CheckLoc -->|No| Loop
 
-    CheckLoc -->|Yes| CheckAmount{amount_range<br/>Matches?}
+    CheckLoc -->|Yes| CheckAmount{amount_range<br>Matches?}
     CheckAmount -->|No| Loop
 
-    CheckAmount -->|Yes| CheckCondition{Conditional<br/>Logic?}
+    CheckAmount -->|Yes| CheckCondition{Conditional<br>Logic?}
     CheckCondition -->|Yes| EvalCondition[Evaluate IF-THEN Logic]
-    EvalCondition --> CondResult{Condition<br/>Met?}
+    EvalCondition --> CondResult{Condition<br>Met?}
     CondResult -->|No| Loop
     CondResult -->|Yes| Match[Rule Matched!]
     CheckCondition -->|No| Match
@@ -403,7 +404,7 @@ flowchart TD
     GetAccounts --> GetDims[Extract Dimension Mappings]
     GetDims --> Resolve[Resolve Dimension Values]
 
-    Resolve --> Validate{All Required<br/>Dimensions?}
+    Resolve --> Validate{All Required<br>Dimensions?}
     Validate -->|No| MissingDim[/Warning: Missing Dimensions/]
     MissingDim --> Continue[Use NULL for Missing]
     Validate -->|Yes| Continue
@@ -451,31 +452,31 @@ flowchart TD
 
     Wizard --> Phase1[Phase 1: Pre-Close Validation]
     Phase1 --> Check1[Check All Docs Posted]
-    Check1 --> Result1{All<br/>Posted?}
+    Check1 --> Result1{All<br>Posted?}
     Result1 -->|No| Fix1[/List Unposted Documents/]
     Fix1 --> Manual1[Manual Resolution Required]
     Manual1 --> Check1
 
     Result1 -->|Yes| Check2[Check Bank Reconciliations]
-    Check2 --> Result2{All<br/>Complete?}
+    Check2 --> Result2{All<br>Complete?}
     Result2 -->|No| Fix2[/List Pending Reconciliations/]
     Fix2 --> Manual2[Complete Reconciliations]
     Manual2 --> Check2
 
     Result2 -->|Yes| Check3[Check Inventory Reconciliation]
-    Check3 --> Result3{Variance<br/>Acceptable?}
+    Check3 --> Result3{Variance<br>Acceptable?}
     Result3 -->|No| Fix3[/Show Variance Report/]
     Fix3 --> Manual3[Investigate and Adjust]
     Manual3 --> Check3
 
     Result3 -->|Yes| Check4[Check AP/AR Reconciliations]
-    Check4 --> Result4{All<br/>Complete?}
+    Check4 --> Result4{All<br>Complete?}
     Result4 -->|No| Fix4[/List Pending Reconciliations/]
     Fix4 --> Manual4[Complete Reconciliations]
     Manual4 --> Check4
 
     Result4 -->|Yes| Check5[Check Unmapped Transactions]
-    Check5 --> Result5{Any<br/>Unmapped?}
+    Check5 --> Result5{Any<br>Unmapped?}
     Result5 -->|Yes| Fix5[/Show Unmapped Queue/]
     Fix5 --> Manual5[Map or Create Rules]
     Manual5 --> Check5
@@ -484,7 +485,7 @@ flowchart TD
     Validated --> Phase2[Phase 2: Generate Reports]
 
     Phase2 --> TB[Generate Trial Balance]
-    TB --> BalanceCheck{Debits =<br/>Credits?}
+    TB --> BalanceCheck{Debits =<br>Credits?}
     BalanceCheck -->|No| ImbalanceError[/Critical Error: Imbalanced/]
     ImbalanceError --> Investigate[Investigate Imbalance]
     Investigate --> TB
@@ -502,7 +503,7 @@ flowchart TD
     Prepayments --> Reclassify[Post Reclassifications]
     Reclassify --> FinalTB[Generate Final Trial Balance]
 
-    FinalTB --> FinalCheck{Still<br/>Balanced?}
+    FinalTB --> FinalCheck{Still<br>Balanced?}
     FinalCheck -->|No| ImbalanceError
     FinalCheck -->|Yes| Phase4[Phase 4: Soft Close]
 
@@ -511,12 +512,12 @@ flowchart TD
     BlockRegular --> AllowController[Allow Controller Corrections]
     AllowController --> MgmtReview[Management Review Period]
 
-    MgmtReview --> Corrections{Corrections<br/>Needed?}
+    MgmtReview --> Corrections{Corrections<br>Needed?}
     Corrections -->|Yes| PostCorrections[Controller Posts Adjustments]
     PostCorrections --> FinalTB
 
     Corrections -->|No| Approval[Request CFO Approval]
-    Approval --> CFODecision{CFO<br/>Approves?}
+    Approval --> CFODecision{CFO<br>Approves?}
     CFODecision -->|No| Rejected([End: Reopen for Corrections])
 
     CFODecision -->|Yes| Phase5[Phase 5: Hard Close]
@@ -593,7 +594,7 @@ flowchart TD
 ```mermaid
 flowchart LR
     Accountant([Accountant]) -->|Create Manual JE| ACM
-    ACM{Account Code<br/>Mapping<br/>System}
+    ACM{Account Code<br>Mapping<br>System}
     ACM -->|JE Confirmation| Accountant
 
     Controller([Controller]) -->|Manage COA & Rules| ACM
@@ -604,12 +605,12 @@ flowchart LR
 
     ACM <-->|Query/Update| GLDB[(GL Database)]
 
-    Procurement([Procurement<br/>System]) -->|Transaction Events| ACM
-    Inventory([Inventory<br/>System]) -->|Transaction Events| ACM
-    Sales([Sales<br/>System]) -->|Transaction Events| ACM
+    Procurement([Procurement<br>System]) -->|Transaction Events| ACM
+    Inventory([Inventory<br>System]) -->|Transaction Events| ACM
+    Sales([Sales<br>System]) -->|Transaction Events| ACM
 
-    ACM -->|JE Posted Events| Budget([Budget<br/>System])
-    ACM -->|Balance Updates| Reporting([Reporting<br/>System])
+    ACM -->|JE Posted Events| Budget([Budget<br>System])
+    ACM -->|Balance Updates| Reporting([Reporting<br>System])
 
     style Accountant fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Controller fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -725,7 +726,7 @@ sequenceDiagram
     participant IS as Inventory System
 
     PS->>Queue: Publish GRN Posted Event
-    Note over Queue: Event: {grn_id, vendor_id,<br/>amount, department, items}
+    Note over Queue: Event: {grn_id, vendor_id,<br>amount, department, items}
 
     Queue->>PE: Consume Event
     PE->>DB: Check if already posted
@@ -742,7 +743,7 @@ sequenceDiagram
     ME-->>PE: Account Assignments + Dimensions
 
     PE->>PE: Construct Journal Entry Lines
-    Note over PE: Line 1: Debit Inventory $5000<br/>Line 2: Credit AP $5000
+    Note over PE: Line 1: Debit Inventory $5000<br>Line 2: Credit AP $5000
 
     PE->>PE: Validate Balanced Entry
     Note over PE: Debits ($5000) = Credits ($5000) ✓
@@ -763,7 +764,7 @@ sequenceDiagram
 
     PE->>DB: Update Materialized Views (Async)
     PE->>PS: Send Confirmation
-    Note over PS: GRN status updated:<br/>Posted to GL = true
+    Note over PS: GRN status updated:<br>Posted to GL = true
 ```
 
 **Key Interactions**:
@@ -795,7 +796,7 @@ sequenceDiagram
     UI->>UI: Initialize Form State
 
     A->>UI: Enter Header & Lines
-    Note over UI: Entry Date: 2025-11-12<br/>Desc: Accrual for utilities<br/>Line 1: Debit 5300 $3300<br/>Line 2: Credit 2300 $3300
+    Note over UI: Entry Date: 2025-11-12<br>Desc: Accrual for utilities<br>Line 1: Debit 5300 $3300<br>Line 2: Credit 2300 $3300
 
     A->>UI: Click Post Entry
     UI->>UI: Client Validation
@@ -1065,7 +1066,7 @@ flowchart LR
         PE2 --> Map2[Map to Accounts]
         Map2 --> JE2[Generate JE]
 
-        JE2 --> Type{Transaction<br/>Type}
+        JE2 --> Type{Transaction<br>Type}
         Type -->|Adjustment| Adj1[Debit/Credit: Inventory]
         Type -->|Adjustment| Adj2[Credit/Debit: Variance]
         Type -->|Transfer| Trans1[Credit: Inventory From]
@@ -1103,7 +1104,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     Start([Initiate Reconciliation]) --> Select[Select Account to Reconcile]
-    Select --> Type{Account<br/>Type}
+    Select --> Type{Account<br>Type}
 
     Type -->|Inventory| InvSubledger[Query Inventory System]
     Type -->|AP| APSubledger[Query AP Sub-Ledger]
@@ -1124,20 +1125,20 @@ flowchart TD
     Compare --> GLBalance[Get GL Account Balance]
     GLBalance --> Calculate[Calculate Variance]
 
-    Calculate --> Variance{Variance<br/>= 0?}
+    Calculate --> Variance{Variance<br>= 0?}
     Variance -->|Yes| Reconciled[Mark as Reconciled]
     Reconciled --> Success([End: Reconciled])
 
-    Variance -->|No| Acceptable{Variance<br/>Acceptable?}
+    Variance -->|No| Acceptable{Variance<br>Acceptable?}
     Acceptable -->|Yes| Document[Document Variance Reason]
     Document --> Reconciled
 
     Acceptable -->|No| Investigate[Investigate Variance]
-    Investigate --> Find{Root Cause<br/>Found?}
+    Investigate --> Find{Root Cause<br>Found?}
     Find -->|No| Escalate[Escalate to Controller]
     Escalate --> Manual([End: Manual Review])
 
-    Find -->|Yes| Fix{Can<br/>Fix?}
+    Find -->|Yes| Fix{Can<br>Fix?}
     Fix -->|Yes| Correct[Post Correction Entry]
     Correct --> Compare
 

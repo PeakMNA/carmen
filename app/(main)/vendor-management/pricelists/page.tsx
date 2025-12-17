@@ -43,7 +43,7 @@ const getVendorName = (vendorId: string) => {
 const mockPricelistsLegacy = [
   {
     id: 'pl-001',
-    pricelistNumber: 'PL-2024-001',
+    pricelistNumber: 'PL-2410-001',
     vendorName: 'Fresh Foods Co.',
     vendorId: 'vendor-001',
     name: 'Q2 2024 Standard Pricing',
@@ -60,7 +60,7 @@ const mockPricelistsLegacy = [
   },
   {
     id: 'pl-002',
-    pricelistNumber: 'PL-2024-002',
+    pricelistNumber: 'PL-2410-002',
     vendorName: 'Premium Beverages Ltd.',
     vendorId: 'vendor-002',
     name: 'Summer Sale 2024',
@@ -77,7 +77,7 @@ const mockPricelistsLegacy = [
   },
   {
     id: 'pl-003',
-    pricelistNumber: 'PL-2024-003',
+    pricelistNumber: 'PL-2410-003',
     vendorName: 'Hotel Supplies Inc.',
     vendorId: 'vendor-003',
     name: 'Q1 2024 Pricing',
@@ -94,7 +94,7 @@ const mockPricelistsLegacy = [
   },
   {
     id: 'pl-004',
-    pricelistNumber: 'PL-2024-004',
+    pricelistNumber: 'PL-2410-004',
     vendorName: 'Outdoor Living Co.',
     vendorId: 'vendor-004',
     name: 'Q3 2024 Draft Pricing',

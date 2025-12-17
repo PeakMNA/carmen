@@ -26,6 +26,7 @@ This document defines comprehensive validation rules for the Inventory Adjustmen
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 2.0.0 | 2025-01-10 | Development Team | Updated for shared costing methods |
 | 2.1.0 | 2025-12-09 | Development Team | Updated VAL-INV-ADJ-003 with type-specific adjustment reasons (IN/OUT), added VAL-INV-ADJ-007 costing rules based on type |
@@ -170,12 +171,12 @@ const VALID_IN_REASONS = ADJUSTMENT_REASONS.IN.map(r => r.value);
 // Zod schema with type discrimination
 const adjustmentReasonOutSchema = z.enum(
   ['damaged', 'expired', 'theft_loss', 'spoilage', 'count_variance', 'quality_rejection', 'other'],
-  { errorMap: () => ({ message: "Invalid OUT adjustment reason" }) }
+  { errorMap: () => ({ message: 'Invalid OUT adjustment reason' }) }
 );
 
 const adjustmentReasonInSchema = z.enum(
   ['count_variance', 'found_items', 'return_to_stock', 'system_correction', 'other'],
-  { errorMap: () => ({ message: "Invalid IN adjustment reason" }) }
+  { errorMap: () => ({ message: 'Invalid IN adjustment reason' }) }
 );
 
 // Type-aware validation function
@@ -623,7 +624,7 @@ function validateSearchQuery(query?: string): void {
 ```
 
 **Test Scenarios**:
-- ✅ Valid: "ADJ-2025-001", "flour", "jan 2025"
+- ✅ Valid: "ADJ-2501-0001", "flour", "jan 2025"
 - ✅ Valid: "" or null (empty search)
 - ❌ Invalid: query with 101 characters
 - ❌ Invalid: "ADJ' OR '1'='1" (SQL injection)
@@ -2514,7 +2515,7 @@ function handleValidationError(error: ValidationErrorResponse): void {
 
   // Highlight invalid field if present
   if (field) {
-    const element = document.querySelector(`[name="${field}"]`);
+    const element = document.querySelector(`[name='${field}']`);
 
     if (element) {
       element.classList.add(
@@ -2544,7 +2545,7 @@ function handleValidationError(error: ValidationErrorResponse): void {
 
 // Clear field error styling
 function clearFieldError(field: string): void {
-  const element = document.querySelector(`[name="${field}"]`);
+  const element = document.querySelector(`[name='${field}']`);
   element?.classList.remove('border-red-500', 'border-yellow-500');
 }
 ```

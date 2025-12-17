@@ -1,11 +1,12 @@
 # DS-INV-ADJ: Inventory Adjustments Data Definition
 
-**Document Version**: 2.1 (Type-Specific Reasons)
-**Last Updated**: 2025-12-09
+**Document Version**: 2.2 (Two-Level Category/Reason Classification)
+**Last Updated**: 2025-12-13
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.2.0 | 2025-12-13 | Documentation Team | Added Two-Level Category/Reason Classification structure (Category at header-level, Reason at item-level for GL mapping) |
 | 2.1.0 | 2025-12-09 | Documentation Team | Updated enum_adjustment_reason to type-specific (IN/OUT), added costing rules |
 | 2.0.0 | 2025-11-19 | Documentation Team | Aligned with Shared Methods |
 | 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
@@ -472,7 +473,7 @@ ORDER BY created_at ASC;
 | `status` | ENUM | NOT NULL | 'DRAFT' | DRAFT, POSTED, VOIDED |
 | `transaction_date` | DATE | NOT NULL | - | Transaction date |
 | `description` | TEXT | NULLABLE | NULL | Transaction description |
-| `reference_no` | VARCHAR(50) | NULLABLE | NULL | Reference number (e.g., ADJ-2025-001) |
+| `reference_no` | VARCHAR(50) | NULLABLE | NULL | Reference number (e.g., ADJ-2501-0001) |
 | `created_by` | UUID | NOT NULL, FOREIGN KEY | - | User who created |
 | `created_at` | TIMESTAMP | NOT NULL | now() | Creation timestamp |
 
@@ -527,7 +528,7 @@ INSERT INTO tb_inventory_transaction_detail (
   'DRAFT',                -- Start as draft
   '2025-01-10',
   'Damaged goods - physical count adjustment',
-  'ADJ-2025-001',
+  'ADJ-2501-0001',
   'user-uuid',
   NOW()
 );
@@ -592,13 +593,13 @@ WHERE id = 'detail-uuid-123';
 | `id` | UUID | PRIMARY KEY | gen_random_uuid() | Unique journal header identifier |
 | `adjustment_transaction_id` | UUID | NOT NULL, FOREIGN KEY | - | Links to inventory transaction detail |
 | `journal_status` | ENUM | NOT NULL | 'DRAFT' | DRAFT, POSTED, VOIDED |
-| `journal_no` | VARCHAR(50) | NOT NULL, UNIQUE | - | Journal entry number (e.g., JE-2025-001) |
+| `journal_no` | VARCHAR(50) | NOT NULL, UNIQUE | - | Journal entry number (e.g., JE-2501-0001) |
 | `posting_date` | DATE | NOT NULL | - | GL posting date |
 | `posting_period` | VARCHAR(7) | NOT NULL | - | Period (YYYY-MM) |
 | `total_debit` | DECIMAL(20, 2) | NOT NULL | 0 | Total debit amount |
 | `total_credit` | DECIMAL(20, 2) | NOT NULL | 0 | Total credit amount |
 | `description` | TEXT | NULLABLE | NULL | Journal description |
-| `reference` | VARCHAR(100) | NULLABLE | NULL | Reference (e.g., ADJ-2025-001) |
+| `reference` | VARCHAR(100) | NULLABLE | NULL | Reference (e.g., ADJ-2501-0001) |
 | `created_by` | UUID | NOT NULL, FOREIGN KEY | - | User who created |
 | `created_at` | TIMESTAMP | NOT NULL | now() | Creation timestamp |
 | `posted_by` | UUID | NULLABLE, FOREIGN KEY | NULL | User who posted |
@@ -708,7 +709,7 @@ CREATE INDEX idx_journal_entry_department
 **Journal Generation Example**:
 
 ```sql
--- For ADJ-2025-001: OUT 30 units @ $12.50 = $375 (damaged goods)
+-- For ADJ-2501-0001: OUT 30 units @ $12.50 = $375 (damaged goods)
 
 -- Step 1: Create journal header
 INSERT INTO tb_adjustment_journal_header (
@@ -728,13 +729,13 @@ INSERT INTO tb_adjustment_journal_header (
   gen_random_uuid(),
   'detail-uuid-123',
   'DRAFT',
-  'JE-2025-001',
+  'JE-2501-0001',
   '2025-01-10',
   '2025-01',
   375.00,
   375.00,
   'Inventory adjustment - damaged goods',
-  'ADJ-2025-001',
+  'ADJ-2501-0001',
   'user-uuid',
   NOW()
 );
@@ -760,7 +761,7 @@ INSERT INTO tb_adjustment_journal_entry (
   375.00,
   0.00,
   'department-kitchen-uuid',
-  'ADJ-2025-001',
+  'ADJ-2501-0001',
   NOW()
 );
 
@@ -785,7 +786,7 @@ INSERT INTO tb_adjustment_journal_entry (
   0.00,
   375.00,
   'department-kitchen-uuid',
-  'ADJ-2025-001',
+  'ADJ-2501-0001',
   NOW()
 );
 ```
@@ -871,6 +872,97 @@ CREATE TYPE enum_adjustment_reason_in AS ENUM (
 **Costing Rules by Type**:
 - Stock OUT: Unit cost = product's average cost (automatically populated, read-only)
 - Stock IN: Unit cost must be manually entered (required, affects inventory valuation)
+
+---
+
+### Two-Level Category/Reason Classification
+
+**Purpose**: Provides financial categorization at header level (Category → GL Account) with detailed reasons at item level for reporting and analysis. This two-level structure enables:
+- **Category (Header-Level)**: Maps to GL accounts for financial reporting
+- **Reason (Item-Level)**: Provides specific detail within each category, filtered by the selected category
+
+**Data Structure**:
+
+#### TypeScript Interface (Frontend)
+
+```typescript
+// Individual reason option within a category
+interface CategoryReason {
+  value: string      // Machine-readable identifier (e.g., "damaged")
+  label: string      // User-friendly display name (e.g., "Damaged Goods")
+}
+
+// Category with its available reasons
+interface AdjustmentCategory {
+  value: string              // Category identifier (e.g., "wastage")
+  label: string              // Display name (e.g., "Wastage")
+  reasons: CategoryReason[]  // Available reasons for this category
+}
+
+// Type-specific categories
+type AdjustmentCategories = Record<'IN' | 'OUT', AdjustmentCategory[]>
+```
+
+#### Stock OUT Categories
+
+| Category | GL Account | Reasons | Description |
+|----------|------------|---------|-------------|
+| **Wastage** | 5200 Waste Expense | Damaged Goods, Expired Items, Spoilage | Items unfit for use due to damage, expiration, or spoilage |
+| **Loss** | 5210 Inventory Loss | Theft/Loss, Pilferage, Missing Items | Items missing due to theft, loss, or unexplained reasons |
+| **Quality** | 5100 COGS | Quality Control Rejection, Below Standard | Items rejected during QC inspection |
+| **Consumption** | 5100 COGS | Tastings, Breakage, Shrinkage | Items consumed during operations or lost to normal shrinkage |
+
+#### Stock IN Categories
+
+| Category | GL Account | Reasons | Description |
+|----------|------------|---------|-------------|
+| **Found** | 1310 Raw Materials Inventory | Count Variance, Found Items | Items discovered during physical count or previously lost items |
+| **Return** | 1310 Raw Materials Inventory | Return to Stock, Rejected Return | Items returned to inventory from production or rejected returns |
+| **Correction** | 1310 Raw Materials Inventory | System Correction, Data Entry Error | Corrections for system errors or data entry mistakes |
+
+**Cascading Reset Behavior**:
+1. When adjustment type (IN/OUT) changes → Category resets to empty → All item reasons reset
+2. When category changes → All item reasons reset (since reasons are category-specific)
+
+**Storage**: Category and item reasons stored in `tb_inventory_transaction_detail.info` JSON field:
+
+```json
+{
+  "category": "wastage",
+  "items": [
+    {
+      "product_id": "uuid-123",
+      "reason": "damaged",
+      "qty": 10,
+      "unit_cost": 5.00
+    },
+    {
+      "product_id": "uuid-456",
+      "reason": "expired",
+      "qty": 5,
+      "unit_cost": 3.50
+    }
+  ]
+}
+```
+
+**GL Account Mapping by Category**:
+
+| Adjustment Type | Category | Debit Account | Credit Account |
+|----------------|----------|---------------|----------------|
+| OUT | Wastage | 5200 Waste Expense | 1310 Raw Materials Inventory |
+| OUT | Loss | 5210 Inventory Loss | 1310 Raw Materials Inventory |
+| OUT | Quality | 5100 COGS | 1310 Raw Materials Inventory |
+| OUT | Consumption | 5100 COGS | 1310 Raw Materials Inventory |
+| IN | Found | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| IN | Return | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+| IN | Correction | 1310 Raw Materials Inventory | 5110 Inventory Variance |
+
+**Implementation Notes**:
+- Category is selected once per adjustment at the header level
+- Each item can have a different reason within the selected category
+- Reason dropdown is dynamically filtered based on the header-level category selection
+- Future: Replace hardcoded data with API call to Transaction Category/Reason master CRUD
 
 ---
 

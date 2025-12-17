@@ -46,8 +46,12 @@ import {
   History,
 } from "lucide-react";
 import { PurchaseRequestItem, PRStatus, asMockPurchaseRequestItem, MockPurchaseRequestItem } from "@/lib/types";
+import { mockCurrencies } from "@/lib/mock-data";
 import type { User } from "./types";
 import { ItemDetailsEditForm } from "../item-details-edit-form";
+
+// Get base currency from mock data
+const baseCurrency = mockCurrencies.find(c => c.isBaseCurrency)?.code || 'USD';
 import { samplePRItems } from "@/lib/mock-data/purchase-requests";
 import { WorkflowDecisionEngine } from "../../services/workflow-decision-engine";
 import { NewItemRow } from "./NewItemRow";
@@ -535,7 +539,7 @@ export function ItemsTab({ items = samplePRItems, currentUser, onOrderUpdate, fo
   // Mock data for purchase orders
   const mockPurchaseOrders = [
     {
-      poNumber: "PO-2024-001",
+      poNumber: "PO-2410-001",
       vendor: "Fresh Foods Ltd",
       orderDate: "2024-01-10",
       expectedDate: "2024-01-20",
@@ -546,7 +550,7 @@ export function ItemsTab({ items = samplePRItems, currentUser, onOrderUpdate, fo
       totalAmount: 1250.00
     },
     {
-      poNumber: "PO-2024-015",
+      poNumber: "PO-2410-015",
       vendor: "Quality Suppliers",
       orderDate: "2024-01-12",
       expectedDate: "2024-01-22",
@@ -557,7 +561,7 @@ export function ItemsTab({ items = samplePRItems, currentUser, onOrderUpdate, fo
       totalAmount: 590.00
     },
     {
-      poNumber: "PO-2024-028",
+      poNumber: "PO-2410-028",
       vendor: "Bulk Foods Inc",
       orderDate: "2024-01-14",
       expectedDate: "2024-01-25",
@@ -1111,7 +1115,7 @@ export function ItemsTab({ items = samplePRItems, currentUser, onOrderUpdate, fo
                                         // Vendor & Pricing props
                                         vendor={detailMockItem.vendor || "Premium Food Suppliers Inc."}
                                         pricelistNumber={detailMockItem.pricelistNumber || "PL-2024-01-KITCHEN"}
-                                        currency={detailMockItem.currency || "USD"}
+                                        currency={detailMockItem.currency || baseCurrency}
                                         baseCurrency={detailMockItem.baseCurrency}
                                         unitPrice={detailMockItem.price || 3200}
                                         quantity={detailMockItem.quantityApproved || detailMockItem.quantityRequested || 2}
@@ -1187,7 +1191,7 @@ export function ItemsTab({ items = samplePRItems, currentUser, onOrderUpdate, fo
                                         onVendorChange={itemIsPurchaser && formMode === "edit" ? (vendor) => {
                                           item.id && handleItemChange(item.id, 'vendor', vendor);
                                         } : undefined}
-                                        onCurrencyChange={itemIsPurchaser && formMode === "edit" ? (currency) => {
+                                        onCurrencyChange={formMode === "edit" ? (currency) => {
                                           item.id && handleItemChange(item.id, 'currency', currency);
                                         } : undefined}
                                         onCurrencyRateChange={itemIsPurchaser && formMode === "edit" ? (rate) => {
@@ -1225,6 +1229,12 @@ export function ItemsTab({ items = samplePRItems, currentUser, onOrderUpdate, fo
                                           { value: 'WHT', label: 'WHT (3%)', rate: 0.03 },
                                           { value: 'None', label: 'No Tax (0%)', rate: 0 },
                                         ]}
+
+                                        // Comment props
+                                        comment={detailMockItem.comment || ""}
+                                        onCommentChange={formMode === "edit" ? (comment) => {
+                                          item.id && handleItemChange(item.id, 'comment', comment);
+                                        } : undefined}
                                       />
                                     );
                                   })()}

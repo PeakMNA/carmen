@@ -146,8 +146,8 @@ export interface Period {
  *
  * @example
  * const countResult: PhysicalCountCheckResult = {
- *   countId: 'PC-2024-015',
- *   countNumber: 'PC-2024-015',
+ *   countId: 'PC-2410-015',
+ *   countNumber: 'PC-2410-015',
  *   location: 'Main Warehouse',
  *   status: 'finalized',
  *   isValid: true,
@@ -196,8 +196,8 @@ export interface PhysicalCountCheckResult {
  *
  * @example
  * const spotCheckResult: SpotCheckCheckResult = {
- *   checkId: 'SC-2024-042',
- *   checkNumber: 'SC-2024-042',
+ *   checkId: 'SC-2410-042',
+ *   checkNumber: 'SC-2410-042',
  *   location: 'Kitchen Storage',
  *   status: 'completed',
  *   isValid: true,

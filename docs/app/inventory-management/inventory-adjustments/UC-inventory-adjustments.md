@@ -276,7 +276,7 @@
     - For Stock OUT: System uses average cost automatically
 11. User clicks "Save as Draft" or "Post Adjustment"
 12. System validates all required fields
-13. System generates Adjustment # (ADJ-YYYY-NNN format)
+13. System generates Adjustment # (ADJ-YYMM-NNNN format)
 14. System creates adjustment with appropriate status
 15. System navigates to adjustment detail page or list
 
@@ -536,7 +536,7 @@
 2. User clicks "Journal Entries" tab
 3. System displays journal header information:
    - Status badge (Posted)
-   - Journal # (JE-YYYY-NNN)
+   - Journal # (JE-YYMM-NNNN)
    - Posting Date
    - Posting Period (YYYY-MM)
    - Description
@@ -878,7 +878,7 @@
    - Credit: Raw Materials Inventory (1310)
 
 4. System creates journal header:
-   - Journal # = "JE-" + YYYY + "-" + sequence
+   - Journal # = "JE-" + YYMM + "-" + sequence
    - Posting Date = adjustment date
    - Posting Period = YYYY-MM from date
    - Description = "Inventory Adjustment - " + reason

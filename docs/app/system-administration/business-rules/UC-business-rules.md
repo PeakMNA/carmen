@@ -9,6 +9,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -2274,7 +2275,7 @@ This document describes detailed use cases for the Business Rules Management mod
 8. System displays comprehensive change details:
 
    **Audit Entry Header**:
-   - **ID**: AUD-2025-00347
+   - **ID**: AUD-2501-00347
    - **Timestamp**: 2025-01-15 10:15:30
    - **Action**: modified
    - **Rule**: PSR-001 - Pizza Slice Holding Time Limits

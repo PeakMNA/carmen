@@ -15,6 +15,7 @@ This document provides the technical specification for the Workflow Management m
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -327,7 +328,7 @@ const handleAddStage = () => {
     description: "",
     sla: "24",
     slaUnit: "hours",
-    availableActions: ["Submit"],
+    availableActions: ['Submit'],
     hideFields: {
       pricePerUnit: false,
       totalPrice: false
@@ -1736,13 +1737,13 @@ describe('Workflow Configuration E2E', () => {
     await page.click('button:has-text("Create Workflow")')
 
     // Fill general information
-    await page.fill('input[name="name"]', 'E2E Test Workflow')
-    await page.selectOption('select[name="type"]', 'Purchase Request')
+    await page.fill('input[name='name']', 'E2E Test Workflow')
+    await page.selectOption('select[name='type']', 'Purchase Request')
 
     // Add stages
     await page.click('text=Stages')
     await page.click('button:has-text("Add Stage")')
-    await page.fill('input[name="stageName"]', 'Stage 1')
+    await page.fill('input[name='stageName']', 'Stage 1')
     // ... configure stage
 
     // Add routing rules
@@ -1850,38 +1851,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/system-administration/workflow)"]
-    CreatePage["Create Page<br/>(/system-administration/workflow/new)"]
-    DetailPage["Detail Page<br/>(/system-administration/workflow/[id])"]
-    EditPage["Edit Page<br/>(/system-administration/workflow/[id]/edit)"]
+    ListPage['List Page<br>(/system-administration/workflow)']
+    CreatePage['Create Page<br>(/system-administration/workflow/new)']
+    DetailPage["Detail Page<br>(/system-administration/workflow/[id])"]
+    EditPage["Edit Page<br>(/system-administration/workflow/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage

@@ -16,7 +16,7 @@ async function getPurchaseOrderSummary(poRef: string): Promise<Partial<PurchaseO
     await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network delay
 
     // Mock data based on ref - replace with real fetch
-    if (poRef === 'PO-2023-006') {
+    if (poRef === 'PO-2310-006') {
         return {
             poId: 'PO006',
             number: poRef,
@@ -24,7 +24,7 @@ async function getPurchaseOrderSummary(poRef: string): Promise<Partial<PurchaseO
             orderDate: new Date('2023-08-01'),
             status: PurchaseOrderStatus.CLOSED,
         } as any;
-    } else if (poRef === 'PO-2023-007') {
+    } else if (poRef === 'PO-2310-007') {
          return {
             poId: 'PO007',
             number: poRef,

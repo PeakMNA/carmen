@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial gap analysis |
 
 ---
@@ -407,7 +408,7 @@ interface VendorLocationAssignments {
     locationName: string
     isPrimary: boolean
     isActive: boolean
-    deliveryDays: string[] // ["monday", "wednesday", "friday"]
+    deliveryDays: string[] // ['monday', 'wednesday', 'friday']
     minimumOrderValue: number
     leadTimeDays: number
     locationSpecificContact?: {

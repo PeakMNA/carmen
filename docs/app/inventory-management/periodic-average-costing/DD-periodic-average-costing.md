@@ -10,6 +10,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-15 | Documentation Team | Initial DD document created from PROCESS document |
 
 **⚠️ IMPORTANT: This is a Data Definition Document - TEXT FORMAT ONLY**
@@ -302,9 +303,9 @@ CREATE INDEX idx_period_avg_cost_location
     "opening_value": 2500.00,
     "receipt_count": 5,
     "receipt_breakdown": [
-      {"qty": 100, "cost": 10.00, "value": 1000.00},
-      {"qty": 150, "cost": 12.50, "value": 1875.00},
-      {"qty": 80, "cost": 11.00, "value": 880.00}
+      {'qty': 100, 'cost': 10.00, 'value': 1000.00},
+      {'qty': 150, 'cost': 12.50, 'value': 1875.00},
+      {'qty': 80, 'cost': 11.00, 'value': 880.00}
     ],
     "total_available_qty": 580.00,
     "total_available_value": 6255.00,
@@ -405,7 +406,7 @@ CREATE INDEX idx_period_close_log_status
     "period_id": "uuid",
     "average_cost": 10.7845
   },
-  "affected_tables": ["tb_inventory_transaction_cost_layer", "tb_period_average_cost_cache"],
+  "affected_tables": ['tb_inventory_transaction_cost_layer', 'tb_period_average_cost_cache'],
   "batch_details": {
     "batch_size": 1000,
     "batches_completed": 5,

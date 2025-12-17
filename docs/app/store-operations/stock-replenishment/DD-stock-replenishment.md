@@ -150,7 +150,7 @@ CREATE INDEX par_level_approval_idx ON tb_par_level_config(approval_status) WHER
     "multiplier": 0.7
   },
   "holiday": {
-    "dates": ["2025-12-24", "2025-12-25", "2025-12-31"],
+    "dates": ['2025-12-24', '2025-12-25', '2025-12-31'],
     "multiplier": 1.8
   }
 }
@@ -185,14 +185,14 @@ INSERT INTO tb_par_level_config (
 
 ### 3.2 tb_replenishment_request
 
-**Purpose**: Header table for replenishment requests from locations.
+**Purpose**: Header table for transfer requests from locations.
 
 **Table Structure**:
 
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | UUID | PK, DEFAULT gen_random_uuid() | Primary key |
-| request_no | VARCHAR | UNIQUE, NOT NULL | Format: REP-YYYY-NNNN |
+| request_no | VARCHAR | UNIQUE, NOT NULL | Format: REP-YYMM-NNNN |
 | request_date | TIMESTAMPTZ(6) | NOT NULL | Request creation date |
 | required_by_date | TIMESTAMPTZ(6) | NOT NULL | Required delivery date |
 | from_location_id | UUID | NOT NULL, FK → tb_location | Source (warehouse) |
@@ -261,7 +261,7 @@ INSERT INTO tb_replenishment_request (
 ) VALUES
 (
   '550e8400-e29b-41d4-a716-446655440010',
-  'REP-2025-0001',
+  'TRF-2501-0001',
   '2025-01-30 10:00:00+00',
   '2025-01-31 12:00:00+00',
   '550e8400-e29b-41d4-a716-446655440101', -- Central Warehouse
@@ -282,7 +282,7 @@ INSERT INTO tb_replenishment_request (
 
 ### 3.3 tb_replenishment_request_detail
 
-**Purpose**: Line items for replenishment requests.
+**Purpose**: Line items for transfer requests.
 
 **Table Structure**:
 
@@ -347,7 +347,7 @@ ALTER TABLE tb_replenishment_request_detail
 | Column | Type | Constraints | Description |
 |--------|------|-------------|-------------|
 | id | UUID | PK, DEFAULT gen_random_uuid() | Primary key |
-| transfer_no | VARCHAR | UNIQUE, NOT NULL | Format: TRF-YYYY-NNNN |
+| transfer_no | VARCHAR | UNIQUE, NOT NULL | Format: TRF-YYMM-NNNN |
 | transfer_date | TIMESTAMPTZ(6) | NOT NULL | Transfer creation date |
 | from_location_id | UUID | NOT NULL, FK → tb_location | Source location |
 | from_location_name | VARCHAR | | Source name |
@@ -655,13 +655,13 @@ INSERT INTO tb_par_level_config VALUES (
 );
 ```
 
-### 8.2 Complete Replenishment Request
+### 8.2 Complete Transfer Request
 
 ```sql
--- Replenishment Request
+-- Transfer Request
 INSERT INTO tb_replenishment_request VALUES (
   '550e8400-e29b-41d4-a716-446655440010',
-  'REP-2025-0001',
+  'TRF-2501-0001',
   '2025-01-30 10:00:00+00',
   '2025-01-31 12:00:00+00',
   '550e8400-e29b-41d4-a716-446655440101', 'Central Warehouse',
@@ -709,7 +709,7 @@ INSERT INTO tb_replenishment_request_detail VALUES (
 -- Stock Transfer
 INSERT INTO tb_stock_transfer VALUES (
   '550e8400-e29b-41d4-a716-446655440020',
-  'TRF-2025-0001',
+  'TRF-2501-0001',
   '2025-01-30 11:00:00+00',
   '550e8400-e29b-41d4-a716-446655440101', 'Central Warehouse',
   '550e8400-e29b-41d4-a716-446655440100', 'Downtown Kitchen',

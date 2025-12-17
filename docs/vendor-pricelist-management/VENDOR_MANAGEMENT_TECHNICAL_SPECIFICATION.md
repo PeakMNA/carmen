@@ -691,7 +691,7 @@ Pricelist overview and management:
 const mockPricelists = [
   {
     id: 'pl-001',
-    pricelistNumber: 'PL-2024-001',
+    pricelistNumber: 'PL-2401-0001',
     vendorName: 'Fresh Foods Co.',
     status: 'active',
     itemCount: 245,

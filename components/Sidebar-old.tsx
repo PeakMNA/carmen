@@ -153,17 +153,6 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
-    title: "Production",
-    path: "/production",
-    icon: "Factory",
-    subItems: [
-      { name: "Recipe Execution", path: "/production/recipe-execution" },
-      { name: "Batch Production", path: "/production/batch-production" },
-      { name: "Wastage Tracking", path: "/production/wastage-tracking" },
-      { name: "Quality Control", path: "/production/quality-control" },
-    ],
-  },
-  {
     title: "Reporting & Analytics",
     path: "/reporting-analytics",
     icon: "BarChart2",

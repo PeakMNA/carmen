@@ -45,14 +45,7 @@ const locationFormSchema = z.object({
   type: z.nativeEnum(InventoryLocationType),
   status: z.enum(['active', 'inactive', 'closed', 'pending_setup'] as const),
   physicalCountEnabled: z.boolean(),
-  departmentId: z.string().optional(),
-  costCenterId: z.string().optional(),
   consignmentVendorId: z.string().optional(),
-  addressLine1: z.string().optional(),
-  addressLine2: z.string().optional(),
-  city: z.string().optional(),
-  postalCode: z.string().optional(),
-  country: z.string().optional(),
 })
 
 type LocationFormValues = z.infer<typeof locationFormSchema>
@@ -63,24 +56,6 @@ interface LocationFormProps {
   onCancel: () => void
   isSubmitting?: boolean
 }
-
-// Mock departments
-const mockDepartments = [
-  { id: 'dept-kitchen', name: 'Central Kitchen' },
-  { id: 'dept-warehouse', name: 'Warehouse' },
-  { id: 'dept-fnb', name: 'Food & Beverage' },
-  { id: 'dept-maintenance', name: 'Maintenance' },
-  { id: 'dept-housekeeping', name: 'Housekeeping' },
-]
-
-// Mock cost centers
-const mockCostCenters = [
-  { id: 'cc-001', name: 'F&B Operations' },
-  { id: 'cc-002', name: 'Logistics' },
-  { id: 'cc-003', name: 'Bar Operations' },
-  { id: 'cc-004', name: 'Facilities' },
-  { id: 'cc-005', name: 'Consignment' },
-]
 
 // Mock vendors (for consignment)
 const mockVendors = [
@@ -104,14 +79,7 @@ export function LocationForm({
       type: initialData?.type || InventoryLocationType.INVENTORY,
       status: initialData?.status || 'active',
       physicalCountEnabled: initialData?.physicalCountEnabled ?? true,
-      departmentId: initialData?.departmentId || '',
-      costCenterId: initialData?.costCenterId || '',
       consignmentVendorId: initialData?.consignmentVendorId || '',
-      addressLine1: initialData?.addressLine1 || '',
-      addressLine2: initialData?.addressLine2 || '',
-      city: initialData?.city || '',
-      postalCode: initialData?.postalCode || '',
-      country: initialData?.country || 'Thailand',
     },
   })
 
@@ -281,177 +249,44 @@ export function LocationForm({
           </CardContent>
         </Card>
 
-        {/* Organization */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Organization</CardTitle>
-            <CardDescription>Department and cost center assignments</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Consignment Vendor (only shown for consignment type) */}
+        {isConsignment && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Consignment Details</CardTitle>
+              <CardDescription>Vendor information for consignment inventory</CardDescription>
+            </CardHeader>
+            <CardContent>
               <FormField
                 control={form.control}
-                name="departmentId"
+                name="consignmentVendorId"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Department</FormLabel>
+                    <FormLabel>Consignment Vendor *</FormLabel>
                     <Select onValueChange={field.onChange} defaultValue={field.value}>
                       <FormControl>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select department" />
+                          <SelectValue placeholder="Select vendor" />
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {mockDepartments.map((dept) => (
-                          <SelectItem key={dept.id} value={dept.id}>
-                            {dept.name}
+                        {mockVendors.map((vendor) => (
+                          <SelectItem key={vendor.id} value={vendor.id}>
+                            {vendor.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
+                    <FormDescription>
+                      Required for consignment locations
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
-
-              <FormField
-                control={form.control}
-                name="costCenterId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Cost Center</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select cost center" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {mockCostCenters.map((cc) => (
-                          <SelectItem key={cc.id} value={cc.id}>
-                            {cc.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              {isConsignment && (
-                <FormField
-                  control={form.control}
-                  name="consignmentVendorId"
-                  render={({ field }) => (
-                    <FormItem className="md:col-span-2">
-                      <FormLabel>Consignment Vendor *</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select vendor" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {mockVendors.map((vendor) => (
-                            <SelectItem key={vendor.id} value={vendor.id}>
-                              {vendor.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>
-                        Required for consignment locations
-                      </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              )}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Address */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Address</CardTitle>
-            <CardDescription>Physical location address (optional)</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="addressLine1"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address Line 1</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Street address" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="addressLine2"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address Line 2</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Building, floor, etc." />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="city"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>City</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="City" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="postalCode"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Postal Code</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Postal code" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="country"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Country</FormLabel>
-                    <FormControl>
-                      <Input {...field} placeholder="Country" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Actions */}
         <div className="flex justify-end gap-4">

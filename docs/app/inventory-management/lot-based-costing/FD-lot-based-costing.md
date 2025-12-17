@@ -6,6 +6,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Module**: Inventory Management
 **Feature**: Lot-Based Costing with Automatic Lot Creation
@@ -230,7 +231,7 @@ This document provides comprehensive flow diagrams for the lot-based costing sys
               ┌──────────────────────────────┐
               │   Create Transaction Detail  │
               │   - type = adjustment        │
-              │   - id = ADJ-2025-001234     │
+              │   - id = ADJ-2501-001234     │
               └──────────┬───────────────────┘
                          │
                          ▼
@@ -367,7 +368,7 @@ This document provides comprehensive flow diagrams for the lot-based costing sys
         ┌────────────────────────────────────────────────┐
         │   Create Transaction Detail                    │
         │   - type = issue                               │
-        │   - id = ISS-2025-050                          │
+        │   - id = ISS-2501-0050                          │
         │   - quantity = 100 kg                          │
         │   - unit_cost = $5.14 (weighted avg)           │
         └────────────┬───────────────────────────────────┘

@@ -114,6 +114,8 @@ import {
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import StatusBadge from "@/components/ui/custom-status-badge"
+import { getCategoryOptionsForType } from "@/lib/mock-data/transaction-categories"
+import type { AdjustmentType } from "@/lib/types/transaction-category"
 
 // ============================================================================
 // TYPE DEFINITIONS
@@ -122,9 +124,7 @@ import StatusBadge from "@/components/ui/custom-status-badge"
 // These mirror the types used in the new adjustment page but include
 // additional fields for tracking existing adjustment data.
 // ============================================================================
-
-/** Adjustment direction - IN increases inventory, OUT decreases inventory */
-type AdjustmentType = "IN" | "OUT"
+// Note: AdjustmentType is imported from @/lib/types/transaction-category
 
 interface AdjustmentItem {
   id: string
@@ -165,25 +165,13 @@ const mockLocations: Location[] = [
   { id: "loc-4", name: "Dry Store", code: "DS-001" }
 ]
 
-const adjustmentReasons = {
-  IN: [
-    "Physical Count Variance",
-    "System Reconciliation",
-    "Spot Check Variance",
-    "Production Yield Variance",
-    "Found Items",
-    "Other"
-  ],
-  OUT: [
-    "Damaged Goods",
-    "Expired Items",
-    "Quality Control Rejection",
-    "Theft/Loss",
-    "Spoilage",
-    "Breakage",
-    "Other"
-  ]
-}
+// ============================================================================
+// CATEGORY/REASON FEATURE
+// ============================================================================
+// Categories and reasons are now managed via Transaction Category master CRUD:
+// - Navigate to: /inventory-management/transaction-categories
+// - Data is loaded from: getCategoryOptionsForType() from @/lib/mock-data/transaction-categories
+// ============================================================================
 
 const mockProducts = [
   { id: "prod-1", name: "Organic Quinoa", sku: "GRN-QNA-001", unit: "KG", currentStock: 50, avgCost: 45.50 },
@@ -204,18 +192,20 @@ const mockAdjustments: Record<string, {
   status: string
   location: string
   locationId: string
-  reason: string
+  category: string    // Header-level category code
+  reason: string      // Item-level reason (for display, items have their own reasons)
   description: string
   items: AdjustmentItem[]
 }> = {
-  "ADJ-2024-001": {
-    id: "ADJ-2024-001",
+  "ADJ-2410-001": {
+    id: "ADJ-2410-001",
     date: "2024-01-15",
     type: "IN",
     status: "Posted",
     location: "Main Warehouse",
     locationId: "loc-1",
-    reason: "Physical Count Variance",
+    category: "FND",
+    reason: "CNV",
     description: "Adjustment based on monthly physical inventory count",
     items: [
       {
@@ -246,14 +236,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-002": {
-    id: "ADJ-2024-002",
+  "ADJ-2410-002": {
+    id: "ADJ-2410-002",
     date: "2024-01-16",
     type: "OUT",
     status: "Posted",
     location: "Main Warehouse",
     locationId: "loc-1",
-    reason: "Damaged Goods",
+    category: "WST",
+    reason: "DMG",
     description: "Write-off for damaged items found during inspection",
     items: [
       {
@@ -271,14 +262,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-003": {
-    id: "ADJ-2024-003",
+  "ADJ-2410-003": {
+    id: "ADJ-2410-003",
     date: "2024-01-17",
     type: "IN",
     status: "Posted",
     location: "Production Store",
     locationId: "loc-2",
-    reason: "System Reconciliation",
+    category: "COR",
+    reason: "REC",
     description: "System reconciliation after inventory audit",
     items: [
       {
@@ -309,14 +301,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-004": {
-    id: "ADJ-2024-004",
+  "ADJ-2410-004": {
+    id: "ADJ-2410-004",
     date: "2024-01-18",
     type: "OUT",
     status: "Draft",
     location: "Main Warehouse",
     locationId: "loc-1",
-    reason: "Quality Control Rejection",
+    category: "QLT",
+    reason: "QCR",
     description: "Items rejected during quality control inspection",
     items: [
       {
@@ -334,14 +327,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-005": {
-    id: "ADJ-2024-005",
+  "ADJ-2410-005": {
+    id: "ADJ-2410-005",
     date: "2024-01-18",
     type: "IN",
     status: "Draft",
     location: "Production Store",
     locationId: "loc-2",
-    reason: "Spot Check Variance",
+    category: "FND",
+    reason: "CNV",
     description: "Adjustment based on spot check findings",
     items: [
       {
@@ -359,14 +353,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-006": {
-    id: "ADJ-2024-006",
+  "ADJ-2410-006": {
+    id: "ADJ-2410-006",
     date: "2024-01-19",
     type: "OUT",
     status: "Voided",
     location: "Main Warehouse",
     locationId: "loc-1",
-    reason: "Expired Items",
+    category: "WST",
+    reason: "EXP",
     description: "Write-off for expired inventory items - VOIDED",
     items: [
       {
@@ -384,14 +379,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-007": {
-    id: "ADJ-2024-007",
+  "ADJ-2410-007": {
+    id: "ADJ-2410-007",
     date: "2024-01-19",
     type: "IN",
     status: "Posted",
     location: "Production Store",
     locationId: "loc-2",
-    reason: "Production Yield Variance",
+    category: "RTN",
+    reason: "PRD",
     description: "Adjustment for production yield variance",
     items: [
       {
@@ -409,14 +405,15 @@ const mockAdjustments: Record<string, {
       }
     ]
   },
-  "ADJ-2024-008": {
-    id: "ADJ-2024-008",
+  "ADJ-2410-008": {
+    id: "ADJ-2410-008",
     date: "2024-01-20",
     type: "OUT",
     status: "Draft",
     location: "Main Warehouse",
     locationId: "loc-1",
-    reason: "Theft/Loss",
+    category: "LSS",
+    reason: "THF",
     description: "Missing inventory items under investigation",
     items: [
       {
@@ -478,7 +475,7 @@ export default function EditInventoryAdjustmentPage() {
   // ============================================================================
   const [adjustmentType, setAdjustmentType] = useState<AdjustmentType>(existingAdjustment?.type || "OUT")
   const [selectedLocation, setSelectedLocation] = useState(existingAdjustment?.locationId || "")
-  const [selectedReason, setSelectedReason] = useState(existingAdjustment?.reason || "")
+  const [selectedCategory, setSelectedCategory] = useState(existingAdjustment?.category || "")
   const [description, setDescription] = useState(existingAdjustment?.description || "")
   const [items, setItems] = useState<AdjustmentItem[]>(existingAdjustment?.items || [])
   const [isProductSelectorOpen, setIsProductSelectorOpen] = useState(false)
@@ -519,6 +516,24 @@ export default function EditInventoryAdjustmentPage() {
     )
   }, [productSearch])
 
+  /**
+   * Get available categories based on adjustment type
+   * Categories are filtered by type (IN/OUT) and active status
+   */
+  const availableCategories = useMemo(() => {
+    return getCategoryOptionsForType(adjustmentType)
+  }, [adjustmentType])
+
+  /**
+   * Get available reasons based on selected category
+   * Reasons are filtered by parent category
+   */
+  const availableReasons = useMemo(() => {
+    if (!selectedCategory) return []
+    const category = availableCategories.find(c => c.value === selectedCategory)
+    return category?.reasons || []
+  }, [selectedCategory, availableCategories])
+
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
@@ -549,7 +564,7 @@ export default function EditInventoryAdjustmentPage() {
       unit: product.unit,
       unitCost: adjustmentType === "OUT" ? product.avgCost : 0,
       totalCost: adjustmentType === "OUT" ? product.avgCost : 0,
-      reason: selectedReason,
+      reason: "", // Item-level reason - user must select
       notes: ""
     }
 
@@ -612,6 +627,21 @@ export default function EditInventoryAdjustmentPage() {
   }
 
   /**
+   * Update the reason for an item (item-level reason)
+   *
+   * @param itemId - The ID of the item to update
+   * @param reason - The new reason code
+   */
+  const handleUpdateReason = (itemId: string, reason: string) => {
+    setItems(items.map(item => {
+      if (item.id === itemId) {
+        return { ...item, reason }
+      }
+      return item
+    }))
+  }
+
+  /**
    * Validate the adjustment form before submission
    * Checks required fields, item requirements, and cost entries
    *
@@ -623,11 +653,17 @@ export default function EditInventoryAdjustmentPage() {
     if (!selectedLocation) {
       newErrors.location = "Please select a location"
     }
-    if (!selectedReason) {
-      newErrors.reason = "Please select a reason"
+    if (!selectedCategory) {
+      newErrors.category = "Please select a category"
     }
     if (items.length === 0) {
       newErrors.items = "Please add at least one item"
+    }
+
+    // Validate that all items have a reason (item-level)
+    const itemsWithoutReason = items.filter(item => !item.reason)
+    if (itemsWithoutReason.length > 0) {
+      newErrors.reason = "All items must have a reason selected"
     }
 
     // For Stock IN, validate that all items have unit cost
@@ -655,7 +691,7 @@ export default function EditInventoryAdjustmentPage() {
    */
   const handleSaveDraft = () => {
     if (!validateForm()) return
-    console.log("Saving draft:", { adjustmentType, selectedLocation, selectedReason, description, items })
+    console.log("Saving draft:", { adjustmentType, selectedLocation, selectedCategory, description, items })
     router.push("/inventory-management/inventory-adjustments")
   }
 
@@ -666,7 +702,7 @@ export default function EditInventoryAdjustmentPage() {
    */
   const handlePost = () => {
     if (!validateForm()) return
-    console.log("Posting adjustment:", { adjustmentType, selectedLocation, selectedReason, description, items })
+    console.log("Posting adjustment:", { adjustmentType, selectedLocation, selectedCategory, description, items })
     router.push("/inventory-management/inventory-adjustments")
   }
 
@@ -755,6 +791,9 @@ export default function EditInventoryAdjustmentPage() {
             </div>
           </div>
           <div className="flex items-center gap-2">
+            <Button variant="outline" onClick={() => router.back()}>
+              Cancel
+            </Button>
             <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
               <AlertDialogTrigger asChild>
                 <Button variant="outline" className="text-destructive">
@@ -833,7 +872,7 @@ export default function EditInventoryAdjustmentPage() {
           </div>
         )}
 
-        {/* Adjustment Details - Location, Reason, and Description fields */}
+        {/* Adjustment Details - Location and Category (header-level) */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label htmlFor="location">Location *</Label>
@@ -856,18 +895,27 @@ export default function EditInventoryAdjustmentPage() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason *</Label>
-            <Select value={selectedReason} onValueChange={setSelectedReason}>
-              <SelectTrigger id="reason" className={errors.reason ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select reason" />
+            <Label htmlFor="category">Category *</Label>
+            <Select
+              value={selectedCategory}
+              onValueChange={(value) => {
+                setSelectedCategory(value)
+                // Reset all item reasons when category changes
+                setItems(items.map(item => ({ ...item, reason: "" })))
+              }}
+            >
+              <SelectTrigger id="category" className={errors.category ? "border-red-500" : ""}>
+                <SelectValue placeholder="Select category" />
               </SelectTrigger>
               <SelectContent>
-                {adjustmentReasons[adjustmentType].map(reason => (
-                  <SelectItem key={reason} value={reason}>{reason}</SelectItem>
+                {availableCategories.map(category => (
+                  <SelectItem key={category.value} value={category.value}>
+                    {category.label}
+                  </SelectItem>
                 ))}
               </SelectContent>
             </Select>
-            {errors.reason && <p className="text-sm text-red-500">{errors.reason}</p>}
+            {errors.category && <p className="text-sm text-red-500">{errors.category}</p>}
           </div>
         </div>
 
@@ -943,6 +991,9 @@ export default function EditInventoryAdjustmentPage() {
             {errors.items && (
               <p className="text-sm text-red-500 mb-3">{errors.items}</p>
             )}
+            {errors.reason && (
+              <p className="text-sm text-red-500 mb-3">{errors.reason}</p>
+            )}
             {errors.unitCost && (
               <p className="text-sm text-red-500 mb-3">{errors.unitCost}</p>
             )}
@@ -961,6 +1012,7 @@ export default function EditInventoryAdjustmentPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Product</TableHead>
+                    <TableHead className="w-[160px]">Reason *</TableHead>
                     <TableHead className="text-center w-[100px]">Current Stock</TableHead>
                     <TableHead className="text-center w-[120px]">Adj. Qty</TableHead>
                     {adjustmentType === "IN" && (
@@ -981,6 +1033,27 @@ export default function EditInventoryAdjustmentPage() {
                           <p className="font-medium">{item.productName}</p>
                           <p className="text-xs text-muted-foreground">{item.sku}</p>
                         </div>
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={item.reason}
+                          onValueChange={(value) => handleUpdateReason(item.id, value)}
+                          disabled={!selectedCategory}
+                        >
+                          <SelectTrigger className={cn(
+                            "w-[150px]",
+                            !item.reason && "border-red-500"
+                          )}>
+                            <SelectValue placeholder={selectedCategory ? "Select reason" : "Select category first"} />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {availableReasons.map(reason => (
+                              <SelectItem key={reason.value} value={reason.value}>
+                                {reason.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
                       </TableCell>
                       <TableCell className="text-center">
                         {item.currentStock} {item.unit}
@@ -1065,24 +1138,6 @@ export default function EditInventoryAdjustmentPage() {
         )}
       </div>
 
-      {/* ------------------------------------------------------------------ */}
-      {/* FOOTER - Cancel, Save Draft, and Commit action buttons            */}
-      {/* ------------------------------------------------------------------ */}
-      <div className="sticky bottom-0 p-4 bg-background border-t">
-        <div className="flex items-center justify-end gap-3">
-          <Button variant="outline" onClick={() => router.back()}>
-            Cancel
-          </Button>
-          <Button variant="outline" onClick={handleSaveDraft}>
-            <Save className="h-4 w-4 mr-2" />
-            Save Draft
-          </Button>
-          <Button onClick={handlePost}>
-            <Send className="h-4 w-4 mr-2" />
-            Commit Adjustment
-          </Button>
-        </div>
-      </div>
     </div>
   )
 }

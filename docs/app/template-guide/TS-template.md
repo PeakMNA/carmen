@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author} | Initial version |
 
 ---
@@ -185,31 +186,31 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    A["{Sub-Module} Module"] --> B["List Page"]
-    A --> C["Detail Page"]
-    A --> D["Create Page"]
-    A --> E["Edit Page"]
+    A['{Sub-Module} Module'] --> B['List Page']
+    A --> C['Detail Page']
+    A --> D['Create Page']
+    A --> E['Edit Page']
 
-    B --> B1["Tab: All Items"]
-    B --> B2["Tab: Active"]
-    B --> B3["Tab: Archived"]
+    B --> B1['Tab: All Items']
+    B --> B2['Tab: Active']
+    B --> B3['Tab: Archived']
 
-    C --> C1["Tab: Overview"]
-    C --> C2["Tab: History"]
-    C --> C3["Tab: Related"]
+    C --> C1['Tab: Overview']
+    C --> C2['Tab: History']
+    C --> C3['Tab: Related']
 
-    B --> BD1["Dialog: Quick Create"]
-    B --> BD2["Dialog: Bulk Actions"]
-    B --> BD3["Dialog: Export"]
+    B --> BD1['Dialog: Quick Create']
+    B --> BD2['Dialog: Bulk Actions']
+    B --> BD3['Dialog: Export']
 
-    C --> CD1["Dialog: Edit"]
-    C --> CD2["Dialog: Delete Confirm"]
-    C --> CD3["Dialog: Status Change"]
+    C --> CD1['Dialog: Edit']
+    C --> CD2['Dialog: Delete Confirm']
+    C --> CD3['Dialog: Status Change']
 
-    D --> DD1["Dialog: Cancel Confirm"]
+    D --> DD1['Dialog: Cancel Confirm']
 
-    E --> ED1["Dialog: Save Draft"]
-    E --> ED2["Dialog: Discard Changes"]
+    E --> ED1['Dialog: Save Draft']
+    E --> ED2['Dialog: Discard Changes']
 ```
 
 ### Pages
@@ -805,8 +806,8 @@ NEXTAUTH_SECRET="..."
 NEXTAUTH_URL="..."
 
 # External Services
-{SERVICE}_API_KEY="..."
-{SERVICE}_API_URL="..."
+{SERVICE}_API_KEY='...'
+{SERVICE}_API_URL='...'
 ```
 
 ### Build Configuration

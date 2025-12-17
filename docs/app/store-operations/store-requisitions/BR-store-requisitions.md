@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.0.0
-- **Last Updated**: 2025-11-12
-- **Status**: Active - For Implementation
+- **Version**: 1.3.0
+- **Last Updated**: 2025-12-13
+- **Status**: Active - Implementation Complete
 
 ## Related Documents
 - [Use Cases](./UC-store-requisitions.md) - User workflows and scenarios
@@ -22,6 +22,8 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added Section 10: Backend Requirements (consolidated from BE document), added shared methods references |
+| 1.2.0 | 2025-12-10 | Documentation Team | Synced with implemented source code - verified status values, item approval workflow, UI tabs configuration |
+| 1.3.0 | 2025-12-13 | Documentation Team | Added new requisition creation page with inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling (INVENTORY/DIRECT/CONSIGNMENT) |
 
 ## 1. Executive Summary
 
@@ -60,30 +62,49 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
 **User Story**: As a Chef at the F&B Kitchen, I want to create a store requisition to request supplies from the Main Store so that I have the materials needed for daily operations.
 
 **Requirements**:
-1. User shall be able to create new requisition with the following information:
-   - Requisition number (auto-generated: SR-YYYY-NNN format)
+1. User shall be able to create new requisition via dedicated creation page (`/store-operations/store-requisitions/new`) with the following information:
+   - Requisition number (auto-generated: SR-YYMM-NNNN format)
    - Requisition date (defaults to current date)
-   - Expected delivery date
+   - Expected delivery date (defaults to 7 days from current date)
    - Description/purpose of requisition
-   - Requesting department
-   - Source location (from which store)
-2. User shall be able to add multiple line items to requisition
+   - Requesting department (selectable dropdown)
+   - Requested By (auto-populated with current user name, read-only)
+   - Request From (source location - store/warehouse to request from)
+   - Deliver To (destination - user's current location, read-only)
+   - Job Code (selectable with ability to add new)
+   - Project (selectable with ability to add new)
+2. User shall be able to add multiple line items using **inline add item pattern**:
+   - Click "Add Item" button to reveal inline input row within the items table
+   - Searchable product selection using Popover + Command component pattern
+   - Product search supports name and product code matching
+   - Unit of measure auto-populated from product master
+   - Quantity input with validation (minimum 1)
+   - Unit cost and total calculated automatically
+   - Confirm (✓) or Cancel (✕) inline addition
 3. Each line item shall include:
-   - Product selection (searchable dropdown)
-   - Unit of measure
-   - Requested quantity
+   - Product selection (searchable dropdown with product code, name, unit, and cost display)
+   - Unit of measure (auto-populated)
+   - Requested quantity (editable)
+   - Cost per unit (from product master)
+   - Line total (calculated)
    - Current inventory availability display
-   - Item description/notes
 4. System shall validate inventory availability before submission
 5. System shall save requisition as draft for later completion
 6. System shall support bulk item addition via templates or past requisitions
+7. System shall handle items differently based on destination **Location Type**:
+   - **INVENTORY**: Standard requisition - items tracked and costed using FIFO
+   - **DIRECT**: Simplified requisition - items already expensed on receipt, records for operational metrics only
+   - **CONSIGNMENT**: Vendor-owned requisition - vendor notification required on issue
 
 **Acceptance Criteria**:
 - ✅ Requisition number is auto-generated and unique
-- ✅ User can add/edit/remove line items before submission
+- ✅ User can add/edit/remove line items before submission using inline pattern
 - ✅ System displays current stock levels for each item
 - ✅ Draft requisitions can be saved and resumed later
 - ✅ Mandatory fields are validated before save
+- ✅ "Requested By" displays current user's name
+- ✅ Inline add item provides searchable product selection
+- ✅ Location Type is displayed and affects processing behavior
 
 ---
 
@@ -103,10 +124,10 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
 5. System shall support delegation of approval authority
 6. System shall allow workflow bypass for emergency requisitions (with proper authorization)
 7. Requisition status shall update automatically based on workflow progress:
-   - **Draft**: Initial creation
-   - **In Progress**: Submitted and under approval
-   - **Complete**: All approvals received and items issued
-   - **Reject**: Rejected by approver
+   - **Draft**: Initial creation, editable by requestor
+   - **In Process**: Submitted and under approval workflow
+   - **Complete**: All approvals received and items fully issued
+   - **Reject**: Rejected by approver at any stage
    - **Void**: Cancelled by requestor/administrator
 
 **Acceptance Criteria**:
@@ -487,17 +508,17 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
 ## 5. Business Rules Summary
 
 ### BR-SR-001: Requisition Number Format
-- Format: SR-YYYY-NNNN (e.g., SR-2025-0001)
+- Format: SR-YYMM-NNNN where YY is 2-digit year and MM is month (e.g., SR-2501-0001)
 - Year resets annually
 - Sequential numbering within year
 - Cannot be modified after creation
 
 ### BR-SR-002: Status Transition Rules
-- **Draft → In Progress**: Upon submission (requires at least 1 line item)
-- **In Progress → Complete**: When all approved items are fully issued
-- **In Progress → Reject**: Upon rejection by any approver
-- **In Progress → Void**: Upon cancellation by authorized user
-- **Reject → In Progress**: Upon resubmission with corrections
+- **Draft → In Process**: Upon submission (requires at least 1 line item)
+- **In Process → Complete**: When all approved items are fully issued
+- **In Process → Reject**: Upon rejection by any approver
+- **In Process → Void**: Upon cancellation by authorized user
+- **Reject → Draft**: Upon resubmission with corrections (rare, typically create new requisition)
 - **Complete/Void**: Terminal states, no further transitions
 
 ### BR-SR-003: Approval Authority
@@ -548,6 +569,74 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
 - Emergency justification is mandatory
 - Emergency requisitions cannot bypass final financial approval
 - Monthly reports on emergency requisition usage sent to management
+
+---
+
+## 5.1 Location Type Business Rules
+
+Store requisition behavior varies based on the **location type** of the source and destination locations. The system supports three location types that determine inventory tracking, stock movements, and GL posting behavior.
+
+### Location Type Definitions
+
+| Location Type | Code | Purpose | Examples |
+|---------------|------|---------|----------|
+| **INVENTORY** | INV | Standard tracked warehouse locations | Main Warehouse, Central Kitchen Store, F&B Store |
+| **DIRECT** | DIR | Direct expense locations (no stock balance) | Restaurant Bar Direct, Kitchen Direct, Maintenance Direct |
+| **CONSIGNMENT** | CON | Vendor-owned inventory locations | Beverage Consignment, Linen Consignment |
+
+### BR-SR-011: Location Type Processing Rules
+
+**INVENTORY Locations (INV)**:
+- ✅ Full stock check required before issue
+- ✅ Creates inventory transactions and stock movements
+- ✅ FIFO cost layer consumption on issue
+- ✅ GL: Debit Department Expense, Credit Inventory Asset
+- ✅ Complete audit trail with lot tracking
+
+**DIRECT Locations (DIR)**:
+- ❌ No stock balance to check (items already expensed on receipt)
+- ❌ No inventory transactions created on issue
+- ✅ Issue records for tracking and metrics only
+- ✅ GL: No additional posting (already expensed at GRN)
+- ⚠️ Limited workflow - simplified approval
+
+**CONSIGNMENT Locations (CON)**:
+- ✅ Full stock check required (vendor-owned stock)
+- ✅ Creates inventory transactions and stock movements
+- ✅ FIFO cost layer consumption on issue
+- ✅ GL: Debit Department Expense, Credit Vendor Liability
+- ✅ Vendor notification on consumption
+- ✅ Complete audit trail with lot tracking and vendor reference
+
+### BR-SR-012: Location Type Feature Matrix
+
+| Feature | INVENTORY | DIRECT | CONSIGNMENT |
+|---------|-----------|--------|-------------|
+| **Stock Check** | ✅ Required | ❌ N/A | ✅ Required |
+| **Stock Movement** | ✅ Full tracking | ❌ None | ✅ Full tracking |
+| **Lot Tracking** | ✅ FIFO | ❌ None | ✅ FIFO |
+| **Approval Workflow** | Multi-level | Simplified | Multi-level + Vendor |
+| **Issue Creates** | Inventory Transaction | Metrics Record | Consumption Record |
+| **GL Impact** | Asset → Expense | None (pre-expensed) | Liability → Expense |
+| **Inventory Adjustment** | ✅ Supported | ❌ Not applicable | ✅ Supported |
+| **Stock Replenishment** | ✅ Full PAR levels | ❌ Not applicable | ✅ Vendor-managed PAR |
+
+### BR-SR-013: Location Type Validation Rules
+
+1. **Source Location Validation**:
+   - INVENTORY: Must have sufficient stock before issue approval
+   - DIRECT: Warning displayed that no stock balance exists
+   - CONSIGNMENT: Must have sufficient vendor-owned stock
+
+2. **Transfer Restrictions**:
+   - Cannot transfer TO a DIRECT location (items must go through GRN for expense posting)
+   - Transfers FROM DIRECT locations are not permitted
+   - CONSIGNMENT transfers require vendor approval notification
+
+3. **UI Indicators**:
+   - Location type badge displayed in location selection
+   - Stock movement tab filters out DIRECT location items (no movements to display)
+   - Alert banner when issuing from/to non-INVENTORY locations
 
 ---
 
@@ -1264,24 +1353,24 @@ interface ApprovalLog {
 
 ```mermaid
 graph TB
-    subgraph API["API Layer"]
-        REST["REST Endpoints"]
-        SA["Server Actions"]
+    subgraph API['API Layer']
+        REST['REST Endpoints']
+        SA['Server Actions']
     end
 
-    subgraph Services["Service Layer"]
-        SRS["Store Requisition Service"]
-        WFS["Workflow Service"]
-        NS["Notification Service"]
+    subgraph Services['Service Layer']
+        SRS['Store Requisition Service']
+        WFS['Workflow Service']
+        NS['Notification Service']
     end
 
-    subgraph Integration["Integration Layer"]
-        INV["Inventory Operations<br/>(SM-INVENTORY-OPERATIONS)"]
-        COST["Costing Methods<br/>(SM-COSTING-METHODS)"]
-        JE["Journal Entry Service"]
+    subgraph Integration['Integration Layer']
+        INV['Inventory Operations<br>(SM-INVENTORY-OPERATIONS)']
+        COST['Costing Methods<br>(SM-COSTING-METHODS)']
+        JE['Journal Entry Service']
     end
 
-    subgraph Data["Data Layer"]
+    subgraph Data['Data Layer']
         DB[(PostgreSQL)]
         CACHE[(Redis Cache)]
     end
@@ -1300,6 +1389,123 @@ graph TB
     COST --> DB
     JE --> DB
 ```
+
+---
+
+## 10.11 UI Components and Patterns
+
+### UI-SR-001: Store Requisition List Page
+**Route**: `/store-operations/store-requisitions`
+
+**Header Section**:
+- Title: "Store Requisition List"
+- Subtitle: "Manage and track store requisitions across all locations"
+- Actions: Export button, "New Request" button (navigates to `/store-operations/store-requisitions/new`)
+
+**Columns** (Table View):
+| Column | Field | Description |
+|--------|-------|-------------|
+| SR # | refNo | Requisition number, clickable link to detail |
+| Date | date | Formatted as DD/MM/YYYY |
+| **Request From** | requestTo | Source store/warehouse code (renamed from "Request To" in v1.3.0) |
+| To Location | toLocation | Destination location name |
+| Store Name | storeName | Name of source store |
+| **Requested By** | requestedBy | Name of user who created the requisition (added in v1.3.0) |
+| Description | description | Requisition description/purpose |
+| Amount | totalAmount | Total value, right-aligned with currency |
+| Currency | currency | Currency code |
+| Status | status | Status badge (Draft, In Process, Complete, Reject, Void) |
+| Workflow Stage | workflowStage | Current workflow stage with tooltip |
+| Actions | - | Dropdown menu (View, Edit, Export, Delete) |
+
+**Features**:
+- Search bar with keyword filtering
+- Status filter dropdown
+- Saved filters support
+- Custom filter builder (Add Filters dialog)
+- Table/Card view toggle
+- Pagination with page navigation
+
+### UI-SR-002: New Requisition Creation Page
+**Route**: `/store-operations/store-requisitions/new`
+
+**Header Section**:
+- Back button (returns to list)
+- Title: "New Store Requisition"
+- Subtitle: "Create a new material request"
+- Side panel toggle button
+- "Save Draft" and "Submit" action buttons
+
+**Header Info Card**:
+| Field | Type | Description |
+|-------|------|-------------|
+| Status Badge | Display | Shows "Draft" |
+| Location Type Badge | Display | Shows destination location type (INVENTORY/DIRECT/CONSIGNMENT) |
+| Requisition Number | Display | Auto-generated (SR-YYMM-NNNN) |
+| Request Date | Display | Current date |
+| Expected Delivery | Date Input | Defaults to 7 days from now |
+| **Request From (Source)** | Select | Source store/warehouse selection (required) |
+| Deliver To (Destination) | Display | User's current location (read-only) |
+| Department | Select | Requesting department |
+| **Requested By** | Display | Current user's name (read-only, auto-populated) |
+| Description | Text Input | Requisition purpose/notes |
+
+**Tabs**:
+1. **Items Tab**: Requested items table with inline add pattern
+2. **Business Dimensions Tab**: Job Code and Project selection with CRUD support
+
+**Inline Add Item Pattern** (v1.3.0):
+- Click "Add Item" button to reveal inline input row within table
+- Searchable product dropdown using Popover + Command components
+- Product search by name or product code
+- Auto-populated fields: Unit (from product), Unit Cost (from product)
+- Editable field: Quantity (minimum 1)
+- Calculated field: Total (Unit Cost × Quantity)
+- Confirm (✓) button to add item
+- Cancel (✕) button to discard
+
+**Side Panel** (togglable):
+- Comments section with add comment form
+- Attachments section with add attachment button
+
+### UI-SR-003: Store Requisition Detail Page
+**Route**: `/store-operations/store-requisitions/[id]`
+
+**Features**:
+- All header information displayed
+- Location Type badge and alert for non-INVENTORY locations
+- Item table with inline editing capabilities
+- Inline add item pattern (same as creation page)
+- Approval workflow display
+- Approval actions based on user role and requisition status
+- Side panel for comments, attachments, activity log, stock movement
+
+### UI-SR-004: Component Patterns
+
+**Inline Add Item Pattern**:
+Uses the Popover + Command component combination for searchable product selection:
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ # │ Description          │ Unit │ Qty │ Unit Cost │ Total │ ⋯ │
+├───┼──────────────────────┼──────┼─────┼───────────┼───────┼───┤
+│ 1 │ Thai Milk Tea (12)   │ Box  │ 10  │ 120.00    │1,200  │ 🗑 │
+├───┼──────────────────────┼──────┼─────┼───────────┼───────┼───┤
+│ - │ [🔍 Search products] │ -    │ [1] │ -         │ -     │✓✕│
+└───────────────────────────────────────────────────────────────────┘
+```
+
+**Location Type Badge Component**:
+Displays colored badge based on location type:
+- INVENTORY: Blue badge with Package icon
+- DIRECT: Amber badge with DollarSign icon
+- CONSIGNMENT: Purple badge with Truck icon
+
+**Status Badge Component**:
+- Draft: Gray/Amber background
+- In Process: Blue background
+- Complete: Green background
+- Reject: Red background
+- Void: Gray strikethrough
 
 ---
 

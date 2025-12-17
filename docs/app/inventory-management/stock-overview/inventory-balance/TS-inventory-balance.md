@@ -14,7 +14,7 @@
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         A[InventoryBalancePage] --> B[ReportHeader]
         A --> C[FilterPanel]
         A --> D[BalanceTable]
@@ -22,13 +22,13 @@ graph TB
         A --> F[Charts/Analytics]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         G[Mock Balance Report]
         H[User Context]
         I[Trend Data Generator]
     end
 
-    subgraph "UI Components"
+    subgraph 'UI Components'
         J[Summary Cards]
         K[Low Stock Alert]
         L[Insights Tables]

@@ -20,6 +20,7 @@
 
 | Version | Date | Author | Changes | Approver |
 |---------|------|--------|---------|----------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author Name} | Initial request | {Name} |
 
 ---
@@ -99,7 +100,7 @@ maintaining centralized reporting and inventory management.
 
 ```mermaid
 graph TB
-    subgraph "Current Architecture"
+    subgraph 'Current Architecture'
         Client[Web Client]
         Server[Next.js Server]
         DB[(PostgreSQL Database)]
@@ -155,23 +156,23 @@ graph TB
 
 ```mermaid
 graph TB
-    subgraph "Proposed Architecture"
+    subgraph 'Proposed Architecture'
         Client[Web Client]
         API[API Gateway]
 
-        subgraph "Services"
+        subgraph 'Services'
             Inventory[Inventory Service]
             Procurement[Procurement Service]
             Vendor[Vendor Service]
         end
 
-        subgraph "Data Layer"
+        subgraph 'Data Layer'
             InventoryDB[(Inventory DB)]
             ProcurementDB[(Procurement DB)]
             VendorDB[(Vendor DB)]
         end
 
-        subgraph "Infrastructure"
+        subgraph 'Infrastructure'
             MessageBus[Message Bus]
             Cache[(Redis Cache)]
         end

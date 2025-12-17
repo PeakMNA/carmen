@@ -113,7 +113,7 @@ Displays comprehensive details of a single price list including vendor informati
 - title attribute with full price list name
 
 #### Price List Reference
-**Text**: [Reference ID] (e.g., "PL-2024-001")
+**Text**: [Reference ID] (e.g., "PL-2401-0001")
 
 **Style**:
 - Text-sm, text-gray-500, font-mono, ml-3
@@ -219,7 +219,7 @@ Displays comprehensive details of a single price list including vendor informati
 | Field Label | Value Format | Style | Example |
 |-------------|-------------|-------|---------|
 | Price List Name | Text | font-semibold text-gray-900 | Fresh Produce - Jan 2024 |
-| Reference ID | Monospace | font-mono text-sm text-gray-600 | PL-2024-001 |
+| Reference ID | Monospace | font-mono text-sm text-gray-600 | PL-2401-0001 |
 | Currency | Code + Symbol | text-sm text-gray-700 | USD ($) |
 | Description | Text (truncated) | text-gray-600 text-sm | Monthly produce pricing |
 | Source Type | Badge | bg-blue-100 text-blue-800 rounded px-2 py-1 text-xs | Template Submission |
@@ -1524,7 +1524,7 @@ Click "View Changes ▼" to show before/after values:
 │  Are you sure you want to delete this price list?      │
 │                                                         │
 │  Price List: Fresh Produce - Jan 2024 - ABC Foods      │
-│  Reference: PL-2024-001                                 │
+│  Reference: PL-2401-0001                                 │
 │  Products: 125                                          │
 │                                                         │
 │  This action cannot be undone. All data including       │
@@ -1558,9 +1558,9 @@ Click "View Changes ▼" to show before/after values:
 │  Base: Fresh Produce - Jan 2024 - ABC Foods (Current)  │
 │                                                         │
 │  Compare with:                                          │
-│  ☑ ABC Foods - Dec 2023 (PL-2023-045)                  │
-│  ☑ XYZ Distributors - Jan 2024 (PL-2024-002)           │
-│  ☐ GreenFarm - Jan 2024 (PL-2024-005)                  │
+│  ☑ ABC Foods - Dec 2023 (PL-2301-0045)                  │
+│  ☑ XYZ Distributors - Jan 2024 (PL-2401-0002)           │
+│  ☐ GreenFarm - Jan 2024 (PL-2401-0005)                  │
 │                                                         │
 │  [+ Add More Price Lists]                              │
 │                                                         │
@@ -1654,7 +1654,7 @@ Click "View Changes ▼" to show before/after values:
 │  ✓ Export Complete                               [✕]   │
 │  ─────────────────────────────────────────────────────  │
 │                                                         │
-│  File: Price_List_PL-2024-001.xlsx                     │
+│  File: Price_List_PL-2401-0001.xlsx                     │
 │  Size: 2.4 MB                                           │
 │  Generated: Jan 17, 2024 3:45 PM                       │
 │                                                         │
@@ -1743,7 +1743,7 @@ Click "View Changes ▼" to show before/after values:
 │  ─────────────────────────────────────────────────────  │
 │                                                         │
 │  Source: Fresh Produce - Jan 2024 - ABC Foods          │
-│  Reference: PL-2024-001                                 │
+│  Reference: PL-2401-0001                                 │
 │                                                         │
 │  What to copy:                                          │
 │  ☑ All products (125 items)                            │
@@ -1957,7 +1957,7 @@ Click "View Changes ▼" to show before/after values:
 │  ❌ Price List Not Found                                 │
 │  The price list you're looking for doesn't exist or     │
 │  has been deleted.                                       │
-│  Reference: PL-2024-001                                 │
+│  Reference: PL-2401-0001                                 │
 │  [Back to Price Lists]                                  │
 └─────────────────────────────────────────────────────────┘
 ```

@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.4 | 2025-12-03 | Documentation Team | Updated to support configurable costing method (FIFO or Periodic Average) per system settings |
 | 1.0.3 | 2025-12-03 | Documentation Team | Added Shared Method references to backend use cases (UC-CN-207, UC-CN-208, UC-CN-210) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added backend system use cases for server actions (UC-CN-201 to UC-CN-214) |
@@ -279,7 +280,7 @@ Key workflows include credit note list management, item-level credit processing 
 11. System generates temporary CN number (new-UUID)
 12. User saves credit note
 13. System validates data and calculates totals
-14. System assigns CN number (CN-YYYY-NNN format)
+14. System assigns CN number (CN-YYMM-NNNN format)
 15. System saves credit note with status DRAFT
 16. System displays success message with CN number
 17. System navigates to credit note detail page for review
@@ -333,7 +334,7 @@ Key workflows include credit note list management, item-level credit processing 
 - Use case ends (resume later after correction)
 
 **Business Rules**:
-- **BR-CN-001**: Each credit note assigned unique sequential number CN-YYYY-NNN
+- **BR-CN-001**: Each credit note assigned unique sequential number CN-YYMM-NNNN
 - **BR-CN-010**: Credit note quantity must be greater than 0
 - **BR-CN-011**: Credit note quantity cannot exceed available lot quantity
 - **BR-CN-030**: inventory costing method must be used for quantity-based credits
@@ -402,7 +403,7 @@ Key workflows include credit note list management, item-level credit processing 
 10. System calculates tax adjustments based on discount amounts
 11. User saves credit note
 12. System validates data and calculates totals
-13. System assigns CN number (CN-YYYY-NNN format)
+13. System assigns CN number (CN-YYMM-NNNN format)
 14. System saves credit note with status DRAFT
 15. System displays success message
 16. System navigates to credit note detail view
@@ -2630,7 +2631,7 @@ The following use cases describe the server-side operations implemented as Next.
 
 ### UC-CN-211: Generate CN Number Sequence
 
-**Description**: Server action generates unique sequential credit note numbers in the format CN-YYYY-NNN with year reset.
+**Description**: Server action generates unique sequential credit note numbers in the format CN-YYMM-NNNN with monthly reset.
 
 **Actor(s)**: Server Action Layer (System)
 
@@ -2654,8 +2655,8 @@ The following use cases describe the server-side operations implemented as Next.
 3. System retrieves current sequence for year:
    - If current year: increment sequence
    - If new year: reset sequence to 1
-4. System formats CN number: CN-YYYY-NNN
-   - YYYY = current year
+4. System formats CN number: CN-YYMM-NNNN
+   - YY = 2-digit year, MM = month
    - NNN = zero-padded sequence (001, 002, etc.)
 5. System updates sequence table
 6. System releases lock
@@ -2671,8 +2672,8 @@ The following use cases describe the server-side operations implemented as Next.
 - Use case ends with failure
 
 **Business Rules**:
-- **BR-BE-011**: Format CN-YYYY-NNN
-- **BR-BE-011**: Sequence resets annually
+- **BR-BE-011**: Format CN-YYMM-NNNN
+- **BR-BE-011**: Sequence resets monthly
 - **BR-BE-011**: Numbers are gap-free
 - **BR-BE-011**: Lock ensures uniqueness
 
@@ -2957,7 +2958,7 @@ DRAFT ──────────► COMMITTED
 
 ### Appendix D: Journal Entry Example
 
-**Credit Note**: CN-2024-001, $4,720 total ($4,000 base + $720 tax)
+**Credit Note**: CN-2401-001, $4,720 total ($4,000 base + $720 tax)
 
 **Journal Entries**:
 ```

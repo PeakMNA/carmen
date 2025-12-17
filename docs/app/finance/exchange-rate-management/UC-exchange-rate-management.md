@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-13 | Finance Product Team | Initial version |
 
 ---
@@ -434,7 +435,7 @@ This document describes the use cases for the Exchange Rate Management sub-modul
   - Exchange Rate: 0.925000 (90-day forward)
   - Effective Date: 2025-01-13
   - Effective Until: 2025-04-13 (90 days forward)
-  - Forward Contract Number: FWD-2025-001234
+  - Forward Contract Number: FWD-2501-001234
   - Counterparty: JPMorgan Chase
 - 6e. System validates forward date: Effective Until > Effective Date ✅
 - 6f. Flow continues at Step 7
@@ -982,7 +983,7 @@ This document describes the use cases for the Exchange Rate Management sub-modul
   Rate Details:
   - Rate Type: Forward
   - Contract Effective: Feb 15, 2025
-  - Forward Contract: FWD-2025-001234
+  - Forward Contract: FWD-2501-001234
   - Bank: JPMorgan Chase
   - Note: Forward contract rate, not current spot rate
 

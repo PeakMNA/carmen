@@ -108,7 +108,7 @@ GET /api/grns
   "data": [
     {
       "id": "123e4567-e89b-12d3-a456-426614174000",
-      "grnNumber": "GRN-2024-0001",
+      "grnNumber": "GRN-2401-0001",
       "poId": "123e4567-e89b-12d3-a456-426614174001",
       "vendorId": "123e4567-e89b-12d3-a456-426614174002",
       "departmentId": "123e4567-e89b-12d3-a456-426614174003",
@@ -210,7 +210,7 @@ POST /api/grns
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
-  "grnNumber": "GRN-2024-0001",
+  "grnNumber": "GRN-2401-0001",
   "status": "DRAFT",
   "createdBy": "john.doe@example.com",
   "createdAt": "2024-03-15T10:30:00Z",
@@ -256,7 +256,7 @@ GET /api/grns/{id}
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
-  "grnNumber": "GRN-2024-0001",
+  "grnNumber": "GRN-2401-0001",
   "poId": "123e4567-e89b-12d3-a456-426614174001",
   "vendorId": "123e4567-e89b-12d3-a456-426614174002",
   "departmentId": "123e4567-e89b-12d3-a456-426614174003",
@@ -349,7 +349,7 @@ PUT /api/grns/{id}
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
-  "grnNumber": "GRN-2024-0001",
+  "grnNumber": "GRN-2401-0001",
   "status": "DRAFT",
   "updatedBy": "john.doe@example.com",
   "updatedAt": "2024-03-15T16:30:00Z",

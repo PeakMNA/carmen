@@ -124,9 +124,9 @@ export const StockInListing = () => {
     {
       id: 1,
       date: '2024-01-15',
-      refNo: 'STK-IN-2024-001',
+      refNo: 'STK-IN-2410-001',
       type: 'Good Receive Note',
-      relatedDoc: 'GRN-2024-001',
+      relatedDoc: 'GRN-2410-001',
       store: 'WH-MAIN',
       name: 'Main Warehouse',
       description: 'Monthly F&B supplies delivery from Thai Beverage Co.',
@@ -233,7 +233,7 @@ export const StockInListing = () => {
           stockIn: 200,
           stockOut: 0,
           amount: 17000.00,
-          reference: 'GRN-2024-001'
+          reference: 'GRN-2410-001'
         },
         {
           commitDate: '2024-01-15 11:00:00',
@@ -243,7 +243,7 @@ export const StockInListing = () => {
           stockIn: 150,
           stockOut: 0,
           amount: 11250.00,
-          reference: 'GRN-2024-001'
+          reference: 'GRN-2410-001'
         },
         {
           commitDate: '2024-01-15 11:00:00',
@@ -253,7 +253,7 @@ export const StockInListing = () => {
           stockIn: 100,
           stockOut: 0,
           amount: 8000.00,
-          reference: 'GRN-2024-001'
+          reference: 'GRN-2410-001'
         },
         {
           commitDate: '2024-01-15 11:00:00',
@@ -263,7 +263,7 @@ export const StockInListing = () => {
           stockIn: 50,
           stockOut: 0,
           amount: 3500.00,
-          reference: 'GRN-2024-001'
+          reference: 'GRN-2410-001'
         }
       ],
       comments: [
@@ -302,9 +302,9 @@ export const StockInListing = () => {
     {
       id: 2,
       date: '2024-01-14',
-      refNo: 'STK-IN-2024-002',
+      refNo: 'STK-IN-2410-002',
       type: 'Transfer',
-      relatedDoc: 'TRF-2024-005',
+      relatedDoc: 'TRF-2410-005',
       store: 'WH-002',
       name: 'Branch Store A',
       description: 'Stock transfer from Main Warehouse - Monthly restock for high-demand items including seasonal promotions',
@@ -348,7 +348,7 @@ export const StockInListing = () => {
           stockIn: 30,
           stockOut: 0,
           amount: 2250.00,
-          reference: 'TRF-2024-005'
+          reference: 'TRF-2410-005'
         }
       ],
       comments: [
@@ -387,12 +387,12 @@ export const StockInListing = () => {
     {
       id: 3,
       date: '2024-01-14',
-      refNo: 'STK-IN-2024-003',
+      refNo: 'STK-IN-2410-003',
       type: 'Credit Note',
-      relatedDoc: 'CN-2024-010',
+      relatedDoc: 'CN-2410-010',
       store: 'WH-001',
       name: 'Main Warehouse',
-      description: 'Return from customer order #ORD-2024-089 due to excess quantity ordered - Quality check required',
+      description: 'Return from customer order #ORD-2410-089 due to excess quantity ordered - Quality check required',
       totalQty: 25,
       status: 'Saved',
       createdBy: 'John Doe',
@@ -433,7 +433,7 @@ export const StockInListing = () => {
           stockIn: 10,
           stockOut: 0,
           amount: 250.00,
-          reference: 'CN-2024-010'
+          reference: 'CN-2410-010'
         }
       ],
       comments: [
@@ -472,9 +472,9 @@ export const StockInListing = () => {
     {
       id: 4,
       date: '2024-01-13',
-      refNo: 'STK-IN-2024-004',
+      refNo: 'STK-IN-2410-004',
       type: 'Issue Return',
-      relatedDoc: 'ISS-2024-015',
+      relatedDoc: 'ISS-2410-015',
       store: 'WH-003',
       name: 'Branch Store B',
       description: 'Unused items return from Event Department - Corporate function cancelled',
@@ -518,7 +518,7 @@ export const StockInListing = () => {
           stockIn: 15,
           stockOut: 0,
           amount: 1500.00,
-          reference: 'ISS-2024-015'
+          reference: 'ISS-2410-015'
         }
       ],
       comments: [
@@ -557,9 +557,9 @@ export const StockInListing = () => {
     {
       id: 5,
       date: '2024-01-12',
-      refNo: 'STK-IN-2024-005',
+      refNo: 'STK-IN-2410-005',
       type: 'Adjustment',
-      relatedDoc: 'ADJ-2024-008',
+      relatedDoc: 'ADJ-2410-008',
       store: 'WH-001',
       name: 'Main Warehouse',
       description: 'Stock count adjustment - Surplus found during monthly inventory check',
@@ -603,7 +603,7 @@ export const StockInListing = () => {
           stockIn: 20,
           stockOut: 0,
           amount: 1000.00,
-          reference: 'ADJ-2024-008'
+          reference: 'ADJ-2410-008'
         }
       ],
       comments: [

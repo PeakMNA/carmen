@@ -63,8 +63,8 @@ GET /purchase-orders
 {
   "data": [
     {
-      "po_id": "PO-2023-001",
-      "number": "PO-2023-001",
+      "po_id": "PO-2301-0001",
+      "number": "PO-2301-0001",
       "vendor_id": 123,
       "vendor_name": "Office Supplies Inc.",
       "order_date": "2023-06-15",
@@ -93,8 +93,8 @@ GET /purchase-orders/{po_id}
 **Response:**
 ```json
 {
-  "po_id": "PO-2023-001",
-  "number": "PO-2023-001",
+  "po_id": "PO-2301-0001",
+  "number": "PO-2301-0001",
   "vendor_id": 123,
   "vendor_name": "Office Supplies Inc.",
   "vendor_email": "orders@officesupplies.com",
@@ -172,15 +172,15 @@ POST /purchase-orders
       "discount_rate": 0.00
     }
   ],
-  "source_pr_ids": ["PR-2023-001", "PR-2023-002"]
+  "source_pr_ids": ["PR-2301-0001", "PR-2301-0002"]
 }
 ```
 
 **Response:**
 ```json
 {
-  "po_id": "PO-2023-001",
-  "number": "PO-2023-001",
+  "po_id": "PO-2301-0001",
+  "number": "PO-2301-0001",
   "status": "Draft",
   "created_at": "2023-06-15T10:30:00Z",
   "message": "Purchase order created successfully"
@@ -197,7 +197,7 @@ PUT /purchase-orders/{po_id}
 **Response:**
 ```json
 {
-  "po_id": "PO-2023-001",
+  "po_id": "PO-2301-0001",
   "updated_at": "2023-06-15T15:45:00Z",
   "message": "Purchase order updated successfully"
 }
@@ -232,7 +232,7 @@ PATCH /purchase-orders/{po_id}/status
 **Response:**
 ```json
 {
-  "po_id": "PO-2023-001",
+  "po_id": "PO-2301-0001",
   "old_status": "Draft",
   "new_status": "Sent",
   "updated_at": "2023-06-15T15:45:00Z",
@@ -299,7 +299,7 @@ POST /purchase-orders/{po_id}/email
 {
   "to": "vendor@supplier.com",
   "cc": ["buyer@company.com"],
-  "subject": "Purchase Order PO-2023-001",
+  "subject": "Purchase Order PO-2301-0001",
   "message": "Please find attached purchase order for processing.",
   "include_attachments": true
 }
@@ -315,8 +315,8 @@ GET /purchase-orders/{po_id}/related-documents
 {
   "grns": [
     {
-      "grn_id": "GRN-2023-001",
-      "grn_number": "GRN-2023-001",
+      "grn_id": "GRN-2301-0001",
+      "grn_number": "GRN-2301-0001",
       "received_date": "2023-06-20",
       "status": "Completed",
       "amount": 580.00
@@ -324,7 +324,7 @@ GET /purchase-orders/{po_id}/related-documents
   ],
   "invoices": [
     {
-      "invoice_id": "INV-2023-001",
+      "invoice_id": "INV-2301-0001",
       "invoice_number": "SUPP-001",
       "invoice_date": "2023-06-25",
       "amount": 1177.00,
@@ -350,7 +350,7 @@ POST /purchase-orders/bulk-create
     "by_vendor": true,
     "by_currency": true
   },
-  "purchase_request_ids": ["PR-2023-001", "PR-2023-002", "PR-2023-003"]
+  "purchase_request_ids": ["PR-2301-0001", "PR-2301-0002", "PR-2301-0003"]
 }
 ```
 
@@ -359,7 +359,7 @@ POST /purchase-orders/bulk-create
 {
   "created_pos": [
     {
-      "po_id": "PO-2023-001",
+      "po_id": "PO-2301-0001",
       "vendor_name": "Office Supplies Inc.",
       "currency": "USD",
       "total_amount": 1177.00,
@@ -382,7 +382,7 @@ POST /purchase-orders/bulk-export
 **Request Body:**
 ```json
 {
-  "po_ids": ["PO-2023-001", "PO-2023-002"],
+  "po_ids": ["PO-2301-0001", "PO-2301-0002"],
   "format": "pdf",
   "sections": ["header", "items", "financial"]
 }
@@ -396,7 +396,7 @@ PATCH /purchase-orders/bulk-status
 **Request Body:**
 ```json
 {
-  "po_ids": ["PO-2023-001", "PO-2023-002"],
+  "po_ids": ["PO-2301-0001", "PO-2301-0002"],
   "status": "Sent",
   "reason": "Batch processing for vendor submission"
 }
@@ -588,7 +588,7 @@ X-RateLimit-Reset: 1640995200
   "event": "po.status_changed",
   "timestamp": "2023-06-15T15:45:00Z",
   "data": {
-    "po_id": "PO-2023-001",
+    "po_id": "PO-2301-0001",
     "old_status": "Draft",
     "new_status": "Sent",
     "user_id": "user-123"

@@ -3,8 +3,8 @@
 **Module**: Procurement
 **Sub-Module**: Purchase Requests
 **Document Type**: Use Cases (UC)
-**Version**: 1.7.0
-**Last Updated**: 2025-12-03
+**Version**: 1.8.0
+**Last Updated**: 2025-12-10
 **Status**: Active
 
 ## Document History
@@ -19,6 +19,7 @@
 | 1.5.0 | 2025-11-28 | Development Team | Added UC-PR-021: Bulk Item Actions for line-item level bulk operations (Approve Selected, Reject Selected, Return Selected, Split, Set Date Required) |
 | 1.6.0 | 2025-11-28 | Development Team | Added UC-PR-022: Budget Tab CRUD Operations for managing budget allocations within Purchase Requests |
 | 1.7.0 | 2025-12-03 | Development Team | Extended Split capability to Approvers; added UC-PR-023: Approver Split by Approval Status; added role-based field visibility for Approvers |
+| 1.8.0 | 2025-12-10 | Documentation Team | Synced ref_number format with BR: changed from PR-YYYY-NNNN to PR-YYMM-NNNN |
 
 ## Implementation Status
 
@@ -85,7 +86,7 @@ graph TB
     Purchasing([🛒 Purchasing Staff])
 
     %% System Boundary
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         direction TB
 
         %% Primary Use Cases
@@ -100,21 +101,21 @@ graph TB
         UC009((Add Attachment))
         UC010((Add Comment))
         UC011((Convert to PO))
-        UC012((View Inventory<br/>& Pricing))
+        UC012((View Inventory<br>& Pricing))
         UC013((Use Template))
-        UC014((Create with<br/>Inventory Context))
-        UC015((Approve with<br/>Price Visibility))
-        UC016((Approve with<br/>FOC & Pricing))
+        UC014((Create with<br>Inventory Context))
+        UC015((Approve with<br>Price Visibility))
+        UC016((Approve with<br>FOC & Pricing))
 
         %% System Use Cases
-        UC101((Auto-generate<br/>Ref Number))
-        UC102((Calculate<br/>Totals))
-        UC103((Determine<br/>Approval Chain))
-        UC104((Check<br/>Budget))
-        UC105((Send<br/>Notifications))
-        UC301((Reminder<br/>Notifications))
-        UC302((Escalation<br/>Process))
-        UC303((Archive<br/>Old PRs))
+        UC101((Auto-generate<br>Ref Number))
+        UC102((Calculate<br>Totals))
+        UC103((Determine<br>Approval Chain))
+        UC104((Check<br>Budget))
+        UC105((Send<br>Notifications))
+        UC301((Reminder<br>Notifications))
+        UC302((Escalation<br>Process))
+        UC303((Archive<br>Old PRs))
     end
 
     %% Actor-Use Case Relationships
@@ -190,12 +191,12 @@ graph TB
 graph LR
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC001((Create PR))
-        UC101((Auto-generate<br/>Ref Number))
-        UC102((Calculate<br/>Totals))
+        UC101((Auto-generate<br>Ref Number))
+        UC102((Calculate<br>Totals))
         UC013((Use Template))
-        UC014((Create with<br/>Inventory Context))
+        UC014((Create with<br>Inventory Context))
     end
 
     Requestor --- UC001
@@ -388,7 +389,7 @@ Allows staff to create a new purchase request by entering header information and
 4. Resume at previous step
 
 #### Business Rules
-- BR-PR-001: Reference number auto-generated in format PR-YYYY-NNNN
+- BR-PR-001: Reference number auto-generated in format PR-YYMM-NNNN
 - BR-PR-002: Delivery date must be after PR date
 - BR-PR-003: At least one line item required before submission (not for draft)
 - BR-PR-005: Only certain statuses allow editing
@@ -413,10 +414,10 @@ Allows staff to create a new purchase request by entering header information and
 graph LR
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC002((Edit PR))
-        UC102((Calculate<br/>Totals))
-        UC004((View PR<br/>Status))
+        UC102((Calculate<br>Totals))
+        UC004((View PR<br>Status))
         UC002A((Add Item))
         UC002B((Edit Item))
         UC002C((Remove Item))
@@ -649,11 +650,11 @@ Allows requestor to modify a purchase request that is in Draft, Void, or Returne
 graph LR
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC003((Submit PR))
-        UC103((Determine<br/>Approval Chain))
-        UC104((Check<br/>Budget))
-        UC105((Send<br/>Notifications))
+        UC103((Determine<br>Approval Chain))
+        UC104((Check<br>Budget))
+        UC105((Send<br>Notifications))
     end
 
     Requestor --- UC003
@@ -771,9 +772,9 @@ graph LR
     Approvers([👔 Approvers])
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
-        UC004((View PR<br/>Status))
-        UC105((Send<br/>Notifications))
+    subgraph PRS['Purchase Request System']
+        UC004((View PR<br>Status))
+        UC105((Send<br>Notifications))
     end
 
     Requestor --- UC004
@@ -882,11 +883,11 @@ graph LR
     GenMgr([🎩 General Manager])
     AssetMgr([📊 Asset Manager])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC005((Approve PR))
-        UC105((Send<br/>Notifications))
-        UC015((Approve with<br/>Price Visibility))
-        UC016((Approve with<br/>FOC & Pricing))
+        UC105((Send<br>Notifications))
+        UC015((Approve with<br>Price Visibility))
+        UC016((Approve with<br>FOC & Pricing))
     end
 
     DeptMgr --- UC005
@@ -1024,9 +1025,9 @@ graph LR
     GenMgr([🎩 General Manager])
     AssetMgr([📊 Asset Manager])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC006((Reject PR))
-        UC105((Send<br/>Notifications))
+        UC105((Send<br>Notifications))
     end
 
     DeptMgr --- UC006
@@ -1124,9 +1125,9 @@ Allows approver to reject a purchase request with required justification, return
 graph LR
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC007((Recall PR))
-        UC105((Send<br/>Notifications))
+        UC105((Send<br>Notifications))
     end
 
     Requestor --- UC007
@@ -1217,9 +1218,9 @@ graph LR
     Requestor([👤 Requestor])
     DeptMgr([👔 Dept Manager])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC008((Cancel PR))
-        UC105((Send<br/>Notifications))
+        UC105((Send<br>Notifications))
     end
 
     Requestor --- UC008
@@ -1306,8 +1307,8 @@ graph LR
     Requestor([👤 Requestor])
     Approvers([👔 Approvers])
 
-    subgraph PRS["Purchase Request System"]
-        UC009((Add<br/>Attachment))
+    subgraph PRS['Purchase Request System']
+        UC009((Add<br>Attachment))
     end
 
     Requestor --- UC009
@@ -1409,9 +1410,9 @@ graph LR
     Approvers([👔 Approvers])
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
-        UC010((Add<br/>Comment))
-        UC105((Send<br/>Notifications))
+    subgraph PRS['Purchase Request System']
+        UC010((Add<br>Comment))
+        UC105((Send<br>Notifications))
     end
 
     Requestor --- UC010
@@ -1520,9 +1521,9 @@ Allows users to add comments and questions to a PR, supporting threaded discussi
 graph LR
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC011((Convert to PO))
-        UC201((Create PO<br/>from PR))
+        UC201((Create PO<br>from PR))
     end
 
     Purchasing --- UC011
@@ -1636,8 +1637,8 @@ graph LR
     DeptMgr([👔 Dept Managers])
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
-        UC012((View Inventory<br/>& Price))
+    subgraph PRS['Purchase Request System']
+        UC012((View Inventory<br>& Price))
         UC001((Create PR))
         UC002((Edit PR))
     end
@@ -1962,8 +1963,8 @@ graph LR
     Purchasing([🛒 Purchasing Staff])
     DeptMgr([👔 Dept Managers])
 
-    subgraph PRS["Purchase Request System"]
-        UC013((Manage<br/>Templates))
+    subgraph PRS['Purchase Request System']
+        UC013((Manage<br>Templates))
         UC001((Create PR))
     end
 
@@ -2004,7 +2005,7 @@ Allows authorized users to create, edit, view, and delete purchase request templ
 3. User clicks "Save as Template" button
 4. System displays template creation dialog:
    ```
-   ┌─ Create Template from PR-2025-0042 ────────────────────┐
+   ┌─ Create Template from PR-2501-0042 ────────────────────┐
    │                                                          │
    │ Template Name: *[________________________]              │
    │ Template Type: ◉ Market List                            │
@@ -2057,11 +2058,11 @@ Allows authorized users to create, edit, view, and delete purchase request templ
       created_at: "2025-01-15T10:30:00Z",
       last_used_at: null,
       usage_count: 0,
-      tags: ["weekly", "vegetables", "perishable"]
+      tags: ['weekly', 'vegetables', 'perishable']
     }
     ```
 14. System copies line items to template_items table
-15. System logs activity: "Template created from PR-2025-0042"
+15. System logs activity: "Template created from PR-2501-0042"
 16. System displays success message: "Template created successfully"
 17. System provides link to view/edit template
 
@@ -2336,10 +2337,10 @@ Allows authorized users to create, edit, view, and delete purchase request templ
 graph LR
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
-        UC014((Create PR with<br/>Inventory Context))
+    subgraph PRS['Purchase Request System']
+        UC014((Create PR with<br>Inventory Context))
         UC001((Create PR))
-        UC012((View Inventory<br/>& Price))
+        UC012((View Inventory<br>& Price))
     end
 
     Requestor --- UC014
@@ -2483,8 +2484,8 @@ Requestor creates a new purchase request with real-time inventory visibility (on
 graph LR
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
-        UC015((Create PR with<br/>Delivery Details))
+    subgraph PRS['Purchase Request System']
+        UC015((Create PR with<br>Delivery Details))
         UC001((Create PR))
     end
 
@@ -2628,10 +2629,10 @@ graph LR
     FinMgr([💼 Finance Manager])
     ProcMgr([🛒 Procurement Manager])
 
-    subgraph PRS["Purchase Request System"]
-        UC016((Approve PR with<br/>FOC & Pricing))
+    subgraph PRS['Purchase Request System']
+        UC016((Approve PR with<br>FOC & Pricing))
         UC005((Approve PR))
-        UC105((Send<br/>Notifications))
+        UC105((Send<br>Notifications))
     end
 
     DeptHead --- UC016
@@ -2667,7 +2668,7 @@ Approver reviews purchase request with full visibility of FOC fields, complete p
 #### Main Flow
 1. Approver navigates to **Purchase Requests > My Approvals**
 2. System displays list of pending PRs
-3. Approver clicks on PR reference number (e.g., PR-2025-0001)
+3. Approver clicks on PR reference number (e.g., PR-2501-0001)
 4. System displays PR detail view with **full approver visibility**:
    - All header fields (requestor, department, dates, description, justification)
    - **Hide Price Indicator**: Badge if hide_price = true: "Requestor chose to hide prices"
@@ -2804,10 +2805,10 @@ Approver reviews purchase request with full visibility of FOC fields, complete p
 graph LR
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
-        UC017((Edit PR<br/>Pricing))
-        UC102((Calculate<br/>Totals))
-        UC103((Tax Profile<br/>Lookup))
+    subgraph PRS['Purchase Request System']
+        UC017((Edit PR<br>Pricing))
+        UC102((Calculate<br>Totals))
+        UC103((Tax Profile<br>Lookup))
     end
 
     Purchasing --- UC017
@@ -2990,9 +2991,9 @@ graph LR
     AssetMgr([📊 Asset Manager])
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC018((Return PR))
-        UC105((Send<br/>Notifications))
+        UC105((Send<br>Notifications))
     end
 
     DeptMgr --- UC018
@@ -3120,10 +3121,10 @@ Allows approvers or purchasing staff to return a purchase request to the previou
 graph LR
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
-        UC019((Submit to<br/>Next Stage))
-        UC105((Send<br/>Notifications))
-        UC103((Determine<br/>Approval Chain))
+    subgraph PRS['Purchase Request System']
+        UC019((Submit to<br>Next Stage))
+        UC105((Send<br>Notifications))
+        UC103((Determine<br>Approval Chain))
     end
 
     Purchasing --- UC019
@@ -3242,9 +3243,9 @@ Allows purchasing staff to submit a purchase request to the next workflow stage 
 graph LR
     Purchasing([🛒 Purchasing Staff])
 
-    subgraph PRS["Purchase Request System"]
-        UC020((Purchaser<br/>Reject PR))
-        UC105((Send<br/>Notifications))
+    subgraph PRS['Purchase Request System']
+        UC020((Purchaser<br>Reject PR))
+        UC105((Send<br>Notifications))
     end
 
     Purchasing --- UC020
@@ -3338,7 +3339,7 @@ Allows purchasing staff to reject a purchase request when it cannot be fulfilled
 | Discontinued | Items no longer available | "Product EOL by manufacturer" |
 | Budget | Exceeds available budget | "Exceeds department allocation by 50%" |
 | Compliance | Does not meet requirements | "Items don't meet safety standards" |
-| Duplicate | Duplicate request exists | "Same items in PR-2024-001234" |
+| Duplicate | Duplicate request exists | "Same items in PR-2401-1234" |
 | Other | Other business reason | "Project cancelled" |
 
 #### Related Requirements
@@ -3362,15 +3363,15 @@ graph LR
     Purchasing([🛒 Purchasing Staff])
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
-        UC021((Bulk Item<br/>Actions))
-        UC021A((Approve<br/>Selected))
-        UC021B((Reject<br/>Selected))
-        UC021C((Return<br/>Selected))
-        UC021D((Split<br/>Items))
-        UC021E((Set Date<br/>Required))
-        UC105((Send<br/>Notifications))
-        UC108((Log<br/>Activity))
+    subgraph PRS['Purchase Request System']
+        UC021((Bulk Item<br>Actions))
+        UC021A((Approve<br>Selected))
+        UC021B((Reject<br>Selected))
+        UC021C((Return<br>Selected))
+        UC021D((Split<br>Items))
+        UC021E((Set Date<br>Required))
+        UC105((Send<br>Notifications))
+        UC108((Log<br>Activity))
     end
 
     Approver --- UC021
@@ -3531,7 +3532,7 @@ Allows authorized users to select multiple line items within a purchase request 
 8. System begins transaction
 9. System creates new PR(s) for split item groups:
    - Copies header information from original PR
-   - Assigns new reference numbers (PR-YYYY-NNNN-A, -B, etc.)
+   - Assigns new reference numbers (PR-YYMM-NNNN-A, -B, etc.)
    - Links to original PR for audit trail
 10. System updates original PR:
     - Removes split items
@@ -3669,14 +3670,14 @@ graph LR
     Purchasing([🛒 Purchasing Staff])
     Requestor([👤 Requestor])
 
-    subgraph PRS["Purchase Request System"]
-        UC022((Budget Tab<br/>CRUD))
-        UC022A((Add Budget<br/>Allocation))
-        UC022B((Edit Budget<br/>Allocation))
-        UC022C((Delete Budget<br/>Allocation))
-        UC022D((View Budget<br/>Summary))
-        UC102((Calculate<br/>Totals))
-        UC108((Log<br/>Activity))
+    subgraph PRS['Purchase Request System']
+        UC022((Budget Tab<br>CRUD))
+        UC022A((Add Budget<br>Allocation))
+        UC022B((Edit Budget<br>Allocation))
+        UC022C((Delete Budget<br>Allocation))
+        UC022D((View Budget<br>Summary))
+        UC102((Calculate<br>Totals))
+        UC108((Log<br>Activity))
     end
 
     FinMgr --- UC022
@@ -3942,10 +3943,10 @@ graph TB
         Approver([👤 Approver])
     end
 
-    subgraph "Purchase Request System"
-        UC023((UC-PR-023<br/>Approver Split<br/>by Status))
-        UC005((UC-PR-005<br/>Approve PR))
-        UC018((UC-PR-018<br/>Return PR))
+    subgraph 'Purchase Request System'
+        UC023((UC-PR-023<br>Approver Split<br>by Status))
+        UC005((UC-PR-005<br>Approve PR))
+        UC018((UC-PR-018<br>Return PR))
     end
 
     Approver --> UC023
@@ -4069,8 +4070,8 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 │ └────────────────────────────────────────────────────────────┘ │
 ├────────────────────────────────────────────────────────────────┤
 │ Preview:                                                       │
-│ PR-2025-0042 (Original): 2 items → Approved                    │
-│ PR-2025-0043 (New): 1 item → Returned to Requestor             │
+│ PR-2501-0042 (Original): 2 items → Approved                    │
+│ PR-2501-0043 (New): 1 item → Returned to Requestor             │
 ├────────────────────────────────────────────────────────────────┤
 │                              [Cancel]  [Confirm Split]         │
 └────────────────────────────────────────────────────────────────┘
@@ -4105,9 +4106,9 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC001((Create PR))
-        UC101((Auto-generate<br/>Ref Number))
+        UC101((Auto-generate<br>Ref Number))
     end
 
     UC001 -.->|include| UC101
@@ -4129,20 +4130,20 @@ System automatically generates unique sequential reference numbers for new purch
 - Database sequence exists
 
 #### Postconditions
-- **Success**: Unique reference number assigned in format PR-YYYY-NNNN
+- **Success**: Unique reference number assigned in format PR-YYMM-NNNN
 - **Failure**: Database error, transaction rolled back
 
 #### Main Flow
 1. System receives new PR data without reference number
-2. System extracts PR date year
-3. System queries database for next sequence number for that year:
+2. System extracts PR date year and month (YY = 2-digit year, MM = 2-digit month)
+3. System queries database for next sequence number for that year-month:
    ```sql
    SELECT COALESCE(MAX(CAST(SUBSTRING(ref_number FROM 9) AS INT)), 0) + 1
    FROM purchase_requests
-   WHERE ref_number LIKE 'PR-2025-%'
+   WHERE ref_number LIKE 'PR-2501-%'
    ```
-4. System formats reference number: `PR-{YEAR}-{SEQUENCE:04d}`
-   - Example: PR-2025-0042
+4. System formats reference number: `PR-{YYMM}-{SEQUENCE:04d}`
+   - Example: PR-2501-0042
 5. System assigns reference number to PR
 6. System continues with PR creation
 
@@ -4168,8 +4169,8 @@ System automatically generates unique sequential reference numbers for new purch
 4. If still fails, transaction rolled back
 
 #### Business Rules
-- BR-PR-001: Format PR-YYYY-NNNN
-- BR-PR-037: Sequence resets each year
+- BR-PR-001: Format PR-YYMM-NNNN
+- BR-PR-037: Sequence resets each month
 - BR-PR-038: Reference numbers are immutable
 
 #### Related Requirements
@@ -4187,10 +4188,10 @@ System automatically generates unique sequential reference numbers for new purch
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC001((Create PR))
         UC002((Edit PR))
-        UC102((Calculate<br/>Totals))
+        UC102((Calculate<br>Totals))
     end
 
     UC001 -.->|include| UC102
@@ -4276,9 +4277,9 @@ System automatically calculates line totals and PR totals based on quantities, p
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC003((Submit PR))
-        UC103((Determine<br/>Approval Chain))
+        UC103((Determine<br>Approval Chain))
     end
 
     UC003 -.->|include| UC103
@@ -4379,9 +4380,9 @@ System automatically determines the required approval chain based on PR type, am
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC003((Submit PR))
-        UC104((Check<br/>Budget))
+        UC104((Check<br>Budget))
     end
 
     UC003 -.->|include| UC104
@@ -4477,11 +4478,11 @@ System checks if sufficient budget is available for items with budget codes befo
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC003((Submit PR))
         UC005((Approve PR))
         UC006((Reject PR))
-        UC105((Send<br/>Notifications))
+        UC105((Send<br>Notifications))
     end
 
     UC003 -.->|include| UC105
@@ -4518,7 +4519,7 @@ System sends notifications to relevant users when PR status changes or action is
 2. System identifies recipient users
 3. System retrieves user notification preferences
 4. System builds notification content:
-   - Subject: "[Action Required] PR-2025-0042 awaiting your approval"
+   - Subject: "[Action Required] PR-2501-0042 awaiting your approval"
    - Body: PR details, amounts, link to PR
 5. For each recipient and their preferences:
    a. If email enabled: Queue email
@@ -4577,10 +4578,10 @@ System sends notifications to relevant users when PR status changes or action is
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC005((Approve PR))
         UC011((Convert to PO))
-        UC201((Sync to<br/>ERP))
+        UC201((Sync to<br>ERP))
     end
 
     UC005 -.->|trigger| UC201
@@ -4614,7 +4615,7 @@ System synchronizes approved PR data to external ERP system for financial tracki
    ```json
    {
      "document_type": "PR",
-     "reference": "PR-2025-0042",
+     "reference": "PR-2501-0042",
      "date": "2025-01-30",
      "department": "F&B",
      "total_amount": 15750.00,
@@ -4676,7 +4677,7 @@ System synchronizes approved PR data to external ERP system for financial tracki
 graph LR
     Admin([👨‍💼 Admin])
 
-    subgraph PRS["Purchase Request System"]
+    subgraph PRS['Purchase Request System']
         UC202((Import PR Data))
         UC001((Create PR))
     end
@@ -4776,9 +4777,9 @@ System imports purchase request data from external systems (e.g., legacy system 
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
-        UC301((Send Approval<br/>Reminders))
-        UC105((Send<br/>Notifications))
+    subgraph PRS['Purchase Request System']
+        UC301((Send Approval<br>Reminders))
+        UC105((Send<br>Notifications))
     end
 
     UC301 -.->|include| UC105
@@ -4859,9 +4860,9 @@ System automatically sends reminder notifications to approvers who have pending 
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
-        UC302((Escalate Overdue<br/>Approvals))
-        UC105((Send<br/>Notifications))
+    subgraph PRS['Purchase Request System']
+        UC302((Escalate Overdue<br>Approvals))
+        UC105((Send<br>Notifications))
     end
 
     UC302 -.->|include| UC105
@@ -4939,8 +4940,8 @@ System escalates approvals that remain pending beyond critical threshold, notify
 
 ```mermaid
 graph LR
-    subgraph PRS["Purchase Request System"]
-        UC303((Archive Old<br/>PRs))
+    subgraph PRS['Purchase Request System']
+        UC303((Archive Old<br>PRs))
     end
 
     classDef system fill:#f0f0f0,stroke:#666666,stroke-width:2px

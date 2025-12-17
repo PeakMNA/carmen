@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Documentation Team | Initial version |
 
 ---
@@ -68,7 +69,7 @@ flowchart TD
     Operations --> RateUpdates[Automatic Rate Updates]
     RateUpdates --> Trans[Foreign Currency Transactions]
 
-    Trans --> Invoice{Transaction<br/>Type}
+    Trans --> Invoice{Transaction<br>Type}
     Invoice -->|Purchase/Sale| FxTrans[Post with Dual Currency]
     Invoice -->|Payment/Receipt| Settlement[Settlement Transaction]
 
@@ -87,7 +88,7 @@ flowchart TD
     Reporting --> MultiCurrTB[Multi-Currency Trial Balance]
     MultiCurrTB --> Exposure[Currency Exposure Report]
     Exposure --> GLReport[Exchange Gain/Loss Analysis]
-    GLReport --> NextPeriod{Next<br/>Period?}
+    GLReport --> NextPeriod{Next<br>Period?}
 
     NextPeriod -->|Yes| Reverse[Auto-Reverse Revaluation]
     Reverse --> Operations
@@ -141,21 +142,21 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Scheduled Trigger:<br/>Hourly Cron Job]) --> GetActive[Get Active Currencies]
+    Start([Scheduled Trigger:<br>Hourly Cron Job]) --> GetActive[Get Active Currencies]
     GetActive --> BuildPairs[Build Currency Pairs List]
     BuildPairs --> Pairs[/GBP/USD, EUR/USD, JPY/USD.../]
 
-    Pairs --> LoopStart{For Each<br/>Currency Pair}
+    Pairs --> LoopStart{For Each<br>Currency Pair}
     LoopStart --> GetProvider[Get Primary Provider]
     GetProvider --> Provider[/Bank of England API/]
 
     Provider --> CallAPI[HTTP GET Request]
-    CallAPI --> CheckResponse{Response<br/>OK?}
+    CallAPI --> CheckResponse{Response<br>OK?}
 
-    CheckResponse -->|No| CheckFailure{Consecutive<br/>Failures > 3?}
+    CheckResponse -->|No| CheckFailure{Consecutive<br>Failures > 3?}
     CheckFailure -->|Yes| Failover[Switch to Backup Provider]
     Failover --> GetProvider
-    CheckFailure -->|No| CacheCheck{Cached Rate<br/>Available?}
+    CheckFailure -->|No| CacheCheck{Cached Rate<br>Available?}
     CacheCheck -->|Yes| UseCache[Use Cached Rate]
     UseCache --> FlagStale[Flag as Stale]
     FlagStale --> Continue1[Continue]
@@ -167,16 +168,16 @@ flowchart TD
     ExtractRate --> Rate[/1.27500000/]
 
     Rate --> Validate[Validate Rate]
-    Validate --> CheckBounds{Rate Within<br/>Bounds?}
+    Validate --> CheckBounds{Rate Within<br>Bounds?}
     CheckBounds -->|No| Alert2[/Alert: Rate Out of Bounds/]
     Alert2 --> Continue1
 
-    CheckBounds -->|Yes| CheckVariance{Variance from<br/>Previous > 10%?}
+    CheckBounds -->|Yes| CheckVariance{Variance from<br>Previous > 10%?}
     CheckVariance -->|Yes| FlagReview[Flag for Review]
     FlagReview --> Continue2[Continue]
     CheckVariance -->|No| Continue2
 
-    Continue2 --> CheckApproval{Variance<br/>> 5%?}
+    Continue2 --> CheckApproval{Variance<br>> 5%?}
     CheckApproval -->|Yes| SetApproval[Set Requires_Approval = true]
     SetApproval --> Continue3[Continue]
     CheckApproval -->|No| Continue3
@@ -194,7 +195,7 @@ flowchart TD
     SetTTL --> PublishEvent[/Publish RateUpdated Event/]
     PublishEvent --> LogSuccess[Log Successful Update]
 
-    LogSuccess --> LoopEnd{More<br/>Pairs?}
+    LogSuccess --> LoopEnd{More<br>Pairs?}
     LoopEnd -->|Yes| LoopStart
     LoopEnd -->|No| Summary[Generate Update Summary]
     Summary --> Metrics[Update Success Metrics]
@@ -269,13 +270,13 @@ flowchart TD
     Error1 --> ShowErrors2[/Return Validation Errors/]
     ShowErrors2 --> ShowErrors1
 
-    CheckPositive -->|Yes| CheckBounds{Within<br/>Bounds?}
+    CheckPositive -->|Yes| CheckBounds{Within<br>Bounds?}
     CheckBounds -->|No| Error2[/Error: Rate out of bounds/]
     Error2 --> ShowErrors2
 
     CheckBounds -->|Yes| CalcVariance[Calculate Variance from Current]
     CalcVariance --> Variance[/Variance: +0.39%/]
-    Variance --> CheckVariance{Variance<br/>> 5%?}
+    Variance --> CheckVariance{Variance<br>> 5%?}
 
     CheckVariance -->|No| DirectPost[Set Approved = Auto]
     DirectPost --> Continue[Continue to Posting]
@@ -285,7 +286,7 @@ flowchart TD
     SetPending --> NotifyController[/Email Controller/]
     NotifyController --> WaitApproval([Wait for Approval])
 
-    WaitApproval --> ControllerReview{Controller<br/>Decision}
+    WaitApproval --> ControllerReview{Controller<br>Decision}
     ControllerReview -->|Reject| SetRejected[Set Status = Rejected]
     SetRejected --> NotifyRejected[/Notify Treasury Manager/]
     NotifyRejected --> End1([End: Rejected])
@@ -355,12 +356,12 @@ flowchart TD
     EnterDate --> Date[/2025-11-12/]
 
     Date --> GetRate[Retrieve Exchange Rate]
-    GetRate --> CheckCache{Rate in<br/>Cache?}
+    GetRate --> CheckCache{Rate in<br>Cache?}
     CheckCache -->|Yes| CacheRate[Use Cached Rate]
     CheckCache -->|No| DBRate[Query Database]
-    DBRate --> RateFound{Rate<br/>Found?}
+    DBRate --> RateFound{Rate<br>Found?}
     RateFound -->|No| Alert1[/Alert: No Rate Available/]
-    Alert1 --> ManualOverride{Manual<br/>Override?}
+    Alert1 --> ManualOverride{Manual<br>Override?}
     ManualOverride -->|No| End1([Cancel Transaction])
     ManualOverride -->|Yes| EnterManualRate[Enter Manual Rate]
     EnterManualRate --> ManualRate[/1.2750/]
@@ -373,7 +374,7 @@ flowchart TD
 
     Continue1 --> Rate[/Rate: 1.2750 USD/GBP/]
     Rate --> DisplayRate[Display Exchange Rate to User]
-    DisplayRate --> AllowOverride{User<br/>Override?}
+    DisplayRate --> AllowOverride{User<br>Override?}
     AllowOverride -->|Yes| EnterManualRate
     AllowOverride -->|No| Continue2[Continue]
 
@@ -381,34 +382,34 @@ flowchart TD
     CalcBase --> Calculation[£900.00 × 1.2750]
     Calculation --> BaseAmount[/$1,147.50 USD/]
     BaseAmount --> DisplayDual[Display Dual Currency]
-    DisplayDual --> Display[/£900.00 GBP<br/>$1,147.50 USD/]
+    DisplayDual --> Display[/£900.00 GBP<br>$1,147.50 USD/]
 
     Display --> AddLines[Add Line Items]
-    AddLines --> Lines[/Organic Vegetables: £500.00<br/>Fresh Fruits: £400.00/]
+    AddLines --> Lines[/Organic Vegetables: £500.00<br>Fresh Fruits: £400.00/]
     Lines --> CalcLineBase[Calculate Line Base Amounts]
-    CalcLineBase --> LineBases[/Vegetables: $637.50<br/>Fruits: $510.00/]
+    CalcLineBase --> LineBases[/Vegetables: $637.50<br>Fruits: $510.00/]
 
     LineBases --> Preview[Show Journal Entry Preview]
-    Preview --> JE["Debit: 5100 COGS $1,147.50<br/>Credit: 2100 AP $1,147.50"]
-    JE --> UserReview{User<br/>Confirms?}
+    Preview --> JE['Debit: 5100 COGS $1,147.50<br>Credit: 2100 AP $1,147.50']
+    JE --> UserReview{User<br>Confirms?}
     UserReview -->|No| Edit([Return to Edit])
     Edit --> EnterAmount
 
     UserReview -->|Yes| Submit[Submit Transaction]
     Submit --> ServerVal[Server-Side Validation]
-    ServerVal --> ValCurrency{Currency<br/>Active?}
+    ServerVal --> ValCurrency{Currency<br>Active?}
     ValCurrency -->|No| Error1[/Error: Currency inactive/]
     Error1 --> DisplayError[/Show Error Message/]
 
-    ValCurrency -->|Yes| ValPeriod{Period<br/>Open?}
+    ValCurrency -->|Yes| ValPeriod{Period<br>Open?}
     ValPeriod -->|No| Error2[/Error: Period closed/]
     Error2 --> DisplayError
 
-    ValPeriod -->|Yes| ValRate{Rate<br/>Valid?}
+    ValPeriod -->|Yes| ValRate{Rate<br>Valid?}
     ValRate -->|No| Error3[/Error: Invalid rate/]
     Error3 --> DisplayError
 
-    ValRate -->|Yes| ValCalc{Base Amount<br/>= Amount × Rate?}
+    ValRate -->|Yes| ValCalc{Base Amount<br>= Amount × Rate?}
     ValCalc -->|No| Error4[/Error: Calculation mismatch/]
     Error4 --> DisplayError
 
@@ -467,10 +468,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Payment/Receipt Posted]) --> GetTrans[Retrieve Original Transaction]
-    GetTrans --> OrigTrans[/Invoice: £900.00 @ 1.2750<br/>Original Base: $1,147.50/]
+    GetTrans --> OrigTrans[/Invoice: £900.00 @ 1.2750<br>Original Base: $1,147.50/]
 
     OrigTrans --> GetPayment[Retrieve Payment Details]
-    GetPayment --> Payment[/Payment: £900.00<br/>Settlement Date: 2025-11-20/]
+    GetPayment --> Payment[/Payment: £900.00<br>Settlement Date: 2025-11-20/]
 
     Payment --> GetSettleRate[Get Settlement Exchange Rate]
     GetSettleRate --> SettleRate[/Settlement Rate: 1.2800/]
@@ -483,7 +484,7 @@ flowchart TD
     Diff1 --> Diff2[$1,152.00 - $1,147.50]
     Diff2 --> Amount[/$4.50 USD/]
 
-    Amount --> CheckSign{Difference<br/>Sign}
+    Amount --> CheckSign{Difference<br>Sign}
     CheckSign -->|Positive| IsLoss[Realized Loss]
     CheckSign -->|Negative| IsGain[Realized Gain]
     CheckSign -->|Zero| NoGL([No Gain/Loss Entry])
@@ -498,7 +499,7 @@ flowchart TD
     GetGainAcct --> GainAcct[/7200 - Realized Exchange Gain/]
     GainAcct --> Continue1
 
-    Continue1 --> CheckMaterial{Amount<br/>> $1,000?}
+    Continue1 --> CheckMaterial{Amount<br>> $1,000?}
     CheckMaterial -->|Yes| FlagReview[Flag for Review]
     CheckMaterial -->|No| Continue2[Continue]
     FlagReview --> Continue2
@@ -506,7 +507,7 @@ flowchart TD
     Continue2 --> BuildJE[Construct Journal Entry]
     BuildJE --> AddClearLine[Clear Original AP/AR]
     AddClearLine --> Line1[/Debit: 2100 AP $1,147.50/]
-    Line1 --> AddGLLine{Gain or<br/>Loss?}
+    Line1 --> AddGLLine{Gain or<br>Loss?}
 
     AddGLLine -->|Loss| DebitLoss[Debit Loss Account]
     DebitLoss --> Line2[/Debit: 7200 Loss $4.50/]
@@ -519,7 +520,7 @@ flowchart TD
     Continue3 --> AddCashLine[Credit Cash Account]
     AddCashLine --> Line4[/Credit: 1111 Cash GBP $1,152.00/]
     Line4 --> ValidateJE[Validate Journal Entry]
-    ValidateJE --> Balanced{Debits =<br/>Credits?}
+    ValidateJE --> Balanced{Debits =<br>Credits?}
     Balanced -->|No| Error[/Error: Unbalanced Entry/]
     Error --> Alert[/Alert Finance Team/]
 
@@ -596,23 +597,23 @@ flowchart TD
     SelectCurrencies --> Currencies[/GBP, EUR, JPY/]
     Currencies --> SelectAccounts[Select Account Types]
     SelectAccounts --> Accounts[/AR, AP, Cash (Monetary Only)/]
-    Accounts --> ConfirmConfig{Review<br/>Configuration?}
+    Accounts --> ConfirmConfig{Review<br>Configuration?}
     ConfirmConfig -->|No| Phase1
     ConfirmConfig -->|Yes| Phase2[Phase 2: Rate Retrieval]
 
     Phase2 --> RetrieveRates[Retrieve Period-End Rates]
     RetrieveRates --> CallAPI[Call Rate Providers]
-    CallAPI --> RatesFound{All Rates<br/>Retrieved?}
+    CallAPI --> RatesFound{All Rates<br>Retrieved?}
     RatesFound -->|No| MissingRates[/Display Missing Currencies/]
-    MissingRates --> ManualEntry{Enter<br/>Manually?}
+    MissingRates --> ManualEntry{Enter<br>Manually?}
     ManualEntry -->|No| CancelReval([Cancel Revaluation])
     ManualEntry -->|Yes| EnterManual[Enter Missing Rates]
     EnterManual --> RatesFound
 
     RatesFound -->|Yes| DisplayRates[Display Retrieved Rates]
-    DisplayRates --> Rates[/GBP: 1.2800<br/>EUR: 1.0850<br/>JPY: 0.00690/]
+    DisplayRates --> Rates[/GBP: 1.2800<br>EUR: 1.0850<br>JPY: 0.00690/]
     Rates --> RateSource[/Source: Bank of England, ECB, BOJ/]
-    RateSource --> ConfirmRates{Approve<br/>Rates?}
+    RateSource --> ConfirmRates{Approve<br>Rates?}
     ConfirmRates -->|No| EnterManual
     ConfirmRates -->|Yes| Phase3[Phase 3: Balance Identification]
 
@@ -620,8 +621,8 @@ flowchart TD
     QueryBalances --> FilterMonetary[Filter Monetary Items Only]
     FilterMonetary --> ExcludeInventory[Exclude: Inventory, Fixed Assets]
     ExcludeInventory --> BalanceList[Display Open Balances]
-    BalanceList --> Balances[/AR GBP: £15,000<br/>AP EUR: €15,000<br/>Cash GBP: £20,000/]
-    Balances --> ReviewBalances{Review<br/>Balances?}
+    BalanceList --> Balances[/AR GBP: £15,000<br>AP EUR: €15,000<br>Cash GBP: £20,000/]
+    Balances --> ReviewBalances{Review<br>Balances?}
     ReviewBalances -->|Issues| Resolve[Resolve Discrepancies]
     Resolve --> QueryBalances
     ReviewBalances -->|OK| Phase4[Phase 4: Calculation]
@@ -629,11 +630,11 @@ flowchart TD
     Phase4 --> CalcReval[Calculate Revaluation Adjustments]
     CalcReval --> Loop[For Each Balance:]
 
-    Loop --> Calc1["AR GBP £15,000:<br/>Original: $19,100 @ various rates<br/>Revalued: £15,000 × 1.2800 = $19,200<br/>Unrealized Gain: $100"]
+    Loop --> Calc1['AR GBP £15,000:<br>Original: $19,100 @ various rates<br>Revalued: £15,000 × 1.2800 = $19,200<br>Unrealized Gain: $100']
 
-    Calc1 --> Calc2["AP EUR €15,000:<br/>Original: $16,200 @ 1.0800<br/>Revalued: €15,000 × 1.0850 = $16,275<br/>Unrealized Loss: $75"]
+    Calc1 --> Calc2['AP EUR €15,000:<br>Original: $16,200 @ 1.0800<br>Revalued: €15,000 × 1.0850 = $16,275<br>Unrealized Loss: $75']
 
-    Calc2 --> Calc3["Cash GBP £20,000:<br/>Original: $25,500 @ 1.2750<br/>Revalued: £20,000 × 1.2800 = $25,600<br/>Unrealized Gain: $100"]
+    Calc2 --> Calc3['Cash GBP £20,000:<br>Original: $25,500 @ 1.2750<br>Revalued: £20,000 × 1.2800 = $25,600<br>Unrealized Gain: $100']
 
     Calc3 --> SumGains[Sum Total Gains]
     SumGains --> TotalGain[/$200/]
@@ -646,21 +647,21 @@ flowchart TD
 
     Phase5 --> BuildJE[Construct Revaluation JE]
     BuildJE --> AddGainLines[Add Gain Entries]
-    AddGainLines --> JEGains[/Debit: 1200 AR $100<br/>Debit: 1110 Cash $100/]
+    AddGainLines --> JEGains[/Debit: 1200 AR $100<br>Debit: 1110 Cash $100/]
     JEGains --> AddLossLines[Add Loss Entries]
-    AddLossLines --> JELosses[/Debit: 7210 Unreal Loss $75<br/>Credit: 2100 AP $75/]
+    AddLossLines --> JELosses[/Debit: 7210 Unreal Loss $75<br>Credit: 2100 AP $75/]
     JELosses --> AddNetGain[Add Net Gain]
     AddNetGain --> JENet[/Credit: 7210 Unreal Gain $200/]
     JENet --> DisplayJE[Display Complete JE Preview]
-    DisplayJE --> CheckMaterial{Net Impact<br/>> $10,000?}
+    DisplayJE --> CheckMaterial{Net Impact<br>> $10,000?}
     CheckMaterial -->|Yes| RequireApproval[Require CFO Approval]
     RequireApproval --> WaitApproval[Status: Pending CFO Approval]
-    WaitApproval --> CFOReview{CFO<br/>Approves?}
+    WaitApproval --> CFOReview{CFO<br>Approves?}
     CFOReview -->|No| Rejected([End: Rejected])
     CFOReview -->|Yes| Continue1[Continue]
     CheckMaterial -->|No| Continue1
 
-    Continue1 --> UserConfirm{Confirm<br/>Post?}
+    Continue1 --> UserConfirm{Confirm<br>Post?}
     UserConfirm -->|No| Edit([Return to Edit])
     UserConfirm -->|Yes| Phase6[Phase 6: Posting]
 
@@ -677,12 +678,12 @@ flowchart TD
     Phase7 --> CalcReversalDate[Calculate Reversal Date]
     CalcReversalDate --> ReversalDate[/2025-12-01 (Next Period Start)/]
     ReversalDate --> CreateSchedule[Create Scheduled Job]
-    CreateSchedule --> Job[/Cron: Daily at 00:00:00<br/>Check if date = 2025-12-01/]
+    CreateSchedule --> Job[/Cron: Daily at 00:00:00<br>Check if date = 2025-12-01/]
     Job --> SetFlag[Set automatic_reversal_scheduled = true]
     SetFlag --> UpdateStatus[Set Status = Posted]
     UpdateStatus --> PublishEvent[/Publish Revaluation Posted Event/]
     PublishEvent --> Notify[/Notify Accountant & CFO/]
-    Notify --> Success([End: Success<br/>Reversal Scheduled])
+    Notify --> Success([End: Success<br>Reversal Scheduled])
 
     CancelReval --> End1([End: Cancelled])
     Rejected --> End2([End: Rejected])
@@ -762,37 +763,37 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Cron Job Triggers]) --> CheckDate{Today =<br/>Reversal Date?}
+    Start([Cron Job Triggers]) --> CheckDate{Today =<br>Reversal Date?}
     CheckDate -->|No| Skip([Skip - Not Time])
     CheckDate -->|Yes| QueryReval[Query Pending Reversals]
 
-    QueryReval --> GetRevals[Get Revaluations with:<br/>automatic_reversal_scheduled = true<br/>reversal_scheduled_date = TODAY<br/>reversed_by_id IS NULL]
-    GetRevals --> Found{Revaluations<br/>Found?}
+    QueryReval --> GetRevals[Get Revaluations with:<br>automatic_reversal_scheduled = true<br>reversal_scheduled_date = TODAY<br>reversed_by_id IS NULL]
+    GetRevals --> Found{Revaluations<br>Found?}
     Found -->|No| NoneFound([No Reversals Needed])
 
     Found -->|Yes| Loop[For Each Revaluation:]
     Loop --> GetOriginal[Retrieve Original Revaluation]
-    GetOriginal --> OrigReval[/Original ID: ...001<br/>Date: 2025-11-30<br/>Net Gain: $125/]
+    GetOriginal --> OrigReval[/Original ID: ...001<br>Date: 2025-11-30<br>Net Gain: $125/]
 
     OrigReval --> GetLines[Retrieve Revaluation Lines]
-    GetLines --> Lines[/AR GBP: +$100<br/>AP EUR: -$75<br/>Cash GBP: +$100/]
+    GetLines --> Lines[/AR GBP: +$100<br>AP EUR: -$75<br>Cash GBP: +$100/]
 
-    Lines --> CheckPeriod{Next Period<br/>Open?}
+    Lines --> CheckPeriod{Next Period<br>Open?}
     CheckPeriod -->|No| Alert1[/Alert: Period Not Open/]
     Alert1 --> Defer[Defer to Next Day]
 
     CheckPeriod -->|Yes| CreateReversal[Create Reversal Revaluation]
     CreateReversal --> SetDate[Set Date = TODAY]
     SetDate --> InvertAmounts[Invert All Amounts]
-    InvertAmounts --> ReversalAmounts[/AR GBP: -$100<br/>AP EUR: +$75<br/>Cash GBP: -$100<br/>Net: -$125/]
+    InvertAmounts --> ReversalAmounts[/AR GBP: -$100<br>AP EUR: +$75<br>Cash GBP: -$100<br>Net: -$125/]
 
     ReversalAmounts --> SetFlags[Set Reversal Flags]
-    SetFlags --> Flags[/is_reversal = true<br/>reversal_of_id = ...001/]
+    SetFlags --> Flags[/is_reversal = true<br>reversal_of_id = ...001/]
     Flags --> BuildJE[Construct Reversal JE]
-    BuildJE --> JE[/Debit: 7210 Unreal Gain $200<br/>Debit: 2100 AP $75<br/>Credit: 1200 AR $100<br/>Credit: 1110 Cash $100<br/>Credit: 7210 Unreal Loss $75/]
+    BuildJE --> JE[/Debit: 7210 Unreal Gain $200<br>Debit: 2100 AP $75<br>Credit: 1200 AR $100<br>Credit: 1110 Cash $100<br>Credit: 7210 Unreal Loss $75/]
 
     JE --> Validate[Validate Balanced Entry]
-    Validate --> Balanced{Debits =<br/>Credits?}
+    Validate --> Balanced{Debits =<br>Credits?}
     Balanced -->|No| Error[/Error: Unbalanced Reversal/]
     Error --> Alert2[/Alert Finance Team/]
     Alert2 --> End1([End: Error])
@@ -813,7 +814,7 @@ flowchart TD
     UpdateReports --> Notify[/Notify Accountant/]
     Notify --> Success([End: Reversal Posted])
 
-    Success --> MoreRevals{More<br/>Reversals?}
+    Success --> MoreRevals{More<br>Reversals?}
     MoreRevals -->|Yes| Loop
     MoreRevals -->|No| Complete([All Reversals Complete])
 
@@ -864,18 +865,18 @@ Result:
 ```mermaid
 flowchart TD
     Start([Conversion Requested]) --> GetParams[Get Conversion Parameters]
-    GetParams --> Params[/From: GBP<br/>To: USD<br/>Amount: £900.00<br/>Date: 2025-11-12/]
+    GetParams --> Params[/From: GBP<br>To: USD<br>Amount: £900.00<br>Date: 2025-11-12/]
 
-    Params --> CheckCache{Rate in<br/>Redis Cache?}
+    Params --> CheckCache{Rate in<br>Redis Cache?}
     CheckCache -->|Yes| CacheHit[Retrieve from Cache]
-    CacheHit --> CheckTTL{TTL<br/>Expired?}
+    CacheHit --> CheckTTL{TTL<br>Expired?}
     CheckTTL -->|No| UseCache[Use Cached Rate]
     CheckTTL -->|Yes| RefreshRate[Refresh from Database]
 
     CheckCache -->|No| RefreshRate
     RefreshRate --> DBQuery[Query Exchange_Rates Table]
-    DBQuery --> RateFound{Rate<br/>Found?}
-    RateFound -->|No| Interpolate{Historical<br/>Rate?}
+    DBQuery --> RateFound{Rate<br>Found?}
+    RateFound -->|No| Interpolate{Historical<br>Rate?}
     Interpolate -->|Yes| DoInterpolate[Interpolate from Nearby Dates]
     Interpolate -->|No| ErrorNoRate[/Error: No Rate Available/]
     DoInterpolate --> Continue1[Continue]
@@ -902,7 +903,7 @@ flowchart TD
     RoundRule --> ApplyRounding[Apply Rounding]
     ApplyRounding --> Rounded[/$1,147.50 USD/]
 
-    Rounded --> CheckTolerance{Rounding<br/>Difference<br/>> 0.01?}
+    Rounded --> CheckTolerance{Rounding<br>Difference<br>> 0.01?}
     CheckTolerance -->|Yes| LogRounding[Log Rounding Difference]
     CheckTolerance -->|No| Continue2[Continue]
     LogRounding --> Continue2
@@ -944,21 +945,21 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    User([Treasury Manager<br/>Accountant]) -->|Configure Currencies<br/>Enter Transactions| System{Currency<br/>Management<br/>System}
-    System -->|Rate Alerts<br/>Transaction Confirmations| User
+    User([Treasury Manager<br>Accountant]) -->|Configure Currencies<br>Enter Transactions| System{Currency<br>Management<br>System}
+    System -->|Rate Alerts<br>Transaction Confirmations| User
 
-    System <-->|Store/Retrieve<br/>Currencies, Rates,<br/>Transactions| DB[(PostgreSQL<br/>Database)]
+    System <-->|Store/Retrieve<br>Currencies, Rates,<br>Transactions| DB[(PostgreSQL<br>Database)]
 
-    System <-->|Cache Current<br/>Exchange Rates| Cache[(Redis<br/>Cache)]
+    System <-->|Cache Current<br>Exchange Rates| Cache[(Redis<br>Cache)]
 
-    System <-->|Retrieve<br/>Exchange Rates| BOE[Bank of<br/>England API]
-    System <-->|Retrieve<br/>Exchange Rates| ECB[European<br/>Central Bank API]
-    System <-->|Retrieve<br/>Exchange Rates| BOJ[Bank of<br/>Japan API]
+    System <-->|Retrieve<br>Exchange Rates| BOE[Bank of<br>England API]
+    System <-->|Retrieve<br>Exchange Rates| ECB[European<br>Central Bank API]
+    System <-->|Retrieve<br>Exchange Rates| BOJ[Bank of<br>Japan API]
 
-    System <-->|Request GL Accounts<br/>Return Account Codes| ACM[Account Code<br/>Mapping]
-    System <-->|Publish FX Transactions<br/>Receive JE Posted Events| PostingEngine[Posting<br/>Engine]
+    System <-->|Request GL Accounts<br>Return Account Codes| ACM[Account Code<br>Mapping]
+    System <-->|Publish FX Transactions<br>Receive JE Posted Events| PostingEngine[Posting<br>Engine]
 
-    System -->|Multi-Currency<br/>Reports| Reports[Financial<br/>Reporting]
+    System -->|Multi-Currency<br>Reports| Reports[Financial<br>Reporting]
 
     style User fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style System fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
@@ -989,13 +990,13 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "Currency Management System"
-        P1[1.0<br/>Currency<br/>Setup]
-        P2[2.0<br/>Exchange Rate<br/>Management]
-        P3[3.0<br/>Foreign Transaction<br/>Processing]
-        P4[4.0<br/>Gain/Loss<br/>Calculation]
-        P5[5.0<br/>Period-End<br/>Revaluation]
-        P6[6.0<br/>Multi-Currency<br/>Reporting]
+    subgraph 'Currency Management System'
+        P1[1.0<br>Currency<br>Setup]
+        P2[2.0<br>Exchange Rate<br>Management]
+        P3[3.0<br>Foreign Transaction<br>Processing]
+        P4[4.0<br>Gain/Loss<br>Calculation]
+        P5[5.0<br>Period-End<br>Revaluation]
+        P6[6.0<br>Multi-Currency<br>Reporting]
 
         DS1[(D1: Currencies)]
         DS2[(D2: Exchange Rates)]
@@ -1004,18 +1005,18 @@ flowchart TD
         DS5[(D5: Gain/Loss Log)]
     end
 
-    User([User]) -->|Configure Base<br/>Currency| P1
-    P1 -->|Currency<br/>Definitions| DS1
+    User([User]) -->|Configure Base<br>Currency| P1
+    P1 -->|Currency<br>Definitions| DS1
 
-    User -->|Request Rate<br/>Update| P2
+    User -->|Request Rate<br>Update| P2
     P2 <-->|Retrieve Rates| External([Rate Providers])
     P2 -->|Store Rates| DS2
     DS2 -->|Current Rate| P3
 
-    User -->|Enter Foreign<br/>Transaction| P3
+    User -->|Enter Foreign<br>Transaction| P3
     P3 <-->|Validate Currency| DS1
     DS2 -->|Exchange Rate| P3
-    P3 -->|Store Dual<br/>Currency| DS3
+    P3 -->|Store Dual<br>Currency| DS3
 
     P3 -->|Settlement| P4
     DS3 -->|Original Transaction| P4
@@ -1025,7 +1026,7 @@ flowchart TD
     User -->|Run Revaluation| P5
     DS3 -->|Open Balances| P5
     DS2 -->|Period-End Rates| P5
-    P5 -->|Revaluation<br/>Results| DS4
+    P5 -->|Revaluation<br>Results| DS4
     P5 -->|Unrealized G/L| DS5
     P5 -->|Journal Entry| PostingEngine
 
@@ -1102,12 +1103,12 @@ sequenceDiagram
 
         alt Rate valid
             RateService->>DB: BEGIN TRANSACTION
-            RateService->>DB: UPDATE exchange_rates<br/>SET is_current = false
+            RateService->>DB: UPDATE exchange_rates<br>SET is_current = false
             RateService->>DB: INSERT INTO exchange_rate_history
-            RateService->>DB: INSERT INTO exchange_rates<br/>(is_current = true)
+            RateService->>DB: INSERT INTO exchange_rates<br>(is_current = true)
             RateService->>DB: COMMIT TRANSACTION
 
-            RateService->>Cache: SET rate:GBP:USD:2025-11-12<br/>VALUE 1.2750 EX 3600
+            RateService->>Cache: SET rate:GBP:USD:2025-11-12<br>VALUE 1.2750 EX 3600
             Cache-->>RateService: OK
 
             RateService->>Queue: Publish RateUpdated event
@@ -1144,10 +1145,10 @@ sequenceDiagram
     participant Posting as Posting Engine
     participant Queue as Message Queue
 
-    User->>UI: Enter foreign invoice:<br/>Vendor: Fresh Farm UK<br/>Amount: £900.00
+    User->>UI: Enter foreign invoice:<br>Vendor: Fresh Farm UK<br>Amount: £900.00
     UI->>UI: Auto-detect currency: GBP
 
-    UI->>API: Get exchange rate for GBP/USD<br/>Date: 2025-11-12
+    UI->>API: Get exchange rate for GBP/USD<br>Date: 2025-11-12
     activate API
 
     API->>Cache: GET rate:GBP:USD:2025-11-12
@@ -1163,26 +1164,26 @@ sequenceDiagram
     API-->>UI: {rate: 1.2750, base_amount: 1147.50}
     deactivate API
 
-    UI->>User: Display dual currency:<br/>£900.00 GBP / $1,147.50 USD
+    UI->>User: Display dual currency:<br>£900.00 GBP / $1,147.50 USD
     User->>UI: Confirm and post
 
     UI->>API: Post foreign transaction
     activate API
 
-    API->>API: Validate (currency active,<br/>period open, calc match)
+    API->>API: Validate (currency active,<br>period open, calc match)
 
     API->>DB: BEGIN TRANSACTION
-    API->>DB: INSERT INTO<br/>foreign_currency_transactions<br/>(dual currency, rate, source)
+    API->>DB: INSERT INTO<br>foreign_currency_transactions<br>(dual currency, rate, source)
     DB-->>API: Transaction ID: ...001
 
     API->>Posting: Generate journal entry
     activate Posting
-    Posting->>Posting: Get GL accounts from<br/>Account Code Mapping
-    Posting->>Posting: Construct JE:<br/>Debit 5100 COGS $1,147.50<br/>Credit 2100 AP $1,147.50
+    Posting->>Posting: Get GL accounts from<br>Account Code Mapping
+    Posting->>Posting: Construct JE:<br>Debit 5100 COGS $1,147.50<br>Credit 2100 AP $1,147.50
     Posting->>DB: INSERT INTO journal_entries
     Posting->>DB: INSERT INTO journal_entry_lines
     Posting->>DB: UPDATE account_balances
-    Posting-->>API: JE Posted: JE-2025-011234
+    Posting-->>API: JE Posted: JE-2501-011234
     deactivate Posting
 
     API->>DB: COMMIT TRANSACTION
@@ -1193,7 +1194,7 @@ sequenceDiagram
     API-->>UI: Success: Transaction posted
     deactivate API
 
-    UI->>User: Display confirmation:<br/>Invoice posted, JE generated
+    UI->>User: Display confirmation:<br>Invoice posted, JE generated
 ```
 
 ---
@@ -1220,15 +1221,15 @@ sequenceDiagram
     rect rgb(230, 240, 255)
     Note over User,UI: Phase 1: Configuration
     UI->>User: Select period, date, currencies
-    User->>UI: Period: 2025-11<br/>Date: 2025-11-30<br/>Currencies: GBP, EUR, JPY
+    User->>UI: Period: 2025-11<br>Date: 2025-11-30<br>Currencies: GBP, EUR, JPY
     end
 
     rect rgb(255, 240, 230)
     Note over User,RateService: Phase 2: Rate Retrieval
-    UI->>RateService: Get period-end rates for<br/>GBP, EUR, JPY
+    UI->>RateService: Get period-end rates for<br>GBP, EUR, JPY
     activate RateService
-    RateService->>DB: SELECT exchange_rates<br/>WHERE date = 2025-11-30
-    DB-->>RateService: GBP: 1.2800<br/>EUR: 1.0850<br/>JPY: 0.00690
+    RateService->>DB: SELECT exchange_rates<br>WHERE date = 2025-11-30
+    DB-->>RateService: GBP: 1.2800<br>EUR: 1.0850<br>JPY: 0.00690
     RateService-->>UI: All rates retrieved
     deactivate RateService
     UI->>User: Display rates for approval
@@ -1237,8 +1238,8 @@ sequenceDiagram
 
     rect rgb(230, 255, 230)
     Note over User,DB: Phase 3: Balance Identification
-    UI->>DB: SELECT foreign currency balances<br/>WHERE is_settled = false<br/>AND account_type IN (AR, AP, Cash)
-    DB-->>UI: AR GBP £15,000<br/>AP EUR €15,000<br/>Cash GBP £20,000
+    UI->>DB: SELECT foreign currency balances<br>WHERE is_settled = false<br>AND account_type IN (AR, AP, Cash)
+    DB-->>UI: AR GBP £15,000<br>AP EUR €15,000<br>Cash GBP £20,000
     UI->>User: Display open balances
     User->>UI: Confirm balances
     end
@@ -1247,9 +1248,9 @@ sequenceDiagram
     Note over User,RevalService: Phase 4: Calculation
     UI->>RevalService: Calculate revaluation
     activate RevalService
-    RevalService->>RevalService: AR: £15,000 × 1.2800 = $19,200<br/>Original: $19,100 → Gain $100
-    RevalService->>RevalService: AP: €15,000 × 1.0850 = $16,275<br/>Original: $16,200 → Loss $75
-    RevalService->>RevalService: Cash: £20,000 × 1.2800 = $25,600<br/>Original: $25,500 → Gain $100
+    RevalService->>RevalService: AR: £15,000 × 1.2800 = $19,200<br>Original: $19,100 → Gain $100
+    RevalService->>RevalService: AP: €15,000 × 1.0850 = $16,275<br>Original: $16,200 → Loss $75
+    RevalService->>RevalService: Cash: £20,000 × 1.2800 = $25,600<br>Original: $25,500 → Gain $100
     RevalService->>RevalService: Net: Gain $125
     RevalService-->>UI: Calculation complete
     deactivate RevalService
@@ -1260,7 +1261,7 @@ sequenceDiagram
     Note over User,Posting: Phase 5: Preview
     UI->>Posting: Generate revaluation JE
     activate Posting
-    Posting->>Posting: Debit 1200 AR $100<br/>Debit 1110 Cash $100<br/>Debit 7210 Loss $75<br/>Credit 2100 AP $75<br/>Credit 7210 Gain $200
+    Posting->>Posting: Debit 1200 AR $100<br>Debit 1110 Cash $100<br>Debit 7210 Loss $75<br>Credit 2100 AP $75<br>Credit 7210 Gain $200
     Posting-->>UI: JE preview ready
     deactivate Posting
     UI->>User: Display JE preview
@@ -1287,9 +1288,9 @@ sequenceDiagram
     rect rgb(255, 230, 230)
     Note over User,Scheduler: Phase 7: Reversal Scheduling
     UI->>Scheduler: Schedule reversal for 2025-12-01
-    Scheduler->>Scheduler: Create cron job:<br/>Daily 00:00:00<br/>IF date = 2025-12-01 THEN reverse
+    Scheduler->>Scheduler: Create cron job:<br>Daily 00:00:00<br>IF date = 2025-12-01 THEN reverse
     Scheduler-->>UI: Reversal scheduled
-    UI->>User: Success: Revaluation posted<br/>Reversal scheduled for 2025-12-01
+    UI->>User: Success: Revaluation posted<br>Reversal scheduled for 2025-12-01
     end
 ```
 
@@ -1303,24 +1304,24 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft: Rate retrieved<br/>from provider
+    [*] --> Draft: Rate retrieved<br>from provider
 
     Draft --> Validation: Validate rate
 
-    Validation --> PendingApproval: Variance > 5%<br/>Requires approval
-    Validation --> Current: Variance <= 5%<br/>Auto-approved
+    Validation --> PendingApproval: Variance > 5%<br>Requires approval
+    Validation --> Current: Variance <= 5%<br>Auto-approved
 
     PendingApproval --> Rejected: Controller rejects
     PendingApproval --> Current: Controller approves
 
-    Current --> Expired: TTL expires or<br/>new rate received
+    Current --> Expired: TTL expires or<br>new rate received
 
-    Expired --> Archived: Copy to<br/>exchange_rate_history
+    Expired --> Archived: Copy to<br>exchange_rate_history
 
     Archived --> [*]
     Rejected --> [*]
 
-    Current --> Current: Rate used in<br/>transaction<br/>(increment usage_count)
+    Current --> Current: Rate used in<br>transaction<br>(increment usage_count)
 ```
 
 **State Descriptions**:
@@ -1340,21 +1341,21 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft: User initiates<br/>revaluation
+    [*] --> Draft: User initiates<br>revaluation
 
-    Draft --> Calculating: Phase 4:<br/>Calculate gains/losses
+    Draft --> Calculating: Phase 4:<br>Calculate gains/losses
 
-    Calculating --> Calculated: Calculations<br/>complete
+    Calculating --> Calculated: Calculations<br>complete
 
-    Calculated --> PendingApproval: Net impact > $10K<br/>CFO approval required
-    Calculated --> ReadyToPost: Net impact <= $10K<br/>Auto-approved
+    Calculated --> PendingApproval: Net impact > $10K<br>CFO approval required
+    Calculated --> ReadyToPost: Net impact <= $10K<br>Auto-approved
 
     PendingApproval --> Rejected: CFO rejects
     PendingApproval --> ReadyToPost: CFO approves
 
-    ReadyToPost --> Posted: Phase 6:<br/>Post to GL
+    ReadyToPost --> Posted: Phase 6:<br>Post to GL
 
-    Posted --> Reversed: Phase 7:<br/>Auto-reversal at<br/>next period start
+    Posted --> Reversed: Phase 7:<br>Auto-reversal at<br>next period start
 
     Reversed --> [*]
     Rejected --> [*]
@@ -1386,27 +1387,27 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([Rate Retrieval Triggered]) --> GetProviders[Get Active Providers<br/>by Priority]
-    GetProviders --> Primary[/Primary: Bank of England<br/>Backup: ECB, XE.com/]
+    Start([Rate Retrieval Triggered]) --> GetProviders[Get Active Providers<br>by Priority]
+    GetProviders --> Primary[/Primary: Bank of England<br>Backup: ECB, XE.com/]
 
     Primary --> BuildRequest[Build API Request]
-    BuildRequest --> Request[/GET /rate/GBP/USD/2025-11-12<br/>Headers: API-Key, Accept: application/json/]
+    BuildRequest --> Request[/GET /rate/GBP/USD/2025-11-12<br>Headers: API-Key, Accept: application/json/]
 
     Request --> CallAPI[HTTP Request]
-    CallAPI --> CheckStatus{HTTP<br/>Status?}
+    CallAPI --> CheckStatus{HTTP<br>Status?}
 
     CheckStatus -->|200 OK| ParseJSON[Parse JSON Response]
     ParseJSON --> Extract[Extract Rate Data]
-    Extract --> RateData[/rate: 1.2750<br/>timestamp: 2025-11-12T10:00:00Z<br/>source: Bank of England/]
+    Extract --> RateData[/rate: 1.2750<br>timestamp: 2025-11-12T10:00:00Z<br>source: Bank of England/]
     RateData --> Success[Process Rate]
 
     CheckStatus -->|401 Unauthorized| RefreshToken[Refresh API Token]
-    RefreshToken --> Retry1{Retry<br/>Count < 3?}
+    RefreshToken --> Retry1{Retry<br>Count < 3?}
     Retry1 -->|Yes| CallAPI
     Retry1 -->|No| Failover
 
     CheckStatus -->|429 Rate Limited| Backoff[Exponential Backoff]
-    Backoff --> Retry2{Retry<br/>Count < 3?}
+    Backoff --> Retry2{Retry<br>Count < 3?}
     Retry2 -->|Yes| Wait[Wait with Backoff]
     Wait --> CallAPI
     Retry2 -->|No| Failover
@@ -1415,10 +1416,10 @@ flowchart TD
     CheckStatus -->|Timeout| Failover
 
     Failover --> IncrementFailures[Increment Failure Counter]
-    IncrementFailures --> CheckFailures{Consecutive<br/>Failures > 3?}
+    IncrementFailures --> CheckFailures{Consecutive<br>Failures > 3?}
     CheckFailures -->|Yes| NextProvider[Use Next Priority Provider]
     NextProvider --> BuildRequest
-    CheckFailures -->|No| UseCache{Cached Rate<br/>Available?}
+    CheckFailures -->|No| UseCache{Cached Rate<br>Available?}
 
     UseCache -->|Yes| GetCache[Retrieve from Cache]
     GetCache --> FlagStale[Flag as Stale]
@@ -1426,7 +1427,7 @@ flowchart TD
     Alert1 --> End1([End: Using Stale Rate])
 
     UseCache -->|No| Alert2[/Alert: No Rate Available/]
-    Alert2 --> ManualEntry{Manual<br/>Entry Available?}
+    Alert2 --> ManualEntry{Manual<br>Entry Available?}
     ManualEntry -->|Yes| Manual([Use Manual Rate])
     ManualEntry -->|No| End2([End: Error])
 
@@ -1456,7 +1457,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Foreign Transaction Posted]) --> NeedAccounts[Determine Required GL Accounts]
-    NeedAccounts --> Accounts[/Debit: COGS or Inventory<br/>Credit: AP or AR<br/>Optional: Tax Account<br/>Gain/Loss: 7200 or 7210/]
+    NeedAccounts --> Accounts[/Debit: COGS or Inventory<br>Credit: AP or AR<br>Optional: Tax Account<br>Gain/Loss: 7200 or 7210/]
 
     Accounts --> CallACM[Call Account Code Mapping]
     CallACM --> GetDrAccount[Request Debit Account]
@@ -1467,26 +1468,26 @@ flowchart TD
     GetCrAccount --> ACMQuery2[Query Mapping Rules]
     ACMQuery2 --> CrAccount[/2100 - Accounts Payable/]
 
-    CrAccount --> CheckGL{Gain/Loss<br/>Needed?}
+    CrAccount --> CheckGL{Gain/Loss<br>Needed?}
     CheckGL -->|Yes| GetGLAccount[Request Gain/Loss Account]
-    GetGLAccount --> GLType{Realized or<br/>Unrealized?}
+    GetGLAccount --> GLType{Realized or<br>Unrealized?}
     GLType -->|Realized| GLRealAcct[/7200 - Realized Exch Gain/Loss/]
     GLType -->|Unrealized| GLUnrealAcct[/7210 - Unrealized Exch Gain/Loss/]
     GLRealAcct --> Continue1[Continue]
     GLUnrealAcct --> Continue1
     CheckGL -->|No| Continue1
 
-    Continue1 --> ValidateAccounts{All Accounts<br/>Active?}
+    Continue1 --> ValidateAccounts{All Accounts<br>Active?}
     ValidateAccounts -->|No| ErrorInactive[/Error: Inactive Account/]
     ErrorInactive --> Alert[/Alert Finance Manager/]
     Alert --> End1([End: Error])
 
-    ValidateAccounts -->|Yes| CheckPosting{Accounts Allow<br/>Posting?}
+    ValidateAccounts -->|Yes| CheckPosting{Accounts Allow<br>Posting?}
     CheckPosting -->|No| ErrorHeader[/Error: Header Account/]
     ErrorHeader --> Alert
 
     CheckPosting -->|Yes| ReturnAccounts[Return Account Assignments]
-    ReturnAccounts --> AccountList[/Debit: 5100<br/>Credit: 2100<br/>Gain/Loss: 7200/]
+    ReturnAccounts --> AccountList[/Debit: 5100<br>Credit: 2100<br>Gain/Loss: 7200/]
     AccountList --> CallPosting[Call Posting Engine]
     CallPosting --> GenerateJE[Generate Journal Entry]
     GenerateJE --> PostGL[Post to GL]

@@ -324,7 +324,7 @@ Authorization: Bearer eyJhbGc...
     activities: Array<{
       id: string
       type: string              // 'Purchase Request' | 'Purchase Order' | etc.
-      documentNumber: string    // e.g., 'PR-2024-001'
+      documentNumber: string    // e.g., 'PR-2401-0001'
       status: string
       target: string            // Associated entity
       priority: 'critical' | 'high' | 'medium' | 'low'
@@ -369,7 +369,7 @@ Authorization: Bearer eyJhbGc...
       {
         "id": "1",
         "type": "Purchase Request",
-        "documentNumber": "PR-2024-001",
+        "documentNumber": "PR-2401-0001",
         "status": "Approved",
         "target": "Kitchen Supplies",
         "priority": "high",
@@ -386,9 +386,9 @@ Authorization: Bearer eyJhbGc...
         "createdAt": "2024-01-20T08:00:00Z",
         "updatedAt": "2024-01-20T10:30:00Z",
         "actions": [
-          { "type": "view", "url": "/procurement/purchase-requests/PR-2024-001", "enabled": true },
-          { "type": "edit", "url": "/procurement/purchase-requests/PR-2024-001/edit", "enabled": true },
-          { "type": "delete", "url": "/api/purchase-requests/PR-2024-001", "enabled": false }
+          { "type": "view", "url": "/procurement/purchase-requests/PR-2401-0001", "enabled": true },
+          { "type": "edit", "url": "/procurement/purchase-requests/PR-2401-0001/edit", "enabled": true },
+          { "type": "delete", "url": "/api/purchase-requests/PR-2401-0001", "enabled": false }
         ]
       }
     ],

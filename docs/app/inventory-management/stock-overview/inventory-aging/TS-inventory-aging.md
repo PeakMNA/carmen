@@ -14,7 +14,7 @@
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         A[InventoryAgingPage] --> B[SummaryCards]
         A --> C[ValueAtRiskPanel]
         A --> D[InventoryList Tab]
@@ -22,13 +22,13 @@ graph TB
         A --> F[Action Center Tab]
     end
 
-    subgraph "Components"
+    subgraph 'Components'
         G[GroupedTable]
         H[ExportButton]
         I[Charts - Recharts]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         J[Mock Data Generator]
         K[User Context]
     end

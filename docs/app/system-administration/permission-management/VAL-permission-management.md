@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Document Status**: Active
 
@@ -86,7 +87,7 @@ const roleNameSchema = z.string()
     "Role name can only contain letters, numbers, spaces, hyphens, and underscores"
   )
   .refine(
-    (name) => !["system", "admin", "default", "test"].includes(name.toLowerCase()),
+    (name) => !["system", 'admin', 'default', 'test'].includes(name.toLowerCase()),
     "This role name is reserved and cannot be used"
   )
   .refine(
@@ -492,7 +493,7 @@ function validateRoleDeletion(roleId: string): ValidationResult {
   return {
     valid: errors.length === 0,
     errors,
-    warnings: errors.length === 0 ? ["This action cannot be undone"] : []
+    warnings: errors.length === 0 ? ['This action cannot be undone'] : []
   }
 }
 ```
@@ -522,7 +523,7 @@ function validateUserRoleRemoval(userId: string, roleId: string): ValidationResu
   if (activeRoles.length === 1 && activeRoles[0].id === roleId) {
     return {
       valid: false,
-      errors: ["Cannot remove user's last active role. Users must have at least one active role."]
+      errors: ['Cannot remove user's last active role. Users must have at least one active role.']
     }
   }
 
@@ -774,7 +775,7 @@ export async function createRole(formData: FormData) {
   } catch (error) {
     return {
       success: false,
-      errors: { _form: ["Failed to create role. Please try again."] }
+      errors: { _form: ['Failed to create role. Please try again.'] }
     }
   }
 }

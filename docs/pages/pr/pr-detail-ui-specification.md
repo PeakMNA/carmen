@@ -62,7 +62,7 @@ The PR Detail page implements a sophisticated two-column layout that adapts to u
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ [←] PR-2024-001 - Kitchen Equipment Request    [Draft]      │
+│ [←] PR-2401-0001 - Kitchen Equipment Request    [Draft]      │
 │     Purchase Request Details                                │
 ├─────────────────────────────────────────────────────────────┤
 │ [Edit] [Print] [Export] [Share] [Sidebar Toggle] ••• [Save] │
@@ -496,7 +496,7 @@ const getFloatingActions = (userRole: string, prStatus: string): ActionConfig[] 
 │ ← PR Details                │
 ├─────────────────────────────┤
 │ [Draft Badge]               │
-│ PR-2024-001                 │
+│ PR-2401-0001                 │
 │ Kitchen Equipment Request   │
 ├─────────────────────────────┤
 │ ▼ Basic Information         │

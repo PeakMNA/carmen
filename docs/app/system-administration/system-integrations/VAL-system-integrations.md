@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Implementation Status**: Planned (Mock Data Currently)
 
@@ -73,7 +74,7 @@ const recipeMappingSchema = z.object({
     .min(1, "Category is required")
     .max(100, "Category must not exceed 100 characters"),
 
-  status: z.enum(["mapped", "unmapped", "error"], {
+  status: z.enum(['mapped', 'unmapped', 'error'], {
     errorMap: () => ({ message: "Invalid status value" }),
   }),
 })
@@ -229,7 +230,7 @@ const fractionalSalesMappingSchema = recipeMappingSchema.extend({
   },
   {
     message: "Variant name and base recipe are required for fractional sales",
-    path: ["fractionalSalesType"],
+    path: ['fractionalSalesType'],
   }
 ).refine(
   (data) => {
@@ -241,7 +242,7 @@ const fractionalSalesMappingSchema = recipeMappingSchema.extend({
   },
   {
     message: "Fractional sales conversion rate must be ≤ 1.0",
-    path: ["conversionRate"],
+    path: ['conversionRate'],
   }
 )
 ```
@@ -519,7 +520,7 @@ const unitMappingSchema = z.object({
     .min(1, "Unit name is required")
     .max(100, "Unit name must not exceed 100 characters"),
 
-  unitType: z.enum(["recipe", "sales", "both"], {
+  unitType: z.enum(['recipe', 'sales', 'both'], {
     errorMap: () => ({ message: "Invalid unit type" }),
   }),
 
@@ -536,7 +537,7 @@ const unitMappingSchema = z.object({
       "Conversion rate can have maximum 8 decimal places"
     ),
 
-  status: z.enum(["active", "inactive"], {
+  status: z.enum(['active', 'inactive'], {
     errorMap: () => ({ message: "Invalid status" }),
   }),
 })
@@ -735,7 +736,7 @@ const transactionSchema = z.object({
   },
   {
     message: "Total amount does not match sum of item totals",
-    path: ["totalAmount"],
+    path: ['totalAmount'],
   }
 )
 
@@ -867,9 +868,9 @@ const apiConfigSchema = z.object({
   ]),
   interfaceType: z.literal("api"),
   apiEndpoint: z.string().url("Invalid API endpoint URL"),
-  apiMethod: z.enum(["GET", "POST"]),
+  apiMethod: z.enum(['GET', 'POST']),
   securityToken: z.string().min(1, "Security token is required"),
-  authType: z.enum(["bearer", "api-key", "basic"]),
+  authType: z.enum(['bearer', 'api-key', 'basic']),
 })
 
 const fileConfigSchema = z.object({
@@ -883,7 +884,7 @@ const fileConfigSchema = z.object({
   interfaceType: z.literal("file"),
   filePath: z.string().min(1, "File path is required"),
   filePattern: z.string().min(1, "File pattern is required"),
-  fileFormat: z.enum(["csv", "json", "xml"]),
+  fileFormat: z.enum(['csv', 'json', 'xml']),
 })
 
 const integrationConfigSchema = z.discriminatedUnion("interfaceType", [
@@ -894,7 +895,7 @@ const integrationConfigSchema = z.discriminatedUnion("interfaceType", [
 const fieldMappingSchema = z.object({
   posField: z.string().min(1, "POS field is required"),
   systemField: z.string().min(1, "System field is required"),
-  dataType: z.enum(["string", "integer", "decimal", "date", "datetime", "boolean"]),
+  dataType: z.enum(["string", "integer", "decimal", 'date', 'datetime', 'boolean']),
   required: z.boolean().default(false),
 })
 
@@ -902,7 +903,7 @@ const completeConfigSchema = integrationConfigSchema.extend({
   fieldMappings: z
     .array(fieldMappingSchema)
     .min(4, "At least 4 field mappings are required"),
-  syncFrequency: z.enum(["real-time", "hourly", "daily"]),
+  syncFrequency: z.enum(['real-time', 'hourly', 'daily']),
   syncTime: z.string().regex(/^([01]\d|2[0-3]):([0-5]\d)$/, "Invalid time format (HH:MM)").optional(),
 })
 ```
@@ -934,7 +935,7 @@ export async function saveIntegrationConfig(data: CompleteConfigForm) {
   }
 
   // 2. Validate required field mappings
-  const requiredFields = ["posItemCode", "posDescription", "quantity", "price"]
+  const requiredFields = ["posItemCode", 'posDescription', 'quantity', 'price']
   const mappedFields = validated.fieldMappings.map((m) => m.systemField)
 
   const missingFields = requiredFields.filter((f) => !mappedFields.includes(f))
@@ -1095,7 +1096,7 @@ describe("VAL-SI-001: Recipe Mapping Validation", () => {
 
     const result = recipeMappingSchema.safeParse(invalidData)
     expect(result.success).toBe(false)
-    expect(result.error?.issues[0].path).toEqual(["conversionRate"])
+    expect(result.error?.issues[0].path).toEqual(['conversionRate'])
   })
 })
 ```

@@ -432,8 +432,9 @@ export interface Department {
   status: 'active' | 'inactive';
   parentDepartment?: string;
   costCenter?: string;
-  manager?: string; // User ID
+  managers?: string[]; // Array of user IDs who are department heads
   assignedUsers?: string[]; // Array of user IDs assigned to this department
+  assignedLocations?: string[]; // Array of location IDs assigned to this department
 }
 
 export interface Location {

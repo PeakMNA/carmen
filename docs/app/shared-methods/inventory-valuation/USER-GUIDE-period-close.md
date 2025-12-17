@@ -8,6 +8,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Last Updated**: 2025-11-03
 
@@ -597,7 +598,7 @@ Reason for Re-Opening (min 50 characters):
  ____________________________________________________]
 
 Example: "Missed GRN transaction from January 28th.
-Need to post receipt for PO-2025-0156 (50 units of
+Need to post receipt for PO-2501-0156 (50 units of
 ITEM-789 @ $15.25). Transaction was approved but not
 entered before period close."
 
@@ -740,7 +741,7 @@ Reports are attached and available in the shared folder:
 
 Notable items:
 • Top value item: ITEM-12345 ($45,230)
-• Largest movement: GRN-2025-0089 (+$12,500)
+• Largest movement: GRN-2501-0089 (+$12,500)
 
 Please review and contact finance with any questions.
 

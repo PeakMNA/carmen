@@ -347,7 +347,7 @@ interface PurchaseRequestItem {
 export const enhancedSamplePRItems: PurchaseRequestItem[] = [
   {
     // Existing fields...
-    jobNumber: "FB-2024-001",
+    jobNumber: "FB-2401-0001",
     event: "Monthly Operations",
     project: "Kitchen Upgrade",
     marketSegment: "Corporate",
@@ -362,7 +362,7 @@ export const enhancedSamplePRItems: PurchaseRequestItem[] = [
       ],
       onOrderDetails: [
         {
-          poNumber: "PO-2024-001",
+          poNumber: "PO-2401-0001",
           vendor: "Global F&B Suppliers",
           quantity: 20,
           unit: "kg",

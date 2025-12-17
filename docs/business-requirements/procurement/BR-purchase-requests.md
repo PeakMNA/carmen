@@ -363,7 +363,7 @@ Interface must be mobile-friendly:
 ```typescript
 interface PurchaseRequest {
   id: string                      // UUID
-  refNumber: string               // PR-YYYY-NNNNNN
+  refNumber: string               // PR-YYMM-NNNN
   date: Date                      // Creation date
   type: 'General' | 'Market List' | 'Asset'
   deliveryDate: Date              // Required delivery date

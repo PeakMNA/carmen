@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-30 | System | Initial creation with approval workflow tables |
 | 2.0.0 | 2025-10-31 | System | Removed purchase_order_approvals table, updated ERD, removed v_pending_po_approvals view, updated status constraints, clarified approved_by/approved_at fields are NOT multi-stage approval workflow |
 | 3.0.0 | 2025-11-21 | System | Major restructure: Converted from SQL-focused implementation document to proper Data Definition document with field definitions, business rules, and diagrams; moved all SQL code (DDL, triggers, functions, views) to Technical Specification document |
@@ -73,7 +74,7 @@ erDiagram
 
 **Primary Key**: Unique identifier (UUID)
 
-**Business Identifier**: PO Number (Format: PO-YYYY-NNNNNN, e.g., PO-2024-001234)
+**Business Identifier**: PO Number (Format: PO-YYMM-NNNN, e.g., PO-2401-001234)
 
 #### Field Definitions
 
@@ -81,7 +82,7 @@ erDiagram
 |------------|-----------|----------|-------------|----------------|
 | **Identification** |
 | id | UUID | Yes | System-generated unique identifier | Auto-generated |
-| po_number | String(50) | Yes | Human-readable PO number | Unique, format: PO-YYYY-NNNNNN |
+| po_number | String(50) | Yes | Human-readable PO number | Unique, format: PO-YYMM-NNNN |
 | version | Integer | Yes | Document version for change tracking | Increments on each modification |
 | **Vendor Information** |
 | vendor_id | UUID | Yes | Reference to vendor entity | Must be active vendor |
@@ -121,7 +122,7 @@ erDiagram
 | updated_at | Timestamp | Yes | Last update timestamp | Auto-updated |
 | updated_by | UUID | Yes | User who last updated | Reference to users |
 | **QR Code for Mobile Receiving** |
-| qr_code | String(100) | No | QR code value for mobile scanning | Format: PO:{po_number}, e.g., "PO:PO-2025-0001" |
+| qr_code | String(100) | No | QR code value for mobile scanning | Format: PO:{po_number}, e.g., "PO:PO-2501-0001" |
 | qr_code_image | Text | No | Base64-encoded QR code image | Data URL format for web display |
 | qr_code_generated_at | Timestamp | No | QR code generation timestamp | Auto-set when generated |
 | **Soft Delete** |
@@ -176,7 +177,7 @@ erDiagram
 | line_number | Integer | Yes | Sequential line number within PO | Unique within PO, auto-incremented |
 | **Source Reference (PR Traceability)** |
 | purchase_request_line_item_id | UUID | No | Reference to source PR line item | Foreign key to purchase_request_line_items |
-| source_request_id | String(50) | No | PR number for display | Format: PR-YYYY-NNNNNN (e.g., "PR-2024-0045") |
+| source_request_id | String(50) | No | PR number for display | Format: PR-YYMM-NNNN (e.g., "PR-2401-0045") |
 | source_request_item_id | String(50) | No | PR item ID for traceability | Links to original request item |
 | **Product Information** |
 | product_id | UUID | No | Reference to product catalog | Foreign key to products |
@@ -382,8 +383,8 @@ erDiagram
 
 1. **Sequence Generation**:
    - Sequence increments atomically for each new PO
-   - Format: PO-YYYY-NNNNNN (e.g., PO-2025-000001)
-   - Sequence resets to 1 at start of each year
+   - Format: PO-YYMM-NNNN (e.g., PO-2501-000001)
+   - Sequence resets to 1 at start of each month
 
 2. **Year Validation**:
    - Year must be between 2000 and 2100

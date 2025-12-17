@@ -19,6 +19,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.3.0 | 2025-12-02 | System Analyst | Added VAL-PO-016: QR Code Generation and Format validations for mobile receiving integration |
 | 2.2.0 | 2025-12-01 | System | Added PO Item Details Dialog validations (VAL-PO-013 through VAL-PO-015) for inventory status indicators, source PR references, and financial calculations |
 | 2.1.0 | 2025-12-01 | System | Added Comments & Attachments sidebar feature documentation; Updated page layout validations to include collapsible right sidebar |
@@ -54,7 +55,7 @@ This document defines all validation requirements for the Purchase Orders sub-mo
 **Database Column**: `purchase_orders.po_number`
 **Data Type**: VARCHAR(50) / string
 
-**Validation Rule**: PO number must follow the format PO-YYYY-NNNNNN where YYYY is the fiscal year and NNNNNN is a 6-digit sequential number (e.g., PO-2024-000123).
+**Validation Rule**: PO number must follow the format PO-YYMM-NNNN where YY is 2-digit year and MM is month and NNNNNN is a 6-digit sequential number (e.g., PO-2401-000123).
 
 **Rationale**: Provides unique, traceable identification for all purchase orders with year-based organization.
 
@@ -64,15 +65,15 @@ This document defines all validation requirements for the Purchase Orders sub-mo
 - **Database**: UNIQUE constraint on po_number column. Function `get_next_po_sequence(year)` generates sequential numbers per fiscal year.
 
 **Error Code**: VAL-PO-001
-**Error Message**: "Invalid PO number format. Must be PO-YYYY-NNNNNN"
+**Error Message**: "Invalid PO number format. Must be PO-YYMM-NNNN"
 **User Action**: System auto-generates - no user action required. Error only if database function fails.
 
 **Test Cases**:
-- ✅ Valid: PO-2024-000001
-- ✅ Valid: PO-2025-999999
-- ❌ Invalid: PO-24-0001 (year must be 4 digits)
-- ❌ Invalid: PO-2024-001 (sequence must be 6 digits)
-- ❌ Invalid: 2024-000001 (missing PO prefix)
+- ✅ Valid: PO-2401-000001
+- ✅ Valid: PO-2512-999999
+- ❌ Invalid: PO-24-0001 (missing month)
+- ❌ Invalid: PO-2401-001 (sequence must be 6 digits)
+- ❌ Invalid: 2401-000001 (missing PO prefix)
 
 ---
 
@@ -428,18 +429,18 @@ This document defines all validation requirements for the Purchase Orders sub-mo
 
 **Implementation Requirements**:
 - **Client-Side**: Display source PR as clickable link. Verify PR exists before navigation. Show "N/A" if no source PR.
-- **Server-Side**: Validate source_request_id format (PR-YYYY-NNNN). Verify PR exists in database when saving.
+- **Server-Side**: Validate source_request_id format (PR-YYMM-NNNN). Verify PR exists in database when saving.
 - **Database**: Optional fields (NULL allowed). If provided, should match existing PR records.
 
 **Error Code**: VAL-PO-014
 **Error Message**: "Invalid source purchase request reference"
-**User Action**: System auto-populates from PR conversion. Manual entry should follow PR-YYYY-NNNN format.
+**User Action**: System auto-populates from PR conversion. Manual entry should follow PR-YYMM-NNNN format.
 
 **Test Cases**:
-- ✅ Valid: source_request_id = "PR-2024-0045" (existing PR)
+- ✅ Valid: source_request_id = "PR-2401-0045" (existing PR)
 - ✅ Valid: source_request_id = null (manual PO, no source)
 - ❌ Invalid: source_request_id = "PR-999" (non-existent)
-- ❌ Invalid: source_request_id = "PO-2024-001" (wrong document type)
+- ❌ Invalid: source_request_id = "PO-2401-001" (wrong document type)
 
 ---
 
@@ -475,7 +476,7 @@ This document defines all validation requirements for the Purchase Orders sub-mo
 **Database Columns**: `purchase_orders.qr_code`, `purchase_orders.qr_code_image`, `purchase_orders.qr_code_generated_at`
 **Component**: QRCodeSection.tsx
 
-**Validation Rule**: QR code must be automatically generated when PO is created or updated, following the exact format `PO:{orderNumber}` (e.g., "PO:PO-2025-0001"). The QR code image must be a valid base64-encoded data URL that can be displayed and downloaded.
+**Validation Rule**: QR code must be automatically generated when PO is created or updated, following the exact format `PO:{orderNumber}` (e.g., "PO:PO-2501-0001"). The QR code image must be a valid base64-encoded data URL that can be displayed and downloaded.
 
 **Rationale**: Ensures consistent QR code format for reliable mobile scanning, enables quick GRN creation via mobile app, maintains data integrity between QR code value and PO number.
 
@@ -527,15 +528,15 @@ This document defines all validation requirements for the Purchase Orders sub-mo
 - If copy fails: Manually copy displayed PO number
 
 **Test Cases**:
-- ✅ Valid: PO number "PO-2025-0001" → QR value "PO:PO-2025-0001"
+- ✅ Valid: PO number "PO-2501-0001" → QR value "PO:PO-2501-0001"
 - ✅ Valid: Generated QR code scans correctly with mobile app
-- ✅ Valid: Download creates PNG file named "PO-2025-0001-QR.png"
+- ✅ Valid: Download creates PNG file named "PO-2501-0001-QR.png"
 - ✅ Valid: QR code image is valid base64 data URL
 - ✅ Valid: Copy to clipboard copies exact PO number
 - ✅ Valid: QR generation completes within 200ms
 - ✅ Valid: High-res download QR (400×400px) is scannable when printed
-- ❌ Invalid: QR code format "PO-2025-0001" (missing prefix "PO:")
-- ❌ Invalid: QR code format "PO: PO-2025-0001" (contains space)
+- ❌ Invalid: QR code format "PO-2501-0001" (missing prefix "PO:")
+- ❌ Invalid: QR code format "PO: PO-2501-0001" (contains space)
 - ❌ Invalid: Empty qr_code field when PO number exists
 - ❌ Invalid: qr_code_image not a valid base64 data URL
 - ❌ Invalid: Generation timeout exceeds 5 seconds

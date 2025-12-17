@@ -1,9 +1,30 @@
+/**
+ * Stock Movement Component for Store Requisitions
+ *
+ * Displays stock movements from store requisitions with location-aware filtering.
+ *
+ * LOCATION TYPE HANDLING:
+ * - INVENTORY: Full stock movements shown with lot tracking and FIFO costing
+ * - DIRECT: Items filtered out from movement display (no stock balance to track)
+ * - CONSIGNMENT: Full stock movements shown with vendor-owned indicators
+ *
+ * The component filters out DIRECT location items from the movement table
+ * since they don't create actual inventory transactions - they're expensed
+ * on receipt and tracked for metrics only.
+ */
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Input } from '@/components/ui/input';
-import { Warehouse, Store } from 'lucide-react';
+import { Warehouse, Store, Package, DollarSign, Truck } from 'lucide-react';
+import { InventoryLocationType } from '@/lib/types/location-management';
+import {
+  shouldRecordStockMovement,
+  getLocationTypeLabel,
+  getLocationTypeBadgeVariant,
+} from '@/lib/utils/location-type-helpers';
 
 interface StockMovement {
   id: number;
@@ -27,7 +48,7 @@ const StockMovementContent = () => {
       commitDate: '2024-01-15',
       postingDate: '2024-01-15', 
       movementType: 'CREDIT_NOTE',
-      sourceDocument: 'CN-2024-001',
+      sourceDocument: 'CN-2410-001',
       store: 'WH-001',
       status: 'Posted',
       items: [
@@ -137,12 +158,65 @@ const StockMovementContent = () => {
     }
   ];
 
+  /**
+   * Get the appropriate icon for the location type
+   *
+   * LOCATION TYPE ICONS:
+   * - INV (INVENTORY): Package icon - represents tracked inventory assets
+   * - DIR (DIRECT): DollarSign icon - represents immediate expense items
+   * - CON (CONSIGNMENT): Truck icon - represents vendor-owned inventory
+   */
   const getLocationIcon = (type: string) => {
-    return type === 'INV' ? <Warehouse className="h-4 w-4" /> : <Store className="h-4 w-4" />;
+    switch (type) {
+      case 'INV':
+        return <Package className="h-4 w-4" />;
+      case 'DIR':
+        return <DollarSign className="h-4 w-4" />;
+      case 'CON':
+        return <Truck className="h-4 w-4" />;
+      default:
+        return <Warehouse className="h-4 w-4" />;
+    }
   };
 
-  const getLocationTypeLabel = (type: string) => {
-    return type === 'INV' ? 'Inventory' : 'Consignment';
+  /**
+   * Get the display label for the location type
+   *
+   * Uses centralized location type definitions for consistency
+   * across all Store Operations modules.
+   */
+  const getLocationTypeLabelLocal = (type: string) => {
+    switch (type) {
+      case 'INV':
+        return 'Inventory';
+      case 'DIR':
+        return 'Direct Expense';
+      case 'CON':
+        return 'Consignment';
+      default:
+        return 'Unknown';
+    }
+  };
+
+  /**
+   * Check if stock movement should be recorded for this location type
+   *
+   * BUSINESS RULE:
+   * - INVENTORY/CONSIGNMENT: Record stock movements - items are tracked
+   * - DIRECT: No stock movements - items expensed on receipt
+   */
+  const shouldShowMovement = (type: string): boolean => {
+    // Map the short type codes to InventoryLocationType enum
+    switch (type) {
+      case 'INV':
+        return shouldRecordStockMovement(InventoryLocationType.INVENTORY);
+      case 'CON':
+        return shouldRecordStockMovement(InventoryLocationType.CONSIGNMENT);
+      case 'DIR':
+        return shouldRecordStockMovement(InventoryLocationType.DIRECT);
+      default:
+        return true;
+    }
   };
 
   return (
@@ -227,8 +301,14 @@ const StockMovementContent = () => {
                         </div>
                       </td>
                     </tr>
-                    {/* Movement Items */}
-                    {movement.items.filter(item => ['INV', 'CON'].includes(item.location.type)).map(item => (
+                    {/* Movement Items
+                        LOCATION TYPE FILTER:
+                        Only show items from locations that record stock movements.
+                        - INVENTORY (INV): Show - Full stock tracking
+                        - CONSIGNMENT (CON): Show - Vendor-owned stock tracking
+                        - DIRECT (DIR): Hide - No stock movement (items already expensed)
+                    */}
+                    {movement.items.filter(item => shouldShowMovement(item.location.type)).map(item => (
                       <React.Fragment key={item.id}>
                         {item.lots.map((lot, lotIndex) => (
                           <tr key={`${item.id}-${lot.lotNo}`} className="hover:bg-gray-50">
@@ -244,7 +324,7 @@ const StockMovementContent = () => {
                                   <span className="text-gray-300">|</span>
                                   <div className="flex items-center gap-0.5">
                                     {getLocationIcon(item.location.type)}
-                                    <span>{getLocationTypeLabel(item.location.type)}</span>
+                                    <span>{getLocationTypeLabelLocal(item.location.type)}</span>
                                   </div>
                                 </div>
                               </div>

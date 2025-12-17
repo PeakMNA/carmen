@@ -24,6 +24,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.3.0 | 2025-12-02 | System Analyst | Added QR Code Generation section with QRCodeSection component, lib/utils/qr-code.ts utilities, qrcode library v1.5.3 integration, and mobile receiving integration details |
 | 2.2.0 | 2025-12-01 | System | Added PO Item Details Dialog documentation (DetailDialog9) with inventory status indicators (On Hand, On Order, Received), related PR links, and financial summary; Added sub-dialogs for On Hand Breakdown, Pending POs, and GRN History |
 | 2.1.0 | 2025-12-01 | System | Added Comments & Attachments collapsible sidebar feature; Updated Detail Page layout to include right sidebar with Comments, Attachments, and Activity Log sections matching PR page pattern |
@@ -49,24 +50,24 @@ This document provides high-level technical implementation guidance for the Purc
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         Browser[Web Browser]
         Mobile[Mobile Browser]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         NextJS[Next.js 14+ App Router]
         React[React Components]
         ServerActions[Server Actions]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         Supabase[(Supabase PostgreSQL)]
         Storage[Supabase Storage]
         Cache[Redis Cache]
     end
 
-    subgraph "External Systems"
+    subgraph 'External Systems'
         Budget[Budget Management]
         Vendor[Vendor System]
         Inventory[Inventory/GRN System]
@@ -351,87 +352,87 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/procurement/purchase-orders)"]
-    CreateFromPR["Create from PR<br/>(/procurement/purchase-orders/create)"]
-    CreateManual["Create Manual PO<br/>(/procurement/purchase-orders/create/manual)"]
-    DetailPage["Detail Page<br/>(/procurement/purchase-orders/[id])"]
-    EditPage["Edit Page<br/>(/procurement/purchase-orders/[id]/edit)"]
-    ChangeOrder["Change Order<br/>(/procurement/purchase-orders/[id]/change-order)"]
+    ListPage['List Page<br>(/procurement/purchase-orders)']
+    CreateFromPR['Create from PR<br>(/procurement/purchase-orders/create)']
+    CreateManual['Create Manual PO<br>(/procurement/purchase-orders/create/manual)']
+    DetailPage["Detail Page<br>(/procurement/purchase-orders/[id])"]
+    EditPage["Edit Page<br>(/procurement/purchase-orders/[id]/edit)"]
+    ChangeOrder["Change Order<br>(/procurement/purchase-orders/[id]/change-order)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All POs"]
-    ListPage --> ListTab2["Tab: My POs"]
-    ListPage --> ListTab3["Tab: Draft"]
-    ListPage --> ListTab4["Tab: Sent"]
-    ListPage --> ListTab5["Tab: Acknowledged"]
-    ListPage --> ListTab6["Tab: Receiving"]
+    ListPage --> ListTab1['Tab: All POs']
+    ListPage --> ListTab2['Tab: My POs']
+    ListPage --> ListTab3['Tab: Draft']
+    ListPage --> ListTab4['Tab: Sent']
+    ListPage --> ListTab5['Tab: Acknowledged']
+    ListPage --> ListTab6['Tab: Receiving']
 
     %% List Page Dialogs
-    ListPage -.-> ListDialog1["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog2["Dialog: Export"]
-    ListPage -.-> ListDialog3["Dialog: Filter Settings"]
-    ListPage -.-> ListDialog4["Dialog: Column Preferences"]
+    ListPage -.-> ListDialog1['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog2['Dialog: Export']
+    ListPage -.-> ListDialog3['Dialog: Filter Settings']
+    ListPage -.-> ListDialog4['Dialog: Column Preferences']
 
     %% Create from PR Tabs
-    CreateFromPR --> CreatePRTab1["Tab: Select PRs"]
-    CreateFromPR --> CreatePRTab2["Tab: Vendor Grouping"]
-    CreateFromPR --> CreatePRTab3["Tab: PO Details"]
-    CreateFromPR --> CreatePRTab4["Tab: Budget Allocation"]
+    CreateFromPR --> CreatePRTab1['Tab: Select PRs']
+    CreateFromPR --> CreatePRTab2['Tab: Vendor Grouping']
+    CreateFromPR --> CreatePRTab3['Tab: PO Details']
+    CreateFromPR --> CreatePRTab4['Tab: Budget Allocation']
 
     %% Create from PR Dialogs
-    CreateFromPR -.-> CreatePRDialog1["Dialog: PR Selection"]
-    CreateFromPR -.-> CreatePRDialog2["Dialog: Split PO"]
-    CreateFromPR -.-> CreatePRDialog3["Dialog: Budget Check"]
-    CreateFromPR -.-> CreatePRDialog4["Dialog: Send to Vendor"]
-    CreateFromPR -.-> CreatePRDialog5["Dialog: Cancel Confirm"]
+    CreateFromPR -.-> CreatePRDialog1['Dialog: PR Selection']
+    CreateFromPR -.-> CreatePRDialog2['Dialog: Split PO']
+    CreateFromPR -.-> CreatePRDialog3['Dialog: Budget Check']
+    CreateFromPR -.-> CreatePRDialog4['Dialog: Send to Vendor']
+    CreateFromPR -.-> CreatePRDialog5['Dialog: Cancel Confirm']
 
     %% Create Manual Tabs
-    CreateManual --> ManualTab1["Tab: PO Details"]
-    CreateManual --> ManualTab2["Tab: Line Items"]
-    CreateManual --> ManualTab3["Tab: Budget Allocation"]
-    CreateManual --> ManualTab4["Tab: Documents"]
+    CreateManual --> ManualTab1['Tab: PO Details']
+    CreateManual --> ManualTab2['Tab: Line Items']
+    CreateManual --> ManualTab3['Tab: Budget Allocation']
+    CreateManual --> ManualTab4['Tab: Documents']
 
     %% Create Manual Dialogs
-    CreateManual -.-> ManualDialog1["Dialog: Vendor Selection"]
-    CreateManual -.-> ManualDialog2["Dialog: Product Search"]
-    CreateManual -.-> ManualDialog3["Dialog: Budget Check"]
-    CreateManual -.-> ManualDialog4["Dialog: Send to Vendor"]
-    CreateManual -.-> ManualDialog5["Dialog: Authorization"]
+    CreateManual -.-> ManualDialog1['Dialog: Vendor Selection']
+    CreateManual -.-> ManualDialog2['Dialog: Product Search']
+    CreateManual -.-> ManualDialog3['Dialog: Budget Check']
+    CreateManual -.-> ManualDialog4['Dialog: Send to Vendor']
+    CreateManual -.-> ManualDialog5['Dialog: Authorization']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: Line Items"]
-    DetailPage --> DetailTab3["Tab: Documents"]
-    DetailPage --> DetailTab4["Tab: Activity Log"]
-    DetailPage --> DetailTab5["Tab: Budget & Financials"]
-    DetailPage --> DetailTab6["Tab: Receipts (GRN)"]
-    DetailPage --> DetailTab7["Tab: Invoices"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: Line Items']
+    DetailPage --> DetailTab3['Tab: Documents']
+    DetailPage --> DetailTab4['Tab: Activity Log']
+    DetailPage --> DetailTab5['Tab: Budget & Financials']
+    DetailPage --> DetailTab6['Tab: Receipts (GRN)']
+    DetailPage --> DetailTab7['Tab: Invoices']
 
     %% Detail Page Dialogs
-    DetailPage -.-> DetailDialog1["Dialog: Send PO"]
-    DetailPage -.-> DetailDialog2["Dialog: Print PO"]
-    DetailPage -.-> DetailDialog3["Dialog: Cancel PO"]
-    DetailPage -.-> DetailDialog4["Dialog: Create GRN"]
-    DetailPage -.-> DetailDialog5["Dialog: Add Note"]
-    DetailPage -.-> DetailDialog6["Dialog: Upload Document"]
-    DetailPage -.-> DetailDialog7["Dialog: Vendor Acknowledgment"]
-    DetailPage -.-> DetailDialog8["Dialog: Create Change Order"]
+    DetailPage -.-> DetailDialog1['Dialog: Send PO']
+    DetailPage -.-> DetailDialog2['Dialog: Print PO']
+    DetailPage -.-> DetailDialog3['Dialog: Cancel PO']
+    DetailPage -.-> DetailDialog4['Dialog: Create GRN']
+    DetailPage -.-> DetailDialog5['Dialog: Add Note']
+    DetailPage -.-> DetailDialog6['Dialog: Upload Document']
+    DetailPage -.-> DetailDialog7['Dialog: Vendor Acknowledgment']
+    DetailPage -.-> DetailDialog8['Dialog: Create Change Order']
 
     %% Edit Page Tabs
-    EditPage --> EditTab1["Tab: PO Details"]
-    EditPage --> EditTab2["Tab: Line Items"]
-    EditPage --> EditTab3["Tab: Budget Allocation"]
-    EditPage --> EditTab4["Tab: Documents"]
+    EditPage --> EditTab1['Tab: PO Details']
+    EditPage --> EditTab2['Tab: Line Items']
+    EditPage --> EditTab3['Tab: Budget Allocation']
+    EditPage --> EditTab4['Tab: Documents']
 
     %% Edit Page Dialogs
-    EditPage -.-> EditDialog1["Dialog: Product Search"]
-    EditPage -.-> EditDialog2["Dialog: Cancel Changes"]
-    EditPage -.-> EditDialog3["Dialog: Send to Vendor"]
+    EditPage -.-> EditDialog1['Dialog: Product Search']
+    EditPage -.-> EditDialog2['Dialog: Cancel Changes']
+    EditPage -.-> EditDialog3['Dialog: Send to Vendor']
 
     %% Change Order Dialogs
-    ChangeOrder -.-> ChangeDialog1["Dialog: Change Reason"]
-    ChangeOrder -.-> ChangeDialog2["Dialog: Budget Impact"]
-    ChangeOrder -.-> ChangeDialog3["Dialog: Send Amendment"]
+    ChangeOrder -.-> ChangeDialog1['Dialog: Change Reason']
+    ChangeOrder -.-> ChangeDialog2['Dialog: Budget Impact']
+    ChangeOrder -.-> ChangeDialog3['Dialog: Send Amendment']
 
     %% Navigation arrows
     ListPage --> DetailPage
@@ -969,7 +970,7 @@ graph TD
 
 ```mermaid
 flowchart TD
-    Start([User lands on<br/>PO List Page]) --> ListAction{User Action?}
+    Start([User lands on<br>PO List Page]) --> ListAction{User Action?}
 
     ListAction -->|Create from PR| CreatePR[Create from PR Page]
     ListAction -->|Create Manual| CreateManual[Create Manual PO Page]
@@ -1084,7 +1085,7 @@ flowchart TD
 2. **Initiate**: Clicks "Create PO" dropdown → Selects "From Purchase Request"
 3. **Step 1 - Select PRs**:
    - Search bar auto-focuses
-   - Enters PR number "PR-2025-0042" or searches by department "Kitchen"
+   - Enters PR number "PR-2501-0042" or searches by department "Kitchen"
    - System displays approved PRs matching criteria
    - Selects PR checkbox → Item list preview appears
    - Reviews items: 6 products totaling $588.50
@@ -1124,26 +1125,26 @@ flowchart TD
 8. **Send to Vendor Dialog**:
    - Recipient: john@abcproduce.com (vendor primary contact, pre-filled)
    - CC: receiving@hotel.com (added by user)
-   - Subject: "Purchase Order PO-2025-0088 - ABC Fresh Produce" (pre-filled)
+   - Subject: "Purchase Order PO-2501-0088 - ABC Fresh Produce" (pre-filled)
    - Body: Professional email template with PO details (pre-filled, editable)
-   - Attachments: PO-2025-0088.pdf (auto-generated)
+   - Attachments: PO-2501-0088.pdf (auto-generated)
    - User reviews email
    - Clicks "Send PO"
 9. **Success**:
-   - Success toast: "PO-2025-0088 created and sent to ABC Fresh Produce"
+   - Success toast: "PO-2501-0088 created and sent to ABC Fresh Produce"
    - System:
      * Creates PO record (status: Sent)
      * Sends email to vendor
      * Creates budget encumbrance for $267.50
-     * Updates PR-2025-0042 status to "Partially on PO"
+     * Updates PR-2501-0042 status to "Partially on PO"
      * Records sent date/time/by
      * Logs communication
-   - User redirected to PO Detail Page (PO-2025-0088)
+   - User redirected to PO Detail Page (PO-2501-0088)
 10. **Repeat for Other Vendors**:
     - User returns to Step 2 (vendor grouping)
-    - Creates PO-2025-0089 for XYZ Meats Inc. ($200.00)
-    - Creates PO-2025-0090 for DEF Supplies ($138.50)
-    - PR-2025-0042 status updates to "Fully on PO"
+    - Creates PO-2501-0089 for XYZ Meats Inc. ($200.00)
+    - Creates PO-2501-0090 for DEF Supplies ($138.50)
+    - PR-2501-0042 status updates to "Fully on PO"
 
 **Accessibility**: Keyboard shortcuts (Tab, Enter), screen reader announcements for status changes
 
@@ -1203,12 +1204,12 @@ flowchart TD
    - Manager to notify: Director of Engineering
    - Clicks "Request Authorization"
 9. **Success**:
-   - Success toast: "PO-2025-0091 saved as draft. Authorization request sent to Director of Engineering."
+   - Success toast: "PO-2501-0091 saved as draft. Authorization request sent to Director of Engineering."
    - System:
      * Creates PO record (status: Draft - Pending Authorization)
      * Sends notification to Director
      * Does NOT create budget encumbrance (not sent yet)
-   - User redirected to PO Detail Page (PO-2025-0091)
+   - User redirected to PO Detail Page (PO-2501-0091)
    - Status badge: "Draft - Pending Authorization"
 10. **Director Approves** (later):
     - Director receives email, reviews PO, clicks "Authorize"
@@ -1229,7 +1230,7 @@ flowchart TD
 1. **Start**: Goods arrive at receiving dock
 2. **Locate PO**: Staff opens PO List Page → Clicks "Sent" tab
 3. **Find PO**: Searches for PO by vendor "ABC Fresh Produce"
-4. **Open PO**: Clicks PO-2025-0088 → Opens Detail Page
+4. **Open PO**: Clicks PO-2501-0088 → Opens Detail Page
 5. **Verify Delivery**:
    - Status: Sent ✓
    - Expected Delivery: Today ✓
@@ -1267,7 +1268,7 @@ flowchart TD
      * Rejected: 3 KG
    - Clicks "Create GRN"
 10. **Success**:
-    - Success toast: "GRN-2025-0123 created successfully"
+    - Success toast: "GRN-2501-0123 created successfully"
     - System:
       * Creates GRN record
       * Updates inventory: +50 KG Tomatoes, +22 KG Lettuce
@@ -1280,7 +1281,7 @@ flowchart TD
     - Detail Page updates:
       * Status badge: "Partially Received" (yellow)
       * Line Items tab shows updated quantities
-      * Receipts tab shows GRN-2025-0123
+      * Receipts tab shows GRN-2501-0123
       * Activity Log shows: "GRN created by John Doe at 10:30 AM"
 
 **Accessibility**: Touch-friendly on mobile/tablet devices, barcode scanner support
@@ -1447,7 +1448,7 @@ flowchart TD
 16. **Audit Trail**: Change logged in PO history
 
 **Email Template Example**:
-- **Subject**: "Purchase Order [PO-2024-000123] - [Vendor Name]"
+- **Subject**: "Purchase Order [PO-2401-000123] - [Vendor Name]"
 - **Body**: Professional business letter format with PO details, delivery instructions, contact information
 - **Attachments**: PO PDF (required), additional specs/drawings (optional)
 
@@ -1675,7 +1676,7 @@ Grand Total = Amount After Discount + Tax + Shipping
 **Props**:
 ```typescript
 interface QRCodeSectionProps {
-  orderNumber: string;      // PO number (e.g., "PO-2025-0001")
+  orderNumber: string;      // PO number (e.g., "PO-2501-0001")
   className?: string;        // Optional CSS classes
 }
 ```
@@ -1717,7 +1718,7 @@ interface QRCodeSectionProps {
 
 **QR Code Generation**:
 - Uses `qrcode` library v1.5.3
-- QR format: `PO:{orderNumber}` (e.g., "PO:PO-2025-0001")
+- QR format: `PO:{orderNumber}` (e.g., "PO:PO-2501-0001")
 - Utility functions from `lib/utils/qr-code.ts`:
   * `generatePOQRCode()`: Generate base64 image
   * `downloadPOQRCode()`: Download PNG file
@@ -1950,7 +1951,7 @@ const [copied, setCopied] = useState(false);
    - **Inputs**: PO form data, user context
    - **Process**:
      * Validate user permissions
-     * Generate PO number (format: PO-YYYY-NNNNNN)
+     * Generate PO number (format: PO-YYMM-NNNN)
      * Calculate totals and validate calculations
      * Validate budget availability
      * Create PO header record
@@ -2062,7 +2063,7 @@ const [copied, setCopied] = useState(false);
 
 1. **generatePONumber**
    - **Purpose**: Generate unique PO number
-   - **Logic**: Format PO-YYYY-NNNNNN where YYYY is fiscal year and NNNNNN is sequential
+   - **Logic**: Format PO-YYMM-NNNN where YY is 2-digit year and MM is month and NNNNNN is sequential
    - **Implementation**: Database function maintains sequence per year, atomic increment
 
 2. **calculateTotals**

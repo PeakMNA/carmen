@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-13 | Documentation Team | Initial version based on schema.prisma ABAC system |
 
 ---
@@ -246,19 +247,19 @@ The ABAC system provides fine-grained permission control based on user attribute
       "effect": "PERMIT",
       "priority": 100,
       "target": {
-        "subject": { "role": "kitchen-manager", "department": ["Kitchen", "F&B"] },
+        "subject": { "role": "kitchen-manager", "department": ['Kitchen', 'F&B'] },
         "resource": { "type": "purchase_request", "category": "Food & Beverage" },
         "action": "approve",
         "environment": { "businessHours": true, "networkZone": "internal" }
       },
       "rules": [
-        { "condition": "resource.amount <= subject.approvalLimit && resource.amount <= 5000" },
-        { "condition": "resource.requestingDepartment IN subject.departments" },
-        { "condition": "resource.location IN subject.assignedLocations" },
-        { "condition": "resource.requestedBy != subject.userId" }
+        { 'condition': 'resource.amount <= subject.approvalLimit && resource.amount <= 5000' },
+        { 'condition': 'resource.requestingDepartment IN subject.departments' },
+        { 'condition': 'resource.location IN subject.assignedLocations' },
+        { 'condition': 'resource.requestedBy != subject.userId' }
       ],
-      "obligations": [ "log_audit", "notify_requester", "update_status" ],
-      "advice": [ "recommend_secondary_approval_over_3000" ]
+      "obligations": [ 'log_audit', 'notify_requester', 'update_status' ],
+      "advice": [ 'recommend_secondary_approval_over_3000' ]
     }
     ```
 14. User clicks "Save as Draft" (policy not yet active)
@@ -269,7 +270,7 @@ The ABAC system provides fine-grained permission control based on user attribute
     - Referenced attributes exist in attribute definitions
     - Combining algorithm valid
 16. System saves policy with status = "DRAFT"
-17. System generates unique policy ID: POL-2025-0123
+17. System generates unique policy ID: POL-2501-0123
 18. System logs policy creation in audit trail
 19. System displays success message: "Policy saved as draft. Test policy before activation."
 20. System returns to policy list with new draft policy visible
@@ -324,7 +325,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 
 **EF-001-4: Priority Conflict**
 - At step 15, validation detects another active policy with same priority and overlapping target
-- System displays warning: "Policy conflict detected with POL-2025-0089 'All Manager Approvals' (Priority 100)"
+- System displays warning: "Policy conflict detected with POL-2501-0089 'All Manager Approvals' (Priority 100)"
 - System suggests: "Change priority to 90 to ensure this policy evaluates first"
 - User adjusts priority to 90
 - System re-validates
@@ -362,7 +363,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 **Main Flow**:
 1. User navigates to System Administration → Permission Management → Policies
 2. System displays policy list
-3. User selects draft policy "Kitchen Manager Purchase Approval Policy" (POL-2025-0123)
+3. User selects draft policy "Kitchen Manager Purchase Approval Policy" (POL-2501-0123)
 4. User clicks "Test Policy" button
 5. System displays policy testing interface with two options:
    - **Option A**: Test against existing scenarios
@@ -568,8 +569,8 @@ The ABAC system provides fine-grained permission control based on user attribute
      "department": "Kitchen",
      "clearanceLevel": "supervisor",
      "approvalLimit": 2000,
-     "assignedLocations": ["main-kitchen", "prep-kitchen"],
-     "workShifts": ["morning", "afternoon", "evening"],
+     "assignedLocations": ['main-kitchen', 'prep-kitchen'],
+     "workShifts": ['morning', 'afternoon', 'evening'],
      "specialPermissions": [
        "manage_kitchen_inventory",
        "approve_ingredient_purchases",
@@ -657,7 +658,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 - System prompts: "Update department-specific attributes?"
 - User modifies:
   * Department: "Restaurant" (was "Kitchen")
-  * assignedLocations: ["main-dining", "bar-area"] (was ["main-kitchen"])
+  * assignedLocations: ['main-dining', 'bar-area'] (was ['main-kitchen'])
 - User adjusts permissions to match restaurant operations
 - System saves cloned role
 - System displays: "Role cloned and customized for Restaurant department"
@@ -935,7 +936,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 - API endpoint: POST /api/abac/evaluate
 
 **Main Flow**:
-1. Application receives user action: "User JohnSmith attempts to approve Purchase Request PR-2025-0123"
+1. Application receives user action: "User JohnSmith attempts to approve Purchase Request PR-2501-0123"
 2. Application constructs access request payload:
    ```json
    {
@@ -944,16 +945,16 @@ The ABAC system provides fine-grained permission control based on user attribute
      "subject": {
        "userId": "user-john-smith",
        "primaryRole": "kitchen-manager",
-       "roles": ["kitchen-manager", "chef"],
+       "roles": ['kitchen-manager', 'chef'],
        "department": "Kitchen",
        "clearanceLevel": "manager",
        "approvalLimit": 5000,
-       "assignedLocations": ["main-kitchen", "prep-kitchen"],
+       "assignedLocations": ['main-kitchen', 'prep-kitchen'],
        "currentShift": "morning"
      },
      "resource": {
        "resourceType": "purchase_request",
-       "resourceId": "PR-2025-0123",
+       "resourceId": "PR-2501-0123",
        "attributes": {
          "requestValue": 2500,
          "productCategory": "Food & Beverage",
@@ -1002,7 +1003,7 @@ The ABAC system provides fine-grained permission control based on user attribute
    - Filters by validity period (current timestamp within validFrom-validTo)
    - Filters by target criteria matching request attributes
    - Example filters:
-     * subject.role IN ["kitchen-manager", "chef"]
+     * subject.role IN ['kitchen-manager', 'chef']
      * resource.type = "purchase_request"
      * action = "approve"
      * environment.businessHours = true
@@ -1028,8 +1029,8 @@ The ABAC system provides fine-grained permission control based on user attribute
         - Rule 4: `resource.requestedBy (user-jane-doe) != subject.userId (user-john-smith)` → ✓ Pass (not self-approval)
       * All Rules Pass: ✓
       * Decision: PERMIT
-      * Obligations: ["log_audit", "notify_requester", "update_status"]
-      * Advice: ["request_value_over_2000_recommend_secondary_review"]
+      * Obligations: ['log_audit', 'notify_requester', 'update_status']
+      * Advice: ['request_value_over_2000_recommend_secondary_review']
     - **Policy 2** (Priority 200):
       * Effect: PERMIT
       * (Not evaluated - Policy 1 already returned PERMIT and no DENY policy matched)
@@ -1042,20 +1043,20 @@ The ABAC system provides fine-grained permission control based on user attribute
     {
       "decision": "PERMIT",
       "confidence": 1.0,
-      "applicablePolicies": ["POL-2025-0123"],
+      "applicablePolicies": ['POL-2501-0123'],
       "evaluatedRules": [
-        { "policyId": "POL-2025-0123", "ruleId": "rule-1", "result": "pass" },
-        { "policyId": "POL-2025-0123", "ruleId": "rule-2", "result": "pass" },
-        { "policyId": "POL-2025-0123", "ruleId": "rule-3", "result": "pass" },
-        { "policyId": "POL-2025-0123", "ruleId": "rule-4", "result": "pass" }
+        { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-1', 'result': 'pass' },
+        { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-2', 'result': 'pass' },
+        { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-3', 'result': 'pass' },
+        { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-4', 'result': 'pass' }
       ],
       "obligations": [
-        { "obligationId": "log_audit", "status": "pending" },
-        { "obligationId": "notify_requester", "status": "pending" },
-        { "obligationId": "update_status", "status": "pending" }
+        { 'obligationId': 'log_audit', 'status': 'pending' },
+        { 'obligationId': 'notify_requester', 'status': 'pending' },
+        { 'obligationId': 'update_status', 'status': 'pending' }
       ],
       "advice": [
-        { "adviceId": "recommend_secondary_review", "message": "Request value exceeds $2,000. Consider secondary approval." }
+        { 'adviceId': 'recommend_secondary_review', 'message': 'Request value exceeds $2,000. Consider secondary approval.' }
       ],
       "evaluationTime": 45,
       "processingTime": 12,
@@ -1074,7 +1075,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 20. Application displays advice to user:
     - Message: "Approval successful. Recommendation: Request value $2,500 exceeds $2,000. Consider secondary approval from General Manager."
 21. Application grants access: Purchase request marked as approved
-22. User sees success message: "Purchase Request PR-2025-0123 approved successfully"
+22. User sees success message: "Purchase Request PR-2501-0123 approved successfully"
 
 **Alternative Flows**:
 
@@ -1142,7 +1143,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 - System logs error with full context
 - System returns decision: INDETERMINATE
 - Application denies access by default
-- System sends alert to IT Manager: "Policy evaluation error for POL-2025-0123"
+- System sends alert to IT Manager: "Policy evaluation error for POL-2501-0123"
 
 **EF-101-3: Evaluation Timeout**
 - At step 11, policy evaluation exceeds timeout (5 seconds)
@@ -1151,7 +1152,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 - System returns decision: INDETERMINATE
 - Application denies access
 - System logs performance issue
-- System triggers alert: "Policy POL-2025-0123 evaluation timeout. Optimization required."
+- System triggers alert: "Policy POL-2501-0123 evaluation timeout. Optimization required."
 
 **EF-101-4: Database Unavailable**
 - At step 8, database query for policies fails
@@ -1207,7 +1208,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 
 **Main Flow**:
 1. User (Chef) creates purchase request in procurement system:
-   - **Request ID**: PR-2025-0123
+   - **Request ID**: PR-2501-0123
    - **Amount**: $2,500
    - **Category**: Food & Beverage - Ingredients
    - **Department**: Kitchen
@@ -1215,7 +1216,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 2. User clicks "Submit for Approval"
 3. Procurement system validates request data
 4. Procurement system changes status to "Pending Approval"
-5. Procurement system calls Workflow Engine: "Determine approval workflow for PR-2025-0123"
+5. Procurement system calls Workflow Engine: "Determine approval workflow for PR-2501-0123"
 6. Workflow Engine retrieves workflow configuration for "Purchase Request Approval":
    ```json
    {
@@ -1227,24 +1228,24 @@ The ABAC system provides fine-grained permission control based on user attribute
          "stageId": 1,
          "name": "Department Manager Approval",
          "sla": "24 hours",
-         "assignedRoles": ["kitchen-manager", "department-manager"],
-         "availableActions": ["approve", "reject", "send_back"],
+         "assignedRoles": ['kitchen-manager', 'department-manager'],
+         "availableActions": ['approve', 'reject', 'send_back'],
          "requiredApprovalLimit": 5000
        },
        {
          "stageId": 2,
          "name": "General Manager Approval",
          "sla": "48 hours",
-         "assignedRoles": ["general-manager"],
-         "availableActions": ["approve", "reject", "send_back"],
+         "assignedRoles": ['general-manager'],
+         "availableActions": ['approve', 'reject', 'send_back'],
          "requiredApprovalLimit": 10000
        },
        {
          "stageId": 3,
          "name": "Finance Approval",
          "sla": "24 hours",
-         "assignedRoles": ["financial-manager"],
-         "availableActions": ["approve", "reject"],
+         "assignedRoles": ['financial-manager'],
+         "availableActions": ['approve', 'reject'],
          "requiredApprovalLimit": 999999
        }
      ],
@@ -1271,7 +1272,7 @@ The ABAC system provides fine-grained permission control based on user attribute
    - Action: Stage 1 approves, Skip Stage 2 (General Manager approval not needed)
 8. Workflow Engine determines current stage: Stage 1 (Department Manager Approval)
 9. Workflow Engine retrieves eligible approvers for Stage 1:
-   - Query users with roles: ["kitchen-manager", "department-manager"]
+   - Query users with roles: ['kitchen-manager', 'department-manager']
    - Filter by: Department = "Kitchen", Location includes request location
    - Filter by: approvalLimit >= $2,500
    - Result: 2 eligible approvers found:
@@ -1279,19 +1280,19 @@ The ABAC system provides fine-grained permission control based on user attribute
      * Sarah Lee - Department Manager (approvalLimit: $10,000)
 10. Workflow Engine assigns request to Stage 1 approvers
 11. Workflow Engine sends notifications:
-    - Email to John Smith: "Purchase Request PR-2025-0123 requires your approval ($2,500)"
-    - Email to Sarah Lee: "Purchase Request PR-2025-0123 assigned for approval"
+    - Email to John Smith: "Purchase Request PR-2501-0123 requires your approval ($2,500)"
+    - Email to Sarah Lee: "Purchase Request PR-2501-0123 assigned for approval"
     - System notification to both users
 12. John Smith receives notification, opens purchase request
 13. John Smith reviews request details
 14. John Smith clicks "Approve Request"
 15. Procurement system calls ABAC Evaluation Engine (UC-SYSADMIN-101):
     - Subject: John Smith (kitchen-manager, approvalLimit: $5,000)
-    - Resource: PR-2025-0123 (amount: $2,500, category: F&B Ingredients)
+    - Resource: PR-2501-0123 (amount: $2,500, category: F&B Ingredients)
     - Action: approve
     - Environment: businessHours: true, networkZone: internal
 16. ABAC Evaluation Engine evaluates access request:
-    - Policy: "Kitchen Manager Purchase Approval Policy" (POL-2025-0123)
+    - Policy: "Kitchen Manager Purchase Approval Policy" (POL-2501-0123)
     - Rules checked:
       * Amount ($2,500) <= approval limit ($5,000) → ✓ Pass
       * Department (Kitchen) matches → ✓ Pass
@@ -1314,12 +1315,12 @@ The ABAC system provides fine-grained permission control based on user attribute
     - **Workflow complete** (amount under all thresholds)
 20. Procurement system finalizes approval:
     - Changes request status: "Fully Approved"
-    - Generates purchase order: PO-2025-00456
+    - Generates purchase order: PO-2501-00456
     - Sends to vendor for fulfillment
 21. System sends notifications:
-    - Email to Chef (requester): "Your purchase request has been fully approved. PO-2025-00456 created."
+    - Email to Chef (requester): "Your purchase request has been fully approved. PO-2501-00456 created."
     - Email to John Smith (approver): "Purchase request approved successfully"
-    - Email to Purchasing team: "New PO ready for processing: PO-2025-00456"
+    - Email to Purchasing team: "New PO ready for processing: PO-2501-00456"
 22. Audit Log Service records complete workflow:
     - Request created by Chef
     - Routed to Kitchen Manager
@@ -1386,7 +1387,7 @@ The ABAC system provides fine-grained permission control based on user attribute
 - Request pending at Stage 1 for >24 hours (SLA: 24 hours)
 - Workflow Engine detects SLA breach
 - System sends escalation notification:
-  * Email to General Manager: "SLA violation: PR-2025-0123 pending >24 hours"
+  * Email to General Manager: "SLA violation: PR-2501-0123 pending >24 hours"
   * Email to Kitchen Manager (assigned approver): "Urgent: Approval overdue"
 - System logs SLA violation
 - Request remains pending until approval or escalation

@@ -4,9 +4,9 @@ import { PurchaseRequest, PurchaseRequestItem, PRType, PRStatus, WorkflowStatus,
 // Cast to any[] to bypass type checking for mock-specific fields
 export const mockPRListData = [
   {
-    id: 'pr-2024-001',
-    refNumber: 'PR-2024-001',
-    requestNumber: 'PR-2024-001',
+    id: 'pr-2410-001',
+    refNumber: 'PR-2410-001',
+    requestNumber: 'PR-2410-001',
     requestDate: new Date('2024-01-15'),
     requiredDate: new Date('2024-01-15'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -119,7 +119,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-01-15'),
     items: [
       {
-        id: "PR-2024-001-01",
+        id: "PR-2410-001-01",
         location: "Main Kitchen",
         name: "Professional Stand Mixer",
         description: "Heavy-duty commercial stand mixer, 20 quart capacity",
@@ -159,7 +159,7 @@ export const mockPRListData = [
         itemCategory: "Kitchen Equipment",
         itemSubcategory: "Mixers",
         vendor: "Premium Food Suppliers Inc.",
-        pricelistNumber: "PL-2024-01-KITCHEN",
+        pricelistNumber: "PL-2410-01-KITCHEN",
         comment: "Required for Grand Ballroom Event catering preparation",
         adjustments: {
           discount: true,
@@ -177,7 +177,7 @@ export const mockPRListData = [
         baseTotalAmount: 6400.00,
       },
       {
-        id: "PR-2024-001-02",
+        id: "PR-2410-001-02",
         location: "Cold Storage",
         name: "Organic Atlantic Salmon",
         description: "Fresh Norwegian salmon fillets, premium grade",
@@ -217,7 +217,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Seafood",
         vendor: "Premium Food Suppliers Inc.",
-        pricelistNumber: "PL-2024-01-SEAFOOD",
+        pricelistNumber: "PL-2410-01-SEAFOOD",
         comment: "For corporate conference dinner menu",
         adjustments: {
           discount: true,
@@ -235,7 +235,7 @@ export const mockPRListData = [
         baseTotalAmount: 1440.00,
       },
       {
-        id: "PR-2024-001-03",
+        id: "PR-2410-001-03",
         location: "Dry Storage",
         name: "Premium Olive Oil",
         description: "Extra virgin olive oil, cold-pressed, 1L bottles",
@@ -275,7 +275,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Condiments",
         vendor: "Premium Food Suppliers Inc.",
-        pricelistNumber: "PL-2024-01-CONDIMENTS",
+        pricelistNumber: "PL-2410-01-CONDIMENTS",
         comment: "High-quality oil for salad dressings and cooking",
         adjustments: {
           discount: true,
@@ -293,7 +293,7 @@ export const mockPRListData = [
         baseTotalAmount: 600.00,
       },
       {
-        id: "PR-2024-001-04",
+        id: "PR-2410-001-04",
         location: "Bar Storage",
         name: "Imported Whiskey Collection",
         description: "Premium single malt whiskey collection for VIP events",
@@ -334,7 +334,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Spirits",
         vendor: "UK Premium Spirits Co.",
-        pricelistNumber: "PL-2024-GBP-SPIRITS",
+        pricelistNumber: "PL-2410-GBP-SPIRITS",
         comment: "Premium collection for VIP guests - cases convert to bottles for inventory tracking",
         adjustments: {
           discount: true,
@@ -352,7 +352,7 @@ export const mockPRListData = [
         baseCurrency: "USD",
       },
       {
-        id: "PR-2024-001-05",
+        id: "PR-2410-001-05",
         location: "Pastry Kitchen",
         name: "Belgian Chocolate Blocks",
         description: "Premium dark chocolate for dessert preparation",
@@ -393,7 +393,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Baking Ingredients",
         vendor: "Premium Food Suppliers Inc.",
-        pricelistNumber: "PL-2024-USD-CHOCOLATE",
+        pricelistNumber: "PL-2410-USD-CHOCOLATE",
         comment: "Premium chocolate for special dessert menu - no conversion needed (baseline scenario)",
         adjustments: {
           discount: true,
@@ -411,7 +411,7 @@ export const mockPRListData = [
         baseCurrency: "USD",
       },
       {
-        id: "PR-2024-001-06",
+        id: "PR-2410-001-06",
         location: "Wine Cellar",
         name: "Champagne Collection",
         description: "Premium champagne for special events and celebrations",
@@ -452,7 +452,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Wine & Champagne",
         vendor: "Canadian Premium Wines Ltd.",
-        pricelistNumber: "PL-2024-CAD-WINES",
+        pricelistNumber: "PL-2410-CAD-WINES",
         comment: "Premium champagne collection for special events - cases convert to bottles for inventory tracking",
         adjustments: {
           discount: true,
@@ -472,9 +472,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-002',
-    refNumber: 'PR-2024-002',
-    requestNumber: 'PR-2024-002',
+    id: 'pr-2410-002',
+    refNumber: 'PR-2410-002',
+    requestNumber: 'PR-2410-002',
     requestDate: new Date('2024-01-20'),
     requiredDate: new Date('2024-01-20'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -578,7 +578,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-01-20'),
     items: [
       {
-        id: "PR-2024-002-01",
+        id: "PR-2410-002-01",
         location: "Mechanical Room",
         name: "HVAC Filter Replacement Kit",
         description: "High-efficiency air filters for main HVAC system",
@@ -618,7 +618,7 @@ export const mockPRListData = [
         itemCategory: "Maintenance",
         itemSubcategory: "HVAC",
         vendor: "Industrial Equipment Solutions",
-        pricelistNumber: "PL-2024-01-HVAC",
+        pricelistNumber: "PL-2410-01-HVAC",
         comment: "Quarterly maintenance replacement for optimal air quality",
         adjustments: {
           discount: true,
@@ -636,7 +636,7 @@ export const mockPRListData = [
         baseTotalAmount: 2080.00,
       },
       {
-        id: "PR-2024-002-02",
+        id: "PR-2410-002-02",
         location: "Pool Equipment Room",
         name: "Automated Pool Cleaning System",
         description: "Robotic pool cleaner with advanced filtration",
@@ -676,7 +676,7 @@ export const mockPRListData = [
         itemCategory: "Recreation",
         itemSubcategory: "Pool Equipment",
         vendor: "Industrial Equipment Solutions",
-        pricelistNumber: "PL-2024-01-POOL",
+        pricelistNumber: "PL-2410-01-POOL",
         comment: "Upgrade to automated system for improved efficiency",
         adjustments: {
           discount: true,
@@ -696,9 +696,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-003',
-    refNumber: 'PR-2024-003',
-    requestNumber: 'PR-2024-003',
+    id: 'pr-2410-003',
+    refNumber: 'PR-2410-003',
+    requestNumber: 'PR-2410-003',
     requestDate: new Date('2024-01-22'),
     requiredDate: new Date('2024-01-22'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -802,7 +802,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-01-22'),
     items: [
       {
-        id: "PR-2024-003-01",
+        id: "PR-2410-003-01",
         location: "Housekeeping Central",
         name: "Egyptian Cotton Bedsheet Set",
         description: "1000 thread count, white, king size",
@@ -842,7 +842,7 @@ export const mockPRListData = [
         itemCategory: "Housekeeping",
         itemSubcategory: "Linens",
         vendor: "Luxury Hotel Supplies Ltd.",
-        pricelistNumber: "PL-2024-01-LINEN",
+        pricelistNumber: "PL-2410-01-LINEN",
         comment: "Premium linens for VIP suite upgrade program",
         adjustments: {
           discount: true,
@@ -860,7 +860,7 @@ export const mockPRListData = [
         baseTotalAmount: 4400.00,
       },
       {
-        id: "PR-2024-003-02",
+        id: "PR-2410-003-02",
         location: "Housekeeping Central",
         name: "Luxury Bath Towel Set",
         description: "100% Egyptian cotton, 800 GSM, white",
@@ -900,7 +900,7 @@ export const mockPRListData = [
         itemCategory: "Housekeeping",
         itemSubcategory: "Bath Linens",
         vendor: "Luxury Hotel Supplies Ltd.",
-        pricelistNumber: "PL-2024-01-BATH",
+        pricelistNumber: "PL-2410-01-BATH",
         comment: "High-quality towels for VIP guest bathrooms",
         adjustments: {
           discount: true,
@@ -920,9 +920,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-004',
-    refNumber: 'PR-2024-004',
-    requestNumber: 'PR-2024-004',
+    id: 'pr-2410-004',
+    refNumber: 'PR-2410-004',
+    requestNumber: 'PR-2410-004',
     requestDate: new Date('2024-01-25'),
     requiredDate: new Date('2024-01-25'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1043,7 +1043,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-01-25'),
     items: [
       {
-        id: "PR-2024-004-01",
+        id: "PR-2410-004-01",
         location: "Rooftop Bar",
         name: "Premium Whiskey Collection",
         description: "Single malt collection - 18 year aged varieties",
@@ -1083,7 +1083,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Spirits",
         vendor: "Elite Spirits & Equipment Co.",
-        pricelistNumber: "PL-2024-01-SPIRITS",
+        pricelistNumber: "PL-2410-01-SPIRITS",
         comment: "Premium collection for VIP guests - REJECTED due to budget constraints",
         adjustments: {
           discount: false,
@@ -1101,7 +1101,7 @@ export const mockPRListData = [
         baseTotalAmount: 7680.00,
       },
       {
-        id: "PR-2024-004-02",
+        id: "PR-2410-004-02",
         location: "Rooftop Bar",
         name: "Professional Cocktail Station",
         description: "Stainless steel cocktail station with ice well and storage",
@@ -1141,7 +1141,7 @@ export const mockPRListData = [
         itemCategory: "Equipment",
         itemSubcategory: "Bar Equipment",
         vendor: "Elite Spirits & Equipment Co.",
-        pricelistNumber: "PL-2024-01-BAREQUIP",
+        pricelistNumber: "PL-2410-01-BAREQUIP",
         comment: "Professional station for cocktail preparation - REJECTED due to budget",
         adjustments: {
           discount: true,
@@ -1161,9 +1161,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-005',
-    refNumber: 'PR-2024-005',
-    requestNumber: 'PR-2024-005',
+    id: 'pr-2410-005',
+    refNumber: 'PR-2410-005',
+    requestNumber: 'PR-2410-005',
     requestDate: new Date('2024-01-28'),
     requiredDate: new Date('2024-01-28'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1246,7 +1246,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-01-28'),
     items: [
       {
-        id: "PR-2024-005-01",
+        id: "PR-2410-005-01",
         location: "Front Desk",
         name: "Contactless Check-in Kiosks",
         description: "Self-service kiosks with touchscreen interface",
@@ -1286,7 +1286,7 @@ export const mockPRListData = [
         itemCategory: "Technology",
         itemSubcategory: "Self-Service",
         vendor: "Hotel Technology Solutions",
-        pricelistNumber: "PL-2024-01-TECH",
+        pricelistNumber: "PL-2410-01-TECH",
         comment: "Modern check-in solution for improved guest experience",
         adjustments: {
           discount: true,
@@ -1304,7 +1304,7 @@ export const mockPRListData = [
         baseTotalAmount: 13500.00,
       },
       {
-        id: "PR-2024-005-02",
+        id: "PR-2410-005-02",
         location: "Front Desk",
         name: "RFID Key Card Programming Station",
         description: "Professional key card encoder with software",
@@ -1344,7 +1344,7 @@ export const mockPRListData = [
         itemCategory: "Technology",
         itemSubcategory: "Access Control",
         vendor: "Hotel Technology Solutions",
-        pricelistNumber: "PL-2024-01-ACCESS",
+        pricelistNumber: "PL-2410-01-ACCESS",
         comment: "Backup key card programming capability",
         adjustments: {
           discount: true,
@@ -1364,9 +1364,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-006',
-    refNumber: 'PR-2024-006',
-    requestNumber: 'PR-2024-006',
+    id: 'pr-2410-006',
+    refNumber: 'PR-2410-006',
+    requestNumber: 'PR-2410-006',
     requestDate: new Date('2024-02-01'),
     requiredDate: new Date('2024-02-01'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1458,7 +1458,7 @@ export const mockPRListData = [
         userName: 'System',
         action: 'Purchase Order Created',
         description: 'Emergency PO generated automatically',
-        details: 'PO-2024-EMERG-001 sent to Emergency Power Systems Inc.'
+        details: 'PO-2410-EMERG-001 sent to Emergency Power Systems Inc.'
       }
     ],
     additionalCharges: { amount: 1200, currency: 'USD' },
@@ -1469,7 +1469,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-02-01'),
     items: [
       {
-        id: "PR-2024-006-01",
+        id: "PR-2410-006-01",
         location: "Generator Room",
         name: "Emergency Generator Control Module",
         description: "Replacement control system for 500kW backup generator",
@@ -1509,7 +1509,7 @@ export const mockPRListData = [
         itemCategory: "Engineering",
         itemSubcategory: "Power Systems",
         vendor: "Emergency Power Systems Inc.",
-        pricelistNumber: "PL-2024-EMERG-001",
+        pricelistNumber: "PL-2410-EMERG-001",
         comment: "EMERGENCY: Critical generator control system replacement",
         adjustments: {
           discount: false,
@@ -1527,7 +1527,7 @@ export const mockPRListData = [
         baseTotalAmount: 25000.00,
       },
       {
-        id: "PR-2024-006-02",
+        id: "PR-2410-006-02",
         location: "Generator Room",
         name: "Emergency Installation Service",
         description: "24-hour emergency installation and testing service",
@@ -1567,7 +1567,7 @@ export const mockPRListData = [
         itemCategory: "Services",
         itemSubcategory: "Installation",
         vendor: "Emergency Power Systems Inc.",
-        pricelistNumber: "PL-2024-EMERG-SERV",
+        pricelistNumber: "PL-2410-EMERG-SERV",
         comment: "Priority installation for emergency generator repair",
         adjustments: {
           discount: false,
@@ -1587,9 +1587,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-007',
-    refNumber: 'PR-2024-007',
-    requestNumber: 'PR-2024-007',
+    id: 'pr-2410-007',
+    refNumber: 'PR-2410-007',
+    requestNumber: 'PR-2410-007',
     requestDate: new Date('2024-02-03'),
     requiredDate: new Date('2024-02-03'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1637,9 +1637,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-008',
-    refNumber: 'PR-2024-008',
-    requestNumber: 'PR-2024-008',
+    id: 'pr-2410-008',
+    refNumber: 'PR-2410-008',
+    requestNumber: 'PR-2410-008',
     requestDate: new Date('2024-02-05'),
     requiredDate: new Date('2024-02-05'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1687,9 +1687,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-009',
-    refNumber: 'PR-2024-009',
-    requestNumber: 'PR-2024-009',
+    id: 'pr-2410-009',
+    refNumber: 'PR-2410-009',
+    requestNumber: 'PR-2410-009',
     requestDate: new Date('2024-02-08'),
     requiredDate: new Date('2024-02-08'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1737,9 +1737,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-010',
-    refNumber: 'PR-2024-010',
-    requestNumber: 'PR-2024-010',
+    id: 'pr-2410-010',
+    refNumber: 'PR-2410-010',
+    requestNumber: 'PR-2410-010',
     requestDate: new Date('2024-02-10'),
     requiredDate: new Date('2024-02-10'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1787,9 +1787,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-011',
-    refNumber: 'PR-2024-011',
-    requestNumber: 'PR-2024-011',
+    id: 'pr-2410-011',
+    refNumber: 'PR-2410-011',
+    requestNumber: 'PR-2410-011',
     requestDate: new Date('2024-02-12'),
     requiredDate: new Date('2024-02-12'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1837,9 +1837,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-012',
-    refNumber: 'PR-2024-012',
-    requestNumber: 'PR-2024-012',
+    id: 'pr-2410-012',
+    refNumber: 'PR-2410-012',
+    requestNumber: 'PR-2410-012',
     requestDate: new Date('2024-02-15'),
     requiredDate: new Date('2024-02-15'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1887,9 +1887,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-013',
-    refNumber: 'PR-2024-013',
-    requestNumber: 'PR-2024-013',
+    id: 'pr-2410-013',
+    refNumber: 'PR-2410-013',
+    requestNumber: 'PR-2410-013',
     requestDate: new Date('2024-01-28'),
     requiredDate: new Date('2024-01-28'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -1941,9 +1941,9 @@ export const mockPRListData = [
     items: []
   },
   {
-    id: 'pr-2024-014',
-    refNumber: 'PR-2024-014',
-    requestNumber: 'PR-2024-014',
+    id: 'pr-2410-014',
+    refNumber: 'PR-2410-014',
+    requestNumber: 'PR-2410-014',
     requestDate: new Date('2024-02-18'),
     requiredDate: new Date('2024-02-18'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -2026,7 +2026,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-02-18'),
     items: [
       {
-        id: "PR-2024-014-01",
+        id: "PR-2410-014-01",
         location: "Pastry Kitchen",
         name: "Professional Spiral Mixer",
         description: "80-liter capacity spiral mixer for bread and pastry production",
@@ -2066,7 +2066,7 @@ export const mockPRListData = [
         itemCategory: "Kitchen Equipment",
         itemSubcategory: "Mixers",
         vendor: "Professional Bakery Equipment Co.",
-        pricelistNumber: "PL-2024-BAKERY-001",
+        pricelistNumber: "PL-2410-BAKERY-001",
         comment: "Heavy-duty mixer for increased bread production capacity",
         adjustments: {
           discount: true,
@@ -2084,7 +2084,7 @@ export const mockPRListData = [
         baseTotalAmount: 12500.00,
       },
       {
-        id: "PR-2024-014-02",
+        id: "PR-2410-014-02",
         location: "Pastry Kitchen",
         name: "Deck Oven System",
         description: "Professional 3-deck stone oven for artisan bread baking",
@@ -2124,7 +2124,7 @@ export const mockPRListData = [
         itemCategory: "Kitchen Equipment",
         itemSubcategory: "Ovens",
         vendor: "Professional Bakery Equipment Co.",
-        pricelistNumber: "PL-2024-BAKERY-002",
+        pricelistNumber: "PL-2410-BAKERY-002",
         comment: "Stone deck oven for artisan bread and pastry production",
         adjustments: {
           discount: true,
@@ -2144,9 +2144,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-015',
-    refNumber: 'PR-2024-015',
-    requestNumber: 'PR-2024-015',
+    id: 'pr-2410-015',
+    refNumber: 'PR-2410-015',
+    requestNumber: 'PR-2410-015',
     requestDate: new Date('2024-02-20'),
     requiredDate: new Date('2024-02-20'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -2250,7 +2250,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-02-20'),
     items: [
       {
-        id: "PR-2024-015-01",
+        id: "PR-2410-015-01",
         location: "International Pantry",
         name: "Authentic Saffron Threads",
         description: "Premium Spanish saffron, Grade A quality",
@@ -2290,7 +2290,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Spices",
         vendor: "Global Specialty Foods Ltd.",
-        pricelistNumber: "PL-2024-INTL-001",
+        pricelistNumber: "PL-2410-INTL-001",
         comment: "Premium saffron for authentic Spanish paella dishes",
         adjustments: {
           discount: true,
@@ -2308,7 +2308,7 @@ export const mockPRListData = [
         baseTotalAmount: 2400.00,
       },
       {
-        id: "PR-2024-015-02",
+        id: "PR-2410-015-02",
         location: "International Pantry",
         name: "Wagyu Beef Selection",
         description: "Premium A5 Wagyu beef cuts for Japanese cuisine",
@@ -2348,7 +2348,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Premium Meats",
         vendor: "Global Specialty Foods Ltd.",
-        pricelistNumber: "PL-2024-INTL-002",
+        pricelistNumber: "PL-2410-INTL-002",
         comment: "Premium Wagyu for authentic Japanese teppanyaki experience",
         adjustments: {
           discount: false,
@@ -2368,9 +2368,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-016',
-    refNumber: 'PR-2024-016',
-    requestNumber: 'PR-2024-016',
+    id: 'pr-2410-016',
+    refNumber: 'PR-2410-016',
+    requestNumber: 'PR-2410-016',
     requestDate: new Date('2024-02-22'),
     requiredDate: new Date('2024-02-22'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -2483,7 +2483,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-02-22'),
     items: [
       {
-        id: "PR-2024-016-01",
+        id: "PR-2410-016-01",
         location: "Training Kitchen",
         name: "Professional Knife Set Collection",
         description: "Complete knife set for culinary training - 12 pieces",
@@ -2523,7 +2523,7 @@ export const mockPRListData = [
         itemCategory: "Kitchen Equipment",
         itemSubcategory: "Cutlery",
         vendor: "Culinary Education Supplies Inc.",
-        pricelistNumber: "PL-2024-TRAINING-001",
+        pricelistNumber: "PL-2410-TRAINING-001",
         comment: "Professional knife sets for hands-on culinary training",
         adjustments: {
           discount: true,
@@ -2541,7 +2541,7 @@ export const mockPRListData = [
         baseTotalAmount: 1920.00,
       },
       {
-        id: "PR-2024-016-02",
+        id: "PR-2410-016-02",
         location: "Training Kitchen",
         name: "Culinary Textbook Collection",
         description: "Professional cooking techniques and recipe reference books",
@@ -2581,7 +2581,7 @@ export const mockPRListData = [
         itemCategory: "Education",
         itemSubcategory: "Books",
         vendor: "Culinary Education Supplies Inc.",
-        pricelistNumber: "PL-2024-TRAINING-002",
+        pricelistNumber: "PL-2410-TRAINING-002",
         comment: "Reference materials for comprehensive culinary education",
         adjustments: {
           discount: true,
@@ -2601,9 +2601,9 @@ export const mockPRListData = [
     ]
   },
   {
-    id: 'pr-2024-017',
-    refNumber: 'PR-2024-017',
-    requestNumber: 'PR-2024-017',
+    id: 'pr-2410-017',
+    refNumber: 'PR-2410-017',
+    requestNumber: 'PR-2410-017',
     requestDate: new Date('2024-02-25'),
     requiredDate: new Date('2024-02-25'),
     priority: 'normal' as PurchaseRequestPriority,
@@ -2724,7 +2724,7 @@ export const mockPRListData = [
     exchangeRateDate: new Date('2024-02-25'),
     items: [
       {
-        id: "PR-2024-017-01",
+        id: "PR-2410-017-01",
         location: "Seasonal Storage",
         name: "Spring Truffle Collection",
         description: "Fresh spring truffles from France - mixed varieties",
@@ -2764,7 +2764,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Gourmet Ingredients",
         vendor: "Seasonal Gourmet Supplies",
-        pricelistNumber: "PL-2024-SEASONAL-001",
+        pricelistNumber: "PL-2410-SEASONAL-001",
         comment: "Premium spring truffles for signature dishes - REJECTED due to budget",
         adjustments: {
           discount: false,
@@ -2782,7 +2782,7 @@ export const mockPRListData = [
         baseTotalAmount: 8400.00,
       },
       {
-        id: "PR-2024-017-02",
+        id: "PR-2410-017-02",
         location: "Seasonal Storage",
         name: "Organic Spring Vegetable Medley",
         description: "Premium organic spring vegetables - seasonal selection",
@@ -2822,7 +2822,7 @@ export const mockPRListData = [
         itemCategory: "Food & Beverage",
         itemSubcategory: "Organic Vegetables",
         vendor: "Seasonal Gourmet Supplies",
-        pricelistNumber: "PL-2024-SEASONAL-002",
+        pricelistNumber: "PL-2410-SEASONAL-002",
         comment: "Organic spring vegetables for seasonal menu - REJECTED due to budget",
         adjustments: {
           discount: true,
@@ -2845,10 +2845,10 @@ export const mockPRListData = [
 
 // Enhanced PR Items with Business Dimensions
 export const mockPRItemsWithBusinessDimensions = [
-  // Items for PR-2024-001 - Kitchen Equipment and Food Supplies
+  // Items for PR-2410-001 - Kitchen Equipment and Food Supplies
   {
-    id: "PR-2024-001-01",
-    requestId: 'pr-2024-001',
+    id: "PR-2410-001-01",
+    requestId: 'pr-2410-001',
     location: "Main Kitchen",
     deliveryLocationId: 'loc-main-kitchen',
     name: "Professional Stand Mixer",
@@ -2894,7 +2894,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Kitchen Equipment",
     itemSubcategory: "Mixers",
     vendor: "Premium Food Suppliers Inc.",
-    pricelistNumber: "PL-2024-01-KITCHEN",
+    pricelistNumber: "PL-2410-01-KITCHEN",
     comment: "Required for Grand Ballroom Event catering preparation",
     adjustments: {
       discount: true,
@@ -2905,8 +2905,8 @@ export const mockPRItemsWithBusinessDimensions = [
     accountCode: "FB-EQUIP-1001",
   },
   {
-    id: "PR-2024-001-02",
-    requestId: 'pr-2024-001',
+    id: "PR-2410-001-02",
+    requestId: 'pr-2410-001',
     location: "Cold Storage",
     deliveryLocationId: 'loc-cold-storage',
     name: "Organic Atlantic Salmon",
@@ -2952,7 +2952,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Food & Beverage",
     itemSubcategory: "Seafood",
     vendor: "Premium Food Suppliers Inc.",
-    pricelistNumber: "PL-2024-01-SEAFOOD",
+    pricelistNumber: "PL-2410-01-SEAFOOD",
     comment: "For corporate conference dinner menu",
     adjustments: {
       discount: true,
@@ -2963,10 +2963,10 @@ export const mockPRItemsWithBusinessDimensions = [
     accountCode: "FB-FOOD-2001",
   },
   
-  // Additional items for PR-2024-001 - Different conversion scenarios
+  // Additional items for PR-2410-001 - Different conversion scenarios
   {
-    id: "PR-2024-001-03",
-    requestId: 'pr-2024-001',
+    id: "PR-2410-001-03",
+    requestId: 'pr-2410-001',
     location: "Main Kitchen",
     deliveryLocationId: 'loc-main-kitchen',
     name: "Premium Olive Oil",
@@ -3012,7 +3012,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Food & Beverage",
     itemSubcategory: "Oils & Condiments",
     vendor: "European Gourmet Suppliers",
-    pricelistNumber: "PL-2024-EUR-OILS",
+    pricelistNumber: "PL-2410-EUR-OILS",
     comment: "Specialty oil for gourmet menu items - bottles convert to liters for inventory tracking",
     adjustments: {
       discount: true,
@@ -3024,8 +3024,8 @@ export const mockPRItemsWithBusinessDimensions = [
   },
   
   {
-    id: "PR-2024-001-04",
-    requestId: 'pr-2024-001',
+    id: "PR-2410-001-04",
+    requestId: 'pr-2410-001',
     location: "Bar Storage",
     deliveryLocationId: 'loc-bar-storage',
     name: "Imported Whiskey Collection",
@@ -3071,7 +3071,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Beverage",
     itemSubcategory: "Spirits",
     vendor: "UK Premium Beverages Ltd",
-    pricelistNumber: "PL-2024-GBP-SPIRITS",
+    pricelistNumber: "PL-2410-GBP-SPIRITS",
     comment: "For high-end corporate events - cases convert to individual bottles for inventory",
     adjustments: {
       discount: true,
@@ -3083,8 +3083,8 @@ export const mockPRItemsWithBusinessDimensions = [
   },
   
   {
-    id: "PR-2024-001-05",
-    requestId: 'pr-2024-001',
+    id: "PR-2410-001-05",
+    requestId: 'pr-2410-001',
     location: "Pastry Kitchen",
     deliveryLocationId: 'loc-pastry-kitchen',
     name: "Belgian Chocolate Blocks",
@@ -3130,7 +3130,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Food & Beverage",
     itemSubcategory: "Baking Supplies",
     vendor: "Gourmet Ingredient Suppliers",
-    pricelistNumber: "PL-2024-BAKING",
+    pricelistNumber: "PL-2410-BAKING",
     comment: "No conversion needed - same unit and currency as base",
     adjustments: {
       discount: true,
@@ -3142,8 +3142,8 @@ export const mockPRItemsWithBusinessDimensions = [
   },
   
   {
-    id: "PR-2024-001-06",
-    requestId: 'pr-2024-001',
+    id: "PR-2410-001-06",
+    requestId: 'pr-2410-001',
     location: "Wine Cellar",
     deliveryLocationId: 'loc-wine-cellar',
     name: "Champagne Collection",
@@ -3189,7 +3189,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Beverage",
     itemSubcategory: "Wine & Champagne",
     vendor: "Montreal Wine Distributors",
-    pricelistNumber: "PL-2024-CAD-WINE",
+    pricelistNumber: "PL-2410-CAD-WINE",
     comment: "Premium selection for gala events - cases convert to bottles, CAD pricing",
     adjustments: {
       discount: true,
@@ -3200,10 +3200,10 @@ export const mockPRItemsWithBusinessDimensions = [
     accountCode: "WINE-CHAMPAGNE-6001", // Converted to USD (6750 * 0.74) // Converted to USD
   },
   
-  // Items for PR-2024-002 - HVAC and Pool Equipment
+  // Items for PR-2410-002 - HVAC and Pool Equipment
   {
-    id: "PR-2024-002-01",
-    requestId: 'pr-2024-002',
+    id: "PR-2410-002-01",
+    requestId: 'pr-2410-002',
     location: "Mechanical Room",
     deliveryLocationId: 'loc-mechanical-room',
     name: "HVAC Filter Replacement Kit",
@@ -3249,7 +3249,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Maintenance",
     itemSubcategory: "HVAC",
     vendor: "Industrial Equipment Solutions",
-    pricelistNumber: "PL-2024-01-HVAC",
+    pricelistNumber: "PL-2410-01-HVAC",
     comment: "Quarterly maintenance replacement for optimal air quality",
     adjustments: {
       discount: true,
@@ -3260,8 +3260,8 @@ export const mockPRItemsWithBusinessDimensions = [
     accountCode: "MAINT-HVAC-1001",
   },
   {
-    id: "PR-2024-002-02",
-    requestId: 'pr-2024-002',
+    id: "PR-2410-002-02",
+    requestId: 'pr-2410-002',
     location: "Pool Equipment Room",
     deliveryLocationId: 'loc-pool-equipment-room',
     name: "Automated Pool Cleaning System",
@@ -3307,7 +3307,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Recreation",
     itemSubcategory: "Pool Equipment",
     vendor: "Industrial Equipment Solutions",
-    pricelistNumber: "PL-2024-01-POOL",
+    pricelistNumber: "PL-2410-01-POOL",
     comment: "Upgrade to automated system for improved efficiency",
     adjustments: {
       discount: true,
@@ -3317,10 +3317,10 @@ export const mockPRItemsWithBusinessDimensions = [
     foc: false,
     accountCode: "REC-POOL-1001",
   },
-  // Items for PR-2024-003 - Luxury Linens
+  // Items for PR-2410-003 - Luxury Linens
   {
-    id: "PR-2024-003-01",
-    requestId: 'pr-2024-003',
+    id: "PR-2410-003-01",
+    requestId: 'pr-2410-003',
     location: "Housekeeping Central",
     deliveryLocationId: 'loc-housekeeping-central',
     name: "Egyptian Cotton Bedsheet Set",
@@ -3366,7 +3366,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Housekeeping",
     itemSubcategory: "Linens",
     vendor: "Luxury Hotel Supplies Ltd.",
-    pricelistNumber: "PL-2024-01-LINEN",
+    pricelistNumber: "PL-2410-01-LINEN",
     comment: "Premium linens for VIP suite upgrade program",
     adjustments: {
       discount: true,
@@ -3376,10 +3376,10 @@ export const mockPRItemsWithBusinessDimensions = [
     foc: false,
     accountCode: "HK-LINEN-1001",
   },
-  // Items for PR-2024-004 - Bar Equipment (Rejected)
+  // Items for PR-2410-004 - Bar Equipment (Rejected)
   {
-    id: "PR-2024-004-01",
-    requestId: 'pr-2024-004',
+    id: "PR-2410-004-01",
+    requestId: 'pr-2410-004',
     location: "Rooftop Bar",
     deliveryLocationId: 'loc-rooftop-bar',
     name: "Premium Whiskey Collection",
@@ -3425,7 +3425,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Food & Beverage",
     itemSubcategory: "Spirits",
     vendor: "Elite Spirits & Equipment Co.",
-    pricelistNumber: "PL-2024-01-SPIRITS",
+    pricelistNumber: "PL-2410-01-SPIRITS",
     comment: "Premium collection for VIP guests - REJECTED due to budget constraints",
     adjustments: {
       discount: false,
@@ -3435,10 +3435,10 @@ export const mockPRItemsWithBusinessDimensions = [
     foc: false,
     accountCode: "BAR-SPIRIT-1001",
   },
-  // Items for PR-2024-005 - Front Office Technology (Draft)
+  // Items for PR-2410-005 - Front Office Technology (Draft)
   {
-    id: "PR-2024-005-01",
-    requestId: 'pr-2024-005',
+    id: "PR-2410-005-01",
+    requestId: 'pr-2410-005',
     location: "Front Desk",
     deliveryLocationId: 'loc-front-desk',
     name: "Contactless Check-in Kiosks",
@@ -3484,7 +3484,7 @@ export const mockPRItemsWithBusinessDimensions = [
     itemCategory: "Technology",
     itemSubcategory: "Self-Service",
     vendor: "Hotel Technology Solutions",
-    pricelistNumber: "PL-2024-01-TECH",
+    pricelistNumber: "PL-2410-01-TECH",
     comment: "Modern check-in solution for improved guest experience",
     adjustments: {
       discount: true,
@@ -3570,18 +3570,18 @@ export const businessDimensionsData = {
 This file contains detailed Purchase Request data with:
 
 📋 PURCHASE REQUESTS (12 Total):
-• PR-2024-001: Kitchen Equipment & Food (APPROVED) - $15,750
-• PR-2024-002: HVAC & Pool Equipment (IN PROGRESS) - $28,500  
-• PR-2024-003: Luxury Linens VIP Upgrade (PENDING) - $12,800
-• PR-2024-004: Premium Bar Collection (REJECTED) - $35,200
-• PR-2024-005: Front Office Technology (DRAFT) - $18,900
-• PR-2024-006: Emergency Generator Repair (APPROVED) - $45,600
-• PR-2024-007: Spa Wellness Supplies (PENDING) - $22,300
-• PR-2024-008: Event Catering Equipment (IN PROGRESS) - $31,800
-• PR-2024-009: Security System Upgrade (REVIEW) - $52,400
-• PR-2024-010: Guest Room Amenities (DRAFT) - $8,750
-• PR-2024-011: Fitness Equipment Upgrade (PENDING) - $37,600
-• PR-2024-012: IT Infrastructure Upgrade (APPROVED) - $68,900
+• PR-2410-001: Kitchen Equipment & Food (APPROVED) - $15,750
+• PR-2410-002: HVAC & Pool Equipment (IN PROGRESS) - $28,500  
+• PR-2410-003: Luxury Linens VIP Upgrade (PENDING) - $12,800
+• PR-2410-004: Premium Bar Collection (REJECTED) - $35,200
+• PR-2410-005: Front Office Technology (DRAFT) - $18,900
+• PR-2410-006: Emergency Generator Repair (APPROVED) - $45,600
+• PR-2410-007: Spa Wellness Supplies (PENDING) - $22,300
+• PR-2410-008: Event Catering Equipment (IN PROGRESS) - $31,800
+• PR-2410-009: Security System Upgrade (REVIEW) - $52,400
+• PR-2410-010: Guest Room Amenities (DRAFT) - $8,750
+• PR-2410-011: Fitness Equipment Upgrade (PENDING) - $37,600
+• PR-2410-012: IT Infrastructure Upgrade (APPROVED) - $68,900
 
 🏢 DEPARTMENTS COVERED:
 Food & Beverage, Maintenance, Housekeeping, Front Office, 

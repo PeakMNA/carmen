@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-13 | Documentation Team | Initial version based on schema.prisma ABAC architecture |
 
 ---
@@ -51,38 +52,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/system-administration)"]
-    CreatePage["Create Page<br/>(/system-administration/new)"]
-    DetailPage["Detail Page<br/>(/system-administration/[id])"]
-    EditPage["Edit Page<br/>(/system-administration/[id]/edit)"]
+    ListPage['List Page<br>(/system-administration)']
+    CreatePage['Create Page<br>(/system-administration/new)']
+    DetailPage["Detail Page<br>(/system-administration/[id])"]
+    EditPage["Edit Page<br>(/system-administration/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage
@@ -459,7 +460,7 @@ app/(main)/system-administration/
 ```
 1. Application Module (e.g., Procurement)
    │
-   ├─→ User Action: "Approve Purchase Request PR-2025-0123"
+   ├─→ User Action: "Approve Purchase Request PR-2501-0123"
    │
    ├─→ Constructs Access Request:
    │   {
@@ -504,10 +505,10 @@ app/(main)/system-administration/
    │   {
    │     decision: PERMIT | DENY | NOT_APPLICABLE | INDETERMINATE,
    │     confidence: 1.0,
-   │     applicablePolicies: ["POL-2025-0123"],
+   │     applicablePolicies: ['POL-2501-0123'],
    │     evaluatedRules: [...],
-   │     obligations: ["log_audit", "notify_requester", "update_status"],
-   │     advice: ["recommend_secondary_review"],
+   │     obligations: ['log_audit', 'notify_requester', 'update_status'],
+   │     advice: ['recommend_secondary_review'],
    │     evaluationTime: 45ms
    │   }
    │
@@ -562,8 +563,8 @@ app/(main)/system-administration/
    │   JOIN user_role_assignments ura ON u.id = ura.userId
    │   JOIN roles r ON ura.roleId = r.id
    │   WHERE r.name IN ('kitchen-manager', 'department-manager')
-   │     AND ura.departments @> '["Kitchen"]'
-   │     AND ura.assignedLocations @> '["main-kitchen"]'
+   │     AND ura.departments @> '['Kitchen']'
+   │     AND ura.assignedLocations @> '['main-kitchen']'
    │     AND u.userData->>'approvalLimit' >= 2500
    │     AND ura.effectiveFrom <= NOW()
    │     AND (ura.effectiveTo IS NULL OR ura.effectiveTo >= NOW())
@@ -593,7 +594,7 @@ app/(main)/system-administration/
    │   ├─→ Workflow Complete (no further stages)
    │   └─→ Changes status: "Fully Approved"
    │
-   ├─→ Generates Purchase Order: PO-2025-00456
+   ├─→ Generates Purchase Order: PO-2501-00456
    │
    └─→ Notifications:
        ├─→ Email to Requester: "Request approved"

@@ -76,7 +76,7 @@ Users must be able to create purchase requests with the following capabilities:
 **User Story**: As a department manager, I want to create purchase requests for my department so that I can procure necessary supplies while maintaining budget control and approval compliance.
 
 **Requirements**:
-- Create new purchase request with auto-generated unique reference number (format: PR-YYYY-NNNNNN)
+- Create new purchase request with auto-generated unique reference number (format: PR-YYMM-NNNN)
 - Select PR type:
   * Market List (recurring food/beverage purchases)
   * Standard Order (general operational supplies)
@@ -100,7 +100,7 @@ Users must be able to create purchase requests with the following capabilities:
 - Save as draft or submit for approval
 
 **Acceptance Criteria**:
-- PR number auto-generates in format PR-YYYY-NNNNNN
+- PR number auto-generates in format PR-YYMM-NNNN
 - Cannot submit without required fields (PR type, delivery location, at least one item)
 - Draft PRs can be saved and edited later
 - Requestor information pre-fills from user profile

@@ -1,12 +1,35 @@
+/**
+ * Delivery Points Management Page
+ *
+ * @module system-administration/delivery-points
+ * @description
+ * Manages delivery point records for vendor deliveries. Delivery points represent
+ * physical locations where vendors can deliver goods, referenced by inventory
+ * locations for procurement purposes.
+ *
+ * @see docs/app/system-administration/delivery-points/BR-delivery-points.md
+ *
+ * Business Requirements Implemented:
+ * - FR-DP-001: List view with Name/Status columns, search, filter, sort
+ * - FR-DP-002: Create delivery point with Name (required) and Active toggle
+ * - FR-DP-003: Edit delivery point with same validation as create
+ * - FR-DP-004: Delete with confirmation dialog
+ * - FR-DP-005: Color-coded status badges (green=Active, gray=Inactive)
+ *
+ * Data Model (simplified per BR-DP):
+ * - id: string (UUID)
+ * - name: string (required)
+ * - isActive: boolean
+ * - createdAt, createdBy, updatedAt, updatedBy: audit fields
+ */
+
 "use client"
 
 import React, { useState, useMemo } from "react"
-import { useRouter } from "next/navigation"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Switch } from "@/components/ui/switch"
 import {
@@ -55,55 +78,69 @@ import {
   Pencil,
   Trash2,
   Truck,
-  MapPin,
-  Phone,
-  Mail,
   ArrowUpDown,
-  Star,
 } from "lucide-react"
 import { getAllDeliveryPoints } from "@/lib/mock-data/inventory-locations"
 import { DeliveryPoint } from "@/lib/types/location-management"
 
-type SortField = 'name' | 'code' | 'city' | 'isActive'
+// ====== TYPE DEFINITIONS ======
+
+/** Sortable table columns */
+type SortField = 'name' | 'isActive'
+
+/** Sort direction for table columns */
 type SortDirection = 'asc' | 'desc'
 
+// ====== MAIN COMPONENT ======
+
 export default function DeliveryPointsPage() {
-  const router = useRouter()
+  // ====== STATE MANAGEMENT ======
+
+  // List filtering and sorting state (FR-DP-001)
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'inactive'>('all')
   const [sortField, setSortField] = useState<SortField>('name')
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
+  // Dialog visibility state
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [editingPoint, setEditingPoint] = useState<DeliveryPoint | null>(null)
   const [deletingPoint, setDeletingPoint] = useState<DeliveryPoint | null>(null)
 
-  // Get all delivery points
+  // Form state for add/edit dialogs (shared between create and edit)
+  const [formName, setFormName] = useState('')
+  const [formIsActive, setFormIsActive] = useState(true)
+
+  // ====== DATA FETCHING ======
+
+  /** Fetch all delivery points from mock data (memoized for performance) */
   const allDeliveryPoints = useMemo(() => getAllDeliveryPoints(), [])
 
-  // Filter and sort delivery points
+  // ====== COMPUTED DATA ======
+
+  /**
+   * Filter and sort delivery points based on current filter/sort state
+   * Implements FR-DP-001: real-time search, status filter, column sorting
+   */
   const filteredDeliveryPoints = useMemo(() => {
     let result = [...allDeliveryPoints]
 
-    // Apply search filter
+    // Apply search filter (FR-DP-001: real-time search)
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase()
       result = result.filter(dp =>
-        dp.name.toLowerCase().includes(query) ||
-        dp.code?.toLowerCase().includes(query) ||
-        dp.address.city.toLowerCase().includes(query) ||
-        dp.contactName?.toLowerCase().includes(query)
+        dp.name.toLowerCase().includes(query)
       )
     }
 
-    // Apply status filter
+    // Apply status filter (FR-DP-001: filter by status)
     if (statusFilter !== 'all') {
       result = result.filter(dp =>
         statusFilter === 'active' ? dp.isActive : !dp.isActive
       )
     }
 
-    // Apply sorting
+    // Apply sorting (FR-DP-001: sort by any column)
     result.sort((a, b) => {
       if (sortField === 'isActive') {
         const aValue = a.isActive
@@ -113,26 +150,8 @@ export default function DeliveryPointsPage() {
           : (aValue === bValue ? 0 : aValue ? 1 : -1)
       }
 
-      let aValue: string
-      let bValue: string
-
-      switch (sortField) {
-        case 'name':
-          aValue = a.name.toLowerCase()
-          bValue = b.name.toLowerCase()
-          break
-        case 'code':
-          aValue = (a.code || '').toLowerCase()
-          bValue = (b.code || '').toLowerCase()
-          break
-        case 'city':
-          aValue = a.address.city.toLowerCase()
-          bValue = b.address.city.toLowerCase()
-          break
-        default:
-          return 0
-      }
-
+      const aValue = a.name.toLowerCase()
+      const bValue = b.name.toLowerCase()
       return sortDirection === 'asc'
         ? aValue.localeCompare(bValue)
         : bValue.localeCompare(aValue)
@@ -141,6 +160,12 @@ export default function DeliveryPointsPage() {
     return result
   }, [allDeliveryPoints, searchQuery, statusFilter, sortField, sortDirection])
 
+  // ====== EVENT HANDLERS ======
+
+  /**
+   * Toggle sort direction or change sort field
+   * @param field - The column field to sort by
+   */
   const handleSort = (field: SortField) => {
     if (sortField === field) {
       setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc')
@@ -150,33 +175,80 @@ export default function DeliveryPointsPage() {
     }
   }
 
+  /**
+   * Reset form and open add dialog
+   * FR-DP-002: Default status is Active
+   */
+  const handleOpenAddDialog = () => {
+    setFormName('')
+    setFormIsActive(true) // Default status: Active
+    setShowAddDialog(true)
+  }
+
+  /**
+   * Open edit dialog pre-populated with current values
+   * FR-DP-003: All fields editable except ID
+   * @param point - The delivery point to edit
+   */
+  const handleOpenEditDialog = (point: DeliveryPoint) => {
+    setFormName(point.name)
+    setFormIsActive(point.isActive)
+    setEditingPoint(point)
+  }
+
+  /**
+   * Handle form submission for creating a new delivery point
+   * FR-DP-002: Form validation for required fields, dialog closes on save
+   * @param e - Form submit event
+   */
   const handleAddDeliveryPoint = (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would add the delivery point
+    if (!formName.trim()) return // Required field validation
+
+    // TODO: Replace with actual API call
+    console.log('Adding delivery point:', { name: formName, isActive: formIsActive })
+
+    // Reset form state and close dialog
     setShowAddDialog(false)
+    setFormName('')
+    setFormIsActive(true)
   }
 
+  /**
+   * Handle form submission for editing an existing delivery point
+   * FR-DP-003: Same validation as create, changes reflected after save
+   * @param e - Form submit event
+   */
   const handleEditDeliveryPoint = (e: React.FormEvent) => {
     e.preventDefault()
-    // In a real app, this would save the delivery point
+    if (!formName.trim()) return // Required field validation
+
+    // TODO: Replace with actual API call
+    console.log('Editing delivery point:', { id: editingPoint?.id, name: formName, isActive: formIsActive })
+
+    // Reset form state and close dialog
     setEditingPoint(null)
+    setFormName('')
+    setFormIsActive(true)
   }
 
+  /**
+   * Handle confirmed deletion of a delivery point
+   * FR-DP-004: Delete after confirmation, row removed from list
+   */
   const handleDeleteDeliveryPoint = () => {
-    // In a real app, this would delete the delivery point
+    // TODO: Replace with actual API call
+    // TODO: FR-DP-004 future enhancement - prevent delete if referenced by locations
+    console.log('Deleting delivery point:', deletingPoint?.id)
     setDeletingPoint(null)
   }
 
-  const getVehicleSizeLabel = (size: string) => {
-    const labels: Record<string, string> = {
-      small_van: 'Small Van',
-      large_van: 'Large Van',
-      truck: 'Truck',
-      semi_trailer: 'Semi-Trailer'
-    }
-    return labels[size] || size
-  }
+  // ====== SUB-COMPONENTS ======
 
+  /**
+   * Reusable sort button for table headers
+   * Displays column name with sort direction indicator
+   */
   const SortButton = ({ field, children }: { field: SortField; children: React.ReactNode }) => (
     <Button
       variant="ghost"
@@ -189,6 +261,8 @@ export default function DeliveryPointsPage() {
     </Button>
   )
 
+  // ====== RENDER ======
+
   return (
     <div className="container mx-auto py-6 px-6 space-y-6">
       {/* Header */}
@@ -196,23 +270,23 @@ export default function DeliveryPointsPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Delivery Points</h1>
           <p className="text-muted-foreground">
-            Manage delivery addresses and receiving instructions
+            Manage delivery addresses for vendor deliveries
           </p>
         </div>
-        <Button onClick={() => setShowAddDialog(true)}>
+        <Button onClick={handleOpenAddDialog}>
           <Plus className="h-4 w-4 mr-2" />
           Add Delivery Point
         </Button>
       </div>
 
-      {/* Filters */}
+      {/* Filters (FR-DP-001) */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search by name, code, city, or contact..."
+                placeholder="Search by name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-10"
@@ -232,7 +306,7 @@ export default function DeliveryPointsPage() {
         </CardContent>
       </Card>
 
-      {/* Table */}
+      {/* Table (FR-DP-001: Display columns Name, Status) */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -266,14 +340,6 @@ export default function DeliveryPointsPage() {
                     <SortButton field="name">Name</SortButton>
                   </TableHead>
                   <TableHead>
-                    <SortButton field="code">Code</SortButton>
-                  </TableHead>
-                  <TableHead>
-                    <SortButton field="city">City</SortButton>
-                  </TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Max Vehicle</TableHead>
-                  <TableHead>
                     <SortButton field="isActive">Status</SortButton>
                   </TableHead>
                   <TableHead className="w-[50px]"></TableHead>
@@ -283,62 +349,14 @@ export default function DeliveryPointsPage() {
                 {filteredDeliveryPoints.map((point) => (
                   <TableRow key={point.id}>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        {point.isPrimary && (
-                          <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-                        )}
-                        <div>
-                          <div className="font-medium">{point.name}</div>
-                          {point.description && (
-                            <div className="text-xs text-muted-foreground truncate max-w-[200px]">
-                              {point.description}
-                            </div>
-                          )}
-                        </div>
-                      </div>
+                      <div className="font-medium">{point.name}</div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="font-mono">
-                        {point.code || '-'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-start gap-1">
-                        <MapPin className="h-3 w-3 text-muted-foreground mt-0.5" />
-                        <div className="text-sm">
-                          <div>{point.address.city}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {point.address.postalCode}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {point.contactName ? (
-                        <div className="text-sm">
-                          <div>{point.contactName}</div>
-                          {point.contactPhone && (
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                              <Phone className="h-3 w-3" />
-                              {point.contactPhone}
-                            </div>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {point.maxVehicleSize ? (
-                        <Badge variant="outline">
-                          {getVehicleSizeLabel(point.maxVehicleSize)}
-                        </Badge>
-                      ) : (
-                        <span className="text-muted-foreground">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={point.isActive ? "default" : "secondary"}>
+                      {/* FR-DP-005: Status displayed with color-coded badge (green/gray) */}
+                      <Badge
+                        variant={point.isActive ? "default" : "secondary"}
+                        className={point.isActive ? "bg-green-600 hover:bg-green-700" : ""}
+                      >
                         {point.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
@@ -350,7 +368,7 @@ export default function DeliveryPointsPage() {
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => setEditingPoint(point)}>
+                          <DropdownMenuItem onClick={() => handleOpenEditDialog(point)}>
                             <Pencil className="h-4 w-4 mr-2" />
                             Edit
                           </DropdownMenuItem>
@@ -372,144 +390,58 @@ export default function DeliveryPointsPage() {
         </CardContent>
       </Card>
 
-      {/* Add Delivery Point Dialog */}
+      {/* Add Delivery Point Dialog (FR-DP-002) */}
       <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md">
           <form onSubmit={handleAddDeliveryPoint}>
             <DialogHeader>
               <DialogTitle>Add Delivery Point</DialogTitle>
               <DialogDescription>
-                Create a new delivery address
+                Create a new delivery point for vendor deliveries
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
-              {/* Basic Info */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="dpName">Name</Label>
-                  <Input
-                    id="dpName"
-                    placeholder="e.g., Main Entrance"
-                    required
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="dpCode">Code</Label>
-                  <Input
-                    id="dpCode"
-                    placeholder="e.g., DP-001"
-                    className="uppercase"
-                  />
-                </div>
-              </div>
-
               <div className="space-y-2">
-                <Label htmlFor="dpDescription">Description</Label>
-                <Textarea
-                  id="dpDescription"
-                  placeholder="Brief description of this delivery point..."
-                  rows={2}
+                <Label htmlFor="dpName">Name <span className="text-destructive">*</span></Label>
+                <Input
+                  id="dpName"
+                  placeholder="e.g., Main Warehouse - Receiving Dock"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  required
                 />
               </div>
 
-              {/* Address */}
-              <div className="space-y-2">
-                <Label>Address</Label>
-                <div className="grid grid-cols-2 gap-4">
-                  <Input placeholder="Address Line 1" required />
-                  <Input placeholder="Address Line 2 (optional)" />
-                  <Input placeholder="City" required />
-                  <Input placeholder="Postal Code" required />
-                  <Input placeholder="Country" defaultValue="Thailand" required />
-                </div>
-              </div>
-
-              {/* Contact */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="contactName">Contact Name</Label>
-                  <Input id="contactName" placeholder="Contact name" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contactPhone">Phone</Label>
-                  <Input id="contactPhone" placeholder="+66-xxx-xxx-xxxx" />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="contactEmail">Email</Label>
-                  <Input id="contactEmail" type="email" placeholder="email@example.com" />
-                </div>
-              </div>
-
-              {/* Instructions */}
-              <div className="space-y-2">
-                <Label htmlFor="deliveryInstructions">Delivery Instructions</Label>
-                <Textarea
-                  id="deliveryInstructions"
-                  placeholder="Special instructions for deliveries..."
-                  rows={2}
-                />
-              </div>
-
-              {/* Logistics */}
-              <div className="grid grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="maxVehicleSize">Max Vehicle Size</Label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select size" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="small_van">Small Van</SelectItem>
-                      <SelectItem value="large_van">Large Van</SelectItem>
-                      <SelectItem value="truck">Truck</SelectItem>
-                      <SelectItem value="semi_trailer">Semi-Trailer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Dock Leveler</Label>
-                  <div className="flex items-center h-10">
-                    <Switch id="hasDockLeveler" />
-                    <Label htmlFor="hasDockLeveler" className="ml-2 font-normal">
-                      Available
-                    </Label>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label>Forklift</Label>
-                  <div className="flex items-center h-10">
-                    <Switch id="hasForklift" />
-                    <Label htmlFor="hasForklift" className="ml-2 font-normal">
-                      Available
-                    </Label>
-                  </div>
-                </div>
-              </div>
-
-              {/* Status */}
+              {/* FR-DP-002: Active status toggle, default: Active */}
               <div className="flex items-center justify-between border rounded-lg p-4">
                 <div>
-                  <Label>Active</Label>
+                  <Label htmlFor="isActive">Active</Label>
                   <p className="text-sm text-muted-foreground">
                     Enable this delivery point for use
                   </p>
                 </div>
-                <Switch id="isActive" defaultChecked />
+                <Switch
+                  id="isActive"
+                  checked={formIsActive}
+                  onCheckedChange={setFormIsActive}
+                />
               </div>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setShowAddDialog(false)}>
                 Cancel
               </Button>
-              <Button type="submit">Add Delivery Point</Button>
+              <Button type="submit" disabled={!formName.trim()}>
+                Add Delivery Point
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Edit Delivery Point Dialog */}
+      {/* Edit Delivery Point Dialog (FR-DP-003) */}
       <Dialog open={!!editingPoint} onOpenChange={(open) => !open && setEditingPoint(null)}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-md">
           <form onSubmit={handleEditDeliveryPoint}>
             <DialogHeader>
               <DialogTitle>Edit Delivery Point</DialogTitle>
@@ -517,149 +449,56 @@ export default function DeliveryPointsPage() {
                 Update delivery point details
               </DialogDescription>
             </DialogHeader>
-            {editingPoint && (
-              <div className="grid gap-4 py-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="editDpName">Name</Label>
-                    <Input
-                      id="editDpName"
-                      defaultValue={editingPoint.name}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="editDpCode">Code</Label>
-                    <Input
-                      id="editDpCode"
-                      defaultValue={editingPoint.code}
-                      className="uppercase"
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editDpDescription">Description</Label>
-                  <Textarea
-                    id="editDpDescription"
-                    defaultValue={editingPoint.description}
-                    rows={2}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Address</Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    <Input defaultValue={editingPoint.address.addressLine1} required />
-                    <Input defaultValue={editingPoint.address.addressLine2} />
-                    <Input defaultValue={editingPoint.address.city} required />
-                    <Input defaultValue={editingPoint.address.postalCode} required />
-                    <Input defaultValue={editingPoint.address.country} required />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="editContactName">Contact Name</Label>
-                    <Input
-                      id="editContactName"
-                      defaultValue={editingPoint.contactName}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="editContactPhone">Phone</Label>
-                    <Input
-                      id="editContactPhone"
-                      defaultValue={editingPoint.contactPhone}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="editContactEmail">Email</Label>
-                    <Input
-                      id="editContactEmail"
-                      type="email"
-                      defaultValue={editingPoint.contactEmail}
-                    />
-                  </div>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="editDeliveryInstructions">Delivery Instructions</Label>
-                  <Textarea
-                    id="editDeliveryInstructions"
-                    defaultValue={editingPoint.deliveryInstructions}
-                    rows={2}
-                  />
-                </div>
-
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="editMaxVehicleSize">Max Vehicle Size</Label>
-                    <Select defaultValue={editingPoint.maxVehicleSize}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select size" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="small_van">Small Van</SelectItem>
-                        <SelectItem value="large_van">Large Van</SelectItem>
-                        <SelectItem value="truck">Truck</SelectItem>
-                        <SelectItem value="semi_trailer">Semi-Trailer</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Dock Leveler</Label>
-                    <div className="flex items-center h-10">
-                      <Switch id="editHasDockLeveler" defaultChecked={editingPoint.hasDockLeveler} />
-                      <Label htmlFor="editHasDockLeveler" className="ml-2 font-normal">
-                        Available
-                      </Label>
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Forklift</Label>
-                    <div className="flex items-center h-10">
-                      <Switch id="editHasForklift" defaultChecked={editingPoint.hasForklift} />
-                      <Label htmlFor="editHasForklift" className="ml-2 font-normal">
-                        Available
-                      </Label>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between border rounded-lg p-4">
-                  <div>
-                    <Label>Active</Label>
-                    <p className="text-sm text-muted-foreground">
-                      Enable this delivery point for use
-                    </p>
-                  </div>
-                  <Switch id="editIsActive" defaultChecked={editingPoint.isActive} />
-                </div>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="editDpName">Name <span className="text-destructive">*</span></Label>
+                <Input
+                  id="editDpName"
+                  value={formName}
+                  onChange={(e) => setFormName(e.target.value)}
+                  required
+                />
               </div>
-            )}
+
+              {/* FR-DP-003/FR-DP-005: Toggle to change status */}
+              <div className="flex items-center justify-between border rounded-lg p-4">
+                <div>
+                  <Label htmlFor="editIsActive">Active</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Enable this delivery point for use
+                  </p>
+                </div>
+                <Switch
+                  id="editIsActive"
+                  checked={formIsActive}
+                  onCheckedChange={setFormIsActive}
+                />
+              </div>
+            </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setEditingPoint(null)}>
                 Cancel
               </Button>
-              <Button type="submit">Save Changes</Button>
+              <Button type="submit" disabled={!formName.trim()}>
+                Save Changes
+              </Button>
             </DialogFooter>
           </form>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Confirmation Dialog */}
+      {/* Delete Confirmation Dialog (FR-DP-004) */}
       <AlertDialog open={!!deletingPoint} onOpenChange={(open) => !open && setDeletingPoint(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Delivery Point</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deletingPoint?.name}"? This action cannot be undone.
+              Are you sure you want to delete &quot;{deletingPoint?.name}&quot;? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDeleteDeliveryPoint} className="bg-destructive text-destructive-foreground">
+            <AlertDialogAction onClick={handleDeleteDeliveryPoint} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
               Delete
             </AlertDialogAction>
           </AlertDialogFooter>

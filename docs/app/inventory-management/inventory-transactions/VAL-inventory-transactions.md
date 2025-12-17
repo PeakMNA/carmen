@@ -20,6 +20,7 @@ This document defines comprehensive validation rules for inventory transactions 
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -42,10 +43,10 @@ Permission and authorization validations
 ## Field-Level Validations
 
 ### VAL-TXN-001: Transaction Number Format
-**Rule**: Transaction number must follow format `{TYPE}-{YEAR}-{SEQUENCE}` where TYPE is 3-4 uppercase letters, YEAR is 4 digits, SEQUENCE is 6 digits.
+**Rule**: Transaction number must follow format `{TYPE}-{YYMM}-{SEQUENCE}` where TYPE is 3-4 uppercase letters, YYMM is 4 digits (year month), SEQUENCE is 6 digits.
 
 **Layer**: Server + Database
-**Error Message**: "Invalid transaction number format. Expected: TYPE-YYYY-NNNNNN"
+**Error Message**: "Invalid transaction number format. Expected: TYPE-YYMM-NNNN"
 **Implementation**:
 ```typescript
 // Zod schema
@@ -59,8 +60,8 @@ CHECK (transaction_number ~ '^[A-Z]{3,4}-\\d{4}-\\d{6}$')
 ```
 
 **Test Scenarios**:
-- ✅ Valid: `GRN-2025-001234`, `ISS-2025-005678`, `TRF-2025-009012`
-- ❌ Invalid: `grn-2025-001234` (lowercase), `GRN-25-001234` (2-digit year), `GRN-2025-1234` (4-digit sequence)
+- ✅ Valid: `GRN-2501-001234`, `ISS-2501-005678`, `TRF-2501-009012`
+- ❌ Invalid: `grn-2501-001234` (lowercase), `GRN-25-001234` (2-digit format), `GRN-2501-1234` (4-digit sequence)
 
 ---
 
@@ -76,7 +77,7 @@ const transactionDateSchema = z.date()
     const today = new Date();
     const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
     return date >= thirtyDaysAgo && date <= today;
-  }, "Transaction date must be within last 30 days and not future");
+  }, 'Transaction date must be within last 30 days and not future');
 ```
 
 **Test Scenarios**:
@@ -100,7 +101,7 @@ const quantitySchema = z.number()
   .refine(qty => {
     const decimalPlaces = (qty.toString().split('.')[1] || '').length;
     return decimalPlaces <= 4;
-  }, "Quantity can have maximum 4 decimal places");
+  }, 'Quantity can have maximum 4 decimal places');
 
 // Database constraint
 CHECK (quantity > 0 AND quantity = ROUND(quantity, 4))
@@ -125,7 +126,7 @@ const unitCostSchema = z.number()
   .refine(cost => {
     const decimalPlaces = (cost.toString().split('.')[1] || '').length;
     return decimalPlaces <= 4;
-  }, "Unit cost can have maximum 4 decimal places");
+  }, 'Unit cost can have maximum 4 decimal places');
 ```
 
 **Test Scenarios**:
@@ -148,7 +149,7 @@ const transactionSchema = z.object({
 }).refine(data => {
   const calculated = Math.round(data.quantity * data.unit_cost * 100) / 100;
   return Math.abs(data.total_cost - calculated) < 0.01; // Tolerance for rounding
-}, "Total cost must equal quantity × unit cost");
+}, 'Total cost must equal quantity × unit cost');
 
 // Database constraint
 CHECK (ABS(total_cost - (quantity * unit_cost)) < 0.01)
@@ -184,7 +185,7 @@ CHECK (source_document_number IS NOT NULL AND source_document_number <> '')
 ```
 
 **Test Scenarios**:
-- ✅ Valid: type="GRN", id="valid-uuid", number="GRN-2025-001"
+- ✅ Valid: type="GRN", id="valid-uuid", number="GRN-2501-0001"
 - ❌ Invalid: type=null, type="", id="invalid-uuid"
 
 ---
@@ -229,7 +230,7 @@ if (item.requires_lot_tracking) {
 ```
 
 **Test Scenarios**:
-- ✅ Valid: `LOT-2025-001`, `BATCH-20250115-A`, `L12345`
+- ✅ Valid: `LOT-2501-0001`, `BATCH-20250115-A`, `L12345`
 - ❌ Invalid: `lot-001` (lowercase), `LOT 001` (space), empty (if required)
 
 ---

@@ -118,7 +118,7 @@ GET /api/credit-notes/:creditNoteId/items
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/items?condition=Damaged
+GET /api/credit-notes/CN-2401-0001/items?condition=Damaged
 ```
 
 ### Get Credit Note Item by ID
@@ -141,7 +141,7 @@ CreditNoteItem
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/items/CNITEM-001
+GET /api/credit-notes/CN-2401-0001/items/CNITEM-001
 ```
 
 ### Add Item to Credit Note
@@ -178,7 +178,7 @@ CreditNoteItem
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/items
+POST /api/credit-notes/CN-2401-0001/items
 {
   "poItemId": "POITEM-002",
   "grnItemId": "GRNITEM-002",
@@ -187,7 +187,7 @@ POST /api/credit-notes/CN-2024-001/items
   "reason": "Wrong items received",
   "condition": "Wrong Item",
   "warehouseLocation": "RACK-B2",
-  "lotNumber": "LOT-2024-002",
+  "lotNumber": "LOT-2401-0002",
   "serialNumbers": ["SN003", "SN004"]
 }
 ```
@@ -225,7 +225,7 @@ CreditNoteItem
 
 **Example Request:**
 ```json
-PUT /api/credit-notes/CN-2024-001/items/CNITEM-001
+PUT /api/credit-notes/CN-2401-0001/items/CNITEM-001
 {
   "quantityReturned": 2,
   "reason": "Updated: Multiple laptops with physical damage",
@@ -256,7 +256,7 @@ DELETE /api/credit-notes/:creditNoteId/items/:itemId
 
 **Example:**
 ```
-DELETE /api/credit-notes/CN-2024-001/items/CNITEM-002
+DELETE /api/credit-notes/CN-2401-0001/items/CNITEM-002
 ```
 
 ### Get Available Items for Return
@@ -292,7 +292,7 @@ GET /api/credit-notes/available-items
 
 **Example:**
 ```
-GET /api/credit-notes/available-items?poId=PO-2024-001&grnId=GRN-2024-001
+GET /api/credit-notes/available-items?poId=PO-2401-0001&grnId=GRN-2401-0001
 ```
 
 ## Error Responses
@@ -305,7 +305,7 @@ GET /api/credit-notes/available-items?poId=PO-2024-001&grnId=GRN-2024-001
   "error": "NotFoundError",
   "message": "Credit note item not found",
   "details": {
-    "creditNoteId": "CN-2024-001",
+    "creditNoteId": "CN-2401-0001",
     "itemId": "CNITEM-999"
   }
 }
@@ -329,7 +329,7 @@ GET /api/credit-notes/available-items?poId=PO-2024-001&grnId=GRN-2024-001
   "error": "StatusConflictError",
   "message": "Cannot modify items in current credit note status",
   "details": {
-    "creditNoteId": "CN-2024-001",
+    "creditNoteId": "CN-2401-0001",
     "currentStatus": "Completed",
     "allowedStatus": ["Draft"]
   }

@@ -14,11 +14,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+/**
+ * Recent Activities Mock Data
+ * Transaction Code Format: PREFIX-YYMM-NNNN
+ * - PREFIX: Document type (PR = Purchase Request, PO = Purchase Order, GRN = Goods Receipt, etc.)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number
+ */
 const recentActivities = [
   {
     id: 1,
     type: "Purchase Request",
-    header: "PR-2024-001",
+    header: "PR-2410-001", // Purchase Request #001, October 2024
     status: "Approved",
     target: "Kitchen Supplies",
     limit: "15",
@@ -29,7 +37,7 @@ const recentActivities = [
   {
     id: 2,
     type: "Purchase Order",
-    header: "PO-2024-089",
+    header: "PO-2410-089",
     status: "Processing",
     target: "Fresh Produce Co.",
     limit: "25",
@@ -40,7 +48,7 @@ const recentActivities = [
   {
     id: 3,
     type: "Goods Receipt",
-    header: "GRN-2024-045",
+    header: "GRN-2410-045",
     status: "Complete",
     target: "Premium Meats Ltd.",
     limit: "12",
@@ -51,7 +59,7 @@ const recentActivities = [
   {
     id: 4,
     type: "Stock Adjustment",
-    header: "ADJ-2024-012",
+    header: "ADJ-2410-012",
     status: "Pending",
     target: "Beverage Inventory",
     limit: "8",
@@ -62,7 +70,7 @@ const recentActivities = [
   {
     id: 5,
     type: "Vendor Invoice",
-    header: "INV-2024-278",
+    header: "INV-2410-278",
     status: "Under Review",
     target: "Global Foods Inc.",
     limit: "35",
@@ -73,7 +81,7 @@ const recentActivities = [
   {
     id: 6,
     type: "Quality Check",
-    header: "QC-2024-067",
+    header: "QC-2410-067",
     status: "Failed",
     target: "Dairy Products",
     limit: "22",

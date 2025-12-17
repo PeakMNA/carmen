@@ -36,9 +36,9 @@ graph LR
     F --> H[✅ Active in App]
     G --> I[📄 Documentation Only]
 
-    F --> J[User Management<br/>ABAC Permissions<br/>Audit Logging]
+    F --> J[User Management<br>ABAC Permissions<br>Audit Logging]
 
-    G --> K[Business Data<br/>Finance<br/>Inventory<br/>Procurement<br/>Vendors<br/>Products<br/>Recipes]
+    G --> K[Business Data<br>Finance<br>Inventory<br>Procurement<br>Vendors<br>Products<br>Recipes]
 
     style B fill:#f0f9ff
     style C fill:#e1f5ff
@@ -72,6 +72,7 @@ graph LR
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ---
@@ -417,7 +418,7 @@ model PeriodCloseLog {
 **Pattern Comparison**:
 ```
 FIFO (Lot-Based):
-- lot_no: "LOT-2025-001" (unique identifier)
+- lot_no: "LOT-2501-0001" (unique identifier)
 - cost_per_unit: Specific to this lot
 - Track each lot separately
 
@@ -762,7 +763,7 @@ const requests = await prisma.purchaseRequest.findMany({
 ```typescript
 const request = await prisma.purchaseRequest.create({
   data: {
-    request_number: 'PR-2025-001',
+    request_number: 'PR-2501-0001',
     request_date: new Date(),
     status: 'DRAFT',
     department_id: departmentId,

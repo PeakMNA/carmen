@@ -39,7 +39,7 @@ import PricelistProductEditingComponent from '../../components/PricelistProductE
 // Mock pricelist data for editing
 const mockPricelistDetail: VendorPricelist = {
   id: 'pl-001',
-  pricelistNumber: 'PL-2024-001',
+  pricelistNumber: 'PL-2410-001',
   vendorId: 'vendor-001',
   campaignId: 'campaign-001',
   templateId: 'template-001',

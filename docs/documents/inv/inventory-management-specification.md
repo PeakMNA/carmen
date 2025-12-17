@@ -305,7 +305,7 @@ The adjustments module manages all inventory quantity and value adjustments with
 #### Mock Data Structure
 ```typescript
 interface InventoryAdjustment {
-  id: string;              // ADJ-2024-001 format
+  id: string;              // ADJ-2401-0001 format
   date: string;            // ISO date string
   type: "IN" | "OUT";      // Adjustment direction
   status: "Draft" | "Posted" | "Voided";

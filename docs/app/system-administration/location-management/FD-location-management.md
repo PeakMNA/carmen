@@ -2,8 +2,8 @@
 
 ## Document Information
 - **Module**: System Administration / Location Management
-- **Version**: 1.1
-- **Last Updated**: 2025-11-26
+- **Version**: 1.2
+- **Last Updated**: 2025-12-17
 - **Status**: Active
 
 ## Document History
@@ -12,6 +12,7 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 1.1.0 | 2025-11-26 | Documentation Team | Code compliance review - aligned with BR document, simplified flows |
+| 1.2.0 | 2025-12-17 | Documentation Team | Removed Department column from location list - department assignment now managed from Department module |
 
 ## Overview
 
@@ -24,18 +25,18 @@ This document provides comprehensive flow diagrams for all Location Management w
 ```mermaid
 flowchart TD
     Start([User Opens Location Management]) --> List[Display Location List]
-    List --> ClickCreate{User Clicks<br/>Create Location}
+    List --> ClickCreate{User Clicks<br>Create Location}
     ClickCreate --> LoadForm[Load LocationForm Component]
-    LoadForm --> DisplayForm[Display Form with Fields:<br/>- Code, Name, Description<br/>- Type, Status<br/>- Physical Count<br/>- Department, Cost Center]
+    LoadForm --> DisplayForm[Display Form with Fields:<br>- Code, Name, Description<br>- Type, Status<br>- Physical Count<br>- Department, Cost Center]
 
     DisplayForm --> FillBasic[User Fills Required Fields]
 
-    FillBasic --> TypeCheck{Location<br/>Type?}
+    FillBasic --> TypeCheck{Location<br>Type?}
     TypeCheck -->|Consignment| ShowVendor[Show Vendor Selection]
     ShowVendor --> ClickSave
     TypeCheck -->|Other| ClickSave[User Clicks Save]
 
-    ClickSave --> ValidateForm{Form<br/>Valid?}
+    ClickSave --> ValidateForm{Form<br>Valid?}
 
     ValidateForm -->|No| ShowErrors[Show Inline Error Messages]
     ShowErrors --> DisplayForm
@@ -54,18 +55,18 @@ flowchart TD
 flowchart TD
     Start([User on Location List]) --> ClickView[Click Location Row or View Button]
     ClickView --> LoadDetail[Load Location Detail Page]
-    LoadDetail --> DisplayTabs[Display Tabbed Interface:<br/>General, Shelves, Users,<br/>Products, Delivery Points]
+    LoadDetail --> DisplayTabs[Display Tabbed Interface:<br>General, Shelves, Users,<br>Products, Delivery Points]
 
     DisplayTabs --> ClickEdit[User Clicks Edit Button]
     ClickEdit --> EnableEdit[Set isEditing = true]
     EnableEdit --> TabsEditable[All Tabs Become Editable]
 
-    TabsEditable --> UserAction{User<br/>Action}
-    UserAction -->|Modify General| EditGeneral[Edit Name, Description,<br/>Type, Status, Organization]
+    TabsEditable --> UserAction{User<br>Action}
+    UserAction -->|Modify General| EditGeneral[Edit Name, Description,<br>Type, Status, Organization]
     UserAction -->|Modify Shelves| EditShelves[Add/Edit/Delete Shelves]
     UserAction -->|Modify Users| EditUsers[Assign/Remove Users]
     UserAction -->|Modify Products| EditProducts[Assign/Remove Products]
-    UserAction -->|Modify Delivery| EditDelivery[Add/Edit/Delete<br/>Delivery Points]
+    UserAction -->|Modify Delivery| EditDelivery[Add/Edit/Delete<br>Delivery Points]
 
     EditGeneral --> ClickSave
     EditShelves --> ClickSave
@@ -73,7 +74,7 @@ flowchart TD
     EditProducts --> ClickSave
     EditDelivery --> ClickSave[User Clicks Save]
 
-    ClickSave --> ValidateChanges{Validation<br/>Passes?}
+    ClickSave --> ValidateChanges{Validation<br>Passes?}
     ValidateChanges -->|No| ShowErrors[Show Validation Errors]
     ShowErrors --> TabsEditable
 
@@ -90,7 +91,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User on Location List]) --> SearchFilter{Search/<br/>Filter?}
+    Start([User on Location List]) --> SearchFilter{Search/<br>Filter?}
     SearchFilter -->|Yes| EnterSearch[Enter Search Term]
     EnterSearch --> ApplyFilters[Apply Type/Status/Count Filters]
     ApplyFilters --> ShowResults[Show Filtered Results]
@@ -103,17 +104,17 @@ flowchart TD
 
     DisplayDetail --> ShowTabs[Display 5 Tabs]
 
-    ShowTabs --> GeneralTab[General Tab:<br/>- Basic Information<br/>- Type & Status<br/>- Organization<br/>- Address<br/>- Audit Info]
+    ShowTabs --> GeneralTab[General Tab:<br>- Basic Information<br>- Type & Status<br>- Organization<br>- Address<br>- Audit Info]
 
-    ShowTabs --> ShelvesTab[Shelves Tab:<br/>- Shelf Table<br/>- Add/Edit/Delete]
+    ShowTabs --> ShelvesTab[Shelves Tab:<br>- Shelf Table<br>- Add/Edit/Delete]
 
-    ShowTabs --> UsersTab[Users Tab:<br/>- Assigned Users<br/>- Roles & Permissions]
+    ShowTabs --> UsersTab[Users Tab:<br>- Assigned Users<br>- Roles & Permissions]
 
-    ShowTabs --> ProductsTab[Products Tab:<br/>- Assigned Products<br/>- Inventory Parameters]
+    ShowTabs --> ProductsTab[Products Tab:<br>- Assigned Products<br>- Inventory Parameters]
 
-    ShowTabs --> DeliveryTab[Delivery Points Tab:<br/>- Delivery Addresses<br/>- Contact Info]
+    ShowTabs --> DeliveryTab[Delivery Points Tab:<br>- Delivery Addresses<br>- Contact Info]
 
-    GeneralTab --> UserAction{User<br/>Action}
+    GeneralTab --> UserAction{User<br>Action}
     ShelvesTab --> UserAction
     UsersTab --> UserAction
     ProductsTab --> UserAction
@@ -122,10 +123,10 @@ flowchart TD
     UserAction -->|Back| GoBack[Navigate to Location List]
     GoBack --> End([End])
 
-    UserAction -->|Edit| TriggerEdit[Enter Edit Mode<br/>See FD-002]
+    UserAction -->|Edit| TriggerEdit[Enter Edit Mode<br>See FD-002]
     TriggerEdit --> End
 
-    UserAction -->|Delete| TriggerDelete[Trigger Delete Flow<br/>See FD-004]
+    UserAction -->|Delete| TriggerDelete[Trigger Delete Flow<br>See FD-004]
     TriggerDelete --> End
 ```
 
@@ -135,20 +136,20 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Triggers Delete]) --> CheckProducts{Has Assigned<br/>Products?}
+    Start([User Triggers Delete]) --> CheckProducts{Has Assigned<br>Products?}
 
-    CheckProducts -->|Yes| BlockDelete[Show Error:<br/>Cannot delete location<br/>with assigned products]
+    CheckProducts -->|Yes| BlockDelete[Show Error:<br>Cannot delete location<br>with assigned products]
     BlockDelete --> End([End])
 
-    CheckProducts -->|No| OpenDialog[Open Confirmation Dialog:<br/>Delete Location?<br/>This action cannot be undone]
+    CheckProducts -->|No| OpenDialog[Open Confirmation Dialog:<br>Delete Location?<br>This action cannot be undone]
 
-    OpenDialog --> UserChoice{User<br/>Choice}
+    OpenDialog --> UserChoice{User<br>Choice}
 
     UserChoice -->|Cancel| CloseDialog[Close Dialog]
     CloseDialog --> End
 
     UserChoice -->|Confirm Delete| DeleteLocation[Remove Location from State]
-    DeleteLocation --> ShowSuccess[Show Success Toast:<br/>Location Deleted]
+    DeleteLocation --> ShowSuccess[Show Success Toast:<br>Location Deleted]
     ShowSuccess --> RefreshList[Refresh Location List]
     RefreshList --> End
 ```
@@ -161,33 +162,33 @@ flowchart TD
 flowchart TD
     Start([User on Location List]) --> InitialDisplay[Display All Locations]
 
-    InitialDisplay --> SearchAction{User<br/>Action}
+    InitialDisplay --> SearchAction{User<br>Action}
 
-    SearchAction -->|Enter Search| CaptureSearch[Capture Search Input:<br/>Real-time onChange]
-    CaptureSearch --> FilterBySearch[Filter Locations by:<br/>- Name<br/>- Code<br/>- Description<br/>- Department Name]
+    SearchAction -->|Enter Search| CaptureSearch[Capture Search Input:<br>Real-time onChange]
+    CaptureSearch --> FilterBySearch[Filter Locations by:<br>- Name<br>- Code<br>- Description<br>- Department Name]
     FilterBySearch --> ApplyOtherFilters
 
-    SearchAction -->|Select Type| SelectType[Select from Dropdown:<br/>- All Types<br/>- Inventory<br/>- Direct<br/>- Consignment]
+    SearchAction -->|Select Type| SelectType[Select from Dropdown:<br>- All Types<br>- Inventory<br>- Direct<br>- Consignment]
     SelectType --> ApplyOtherFilters
 
-    SearchAction -->|Select Status| SelectStatus[Select from Dropdown:<br/>- All Status<br/>- Active<br/>- Inactive<br/>- Closed<br/>- Pending Setup]
+    SearchAction -->|Select Status| SelectStatus[Select from Dropdown:<br>- All Status<br>- Active<br>- Inactive<br>- Closed<br>- Pending Setup]
     SelectStatus --> ApplyOtherFilters
 
-    SearchAction -->|Select Physical Count| SelectCount[Select from Dropdown:<br/>- All<br/>- Count Enabled<br/>- Count Disabled]
+    SearchAction -->|Select Physical Count| SelectCount[Select from Dropdown:<br>- All<br>- Count Enabled<br>- Count Disabled]
     SelectCount --> ApplyOtherFilters
 
-    ApplyOtherFilters[Apply All Filters<br/>with AND Logic]
-    ApplyOtherFilters --> RecalculateResults[Recalculate Filtered List<br/>using useMemo]
+    ApplyOtherFilters[Apply All Filters<br>with AND Logic]
+    ApplyOtherFilters --> RecalculateResults[Recalculate Filtered List<br>using useMemo]
 
-    RecalculateResults --> ApplySort{Current<br/>Sort?}
+    RecalculateResults --> ApplySort{Current<br>Sort?}
     ApplySort -->|Has Sort| SortResults[Sort by Field & Direction]
     ApplySort -->|No Sort| DisplayResults
     SortResults --> DisplayResults[Display Filtered Results]
 
-    DisplayResults --> ShowCount[Show Count:<br/>Showing X of Y locations]
-    ShowCount --> HasResults{Has<br/>Results?}
+    DisplayResults --> ShowCount[Show Count:<br>Showing X of Y locations]
+    ShowCount --> HasResults{Has<br>Results?}
 
-    HasResults -->|Yes| RenderView{View<br/>Mode?}
+    HasResults -->|Yes| RenderView{View<br>Mode?}
     RenderView -->|Table| ShowTable[Render Table View]
     RenderView -->|Card| ShowCards[Render Card Grid]
 
@@ -204,12 +205,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User on Location List<br/>Table View]) --> InitialSort[Default Sort:<br/>Name ASC]
-    InitialSort --> DisplayList[Display Sorted List<br/>with Sort Indicator]
+    Start([User on Location List<br>Table View]) --> InitialSort[Default Sort:<br>Name ASC]
+    InitialSort --> DisplayList[Display Sorted List<br>with Sort Indicator]
 
-    DisplayList --> UserClick{User Clicks<br/>Column Header}
+    DisplayList --> UserClick{User Clicks<br>Column Header}
 
-    UserClick -->|Same Column| CheckDirection{Current<br/>Direction?}
+    UserClick -->|Same Column| CheckDirection{Current<br>Direction?}
     CheckDirection -->|ASC| ReverseSort[Change to DESC]
     CheckDirection -->|DESC| ChangeToASC[Change to ASC]
     ReverseSort --> UpdateIcon[Update Sort Indicator]
@@ -224,7 +225,7 @@ flowchart TD
     UpdateDisplay --> MaintainFilters[Filters Remain Active]
     MaintainFilters --> End([End])
 
-    Note1[Sortable Columns:<br/>- Code<br/>- Name<br/>- Type<br/>- Status<br/>- Shelves Count<br/>- Products Count<br/>- Users Count]
+    Note1[Sortable Columns:<br>- Code<br>- Name<br>- Type<br>- Status<br>- Shelves Count<br>- Products Count<br>- Users Count]
 ```
 
 ---
@@ -234,27 +235,27 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User on Location List]) --> DefaultView[Default: Table View]
-    DefaultView --> ShowToggle[Show View Toggle Buttons:<br/>- Table Icon<br/>- Grid Icon]
+    DefaultView --> ShowToggle[Show View Toggle Buttons:<br>- Table Icon<br>- Grid Icon]
 
-    ShowToggle --> UserClick{User<br/>Clicks}
+    ShowToggle --> UserClick{User<br>Clicks}
 
-    UserClick -->|Table Icon| IsTable{Current<br/>Mode?}
+    UserClick -->|Table Icon| IsTable{Current<br>Mode?}
     IsTable -->|Already Table| NoChange[No Change]
     NoChange --> End([End])
 
     IsTable -->|Card Mode| SwitchToTable[Switch to Table Mode]
-    SwitchToTable --> ShowTableView[Render Table View:<br/>- Sortable columns<br/>- Row actions<br/>- Checkbox selection]
+    SwitchToTable --> ShowTableView[Render Table View:<br>- Sortable columns<br>- Row actions<br>- Checkbox selection]
     ShowTableView --> PreserveState
 
-    UserClick -->|Grid Icon| IsCard{Current<br/>Mode?}
+    UserClick -->|Grid Icon| IsCard{Current<br>Mode?}
     IsCard -->|Already Card| NoChange
 
     IsCard -->|Table Mode| SwitchToCard[Switch to Card Mode]
-    SwitchToCard --> ShowCardView[Render Card Grid:<br/>- Responsive grid<br/>- Card layout<br/>- Card actions]
+    SwitchToCard --> ShowCardView[Render Card Grid:<br>- Responsive grid<br>- Card layout<br>- Card actions]
     ShowCardView --> PreserveState[Preserve Filter State]
 
     PreserveState --> PreserveSort[Preserve Sort State]
-    PreserveSort --> ShowSameData[Display Same Filtered<br/>and Sorted Results]
+    PreserveSort --> ShowSameData[Display Same Filtered<br>and Sorted Results]
     ShowSameData --> End
 ```
 
@@ -264,12 +265,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User on Shelves Tab]) --> DisplayShelves{Has<br/>Shelves?}
+    Start([User on Shelves Tab]) --> DisplayShelves{Has<br>Shelves?}
 
-    DisplayShelves -->|Yes| ShowTable[Display Shelf Table:<br/>Code, Name, Status, Actions]
-    DisplayShelves -->|No| ShowEmpty[Show Empty State:<br/>No shelves configured]
+    DisplayShelves -->|Yes| ShowTable[Display Shelf Table:<br>Code, Name, Status, Actions]
+    DisplayShelves -->|No| ShowEmpty[Show Empty State:<br>No shelves configured]
 
-    ShowTable --> UserAction{User<br/>Action}
+    ShowTable --> UserAction{User<br>Action}
     ShowEmpty --> UserAction
 
     UserAction -->|Add Shelf| ClickAdd[Click Add Shelf Button]
@@ -304,7 +305,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User on Users Tab]) --> DisplayUsers[Display User Assignments Table]
-    DisplayUsers --> UserAction{User<br/>Action}
+    DisplayUsers --> UserAction{User<br>Action}
 
     UserAction -->|Add User| ClickAdd[Click Assign User Button]
     ClickAdd --> OpenDialog[Open User Selection Dialog]
@@ -312,7 +313,7 @@ flowchart TD
     SearchUser --> SelectUser[Select User from List]
     SelectUser --> SelectRole[Select Role at Location]
     SelectRole --> SetPermissions[Configure Permissions]
-    SetPermissions --> MarkPrimary{Set as<br/>Primary?}
+    SetPermissions --> MarkPrimary{Set as<br>Primary?}
     MarkPrimary -->|Yes| SetPrimary[Mark as Primary Location]
     MarkPrimary -->|No| SaveAssignment
     SetPrimary --> SaveAssignment[Click Assign]
@@ -341,13 +342,13 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User on Products Tab]) --> DisplayProducts[Display Product Assignments]
-    DisplayProducts --> UserAction{User<br/>Action}
+    DisplayProducts --> UserAction{User<br>Action}
 
     UserAction -->|Add Product| ClickAdd[Click Assign Product Button]
     ClickAdd --> OpenDialog[Open Product Selection Dialog]
     OpenDialog --> SearchProduct[Search Products by Name/Code]
     SearchProduct --> SelectProduct[Select Product from Catalog]
-    SelectProduct --> SetParameters[Set Inventory Parameters:<br/>- Min Quantity<br/>- Max Quantity<br/>- Reorder Point<br/>- PAR Level]
+    SelectProduct --> SetParameters[Set Inventory Parameters:<br>- Min Quantity<br>- Max Quantity<br>- Reorder Point<br>- PAR Level]
     SetParameters --> SelectShelf[Select Default Shelf]
     SelectShelf --> SaveAssignment[Click Assign]
     SaveAssignment --> AddToAssigned[Add to Assigned Products]
@@ -374,18 +375,18 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User on Delivery Points Tab]) --> DisplayPoints{Has Delivery<br/>Points?}
+    Start([User on Delivery Points Tab]) --> DisplayPoints{Has Delivery<br>Points?}
 
     DisplayPoints -->|Yes| ShowTable[Display Delivery Points Table]
     DisplayPoints -->|No| ShowEmpty[Show Empty State]
 
-    ShowTable --> UserAction{User<br/>Action}
+    ShowTable --> UserAction{User<br>Action}
     ShowEmpty --> UserAction
 
     UserAction -->|Add Point| ClickAdd[Click Add Delivery Point]
     ClickAdd --> OpenDialog[Open Add Dialog]
-    OpenDialog --> FillDetails[Fill Details:<br/>- Name, Code, Address<br/>- Contact Info<br/>- Instructions<br/>- Logistics Settings]
-    FillDetails --> SetPrimary{Set as<br/>Primary?}
+    OpenDialog --> FillDetails[Fill Details:<br>- Name, Code, Address<br>- Contact Info<br>- Instructions<br>- Logistics Settings]
+    FillDetails --> SetPrimary{Set as<br>Primary?}
     SetPrimary -->|Yes| MarkPrimary[Mark as Primary]
     SetPrimary -->|No| SavePoint
     MarkPrimary --> SavePoint[Click Save]
@@ -417,7 +418,7 @@ flowchart TD
 flowchart TD
     Start([User on Location List]) --> SelectLocations[Select Locations via Checkboxes]
     SelectLocations --> ShowSelected[Show: X location(s) selected]
-    ShowSelected --> BulkAction{Select<br/>Bulk Action}
+    ShowSelected --> BulkAction{Select<br>Bulk Action}
 
     BulkAction -->|Activate| ConfirmActivate[Confirm Activation]
     ConfirmActivate --> ActivateAll[Set Status = Active for Selected]
@@ -430,8 +431,8 @@ flowchart TD
     ConfirmDeactivate --> DeactivateAll[Set Status = Inactive for Selected]
     DeactivateAll --> ShowSuccess
 
-    BulkAction -->|Delete| CheckProducts{Any Have<br/>Products?}
-    CheckProducts -->|Yes| ShowWarning[Show Warning:<br/>Some locations have products]
+    BulkAction -->|Delete| CheckProducts{Any Have<br>Products?}
+    CheckProducts -->|Yes| ShowWarning[Show Warning:<br>Some locations have products]
     ShowWarning --> End
     CheckProducts -->|No| ConfirmDelete[Confirm Deletion]
     ConfirmDelete --> DeleteAll[Delete Selected Locations]

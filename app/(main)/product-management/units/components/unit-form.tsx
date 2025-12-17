@@ -28,7 +28,7 @@ import { Unit } from "@/lib/types"
 const unitSchema = z.object({
   symbol: z.string().min(1, "Symbol is required").max(10, "Symbol must be 10 characters or less"),
   name: z.string().min(1, "Name is required").max(50, "Name must be 50 characters or less"),
-  category: z.enum(["weight", "volume", "length", "count", "time", "temperature"], {
+  category: z.enum(["weight", "volume", "length", "count", "time", "temperature", "serving"], {
     required_error: "Please select a unit category",
   }),
   isActive: z.boolean().default(true),
@@ -112,6 +112,7 @@ export function UnitForm({ unit, onSuccess, onCancel }: UnitFormProps) {
                   <SelectItem value="count">Count</SelectItem>
                   <SelectItem value="time">Time</SelectItem>
                   <SelectItem value="temperature">Temperature</SelectItem>
+                  <SelectItem value="serving">Serving</SelectItem>
                 </SelectContent>
               </Select>
               <FormDescription>

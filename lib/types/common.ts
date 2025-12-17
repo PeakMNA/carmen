@@ -204,14 +204,15 @@ export interface Contact {
  * Unit type classification (BR-UNIT-006)
  * - INVENTORY: Units for stock tracking (KG, L, PC)
  * - ORDER: Units for purchasing and receiving (BOX, CASE, CTN, PLT)
- * - RECIPE: Units for food preparation (TSP, TBSP, CUP, OZ)
+ * - RECIPE: Serving units for recipe yield output (SERVING, PORTION, PLATE, BOWL, SLICE)
+ * - MEASURE: Ingredient measurement units for recipes (TSP, TBSP, CUP, OZ, PINCH)
  */
-export type UnitType = 'INVENTORY' | 'ORDER' | 'RECIPE';
+export type UnitType = 'INVENTORY' | 'ORDER' | 'RECIPE' | 'MEASURE';
 
 /**
  * Unit categories for measurement classification
  */
-export type UnitCategory = 'weight' | 'volume' | 'length' | 'count' | 'time' | 'temperature';
+export type UnitCategory = 'weight' | 'volume' | 'length' | 'count' | 'time' | 'temperature' | 'serving';
 
 /**
  * Unit of measurement (BR-units.md aligned)
@@ -222,7 +223,7 @@ export interface Unit {
   name: string;                     // Full unit name (e.g., Kilogram, Milliliter)
   symbol: string;                   // Display symbol (kept for backward compatibility)
   description?: string;             // Optional detailed description (BR-UNIT-007)
-  type: UnitType;                   // INVENTORY | ORDER | RECIPE (BR-UNIT-006)
+  type: UnitType;                   // INVENTORY | ORDER | RECIPE | MEASURE (BR-UNIT-006)
   category: UnitCategory;           // Physical measurement category
   baseUnit?: string;                // For conversion calculations
   conversionFactor?: number;

@@ -1661,8 +1661,8 @@ erDiagram
       "duration": 5,
       "temperature": null,
       "temperatureUnit": "C",
-      "equipment": ["Rolling Pin", "Floured Surface"],
-      "techniques": ["Rolling", "Stretching"],
+      "equipment": ['Rolling Pin', 'Floured Surface'],
+      "techniques": ['Rolling', 'Stretching'],
       "chefNotes": "Don't overwork the dough to maintain airiness",
       "safetyWarnings": null
     },
@@ -1677,8 +1677,8 @@ erDiagram
       "duration": 2,
       "temperature": null,
       "temperatureUnit": "C",
-      "equipment": ["Ladle", "Spoon"],
-      "techniques": ["Spreading"],
+      "equipment": ['Ladle', 'Spoon'],
+      "techniques": ['Spreading'],
       "chefNotes": "Use circular motions for even distribution",
       "safetyWarnings": null
     },
@@ -1694,7 +1694,7 @@ erDiagram
       "temperature": null,
       "temperatureUnit": "C",
       "equipment": [],
-      "techniques": ["Hand Tearing"],
+      "techniques": ['Hand Tearing'],
       "chefNotes": "Hand-torn cheese melts better than sliced",
       "safetyWarnings": null
     },
@@ -1709,8 +1709,8 @@ erDiagram
       "duration": 12,
       "temperature": 250,
       "temperatureUnit": "C",
-      "equipment": ["Pizza Stone", "Pizza Oven"],
-      "techniques": ["Oven Baking"],
+      "equipment": ['Pizza Stone', 'Pizza Oven'],
+      "techniques": ['Oven Baking'],
       "chefNotes": "Rotate halfway through for even cooking",
       "safetyWarnings": "Use oven mitts when handling hot stone"
     },
@@ -1725,8 +1725,8 @@ erDiagram
       "duration": 3,
       "temperature": null,
       "temperatureUnit": "C",
-      "equipment": ["Pizza Cutter"],
-      "techniques": ["Slicing", "Garnishing"],
+      "equipment": ['Pizza Cutter'],
+      "techniques": ['Slicing', 'Garnishing'],
       "chefNotes": "Add basil after baking to preserve color and aroma",
       "safetyWarnings": "Allow to cool 2 minutes before slicing"
     }

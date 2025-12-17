@@ -1,3 +1,33 @@
+/**
+ * Goods Receive Note Component
+ *
+ * Main component for creating and managing Goods Received Notes with
+ * location-type aware processing.
+ *
+ * LOCATION TYPE HANDLING FOR GRN:
+ *
+ * 1. INVENTORY Locations (Standard Receiving):
+ *    - Creates FIFO cost layer with lot tracking
+ *    - Updates inventory asset balance
+ *    - GL: Debit Inventory Asset, Credit Accounts Payable
+ *    - Full stock movement recorded
+ *
+ * 2. DIRECT Locations (Immediate Expense):
+ *    - NO stock balance update (items expensed on receipt)
+ *    - NO lot tracking or cost layers created
+ *    - GL: Debit Expense Account, Credit Accounts Payable
+ *    - No stock movement recorded
+ *
+ * 3. CONSIGNMENT Locations (Vendor-Owned):
+ *    - Creates consignment stock layer
+ *    - Vendor liability tracking (not company asset until consumption)
+ *    - GL: Debit Consignment Asset, Credit Vendor Liability
+ *    - Full stock movement with vendor ownership indicator
+ *
+ * The isConsignment flag in the GRN form enables vendor-owned processing
+ * for the entire GRN, changing how all items are handled.
+ */
+
 "use client";
 
 import * as React from "react";
@@ -668,7 +698,14 @@ export function GoodsReceiveNoteComponent({
                     </div>
                   </div>
 
-                  {/* Additional Options - Consignment and Cash checkboxes */}
+                  {/* Additional Options - Consignment and Cash checkboxes
+                      CONSIGNMENT CHECKBOX BEHAVIOR:
+                      When enabled, all items in this GRN are treated as vendor-owned:
+                      - Stock is tracked but remains vendor's property
+                      - Vendor liability created instead of accounts payable
+                      - Items expensed only when consumed/issued
+                      - Different GL posting compared to standard receiving
+                  */}
                   <div className="flex items-center gap-8 pt-4 border-t border-gray-200">
                     <TooltipProvider>
                       <Tooltip>
@@ -691,8 +728,13 @@ export function GoodsReceiveNoteComponent({
                             </Label>
                           </div>
                         </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Goods sent for sale with the expectation of future payment</p>
+                        <TooltipContent className="max-w-xs">
+                          <p className="font-medium">Vendor-Owned Inventory</p>
+                          <p className="text-xs mt-1">
+                            Items remain vendor property until consumption.
+                            Creates vendor liability instead of accounts payable.
+                            Stock is tracked but not recognized as company asset.
+                          </p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>

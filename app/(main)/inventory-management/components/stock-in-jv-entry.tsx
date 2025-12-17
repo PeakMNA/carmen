@@ -7,9 +7,9 @@ const DetailedJournalEntries = () => {
   const transaction = {
     id: 1,
     date: '2024-01-15',
-    refNo: 'STK-IN-2024-001',
+    refNo: 'STK-IN-2410-001',
     type: 'Good Receive Note',
-    relatedDoc: 'GRN-2024-001',
+    relatedDoc: 'GRN-2410-001',
     items: [
       {
         id: 1,
@@ -81,7 +81,7 @@ const DetailedJournalEntries = () => {
       department: 'Inventory Control',
       debit: totalValue,
       credit: 0,
-      description: 'Inventory receipt - GRN-2024-001',
+      description: 'Inventory receipt - GRN-2410-001',
       items: transaction.items
     },
     // Credit Accounts Payable

@@ -66,6 +66,7 @@ middlename: z.string()
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -434,7 +435,7 @@ effectiveTo: z.date().optional()
   },
   {
     message: "Effective From date must be before Effective To date",
-    path: ["effectiveTo"]
+    path: ['effectiveTo']
   }
 )
 .refine(
@@ -449,7 +450,7 @@ effectiveTo: z.date().optional()
   },
   {
     message: "Date range cannot exceed 10 years",
-    path: ["effectiveTo"]
+    path: ['effectiveTo']
   }
 )
 ```

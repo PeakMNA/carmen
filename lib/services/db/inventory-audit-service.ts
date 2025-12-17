@@ -231,10 +231,10 @@ export class InventoryAuditService {
             transactionType: TransactionType.RECEIVE,
             quantity: 100,
             value: { amount: 2500, currency: 'USD' },
-            referenceNo: 'PO-2024-001',
+            referenceNo: 'PO-2410-001',
             ipAddress: '192.168.1.100'
           },
-          description: 'Stock received from purchase order PO-2024-001',
+          description: 'Stock received from purchase order PO-2410-001',
           severity: 'medium'
         },
         {
@@ -257,7 +257,7 @@ export class InventoryAuditService {
             transactionType: TransactionType.ADJUST_DOWN,
             quantity: 5,
             value: { amount: 125, currency: 'USD' },
-            referenceNo: 'ADJ-2024-001'
+            referenceNo: 'ADJ-2410-001'
           },
           description: 'Stock adjustment due to physical count variance',
           severity: 'high'

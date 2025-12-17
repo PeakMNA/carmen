@@ -701,9 +701,9 @@ describe('ShelvesTab', () => {
 test('Create location with all tabs', async ({ page }) => {
   await page.goto('/system-administration/location-management')
   await page.click('text=Create Location')
-  await page.fill('[name="code"]', 'TEST001')
-  await page.fill('[name="name"]', 'Test Location')
-  await page.selectOption('[name="type"]', 'inventory')
+  await page.fill('[name='code']', 'TEST001')
+  await page.fill('[name='name']', 'Test Location')
+  await page.selectOption('[name='type']', 'inventory')
   await page.click('text=Save')
   await expect(page).toHaveURL(/.*\/system-administration\/location-management/)
 })

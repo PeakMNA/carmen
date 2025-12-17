@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-12-04 | System Documentation | Initial version based on prototype analysis |
 
 ---
@@ -235,7 +236,7 @@ $$ LANGUAGE plpgsql;
         "quantity": 100,
         "unitPrice": 5.50,
         "totalAmount": 550.00,
-        "budgetCode": "BUD-2024-001",
+        "budgetCode": "BUD-2401-0001",
         "accountCode": "5001",
         "department": "Kitchen",
         "taxCode": "VAT7",
@@ -375,7 +376,7 @@ $$ LANGUAGE plpgsql;
   "uom": "KG",
   "quantity": 100,
   "unitPrice": 5.50,
-  "budgetCode": "BUD-2024-001",
+  "budgetCode": "BUD-2401-0001",
   "accountCode": "5001",
   "department": "Kitchen",
   "taxCode": "VAT7",
@@ -415,7 +416,7 @@ $$ LANGUAGE plpgsql;
     "quantity": 100,
     "unitPrice": 5.50,
     "totalAmount": 550.00,
-    "budgetCode": "BUD-2024-001",
+    "budgetCode": "BUD-2401-0001",
     "accountCode": "5001",
     "department": "Kitchen",
     "taxCode": "VAT7",
@@ -440,7 +441,7 @@ $$ LANGUAGE plpgsql;
   "uom": "KG",
   "quantity": 150,
   "unitPrice": 6.00,
-  "budgetCode": "BUD-2024-001",
+  "budgetCode": "BUD-2401-0001",
   "accountCode": "5001",
   "department": "Kitchen",
   "taxCode": "VAT7",
@@ -503,7 +504,7 @@ $$ LANGUAGE plpgsql;
 **Request Body**:
 ```json
 {
-  "templateIds": ["uuid1", "uuid2", "uuid3"]
+  "templateIds": ['uuid1', 'uuid2', 'uuid3']
 }
 ```
 
@@ -519,7 +520,7 @@ $$ LANGUAGE plpgsql;
   "data": {
     "deleted": 2,
     "skipped": 1,
-    "skippedIds": ["uuid3"],
+    "skippedIds": ['uuid3'],
     "skippedReasons": {
       "uuid3": "Cannot delete default template"
     }
@@ -536,7 +537,7 @@ $$ LANGUAGE plpgsql;
 **Request Body**:
 ```json
 {
-  "templateIds": ["uuid1", "uuid2"]
+  "templateIds": ['uuid1', 'uuid2']
 }
 ```
 

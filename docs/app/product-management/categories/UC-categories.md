@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-02 | Documentation Team | Initial version |
 
 ---
@@ -1837,7 +1838,7 @@ The use cases encompass category viewing and navigation, creation and editing op
 
 **Alt-9B: Search with Multiple Terms** (At step 5)
 - 5a. User enters multiple words: "organic coffee beans"
-- 5b. System splits into individual terms: ["organic", "coffee", "beans"]
+- 5b. System splits into individual terms: ['organic', 'coffee', 'beans']
 - 5c. System searches for records matching ANY term (OR logic)
 - 5d. System ranks results: exact phrase match > all terms match > partial match
 - 5e. System displays highest ranked results first
@@ -2505,7 +2506,7 @@ When product assigned to category, system publishes event:
 ```json
 {
   "queryType": "grouping | spend | suppliers",
-  "productIds": ["uuid1", "uuid2"],
+  "productIds": ['uuid1', 'uuid2'],
   "dateRange": {
     "startDate": "2024-01-01",
     "endDate": "2024-03-31"
@@ -2527,7 +2528,7 @@ When product assigned to category, system publishes event:
         "orderCount": 152,
         "avgOrderValue": 825.33,
         "topSuppliers": [
-          {"supplierId": "uuid", "supplierName": "ABC Corp", "spend": 45000}
+          {'supplierId': 'uuid', 'supplierName': 'ABC Corp', 'spend': 45000}
         ]
       }
     }

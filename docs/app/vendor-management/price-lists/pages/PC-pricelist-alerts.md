@@ -765,7 +765,7 @@ Centralized alert management system that enables users to create, configure, mon
 │ │ Condition Met: Price increase >10%       │              │
 │ │ (configured threshold: 10%)               │              │
 │ │                                           │              │
-│ │ Price List: PL-2024-025                   │              │
+│ │ Price List: PL-2401-0025                   │              │
 │ │ Effective: Jan 20, 2024                   │              │
 │ └───────────────────────────────────────────┘              │
 │                                                              │
@@ -1622,8 +1622,8 @@ const response = await fetch('/api/alerts?status=active&limit=10');
       "id": "alert-001",
       "name": "Fresh Tomatoes Price Monitor",
       "status": "active",
-      "product_ids": ["PROD-001"],
-      "vendor_ids": ["VEN-001", "VEN-002"],
+      "product_ids": ['PROD-001'],
+      "vendor_ids": ['VEN-001', 'VEN-002'],
       "conditions": {
         "price_increase_threshold": 10,
         "price_threshold_max": 3.00
@@ -1653,8 +1653,8 @@ const response = await fetch('/api/alerts', {
   method: 'POST',
   body: JSON.stringify({
     name: "Fresh Tomatoes Price Monitor",
-    product_ids: ["PROD-001"],
-    vendor_ids: ["VEN-001", "VEN-002"],
+    product_ids: ['PROD-001'],
+    vendor_ids: ['VEN-001', 'VEN-002'],
     conditions: {
       price_increase_threshold: 10,
       price_decrease_threshold: 10,
@@ -1711,7 +1711,7 @@ const response = await fetch('/api/alerts/history?days=30');
 const response = await fetch('/api/alerts/alert-001/test', {
   method: 'POST',
   body: JSON.stringify({
-    channels: ["email", "in_app"]
+    channels: ['email', 'in_app']
   })
 });
 

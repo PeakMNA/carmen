@@ -10,6 +10,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-13 | Carmen ERP Documentation Team | Initial version |
 
 
@@ -657,7 +658,7 @@ Consolidated Reporting:
 
 **Approval Workflow Example**:
 ```yaml
-Purchase Request: PR-2025-001234
+Purchase Request: PR-2501-001234
   Requested By: Line Cook (Kitchen)
   Department: Kitchen
   Amount: $3,800.00
@@ -683,7 +684,7 @@ Approval Flow:
     Date: 2025-11-12 14:15
 
   Final Status: APPROVED
-  Purchase Order Created: PO-2025-005678
+  Purchase Order Created: PO-2501-005678
 ```
 
 **Acceptance Criteria**:

@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added context for inventory costing methods (FIFO or Periodic Average) used for inventory valuation |
 | 1.0.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
 | 1.0.0 | 2025-01-11 | Documentation Team | Initial version from type definitions analysis |
@@ -124,7 +125,7 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 
 **Primary Identification**:
 - **ID Field**: Unique identifier (UUID, auto-generated)
-- **Business Key**: grnNumber - Human-readable unique identifier following format GRN-YYYY-NNN
+- **Business Key**: grnNumber - Human-readable unique identifier following format GRN-YYMM-NNNN
 - **Display Name**: grnNumber concatenated with vendor name
 
 **Core Business Fields**:
@@ -153,7 +154,7 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 - **purchaseOrderNumber**: (DEPRECATED) Denormalized PO number for display
   - Required: No
   - Data type: String
-  - Example: "PO-2024-001"
+  - Example: "PO-2401-0001"
 
 **Delivery Documentation**:
 - **invoiceNumber**: Vendor's invoice number
@@ -241,7 +242,7 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 - **attachments**: Array of file attachment URLs
   - Required: No
   - Data type: Array of strings
-  - Example: ["https://storage.example.com/delivery-note.pdf"]
+  - Example: ['https://storage.example.com/delivery-note.pdf']
 
 **Audit Fields** (Standard):
 - **createdDate**: Timestamp when GRN was created
@@ -255,12 +256,12 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 | Field Name | Data Type | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto | Primary key identifier | 550e8400-e29b-41d4-... | Unique, Non-null |
-| grnNumber | VARCHAR(50) | Yes | Auto | Business identifier | GRN-2024-001 | Unique, Format: GRN-YYYY-NNN |
+| grnNumber | VARCHAR(50) | Yes | Auto | Business identifier | GRN-2401-0001 | Unique, Format: GRN-YYMM-NNNN |
 | receiptDate | DATE | Yes | - | Date goods received | 2024-01-15 | Cannot be future |
 | vendorId | UUID | Yes | - | Vendor reference | 550e8400-... | FK to vendors.id |
 | vendorName | VARCHAR(255) | Yes | - | Vendor name (denormalized) | Professional Kitchen Supplies | Non-empty |
 | purchaseOrderId | UUID | No | NULL | (DEPRECATED) PO reference - use line item level | 550e8400-... | FK to purchase_orders.id |
-| purchaseOrderNumber | VARCHAR(50) | No | NULL | (DEPRECATED) PO number - use line item level | PO-2024-001 | - |
+| purchaseOrderNumber | VARCHAR(50) | No | NULL | (DEPRECATED) PO number - use line item level | PO-2401-0001 | - |
 | invoiceNumber | VARCHAR(100) | No | NULL | Vendor invoice number | INV-20240115-001 | - |
 | invoiceDate | DATE | No | NULL | Invoice date | 2024-01-14 | - |
 | deliveryNote | VARCHAR(100) | No | NULL | Delivery note reference | DN-12345 | - |
@@ -275,7 +276,7 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 | totalValue | DECIMAL(15,2) | Yes | 0.00 | Total amount | 4859.85 | ≥ 0 |
 | discrepancies | INTEGER | Yes | 0 | Count of discrepancy items | 2 | ≥ 0 |
 | notes | TEXT | No | NULL | General notes | Partial shipment... | - |
-| attachments | TEXT[] | No | NULL | File URLs array | ["https://..."] | Valid URLs |
+| attachments | TEXT[] | No | NULL | File URLs array | ['https://...'] | Valid URLs |
 | createdDate | TIMESTAMPTZ | Yes | NOW() | Creation timestamp | 2024-01-15T10:00:00Z | Immutable |
 | createdBy | UUID | Yes | - | Creator user ID | 550e8400-... | FK to users.id |
 | updatedDate | TIMESTAMPTZ | Yes | NOW() | Update timestamp | 2024-01-15T15:00:00Z | Auto-updated |
@@ -291,8 +292,8 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 
 **Unique Constraints**:
 - `grnNumber`: Must be unique among all GRNs (including soft-deleted)
-  - Format: GRN-{YYYY}-{NNN} where YYYY is year and NNN is sequential 3-digit number
-  - Sequential numbering resets each calendar year
+  - Format: GRN-{YYMM}-{NNN} where YY is year, MM is month, and NNN is sequential 3-digit number
+  - Sequential numbering resets each calendar month
 
 **Foreign Key Relationships**:
 - **Vendor** (`vendorId` → `vendors.id`)
@@ -416,9 +417,9 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 | unit | VARCHAR(50) | Yes | - | Unit of measure | piece | Non-empty |
 | unitPrice | DECIMAL(15,2) | Yes | - | Price per unit | 249.99 | ≥ 0 |
 | totalValue | DECIMAL(15,2) | Yes | - | Line total amount | 2249.91 | ≥ 0 |
-| batchNumber | VARCHAR(100) | No | NULL | Batch identifier | BATCH-2024-001 | - |
-| lotNumber | VARCHAR(100) | No | NULL | Lot identifier | LOT-2024-013 | - |
-| serialNumbers | TEXT[] | No | NULL | Serial numbers array | ["SN001", "SN002"] | - |
+| batchNumber | VARCHAR(100) | No | NULL | Batch identifier | BATCH-2401-0001 | - |
+| lotNumber | VARCHAR(100) | No | NULL | Lot identifier | LOT-2401-0013 | - |
+| serialNumbers | TEXT[] | No | NULL | Serial numbers array | ['SN001', 'SN002'] | - |
 | manufacturingDate | DATE | No | NULL | Manufacturing date | 2024-01-01 | - |
 | expiryDate | DATE | No | NULL | Expiration date | 2025-01-01 | Must be after mfg date |
 | storageLocationId | UUID | Yes | - | Storage location | 550e8400-... | FK to locations.id |
@@ -526,7 +527,7 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 | grnId | UUID | Yes | - | Source GRN reference | 550e8400-... | FK to grn.id |
 | itemId | UUID | Yes | - | Product reference | 550e8400-... | FK to products.id |
 | itemName | VARCHAR(255) | Yes | - | Product name | Commercial Blender | Denormalized |
-| lotNumber | VARCHAR(100) | No | NULL | Lot number | LOT-2024-013 | - |
+| lotNumber | VARCHAR(100) | No | NULL | Lot number | LOT-2401-0013 | - |
 | quantity | DECIMAL(15,3) | Yes | - | Movement quantity | 9.000 | > 0 |
 | unit | VARCHAR(50) | Yes | - | Unit of measure | piece | - |
 | fromLocation | VARCHAR(255) | Yes | - | Source location | Kitchen Receiving | - |

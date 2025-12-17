@@ -8,6 +8,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Last Updated**: 2025-11-03
 
@@ -214,7 +215,7 @@ A LOT layer represents a distinct batch of inventory received at a specific loca
 | `unit_cost` | DECIMAL(20,5) | Cost per unit | `12.50000` |
 | `total_cost` | DECIMAL(20,5) | Total cost (qty × unit cost) | `1250.00000` |
 | `transaction_type` | ENUM | Type of transaction | `GRN`, `TRANSFER_IN`, `ADJUSTMENT_INCREASE` |
-| `transaction_id` | VARCHAR(50) | Source transaction reference | `GRN-2025-0001` |
+| `transaction_id` | VARCHAR(50) | Source transaction reference | `GRN-2501-0001` |
 
 ### Lot Number Format
 
@@ -294,7 +295,7 @@ function generateLotNumber(
   unit_cost: 12.50000,
   total_cost: 1250.00000,
   transaction_type: "GRN",
-  transaction_id: "GRN-2025-0001"
+  transaction_id: "GRN-2501-0001"
 }
 ```
 
@@ -319,7 +320,7 @@ function generateLotNumber(
   unit_cost: 12.50000,  // Cost from source consumption
   total_cost: 625.00000,
   transaction_type: "TRANSFER_IN",
-  transaction_id: "TRANSFER-2025-0001"
+  transaction_id: "TRANSFER-2501-0001"
 }
 ```
 
@@ -341,7 +342,7 @@ function generateLotNumber(
   unit_cost: 12.50000,  // Average of existing lots or manual entry
   total_cost: 125.00000,
   transaction_type: "ADJUSTMENT_INCREASE",
-  transaction_id: "ADJ-2025-0001"
+  transaction_id: "ADJ-2501-0001"
 }
 ```
 
@@ -386,13 +387,13 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 | Property | Data Type | Description | Example |
 |----------|-----------|-------------|---------|
-| `adjustment_id` | VARCHAR(50) | Unique adjustment identifier | `ADJ-LAYER-2025-0001` |
+| `adjustment_id` | VARCHAR(50) | Unique adjustment identifier | `ADJ-LAYER-2501-0001` |
 | `parent_lot_number` | VARCHAR(50) | Lot being consumed/adjusted | `MK-250115-001` |
 | `item_id` | VARCHAR(50) | Product identifier | `ITEM-12345` |
 | `location_id` | VARCHAR(50) | Storage location | `LOC-KITCHEN` |
 | `transaction_date` | DATE | Date of transaction | `2025-01-20` |
 | `transaction_type` | ENUM | Type of transaction | `ISSUE`, `RETURN`, `WRITE_OFF` |
-| `transaction_id` | VARCHAR(50) | Source transaction reference | `SR-2025-0001` |
+| `transaction_id` | VARCHAR(50) | Source transaction reference | `SR-2501-0001` |
 | `quantity` | DECIMAL(20,5) | Quantity consumed/adjusted | `25.00000` |
 | `unit_cost` | DECIMAL(20,5) | Cost per unit from parent lot | `12.50000` |
 | `total_cost` | DECIMAL(20,5) | Total cost (qty × unit cost) | `312.50000` |
@@ -416,13 +417,13 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // ADJUSTMENT layer created:
 {
-  adjustment_id: "ADJ-LAYER-2025-0001",
+  adjustment_id: "ADJ-LAYER-2501-0001",
   parent_lot_number: "MK-250115-0001",
   item_id: "ITEM-12345",
   location_id: "LOC-KITCHEN",
   transaction_date: "2025-01-20",
   transaction_type: "ISSUE",
-  transaction_id: "SR-2025-0001",
+  transaction_id: "SR-2501-0001",
   quantity: 25.00000,
   unit_cost: 12.50000,
   total_cost: 312.50000,
@@ -443,7 +444,7 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // First ADJUSTMENT layer (consume all from oldest):
 {
-  adjustment_id: "ADJ-LAYER-2025-0002",
+  adjustment_id: "ADJ-LAYER-2501-0002",
   parent_lot_number: "MK-250115-0001",
   quantity: 100.00000,
   unit_cost: 12.50000,
@@ -453,7 +454,7 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // Second ADJUSTMENT layer (partial from next oldest):
 {
-  adjustment_id: "ADJ-LAYER-2025-0003",
+  adjustment_id: "ADJ-LAYER-2501-0003",
   parent_lot_number: "MK-250116-0002",
   quantity: 20.00000,
   unit_cost: 13.00000,
@@ -496,13 +497,13 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // ADJUSTMENT layer created:
 {
-  adjustment_id: "ADJ-LAYER-2025-0004",
+  adjustment_id: "ADJ-LAYER-2501-0004",
   parent_lot_number: "MK-250115-001",  // Same lot as GRN
   item_id: "ITEM-12345",
   location_id: "LOC-KITCHEN",
   transaction_date: "2025-01-20",
   transaction_type: "CN",  // ⭐ Specific CN transaction type
-  transaction_id: "CN-2025-0001",
+  transaction_id: "CN-2501-0001",
   quantity: 30.00000,
   unit_cost: 12.50000,  // ⭐ Uses original lot cost
   total_cost: 375.00000,
@@ -535,10 +536,10 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // First ADJUSTMENT layer (consume all from original lot):
 {
-  adjustment_id: "ADJ-LAYER-2025-0005",
+  adjustment_id: "ADJ-LAYER-2501-0005",
   parent_lot_number: "MK-250115-001",  // Original lot
   transaction_type: "CN",
-  transaction_id: "CN-2025-0002",
+  transaction_id: "CN-2501-0002",
   quantity: 20.00000,  // All remaining from original lot
   unit_cost: 12.50000,
   total_cost: 250.00000,
@@ -548,10 +549,10 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // Second ADJUSTMENT layer (consume from next FIFO lot):
 {
-  adjustment_id: "ADJ-LAYER-2025-0006",
+  adjustment_id: "ADJ-LAYER-2501-0006",
   parent_lot_number: "MK-250120-001",  // Next oldest lot
   transaction_type: "CN",
-  transaction_id: "CN-2025-0002",
+  transaction_id: "CN-2501-0002",
   quantity: 10.00000,  // Remaining needed (30-20)
   unit_cost: 13.00000,  // Different cost from second lot
   total_cost: 130.00000,
@@ -559,7 +560,7 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
   notes: "Return excess - Part 2"
 }
 
-// Total CN-2025-0002 cost: $250 + $130 = $380
+// Total CN-2501-0002 cost: $250 + $130 = $380
 
 // Parent lots updated:
 // MK-250115-001: remaining_quantity = 0.00000 ⭐ LOT DEPLETED
@@ -589,13 +590,13 @@ An ADJUSTMENT layer records the consumption or adjustment of inventory from a sp
 
 // ADJUSTMENT layer created:
 {
-  adjustment_id: "ADJ-LAYER-2025-0007",
+  adjustment_id: "ADJ-LAYER-2501-0007",
   parent_lot_number: "MK-250125-001",
   item_id: "ITEM-12345",
   location_id: "LOC-KITCHEN",
   transaction_date: "2025-01-28",
   transaction_type: "CN",
-  transaction_id: "CN-2025-0003",
+  transaction_id: "CN-2501-0003",
   quantity: 0.00000,  // ⭐ Zero quantity (no physical movement)
   unit_cost: 0.00000,  // ⭐ Not applicable for zero-quantity
   total_cost: -300.00000,  // ⭐ Negative = discount
@@ -628,10 +629,10 @@ Effective Unit Cost = (SUM(quantity × unit_cost) + SUM(cost_adjustments)) / SUM
 
 // ADJUSTMENT layer created:
 {
-  adjustment_id: "ADJ-LAYER-2025-0008",
+  adjustment_id: "ADJ-LAYER-2501-0008",
   parent_lot_number: "MK-250130-001",
   transaction_type: "CN",
-  transaction_id: "CN-2025-0004",
+  transaction_id: "CN-2501-0004",
   quantity: 0.00000,
   unit_cost: 0.00000,
   total_cost: -450.00000,  // Discount on remaining inventory only
@@ -702,10 +703,10 @@ Effective Unit Cost = (SUM(quantity × unit_cost) + SUM(cost_adjustments)) / SUM
 // Adjustment: Found 15 units missing during count
 
 {
-  adjustment_id: "ADJ-LAYER-2025-0005",
+  adjustment_id: "ADJ-LAYER-2501-0005",
   parent_lot_number: "MK-250115-0001",
   transaction_type: "ADJ_OUT",
-  transaction_id: "ADJ-2025-0002",
+  transaction_id: "ADJ-2501-0002",
   quantity: 15.00000,
   unit_cost: 12.50000,
   total_cost: 187.50000,
@@ -723,10 +724,10 @@ Effective Unit Cost = (SUM(quantity × unit_cost) + SUM(cost_adjustments)) / SUM
 // Write-off 20 units due to expiry
 
 {
-  adjustment_id: "ADJ-LAYER-2025-0006",
+  adjustment_id: "ADJ-LAYER-2501-0006",
   parent_lot_number: "MK-250115-0001",
   transaction_type: "ADJ_OUT",
-  transaction_id: "WO-2025-0001",
+  transaction_id: "WO-2501-0001",
   quantity: 20.00000,
   unit_cost: 12.50000,
   total_cost: 250.00000,
@@ -745,7 +746,7 @@ A single lot can have multiple ADJUSTMENT layers from different transactions:
 
 // Adjustment 1: Issue 25 units on 2025-01-20
 {
-  adjustment_id: "ADJ-LAYER-2025-0001",
+  adjustment_id: "ADJ-LAYER-2501-0001",
   parent_lot_number: "MK-250115-0001",
   quantity: 25.00000,
   transaction_type: "ISSUE",
@@ -754,7 +755,7 @@ A single lot can have multiple ADJUSTMENT layers from different transactions:
 
 // Adjustment 2: Return 10 units on 2025-01-22
 {
-  adjustment_id: "ADJ-LAYER-2025-0007",
+  adjustment_id: "ADJ-LAYER-2501-0007",
   parent_lot_number: "MK-250115-0001",
   quantity: 10.00000,
   transaction_type: "ADJ_OUT",
@@ -763,7 +764,7 @@ A single lot can have multiple ADJUSTMENT layers from different transactions:
 
 // Adjustment 3: Write-off 5 units on 2025-01-25
 {
-  adjustment_id: "ADJ-LAYER-2025-0008",
+  adjustment_id: "ADJ-LAYER-2501-0008",
   parent_lot_number: "MK-250115-0001",
   quantity: 5.00000,
   transaction_type: "ADJ_OUT",
@@ -922,10 +923,10 @@ A transfer transaction has **two sides** with distinct cost layer behaviors:
 // Consume 50 units from MK-250115-001
 
 {
-  adjustment_id: "ADJ-LAYER-2025-0009",
+  adjustment_id: "ADJ-LAYER-2501-0009",
   parent_lot_number: "MK-250115-0001",
   transaction_type: "TRANSFER_OUT",
-  transaction_id: "TRANSFER-2025-0001",
+  transaction_id: "TRANSFER-2501-0001",
   quantity: 50.00000,
   unit_cost: 12.50000,
   total_cost: 625.00000,
@@ -959,7 +960,7 @@ A transfer transaction has **two sides** with distinct cost layer behaviors:
   unit_cost: 12.50000,  // Cost from source consumption
   total_cost: 625.00000,
   transaction_type: "TRANSFER_IN",
-  transaction_id: "TRANSFER-2025-0001"
+  transaction_id: "TRANSFER-2501-0001"
 }
 ```
 
@@ -971,13 +972,13 @@ Both sides of transfer reference same `transaction_id` for complete traceability
 // Query transfer details
 const transferOut = await db.query(`
   SELECT * FROM tb_adjustment_layers
-  WHERE transaction_id = 'TRANSFER-2025-0001'
+  WHERE transaction_id = 'TRANSFER-2501-0001'
     AND transaction_type = 'TRANSFER_OUT'
 `)
 
 const transferIn = await db.query(`
   SELECT * FROM tb_inventory_transaction_closing_balance
-  WHERE transaction_id = 'TRANSFER-2025-0001'
+  WHERE transaction_id = 'TRANSFER-2501-0001'
     AND transaction_type = 'TRANSFER_IN'
 `)
 
@@ -1028,7 +1029,7 @@ Available lots at Kitchen:
 Total: 150 units, $1,900.00
 ```
 
-**Transaction**: Store Requisition SR-2025-0001
+**Transaction**: Store Requisition SR-2501-0001
 - Item: ITEM-12345 (Chicken Breast)
 - Location: Kitchen
 - Quantity: 120 units
@@ -1060,13 +1061,13 @@ ORDER BY lot_number ASC  -- Natural chronological sort (FIFO)
 Create ADJUSTMENT layer:
 ```typescript
 {
-  adjustment_id: "ADJ-LAYER-2025-0010",
+  adjustment_id: "ADJ-LAYER-2501-0010",
   parent_lot_number: "MK-250115-0001",
   item_id: "ITEM-12345",
   location_id: "LOC-KITCHEN",
   transaction_date: "2025-01-20",
   transaction_type: "ISSUE",
-  transaction_id: "SR-2025-0001",
+  transaction_id: "SR-2501-0001",
   quantity: 100.00000,
   unit_cost: 12.50000,
   total_cost: 1250.00000,
@@ -1091,13 +1092,13 @@ WHERE lot_number = 'MK-250115-0001'
 Create ADJUSTMENT layer:
 ```typescript
 {
-  adjustment_id: "ADJ-LAYER-2025-0011",
+  adjustment_id: "ADJ-LAYER-2501-0011",
   parent_lot_number: "MK-250116-0002",
   item_id: "ITEM-12345",
   location_id: "LOC-KITCHEN",
   transaction_date: "2025-01-20",
   transaction_type: "ISSUE",
-  transaction_id: "SR-2025-0001",
+  transaction_id: "SR-2501-0001",
   quantity: 20.00000,
   unit_cost: 13.00000,
   total_cost: 260.00000,

@@ -12,7 +12,7 @@
       "items": [
         {
           "id": "pr-item-001",
-          "prId": "PR-2024-001",
+          "prId": "PR-2410-001",
           "productId": "PROD-001",
           "productName": "Office Paper A4",
           "category": "Office Supplies",
@@ -31,7 +31,7 @@
         },
         {
           "id": "pr-item-002",
-          "prId": "PR-2024-002",
+          "prId": "PR-2410-002",
           "productId": "PROD-002",
           "productName": "Laptop Dell Inspiron",
           "category": "IT Equipment",
@@ -62,7 +62,7 @@
       "items": [
         {
           "id": "pr-item-003",
-          "prId": "PR-2024-003",
+          "prId": "PR-2410-003",
           "productId": "PROD-003",
           "productName": "Industrial Printer",
           "category": "Equipment",
@@ -92,7 +92,7 @@
       "items": [
         {
           "id": "pr-item-004",
-          "prId": "PR-2024-004",
+          "prId": "PR-2410-004",
           "productId": "PROD-004",
           "productName": "Specialized Software License",
           "category": "Software",

@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.1 | 2025-01-05 | System | Added implementation status section |
 | 1.0 | 2024-01-15 | System | Initial technical specification document created |
 
@@ -37,7 +38,7 @@ This technical specification describes the Menu Engineering module's architectur
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         Browser[Web Browser]
         Dashboard[Dashboard Page]
         MatrixView[Matrix View Page]
@@ -45,13 +46,13 @@ graph TB
         Reports[Reports Page]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         ServerComponent[Server Components]
         ClientComponent[Client Components]
         ServerActions[Server Actions]
     end
 
-    subgraph "Business Logic Layer"
+    subgraph 'Business Logic Layer'
         AnalysisEngine[Menu Analysis Engine]
         RecommendationEngine[Recommendation Engine]
         ForecastService[Forecast Service]
@@ -59,13 +60,13 @@ graph TB
         ExperimentService[A/B Test Service]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         PostgreSQL[(PostgreSQL DB)]
         Redis[(Redis Cache)]
         TimeSeries[(TimescaleDB)]
     end
 
-    subgraph "External Integration"
+    subgraph 'External Integration'
         POSSystem[POS System]
         RecipeManagement[Recipe Management]
         InventorySystem[Inventory System]
@@ -258,7 +259,7 @@ sequenceDiagram
     DB-->>Engine: Food costs
 
     Engine->>Calc: Calculate contribution margins
-    Note right of Calc: CM = Selling Price - Food Cost<br/>CM% = (CM / Selling Price) × 100
+    Note right of Calc: CM = Selling Price - Food Cost<br>CM% = (CM / Selling Price) × 100
     Calc-->>Engine: Contribution margins
 
     Engine->>Calc: Calculate average contribution margin
@@ -266,7 +267,7 @@ sequenceDiagram
     Calc-->>Engine: Avg CM = $8.50
 
     Engine->>Engine: Classify each item into quadrants
-    Note right of Engine: Stars: CM ≥ Avg AND Mix% ≥ Threshold<br/>Plowhorses: CM < Avg AND Mix% ≥ Threshold<br/>Puzzles: CM ≥ Avg AND Mix% < Threshold<br/>Dogs: CM < Avg AND Mix% < Threshold
+    Note right of Engine: Stars: CM ≥ Avg AND Mix% ≥ Threshold<br>Plowhorses: CM < Avg AND Mix% ≥ Threshold<br>Puzzles: CM ≥ Avg AND Mix% < Threshold<br>Dogs: CM < Avg AND Mix% < Threshold
 
     Engine-->>ServerAction: Matrix data with classifications
     ServerAction-->>Client: Return matrix data
@@ -290,19 +291,19 @@ sequenceDiagram
     alt Item is Dog (Low Profit, Low Popularity)
         RecommendationEngine->>RuleEngine: Apply Dog rules
         RuleEngine-->>RecommendationEngine: Recommendation: REMOVE
-        Note right of RuleEngine: Priority: Critical<br/>Action: Remove from menu<br/>Timeline: Immediate
+        Note right of RuleEngine: Priority: Critical<br>Action: Remove from menu<br>Timeline: Immediate
     else Item is Plowhorse (Low Profit, High Popularity)
         RecommendationEngine->>RuleEngine: Apply Plowhorse rules
         RuleEngine-->>RecommendationEngine: Recommendation: PRICE INCREASE
-        Note right of RuleEngine: Priority: High<br/>Action: Increase price 5-10%<br/>Timeline: Within 7 days
+        Note right of RuleEngine: Priority: High<br>Action: Increase price 5-10%<br>Timeline: Within 7 days
     else Item is Puzzle (High Profit, Low Popularity)
         RecommendationEngine->>RuleEngine: Apply Puzzle rules
         RuleEngine-->>RecommendationEngine: Recommendation: PROMOTE
-        Note right of RuleEngine: Priority: Medium<br/>Action: Reposition, promote<br/>Timeline: Within 30 days
+        Note right of RuleEngine: Priority: Medium<br>Action: Reposition, promote<br>Timeline: Within 30 days
     else Item is Star (High Profit, High Popularity)
         RecommendationEngine->>RuleEngine: Apply Star rules
         RuleEngine-->>RecommendationEngine: Recommendation: MAINTAIN
-        Note right of RuleEngine: Priority: Low<br/>Action: Maintain, feature prominently<br/>Timeline: Ongoing
+        Note right of RuleEngine: Priority: Low<br>Action: Maintain, feature prominently<br>Timeline: Ongoing
     end
 
     RecommendationEngine->>Database: INSERT recommendations
@@ -336,7 +337,7 @@ sequenceDiagram
     Algorithm-->>ForecastService: Exclude 3 promotional days
 
     ForecastService->>Algorithm: Apply forecasting method
-    Note right of Algorithm: Method: Exponential Smoothing<br/>Alpha: 0.3 (smoothing factor)<br/>Beta: 0.1 (trend factor)
+    Note right of Algorithm: Method: Exponential Smoothing<br>Alpha: 0.3 (smoothing factor)<br>Beta: 0.1 (trend factor)
 
     Algorithm->>Algorithm: Calculate forecast values
     Algorithm->>Algorithm: Calculate confidence intervals (80%, 95%)
@@ -1279,38 +1280,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/operational-planning/menu-engineering)"]
-    CreatePage["Create Page<br/>(/operational-planning/menu-engineering/new)"]
-    DetailPage["Detail Page<br/>(/operational-planning/menu-engineering/[id])"]
-    EditPage["Edit Page<br/>(/operational-planning/menu-engineering/[id]/edit)"]
+    ListPage['List Page<br>(/operational-planning/menu-engineering)']
+    CreatePage['Create Page<br>(/operational-planning/menu-engineering/new)']
+    DetailPage["Detail Page<br>(/operational-planning/menu-engineering/[id])"]
+    EditPage["Edit Page<br>(/operational-planning/menu-engineering/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage
@@ -1507,7 +1508,7 @@ test.describe('Menu Engineering Dashboard', () => {
     await expect(page.getByRole('heading', { name: 'Menu Engineering' })).toBeVisible()
 
     // Check matrix is rendered
-    await expect(page.locator('[data-testid="menu-engineering-matrix"]')).toBeVisible()
+    await expect(page.locator('[data-testid='menu-engineering-matrix']')).toBeVisible()
 
     // Check summary metrics
     await expect(page.getByText(/Total Items:/)).toBeVisible()
@@ -1522,14 +1523,14 @@ test.describe('Menu Engineering Dashboard', () => {
     await page.getByRole('option', { name: 'Appetizers' }).click()
 
     // Matrix should update
-    await expect(page.locator('[data-testid="matrix-item"]')).toHaveCount(5) // Assuming 5 appetizers
+    await expect(page.locator('[data-testid='matrix-item']')).toHaveCount(5) // Assuming 5 appetizers
   })
 
   test('should navigate to item detail on click', async ({ page }) => {
     await page.goto('/operational-planning/menu-engineering/matrix')
 
     // Click on matrix item
-    await page.locator('[data-testid="matrix-item"]').first().click()
+    await page.locator('[data-testid='matrix-item']').first().click()
 
     // Should navigate to item detail page
     await expect(page).toHaveURL(/\/items\/[^/]+/)

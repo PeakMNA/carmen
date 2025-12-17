@@ -21,7 +21,7 @@
 **✅ IMPLEMENTATION NOTE**: The Stock Replenishment module has been implemented with a complete frontend UI supporting the use cases documented below. The implementation includes:
 
 - **Dashboard** (`/store-operations/stock-replenishment`) - Critical alerts, consumption analytics, stock trends
-- **New Request** (`/store-operations/stock-replenishment/new`) - Create replenishment requests
+- **New Request** (`/store-operations/stock-replenishment/new`) - Create transfer requests
 - **Requests List** (`/store-operations/stock-replenishment/requests`) - View and filter requests
 - **Request Detail** (`/store-operations/stock-replenishment/requests/[id]`) - Approval workflow
 - **Stock Levels** (`/store-operations/stock-replenishment/stock-levels`) - Par level monitoring
@@ -339,7 +339,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 - System adds recommendation to Store Manager's dashboard
 - System sends email notification to Maria
 - Maria receives alert: "3 items need replenishment" in dashboard
-- Process continues in UC-SREP-006 (Create replenishment request)
+- Process continues in UC-SREP-006 (Create transfer request)
 
 **Alternative Flow 2: Critical Level Reached**:
 - At Step 1, transaction reduces stock to 5 liters
@@ -382,9 +382,9 @@ This document describes detailed use cases for the Stock Replenishment module, c
 
 ---
 
-## 4. Replenishment Request Use Cases
+## 4. Transfer Request Use Cases
 
-### UC-SREP-005: Create Replenishment Request from Recommendation
+### UC-SREP-005: Create Transfer Request from Recommendation
 
 **Actor**: Store Manager Maria
 
@@ -420,8 +420,8 @@ This document describes detailed use cases for the Stock Replenishment module, c
    - ✅ Parmesan Cheese
    - ⬜ Butter Unsalted (deferred - sufficient for weekend)
 7. Maria clicks "Create Request from Selected"
-8. System pre-fills replenishment request form:
-   - Request number: REP-2025-0123 (auto-generated)
+8. System pre-fills transfer request form:
+   - Request number: TRF-2501-0123 (auto-generated)
    - From location: Central Warehouse
    - To location: Downtown Kitchen (Maria's location)
    - Request date: 2025-01-30 (today)
@@ -441,7 +441,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 13. System creates notification for William (Warehouse Manager)
 14. System reserves quantities tentatively in warehouse
 15. System displays confirmation:
-   - "Request REP-2025-0123 submitted successfully"
+   - "Request TRF-2501-0123 submitted successfully"
    - "Warehouse will review within 4 hours"
 16. System removes selected items from recommendations list
 17. Maria's dashboard updated with pending request
@@ -487,7 +487,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 
 ---
 
-### UC-SREP-006: Create Manual Replenishment Request
+### UC-SREP-006: Create Manual Transfer Request
 
 **Actor**: Store Manager Maria
 
@@ -499,7 +499,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 - Items are assigned to location
 
 **Main Flow**:
-1. Maria navigates to "Create Replenishment Request" page
+1. Maria navigates to "Create Transfer Request" page
 2. System displays blank request form:
    - Request number: (auto-generated on save)
    - From location: Central Warehouse (default)
@@ -548,7 +548,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 23. Maria can track request status in "My Requests" view
 
 **Postconditions**:
-- Manual replenishment request created
+- Manual transfer request created
 - Request submitted for appropriate approvals
 - Warehouse Manager notified
 - Request trackable by requestor
@@ -579,7 +579,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
   * Select substitute product
 - Maria selects "Request from external supplier"
 - System creates linked purchase request
-- Maria's replenishment request marked as "pending purchase"
+- Maria's transfer request marked as "pending purchase"
 
 **Business Rules Applied**:
 - BR-SREP-004: Replenishment quantity calculation
@@ -588,11 +588,11 @@ This document describes detailed use cases for the Stock Replenishment module, c
 
 ---
 
-### UC-SREP-007: Approve Replenishment Request
+### UC-SREP-007: Approve Transfer Request
 
 **Actor**: Warehouse Manager William
 
-**Trigger**: New replenishment request submitted and requires William's approval
+**Trigger**: New transfer request submitted and requires William's approval
 
 **Preconditions**:
 - William is authenticated with approval permissions
@@ -600,19 +600,19 @@ This document describes detailed use cases for the Stock Replenishment module, c
 - William has access to approve requests for requesting location
 
 **Main Flow**:
-1. William receives notification: "New replenishment request REP-2025-0123 requires approval"
+1. William receives notification: "New transfer request TRF-2501-0123 requires approval"
 2. William navigates to "Pending Approvals" queue
 3. System displays pending requests sorted by priority and required date:
 
 | Priority | Request # | Location | Items | Value | Required By | Age |
 |----------|-----------|----------|-------|-------|-------------|-----|
-| 🔴 High | REP-2025-0123 | Downtown Kitchen | 4 | $320 | 2025-01-31 | 2h |
-| 🟡 Standard | REP-2025-0122 | Banquet Hall | 8 | $550 | 2025-02-02 | 6h |
-| 🟡 Standard | REP-2025-0121 | Pool Bar | 3 | $180 | 2025-02-03 | 12h |
+| 🔴 High | TRF-2501-0123 | Downtown Kitchen | 4 | $320 | 2025-01-31 | 2h |
+| 🟡 Standard | TRF-2501-0122 | Banquet Hall | 8 | $550 | 2025-02-02 | 6h |
+| 🟡 Standard | TRF-2501-0121 | Pool Bar | 3 | $180 | 2025-02-03 | 12h |
 
-4. William selects REP-2025-0123 (highest priority, approaching SLA)
+4. William selects TRF-2501-0123 (highest priority, approaching SLA)
 5. System displays request details:
-   - Request number: REP-2025-0123
+   - Request number: TRF-2501-0123
    - Requesting location: Downtown Kitchen
    - Requestor: Maria Santos
    - Request date: 2025-01-30 10:00 AM
@@ -663,16 +663,16 @@ This document describes detailed use cases for the Stock Replenishment module, c
     - Tomatoes: 15kg reserved
     - Parmesan: 6kg reserved
 15. System creates stock transfer document:
-    - Transfer number: TRF-2025-0456
+    - Transfer number: TRF-2501-0456
     - Scheduled date: 2025-01-31 8:00 AM
     - Status: Scheduled
 16. System notifies parties:
-    - Maria: "Request REP-2025-0123 partially approved. 3 items full, 1 partial. Transfer scheduled tomorrow 8 AM."
-    - Warehouse team: "Prepare transfer TRF-2025-0456 for pickup/delivery"
+    - Maria: "Request TRF-2501-0123 partially approved. 3 items full, 1 partial. Transfer scheduled tomorrow 8 AM."
+    - Warehouse team: "Prepare transfer TRF-2501-0456 for pickup/delivery"
     - Purchasing (for Fresh Basil alert): "Expedite Fresh Basil order"
 17. System updates William's approval queue:
-    - REP-2025-0123 removed from pending
-    - Next request (REP-2025-0122) moved to top
+    - TRF-2501-0123 removed from pending
+    - Next request (TRF-2501-0122) moved to top
 18. System logs approval in audit trail
 19. System updates dashboard metrics:
     - Approval completed in 2 hours (within 4-hour SLA) ✓
@@ -737,7 +737,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 
 **Actor**: Warehouse Staff (Warehouse Manager William oversees)
 
-**Trigger**: Approved replenishment request with scheduled transfer date
+**Trigger**: Approved transfer request with scheduled transfer date
 
 **Preconditions**:
 - Replenishment request is approved
@@ -748,12 +748,12 @@ This document describes detailed use cases for the Stock Replenishment module, c
 **Main Flow**:
 1. Warehouse staff receives daily picking list
 2. System displays transfers to prepare today:
-   - Transfer TRF-2025-0456
+   - Transfer TRF-2501-0456
    - Destination: Downtown Kitchen
    - Items: 4 items
    - Scheduled departure: 8:00 AM
    - Status: Scheduled
-3. Staff selects transfer TRF-2025-0456
+3. Staff selects transfer TRF-2501-0456
 4. System displays detailed picking list:
 
 | Seq | Item | Quantity | Location | Batch/Lot | Expiry | Status |
@@ -795,7 +795,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
    - Expiry dates acceptable ✓
    - Packaging secure ✓
 10. System generates packing slip:
-    - Transfer number: TRF-2025-0456
+    - Transfer number: TRF-2501-0456
     - From: Central Warehouse
     - To: Downtown Kitchen
     - Item list with quantities and batch numbers
@@ -803,7 +803,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
 11. Staff prints packing slip (2 copies)
 12. Staff places one copy inside shipment
 13. Staff updates transfer status: "Ready for Dispatch"
-14. System notifies driver: "Transfer TRF-2025-0456 ready for pickup"
+14. System notifies driver: "Transfer TRF-2501-0456 ready for pickup"
 15. Driver loads items on vehicle
 16. Driver scans transfer barcode to confirm loading
 17. System updates status: "In Transit"
@@ -811,9 +811,9 @@ This document describes detailed use cases for the Stock Replenishment module, c
     - Location: Central Warehouse
     - Transaction type: Transfer Issue
     - Items: [all 4 items with quantities]
-    - Reference: TRF-2025-0456
+    - Reference: TRF-2501-0456
 19. Warehouse stock levels reduced immediately
-20. System notifies Maria: "Transfer TRF-2025-0456 dispatched. ETA: 9:00 AM"
+20. System notifies Maria: "Transfer TRF-2501-0456 dispatched. ETA: 9:00 AM"
 21. System sends delivery details:
     - Estimated arrival: 9:00 AM
     - Driver name and contact
@@ -888,10 +888,10 @@ This document describes detailed use cases for the Stock Replenishment module, c
 
 **Main Flow**:
 1. Driver arrives at Downtown Kitchen at 9:00 AM
-2. Maria receives notification: "Transfer TRF-2025-0456 has arrived"
+2. Maria receives notification: "Transfer TRF-2501-0456 has arrived"
 3. Maria opens mobile app to receive transfer
 4. System displays pending receipts:
-   - Transfer TRF-2025-0456
+   - Transfer TRF-2501-0456
    - From: Central Warehouse
    - Items: 4 items
    - Dispatch time: 8:00 AM
@@ -952,14 +952,14 @@ This document describes detailed use cases for the Stock Replenishment module, c
     - Location: Downtown Kitchen
     - Transaction type: Transfer Receipt
     - Items: [all 4 items with quantities and batches]
-    - Reference: TRF-2025-0456
+    - Reference: TRF-2501-0456
 20. Downtown Kitchen stock levels increased immediately:
     - Olive Oil: 9L → 29L (now at par level)
     - Fresh Basil: 0.5kg → 2kg (above minimum)
     - Tomatoes: 10kg → 25kg (at par level)
     - Parmesan: 2kg → 8kg (at par level)
 21. System removes items from critical/recommended lists
-22. System notifies William: "Transfer TRF-2025-0456 received successfully at 9:15 AM"
+22. System notifies William: "Transfer TRF-2501-0456 received successfully at 9:15 AM"
 23. System archives transfer documents
 24. Dashboard updated: No critical alerts, inventory healthy
 
@@ -1083,7 +1083,7 @@ This document describes detailed use cases for the Stock Replenishment module, c
    - Confirms genuine urgency (time-sensitive, customer-facing) ✓
    - System determines legitimate emergency
 
-5. System creates emergency request: REP-EMG-2025-0012
+5. System creates emergency request: REP-EMG-2501-0012
 6. System immediately notifies:
    - William (Warehouse Manager): SMS + App alert
    - Daniel (Department Manager): SMS + App alert
@@ -1369,9 +1369,9 @@ This document describes detailed use cases for the Stock Replenishment module, c
 | UC-SREP-002 | Review and Adjust Existing Par Levels | Store Manager | Medium | High | BR-SREP-001, 013 |
 | UC-SREP-003 | Approve Par Level Change | Department Manager | Low | Medium | BR-SREP-001, 005 |
 | UC-SREP-004 | Monitor Inventory Levels and Generate Alerts | System | High | Critical | BR-SREP-002, 003, 009 |
-| UC-SREP-005 | Create Replenishment Request from Recommendation | Store Manager | Medium | High | BR-SREP-004, 011 |
-| UC-SREP-006 | Create Manual Replenishment Request | Store Manager | Medium | High | BR-SREP-004, 005, 007 |
-| UC-SREP-007 | Approve Replenishment Request | Warehouse Manager | High | Critical | BR-SREP-005, 006, 007, 008 |
+| UC-SREP-005 | Create Transfer Request from Recommendation | Store Manager | Medium | High | BR-SREP-004, 011 |
+| UC-SREP-006 | Create Manual Transfer Request | Store Manager | Medium | High | BR-SREP-004, 005, 007 |
+| UC-SREP-007 | Approve Transfer Request | Warehouse Manager | High | Critical | BR-SREP-005, 006, 007, 008 |
 | UC-SREP-008 | Prepare and Dispatch Stock Transfer | Warehouse Staff | Medium | High | BR-SREP-007, 012 |
 | UC-SREP-009 | Receive and Confirm Stock Transfer | Store Manager | Medium | High | BR-SREP-007, 012 |
 | UC-SREP-010 | Create and Process Emergency Replenishment | Multi-actor | High | Critical | BR-SREP-007, 009 |

@@ -175,7 +175,7 @@ GET /api/credit-notes/returnable-inventory
 
 **Example:**
 ```
-GET /api/credit-notes/returnable-inventory?poId=PO-2024-001&itemId=ITEM-001
+GET /api/credit-notes/returnable-inventory?poId=PO-2401-0001&itemId=ITEM-001
 ```
 
 ### Process Return Inventory
@@ -215,12 +215,12 @@ InventoryTransaction
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/items/CNITEM-001/inventory/return
+POST /api/credit-notes/CN-2401-0001/items/CNITEM-001/inventory/return
 {
   "locationId": "LOC-001",
   "quantity": 1,
   "returnCondition": "Damaged",
-  "lotNumber": "LOT-2024-001",
+  "lotNumber": "LOT-2401-0001",
   "serialNumbers": ["SN001"],
   "valuationMethod": "FIFO",
   "isReusable": false,
@@ -267,12 +267,12 @@ InventoryTransaction
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/items/CNITEM-002/inventory/reusable-return
+POST /api/credit-notes/CN-2401-0001/items/CNITEM-002/inventory/reusable-return
 {
   "locationId": "LOC-001",
   "quantity": 1,
   "returnCondition": "Good",
-  "lotNumber": "LOT-2024-001",
+  "lotNumber": "LOT-2401-0001",
   "serialNumbers": ["SN002"],
   "valuationMethod": "FIFO",
   "newLocationId": "LOC-002",
@@ -350,7 +350,7 @@ POST /api/credit-notes/:creditNoteId/items/:itemId/inventory/scrap
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/items/CNITEM-001/inventory/scrap
+POST /api/credit-notes/CN-2401-0001/items/CNITEM-001/inventory/scrap
 {
   "locationId": "LOC-001",
   "quantity": 1,
@@ -406,7 +406,7 @@ GET /api/credit-notes/:creditNoteId/stock-movement
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/stock-movement?transactionType=Return
+GET /api/credit-notes/CN-2401-0001/stock-movement?transactionType=Return
 ```
 
 ## Error Responses
@@ -419,7 +419,7 @@ GET /api/credit-notes/CN-2024-001/stock-movement?transactionType=Return
   "error": "NotFoundError",
   "message": "Credit note item not found",
   "details": {
-    "creditNoteId": "CN-2024-001",
+    "creditNoteId": "CN-2401-0001",
     "itemId": "CNITEM-999"
   }
 }
@@ -430,7 +430,7 @@ GET /api/credit-notes/CN-2024-001/stock-movement?transactionType=Return
   "message": "Lot number not found in original GRN",
   "details": {
     "lotNumber": "LOT-999",
-    "grnId": "GRN-2024-001"
+    "grnId": "GRN-2401-0001"
   }
 }
 
@@ -439,7 +439,7 @@ GET /api/credit-notes/CN-2024-001/stock-movement?transactionType=Return
   "error": "ExpiredLotError",
   "message": "Cannot process return for expired lot",
   "details": {
-    "lotNumber": "LOT-2024-001",
+    "lotNumber": "LOT-2401-0001",
     "lotExpiryDate": "2024-01-15T00:00:00Z",
     "currentDate": "2024-03-26T10:00:00Z"
   }
@@ -450,7 +450,7 @@ GET /api/credit-notes/CN-2024-001/stock-movement?transactionType=Return
   "error": "InvalidReturnPeriodError",
   "message": "Item return period has expired",
   "details": {
-    "lotNumber": "LOT-2024-001",
+    "lotNumber": "LOT-2401-0001",
     "receiptDate": "2024-03-26T10:00:00Z",
     "returnDeadline": "2024-04-25T10:00:00Z",
     "currentDate": "2024-05-01T10:00:00Z",
@@ -463,7 +463,7 @@ GET /api/credit-notes/CN-2024-001/stock-movement?transactionType=Return
   "error": "QuantityError",
   "message": "Requested return quantity exceeds available quantity",
   "details": {
-    "lotNumber": "LOT-2024-001",
+    "lotNumber": "LOT-2401-0001",
     "requestedQuantity": 5,
     "availableQuantity": 3
   }

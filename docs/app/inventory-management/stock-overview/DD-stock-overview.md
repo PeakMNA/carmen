@@ -583,7 +583,7 @@ INSERT INTO tb_inventory_transaction (
   reference_no, reference_type, user_id, notes
 ) VALUES (
   'c3d4e5f6-g7h8-i9j0-k1l2-m3n4o5p6q7r8',
-  'GRN-2025-00123',
+  'GRN-2501-000123',
   'a1b2c3d4-e5f6-g7h8-i9j0-k1l2m3n4o5p6',
   'loc-main-kitchen-uuid',
   'RECEIVE',
@@ -592,7 +592,7 @@ INSERT INTO tb_inventory_transaction (
   2750.00000,
   750.00000,
   '2025-01-09 14:30:00+00',
-  'PO-2025-00045',
+  'PO-2501-00045',
   'purchase_order',
   'user-purchasing-uuid',
   'Received from Supplier ABC'

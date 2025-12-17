@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-13 | Carmen ERP Documentation Team | Initial version |
 
 ---
@@ -330,31 +331,31 @@ app/(main)/finance/exchange-rate-management/
 
 ```mermaid
 graph TD
-    A["Exchange Rate Management"] --> B["Providers"]
-    A --> C["Manual Entry"]
-    A --> D["Approval Queue"]
-    A --> E["Converter"]
-    A --> F["Historical Rates"]
-    A --> G["Revaluation"]
+    A['Exchange Rate Management'] --> B['Providers']
+    A --> C['Manual Entry']
+    A --> D['Approval Queue']
+    A --> E['Converter']
+    A --> F['Historical Rates']
+    A --> G['Revaluation']
 
-    B --> B1["Provider List"]
-    B --> B2["Provider Config"]
-    B --> B3["Add Provider"]
+    B --> B1['Provider List']
+    B --> B2['Provider Config']
+    B --> B3['Add Provider']
 
-    C --> C1["Single Rate Entry"]
-    C --> C2["Bulk Rate Import"]
+    C --> C1['Single Rate Entry']
+    C --> C2['Bulk Rate Import']
 
-    D --> D1["Approval Dashboard"]
-    D --> D2["Rate Detail View"]
+    D --> D1['Approval Dashboard']
+    D --> D2['Rate Detail View']
 
-    E --> E1["Currency Converter"]
+    E --> E1['Currency Converter']
 
-    F --> F1["Rate Search"]
-    F --> F2["Rate Trends Chart"]
+    F --> F1['Rate Search']
+    F --> F2['Rate Trends Chart']
 
-    G --> G1["Revaluation Dashboard"]
-    G --> G2["Run Revaluation Wizard"]
-    G --> G3["Revaluation History"]
+    G --> G1['Revaluation Dashboard']
+    G --> G2['Run Revaluation Wizard']
+    G --> G3['Revaluation History']
 ```
 
 ### Pages
@@ -857,7 +858,7 @@ User Uses Result in Purchase Order or Other Transaction
   target_currency: "USD",
   conversion_date: "2025-01-13",
   rate_type: "spot",
-  transaction_reference: "PO-2025-001234"
+  transaction_reference: "PO-2501-001234"
 }
 
 // Response

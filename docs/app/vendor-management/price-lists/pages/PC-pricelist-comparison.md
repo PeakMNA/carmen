@@ -206,10 +206,10 @@ Advanced price comparison tool that enables procurement teams to analyze and com
 │ • Custom Date Range                                         │
 │                                                              │
 │ Found 4 price lists from ABC Foods in this period:         │
-│ ☑ Jan 2024 (PL-2024-001) - 125 products                    │
-│ ☑ Dec 2023 (PL-2023-045) - 118 products                    │
-│ ☑ Nov 2023 (PL-2023-032) - 115 products                    │
-│ ☑ Oct 2023 (PL-2023-018) - 110 products                    │
+│ ☑ Jan 2024 (PL-2401-0001) - 125 products                    │
+│ ☑ Dec 2023 (PL-2301-0045) - 118 products                    │
+│ ☑ Nov 2023 (PL-2301-0032) - 115 products                    │
+│ ☑ Oct 2023 (PL-2301-0018) - 110 products                    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -223,13 +223,13 @@ Advanced price comparison tool that enables procurement teams to analyze and com
 │ [Search price lists_________________] [🔍]                  │
 │                                                              │
 │ Selected (3):                                                │
-│ ✓ ABC Foods - Jan 2024 (PL-2024-001)            [✕]        │
+│ ✓ ABC Foods - Jan 2024 (PL-2401-0001)            [✕]        │
 │   125 products • Effective: Jan 20 - Apr 20, 2024          │
 │                                                              │
-│ ✓ XYZ Distributors - Jan 2024 (PL-2024-002)     [✕]        │
+│ ✓ XYZ Distributors - Jan 2024 (PL-2401-0002)     [✕]        │
 │   112 products • Effective: Jan 15 - Apr 15, 2024          │
 │                                                              │
-│ ✓ ABC Foods - Dec 2023 (PL-2023-045)            [✕]        │
+│ ✓ ABC Foods - Dec 2023 (PL-2301-0045)            [✕]        │
 │   118 products • Effective: Dec 1 - Mar 1, 2024            │
 │                                                              │
 │ [+ Add Price List]                                          │

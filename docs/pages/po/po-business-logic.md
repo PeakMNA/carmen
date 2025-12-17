@@ -14,7 +14,7 @@ This document defines the comprehensive business logic governing the Purchase Or
 ### 2.1 PO Creation Rules
 
 #### 2.1.1 General Creation Rules
-- **Unique Reference Numbers**: Each PO must have a unique, auto-generated reference number following the pattern: `PO-YYYY-NNNN`
+- **Unique Reference Numbers**: Each PO must have a unique, auto-generated reference number following the pattern: `PO-YYMM-NNNN`
 - **Mandatory Fields**: Vendor, Currency, Delivery Date, Department, and at least one line item are required
 - **Date Constraints**: PO date cannot be in the future, Delivery date must be at least 1 day after PO date
 - **User Context**: PO inherits creator's department and location unless explicitly changed

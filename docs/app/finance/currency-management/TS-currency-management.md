@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Carmen ERP Documentation Team | Initial version |
 
 ---
@@ -319,65 +320,65 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["Currency List Page<br/>(/finance/currency-management/currencies)"]
-    RatePage["Exchange Rate Dashboard<br/>(/finance/currency-management/exchange-rates)"]
-    TransPage["Foreign Transaction Processing<br/>(/finance/currency-management/foreign-transactions/process)"]
-    RevalPage["Period-End Revaluation<br/>(/finance/currency-management/revaluation/run)"]
-    ExposurePage["Currency Exposure Report<br/>(/finance/currency-management/reports/exposure)"]
+    ListPage['Currency List Page<br>(/finance/currency-management/currencies)']
+    RatePage['Exchange Rate Dashboard<br>(/finance/currency-management/exchange-rates)']
+    TransPage['Foreign Transaction Processing<br>(/finance/currency-management/foreign-transactions/process)']
+    RevalPage['Period-End Revaluation<br>(/finance/currency-management/revaluation/run)']
+    ExposurePage['Currency Exposure Report<br>(/finance/currency-management/reports/exposure)']
 
     %% Currency List Page Tabs
-    ListPage --> ListTab1["Tab: All Currencies"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Inactive"]
+    ListPage --> ListTab1['Tab: All Currencies']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Inactive']
 
     %% Currency List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Add Currency"]
-    ListPage -.-> ListDialog2["Dialog: Edit Currency"]
-    ListPage -.-> ListDialog3["Dialog: Deactivate Confirm"]
-    ListPage -.-> ListDialog4["Dialog: Filter Settings"]
+    ListPage -.-> ListDialog1['Dialog: Add Currency']
+    ListPage -.-> ListDialog2['Dialog: Edit Currency']
+    ListPage -.-> ListDialog3['Dialog: Deactivate Confirm']
+    ListPage -.-> ListDialog4['Dialog: Filter Settings']
 
     %% Exchange Rate Dashboard Tabs
-    RatePage --> RateTab1["Tab: Current Rates"]
-    RatePage --> RateTab2["Tab: Rate History"]
-    RatePage --> RateTab3["Tab: Manual Rates"]
+    RatePage --> RateTab1['Tab: Current Rates']
+    RatePage --> RateTab2['Tab: Rate History']
+    RatePage --> RateTab3['Tab: Manual Rates']
 
     %% Exchange Rate Dashboard Dialogues
-    RatePage -.-> RateDialog1["Dialog: Manual Rate Entry"]
-    RatePage -.-> RateDialog2["Dialog: Rate Alert Config"]
-    RatePage -.-> RateDialog3["Dialog: Refresh Confirm"]
-    RatePage -.-> RateDialog4["Dialog: Rate Source Settings"]
+    RatePage -.-> RateDialog1['Dialog: Manual Rate Entry']
+    RatePage -.-> RateDialog2['Dialog: Rate Alert Config']
+    RatePage -.-> RateDialog3['Dialog: Refresh Confirm']
+    RatePage -.-> RateDialog4['Dialog: Rate Source Settings']
 
     %% Foreign Transaction Processing Tabs
-    TransPage --> TransTab1["Tab: Transaction Entry"]
-    TransPage --> TransTab2["Tab: Journal Preview"]
+    TransPage --> TransTab1['Tab: Transaction Entry']
+    TransPage --> TransTab2['Tab: Journal Preview']
 
     %% Foreign Transaction Processing Dialogues
-    TransPage -.-> TransDialog1["Dialog: Save Draft"]
-    TransPage -.-> TransDialog2["Dialog: Cancel Confirm"]
-    TransPage -.-> TransDialog3["Dialog: Rate Override"]
-    TransPage -.-> TransDialog4["Dialog: Post Confirm"]
+    TransPage -.-> TransDialog1['Dialog: Save Draft']
+    TransPage -.-> TransDialog2['Dialog: Cancel Confirm']
+    TransPage -.-> TransDialog3['Dialog: Rate Override']
+    TransPage -.-> TransDialog4['Dialog: Post Confirm']
 
     %% Period-End Revaluation Tabs
-    RevalPage --> RevalTab1["Tab: Setup"]
-    RevalPage --> RevalTab2["Tab: Calculation Preview"]
-    RevalPage --> RevalTab3["Tab: Revaluation History"]
+    RevalPage --> RevalTab1['Tab: Setup']
+    RevalPage --> RevalTab2['Tab: Calculation Preview']
+    RevalPage --> RevalTab3['Tab: Revaluation History']
 
     %% Period-End Revaluation Dialogues
-    RevalPage -.-> RevalDialog1["Dialog: Wizard Step Navigation"]
-    RevalPage -.-> RevalDialog2["Dialog: Post Confirm"]
-    RevalPage -.-> RevalDialog3["Dialog: Save Progress"]
-    RevalPage -.-> RevalDialog4["Dialog: Cancel Revaluation"]
+    RevalPage -.-> RevalDialog1['Dialog: Wizard Step Navigation']
+    RevalPage -.-> RevalDialog2['Dialog: Post Confirm']
+    RevalPage -.-> RevalDialog3['Dialog: Save Progress']
+    RevalPage -.-> RevalDialog4['Dialog: Cancel Revaluation']
 
     %% Currency Exposure Report Tabs
-    ExposurePage --> ExpTab1["Tab: Summary"]
-    ExposurePage --> ExpTab2["Tab: Details"]
-    ExposurePage --> ExpTab3["Tab: Trends"]
+    ExposurePage --> ExpTab1['Tab: Summary']
+    ExposurePage --> ExpTab2['Tab: Details']
+    ExposurePage --> ExpTab3['Tab: Trends']
 
     %% Currency Exposure Report Dialogues
-    ExposurePage -.-> ExpDialog1["Dialog: Export Options"]
-    ExposurePage -.-> ExpDialog2["Dialog: Schedule Email"]
-    ExposurePage -.-> ExpDialog3["Dialog: Alert Configuration"]
-    ExposurePage -.-> ExpDialog4["Dialog: Filter Advanced"]
+    ExposurePage -.-> ExpDialog1['Dialog: Export Options']
+    ExposurePage -.-> ExpDialog2['Dialog: Schedule Email']
+    ExposurePage -.-> ExpDialog3['Dialog: Alert Configuration']
+    ExposurePage -.-> ExpDialog4['Dialog: Filter Advanced']
 
     style ListPage fill:#e1f5ff
     style RatePage fill:#fff4e1
@@ -601,7 +602,7 @@ Display Success Message:
 ```
 User Processes Payment for Foreign Invoice
     ↓
-Select Invoice: INV-UK-2025-00123
+Select Invoice: INV-UK-2501-00123
   Original Date: 2025-11-12
   Amount: £900.00 GBP
   Original Rate: 1.2750
@@ -643,7 +644,7 @@ Determine GL Account:
     ↓
 Generate Journal Entry:
   Date: 2025-11-20
-  Description: Payment for INV-UK-2025-00123
+  Description: Payment for INV-UK-2501-00123
 
   Debit: 2100 - Accounts Payable: $1,147.50
     (Clear original AP balance)
@@ -818,13 +819,13 @@ Create Revaluation History Record:
   total_gain: $200
   total_loss: $75
   net_gain: $125
-  journal_entry_id: JE-2025-005678
+  journal_entry_id: JE-2501-005678
   status: Posted
     ↓
 Flag Reversal Entry for Next Period:
   reversal_date: 2025-12-01
   reversal_required: true
-  original_entry_id: JE-2025-005678
+  original_entry_id: JE-2501-005678
     ↓
 Commit Database Transaction
     ↓
@@ -867,7 +868,7 @@ Reset Account Balances:
 Update Revaluation History:
   reversal_posted: true
   reversal_date: 2025-12-01
-  reversal_entry_id: JE-2025-005679
+  reversal_entry_id: JE-2501-005679
     ↓
 Log Reversal in Audit Trail
     ↓

@@ -3,16 +3,18 @@
 ## Module Information
 - **Module**: Store Operations
 - **Sub-Module**: Store Requisitions
-- **Version**: 1.0.0
-- **Last Updated**: 2025-01-12
+- **Version**: 1.3.0
+- **Last Updated**: 2025-12-13
 - **Owner**: Store Operations Team
-- **Status**: Approved
+- **Status**: Active - Implementation Complete
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-01-12 | Documentation Team | Initial version |
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
+| 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code - verified workflow stages and status transitions |
+| 1.3.0 | 2025-12-13 | Documentation Team | Updated creation flow for dedicated page, inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling |
 
 ---
 
@@ -79,23 +81,23 @@ This document provides comprehensive visual workflows for the Store Requisitions
 
 ```mermaid
 flowchart TD
-    Start([Requestor needs<br/>materials]) --> Create[Create Requisition<br/>Draft]
-    Create --> AddItems[Add Line Items<br/>with quantities]
-    AddItems --> Check{All items<br/>added?}
+    Start([Requestor needs<br>materials]) --> Create[Create Requisition<br>Draft]
+    Create --> AddItems[Add Line Items<br>with quantities]
+    AddItems --> Check{All items<br>added?}
 
     Check -->|No| AddItems
     Check -->|Yes| Review[Review Requisition]
     Review --> Submit[Submit for Approval]
 
-    Submit --> Validate{Validation<br/>passed?}
+    Submit --> Validate{Validation<br>passed?}
     Validate -->|No| Error1[Display errors]
     Error1 --> Review
 
-    Validate -->|Yes| InitWorkflow[Initialize Workflow<br/>Engine]
-    InitWorkflow --> Route[Route to First<br/>Approval Stage]
+    Validate -->|Yes| InitWorkflow[Initialize Workflow<br>Engine]
+    InitWorkflow --> Route[Route to First<br>Approval Stage]
     Route --> WaitApproval[Wait for Approval]
 
-    WaitApproval --> ApproverAction{Approver<br/>Decision}
+    WaitApproval --> ApproverAction{Approver<br>Decision}
     ApproverAction -->|Reject| Rejected[Mark as Rejected]
     Rejected --> NotifyReject[Notify Requestor]
     NotifyReject --> EndReject([End: Rejected])
@@ -104,19 +106,19 @@ flowchart TD
     Review2 --> WaitReviewer[Requestor Provides Info]
     WaitReviewer --> WaitApproval
 
-    ApproverAction -->|Approve| CheckStage{More approval<br/>stages?}
+    ApproverAction -->|Approve| CheckStage{More approval<br>stages?}
     CheckStage -->|Yes| NextStage[Route to Next Stage]
     NextStage --> WaitApproval
 
     CheckStage -->|No| AllApproved[All Approvals Complete]
-    AllApproved --> CheckStock{Stock<br/>available?}
+    AllApproved --> CheckStock{Stock<br>available?}
     CheckStock -->|No| Backorder[Mark Backordered]
     CheckStock -->|Yes| ReadyIssue[Ready for Issuance]
 
     ReadyIssue --> Issue[Storekeeper Issues Items]
-    Issue --> CreateTxn[Create Inventory<br/>Transaction]
+    Issue --> CreateTxn[Create Inventory<br>Transaction]
     CreateTxn --> UpdateStock[Update Stock Levels]
-    UpdateStock --> CheckComplete{All items<br/>issued?}
+    UpdateStock --> CheckComplete{All items<br>issued?}
 
     CheckComplete -->|No| PartialComplete[Partially Completed]
     PartialComplete --> WaitStock[Wait for Stock]
@@ -173,75 +175,108 @@ flowchart TD
 
 ### Requisition Creation Flow
 
-**Purpose**: Detailed view of requisition creation process including item addition and validation
+**Purpose**: Detailed view of requisition creation process including inline item addition and validation
+
+**Route**: `/store-operations/store-requisitions/new`
 
 ```mermaid
 flowchart TD
-    Start([User clicks<br/>'New Requisition']) --> InitForm[Initialize Form<br/>with Defaults]
-    InitForm --> HeaderInput[User Enters Header Info:<br/>- Expected Date<br/>- Source Location<br/>- Description]
+    Start([User clicks<br>'New Requisition']) --> Navigate[Navigate to<br>/store-requisitions/new]
+    Navigate --> InitForm[Initialize Form<br>with Defaults]
+    InitForm --> AutoPopulate[Auto-populate:<br>- Requisition Number<br>- Date<br>- Requested By]
 
-    HeaderInput --> SaveDraft{User saves<br/>draft?}
-    SaveDraft -->|Yes| ValidateHeader{Valid header<br/>data?}
+    AutoPopulate --> HeaderInput[User Enters Header Info:<br>- Expected Delivery Date<br>- Request From Location<br>- Description<br>- Job Code/Project]
+
+    HeaderInput --> DetermineLocType[Determine Location Type<br>INVENTORY/DIRECT/CONSIGNMENT]
+    DetermineLocType --> DisplayLocType[Display Location Type Badge]
+
+    DisplayLocType --> SaveDraft{User saves<br>draft?}
+    SaveDraft -->|Yes| ValidateHeader{Valid header<br>data?}
     ValidateHeader -->|No| HeaderError[Display validation errors]
     HeaderError --> HeaderInput
 
-    ValidateHeader -->|Yes| GenerateSRNo[Generate SR Number<br/>SR-YYYY-NNNN]
-    GenerateSRNo --> SaveHeader[(Save Header<br/>status=draft)]
-    SaveHeader --> ItemSection[Enable Item Section]
+    ValidateHeader -->|Yes| GenerateSRNo[Generate SR Number<br>SR-YYMM-NNNN]
+    GenerateSRNo --> SaveHeader[(Save Header<br>status=draft)]
+    SaveHeader --> ItemSection[Enable Inline Item Addition]
 
     SaveDraft -->|No| ItemSection
 
-    ItemSection --> AddItemLoop[Add Line Item Form]
-    AddItemLoop --> SelectProduct[Select Product]
-    SelectProduct --> CheckStock[Real-time Stock<br/>Availability Check]
+    ItemSection --> ClickAddItem[User clicks 'Add Item' button]
+    ClickAddItem --> ActivateInline[Activate Inline Add Row<br>isAddingItem=true]
+    ActivateInline --> ShowPopover[Show Popover with<br>Command Search]
+    ShowPopover --> SearchProduct[User types in<br>CommandInput]
+    SearchProduct --> FilterProducts[Filter CommandList<br>in real-time]
+    FilterProducts --> SelectProduct[User selects product<br>from CommandItem]
+    SelectProduct --> CheckStock[Real-time Stock<br>Availability Check]
     CheckStock --> ShowStock[Display Available Qty]
-    ShowStock --> EnterQty[Enter Requested Qty]
-    EnterQty --> OptionalFields[Enter Optional Info:<br/>- Destination Location<br/>- Notes]
+    ShowStock --> EnterQty[User enters quantity<br>in inline input]
+    EnterQty --> ValidateInline{Valid item<br>data?}
+    ValidateInline -->|No| InlineError[Display inline error]
+    InlineError --> EnterQty
 
-    OptionalFields --> ValidateItem{Valid item<br/>data?}
-    ValidateItem -->|No| ItemError[Display item errors]
-    ItemError --> SelectProduct
+    ValidateInline -->|Yes| ClickConfirm{User clicks<br>Add or Cancel?}
+    ClickConfirm -->|Cancel| ResetInline[Reset inline state<br>isAddingItem=false]
+    ResetInline --> ItemSection
 
-    ValidateItem -->|Yes| SaveItem[(Save Line Item<br/>sequence_no++)]
-    SaveItem --> MoreItems{Add more<br/>items?}
-    MoreItems -->|Yes| AddItemLoop
-    MoreItems -->|No| ReviewAll[Review All Items<br/>in Grid]
+    ClickConfirm -->|Add| SaveItem[(Save Line Item<br>sequence_no++)]
+    SaveItem --> ClearInline[Clear inline row<br>Reset state]
+    ClearInline --> MoreItems{Add more<br>items?}
+    MoreItems -->|Yes| ClickAddItem
+    MoreItems -->|No| ReviewAll[Review All Items<br>in Table]
 
-    ReviewAll --> EditItem{Need to<br/>edit items?}
-    EditItem -->|Yes| UpdateItem[Edit/Delete Items]
-    UpdateItem --> ReviewAll
+    ReviewAll --> EditItem{Need to<br>edit items?}
+    EditItem -->|Yes| InlineEdit[Edit item inline<br>or Delete]
+    InlineEdit --> ReviewAll
 
-    EditItem -->|No| ReadySubmit{Ready to<br/>submit?}
+    EditItem -->|No| ReadySubmit{Ready to<br>submit?}
     ReadySubmit -->|No| SaveDraft2[(Save Draft)]
     SaveDraft2 --> End1([End: Draft Saved])
 
-    ReadySubmit -->|Yes| FinalValidate{Final validation<br/>passed?}
+    ReadySubmit -->|Yes| FinalValidate{Final validation<br>passed?}
     FinalValidate -->|No| ValidationErrors[Display all errors]
     ValidationErrors --> ReviewAll
 
     FinalValidate -->|Yes| ConfirmSubmit[Confirmation Dialog]
-    ConfirmSubmit --> SubmitReq[(Submit Requisition<br/>status=in_progress)]
+    ConfirmSubmit --> SubmitReq[(Submit Requisition<br>status=in_progress)]
     SubmitReq --> InitWorkflow[Initialize Workflow]
     InitWorkflow --> NotifyApprover[Notify First Approver]
-    NotifyApprover --> Success([End: Submitted])
+    NotifyApprover --> RedirectDetail[Navigate to Detail Page]
+    RedirectDetail --> Success([End: Submitted])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
+    style Navigate fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Success fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
     style End1 fill:#e8e8e8,stroke:#333,stroke-width:2px,color:#000
     style HeaderError fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
-    style ItemError fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
+    style InlineError fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
     style ValidationErrors fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
     style SaveHeader fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
     style SaveItem fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
     style SubmitReq fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
+    style ActivateInline fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
+    style ShowPopover fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
+    style DetermineLocType fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
 ```
 
 **Key Features**:
-- **Auto-save draft**: User can save incomplete requisition as draft
+- **Dedicated creation page**: User navigates to `/store-requisitions/new` instead of using a modal
+- **Auto-populated fields**: "Requested By" displays current user's name automatically
+- **"Request From" terminology**: Source location dropdown labeled as "Request From"
+- **Location Type handling**: System determines INVENTORY, DIRECT, or CONSIGNMENT based on location
+- **Inline add item pattern**: Product selection uses Popover with Command component for searchable dropdown
 - **Real-time stock check**: System shows available stock when selecting products
 - **Sequential item addition**: Items numbered sequentially (1, 2, 3...)
-- **Validation at multiple stages**: Header validation, item validation, final submission validation
-- **SR Number generation**: System auto-generates requisition number in format SR-YYYY-NNNN
+- **Validation at multiple stages**: Header validation, inline item validation, final submission validation
+- **SR Number generation**: System auto-generates requisition number in format SR-YYMM-NNNN
+
+**State Management**:
+```typescript
+// Key inline add item state variables
+isAddingItem: boolean      // Controls inline row visibility
+newItemProductId: string   // Selected product ID
+newItemQty: number         // Entered quantity
+productSearchOpen: boolean // Controls Popover visibility
+```
 
 ---
 
@@ -251,30 +286,30 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Storekeeper opens<br/>approved requisition]) --> ViewItems[View Approved Items]
+    Start([Storekeeper opens<br>approved requisition]) --> ViewItems[View Approved Items]
     ViewItems --> SelectItems[Select Items to Issue]
     SelectItems --> ItemLoop[For Each Selected Item]
 
-    ItemLoop --> VerifyStock{Stock available<br/>in location?}
+    ItemLoop --> VerifyStock{Stock available<br>in location?}
     VerifyStock -->|No| MarkBackorder[Mark Item Backordered]
-    MarkBackorder --> NextItem{More items<br/>to process?}
+    MarkBackorder --> NextItem{More items<br>to process?}
 
-    VerifyStock -->|Yes| EnterIssuedQty[Enter Issued Quantity<br/>≤ approved_qty]
-    EnterIssuedQty --> OptionalBatch[Enter Batch/Lot Number<br/>if applicable]
-    OptionalBatch --> ValidateIssuance{Valid issuance<br/>data?}
+    VerifyStock -->|Yes| EnterIssuedQty[Enter Issued Quantity<br>≤ approved_qty]
+    EnterIssuedQty --> OptionalBatch[Enter Batch/Lot Number<br>if applicable]
+    OptionalBatch --> ValidateIssuance{Valid issuance<br>data?}
 
     ValidateIssuance -->|No| IssuanceError[Display error]
     IssuanceError --> EnterIssuedQty
 
     ValidateIssuance -->|Yes| ConfirmIssuance[Confirm Issuance]
     ConfirmIssuance --> StartTxn[(BEGIN TRANSACTION)]
-    StartTxn --> CreateInventoryTxn[Create Inventory Transaction:<br/>- Type: store_requisition<br/>- From: source location<br/>- To: destination location<br/>- Qty: issued_qty<br/>- Ref: SR number]
+    StartTxn --> CreateInventoryTxn[Create Inventory Transaction:<br>- Type: store_requisition<br>- From: source location<br>- To: destination location<br>- Qty: issued_qty<br>- Ref: SR number]
 
-    CreateInventoryTxn --> UpdateStock1[Reduce Stock at<br/>Source Location]
-    UpdateStock1 --> UpdateStock2[Increase Stock at<br/>Destination Location]
-    UpdateStock2 --> UpdateItem[Update Line Item:<br/>- issued_qty<br/>- inventory_transaction_id<br/>- last_action=issued]
+    CreateInventoryTxn --> UpdateStock1[Reduce Stock at<br>Source Location]
+    UpdateStock1 --> UpdateStock2[Increase Stock at<br>Destination Location]
+    UpdateStock2 --> UpdateItem[Update Line Item:<br>- issued_qty<br>- inventory_transaction_id<br>- last_action=issued]
 
-    UpdateItem --> CheckFullyIssued{issued_qty ==<br/>approved_qty?}
+    UpdateItem --> CheckFullyIssued{issued_qty ==<br>approved_qty?}
     CheckFullyIssued -->|Yes| MarkItemComplete[Mark Item Fully Issued]
     CheckFullyIssued -->|No| MarkItemPartial[Mark Item Partially Issued]
 
@@ -285,12 +320,12 @@ flowchart TD
     LogIssuance --> NextItem
 
     NextItem -->|Yes| ItemLoop
-    NextItem -->|No| CheckAllIssued{All items<br/>fully issued?}
+    NextItem -->|No| CheckAllIssued{All items<br>fully issued?}
 
-    CheckAllIssued -->|Yes| MarkReqComplete[(Update Requisition<br/>status=completed)]
-    CheckAllIssued -->|No| MarkReqPartial[(Update Requisition<br/>status=in_progress)]
+    CheckAllIssued -->|Yes| MarkReqComplete[(Update Requisition<br>status=completed)]
+    CheckAllIssued -->|No| MarkReqPartial[(Update Requisition<br>status=in_progress)]
 
-    MarkReqComplete --> NotifyRequestor[Notify Requestor<br/>Items Issued]
+    MarkReqComplete --> NotifyRequestor[Notify Requestor<br>Items Issued]
     MarkReqPartial --> NotifyRequestor
     NotifyRequestor --> Success([End: Items Issued])
 
@@ -330,46 +365,46 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Requisition Submitted<br/>status=in_progress]) --> ExtractParams[Extract Parameters:<br/>- department_id<br/>- from_location_id<br/>- total amount<br/>- priority flag]
+    Start([Requisition Submitted<br>status=in_progress]) --> ExtractParams[Extract Parameters:<br>- department_id<br>- from_location_id<br>- total amount<br>- priority flag]
 
     ExtractParams --> QueryEngine[Query Workflow Engine]
-    QueryEngine --> LookupWorkflow[(Lookup tb_workflow<br/>by department/type)]
+    QueryEngine --> LookupWorkflow[(Lookup tb_workflow<br>by department/type)]
 
-    LookupWorkflow --> CheckWorkflow{Workflow<br/>found?}
+    LookupWorkflow --> CheckWorkflow{Workflow<br>found?}
     CheckWorkflow -->|No| DefaultWorkflow[Use Default Workflow]
     CheckWorkflow -->|Yes| LoadWorkflow[Load Workflow Config]
 
-    DefaultWorkflow --> DetermineType{Workflow<br/>Type?}
+    DefaultWorkflow --> DetermineType{Workflow<br>Type?}
     LoadWorkflow --> DetermineType
 
-    DetermineType -->|Sequential| SeqStage1[Stage 1:<br/>Department Manager]
-    DetermineType -->|Parallel| ParStage1[Stage 1:<br/>All Approvers Notified]
-    DetermineType -->|Hybrid| HybridStage1[Stage 1:<br/>Parallel + Sequential]
+    DetermineType -->|Sequential| SeqStage1[Stage 1:<br>Department Manager]
+    DetermineType -->|Parallel| ParStage1[Stage 1:<br>All Approvers Notified]
+    DetermineType -->|Hybrid| HybridStage1[Stage 1:<br>Parallel + Sequential]
 
     SeqStage1 --> SeqWait1[Wait for Stage 1 Approval]
-    SeqWait1 --> SeqDecision1{Stage 1<br/>Decision?}
+    SeqWait1 --> SeqDecision1{Stage 1<br>Decision?}
 
-    SeqDecision1 -->|Reject| Rejected[Mark as Rejected<br/>Notify Requestor]
-    SeqDecision1 -->|Review| ReviewReq[Request Clarification<br/>from Requestor]
+    SeqDecision1 -->|Reject| Rejected[Mark as Rejected<br>Notify Requestor]
+    SeqDecision1 -->|Review| ReviewReq[Request Clarification<br>from Requestor]
     ReviewReq --> SeqWait1
 
-    SeqDecision1 -->|Approve| RecordApproval1[Record Approval in<br/>workflow_history JSON]
+    SeqDecision1 -->|Approve| RecordApproval1[Record Approval in<br>workflow_history JSON]
     RecordApproval1 --> UpdateStage1[Update workflow_current_stage]
-    UpdateStage1 --> CheckNextStage{More<br/>stages?}
+    UpdateStage1 --> CheckNextStage{More<br>stages?}
 
-    CheckNextStage -->|Yes| SeqStage2[Stage 2:<br/>Store Manager]
+    CheckNextStage -->|Yes| SeqStage2[Stage 2:<br>Store Manager]
     SeqStage2 --> SeqWait2[Wait for Stage 2 Approval]
-    SeqWait2 --> SeqDecision2{Stage 2<br/>Decision?}
+    SeqWait2 --> SeqDecision2{Stage 2<br>Decision?}
 
     SeqDecision2 -->|Reject| Rejected
     SeqDecision2 -->|Review| ReviewReq
     SeqDecision2 -->|Approve| RecordApproval2[Record Approval]
     RecordApproval2 --> UpdateStage2[Update workflow_current_stage]
-    UpdateStage2 --> CheckNextStage2{More<br/>stages?}
+    UpdateStage2 --> CheckNextStage2{More<br>stages?}
 
-    CheckNextStage2 -->|Yes| SeqStage3[Stage 3:<br/>Purchasing Manager]
+    CheckNextStage2 -->|Yes| SeqStage3[Stage 3:<br>Purchasing Manager]
     SeqStage3 --> SeqWait3[Wait for Stage 3]
-    SeqWait3 --> SeqDecision3{Stage 3<br/>Decision?}
+    SeqWait3 --> SeqDecision3{Stage 3<br>Decision?}
 
     SeqDecision3 -->|Reject| Rejected
     SeqDecision3 -->|Approve| RecordApproval3[Record Final Approval]
@@ -379,20 +414,20 @@ flowchart TD
     CheckNextStage -->|No| AllApproved
 
     ParStage1 --> ParWait1[Wait for All Approvers]
-    ParWait1 --> ParDecision1{All<br/>Approved?}
+    ParWait1 --> ParDecision1{All<br>Approved?}
     ParDecision1 -->|No| Rejected
     ParDecision1 -->|Yes| AllApproved
 
     HybridStage1 --> HybridWait1[Mixed Stage Processing]
-    HybridWait1 --> HybridDecision{All<br/>Approved?}
+    HybridWait1 --> HybridDecision{All<br>Approved?}
     HybridDecision -->|No| Rejected
     HybridDecision -->|Yes| AllApproved
 
-    AllApproved --> UpdateReqStatus[(Update Requisition:<br/>- workflow_current_stage=Completed<br/>- last_action=approved)]
+    AllApproved --> UpdateReqStatus[(Update Requisition:<br>- workflow_current_stage=Completed<br>- last_action=approved)]
     UpdateReqStatus --> NotifyAll[Notify All Parties]
     NotifyAll --> ReadyIssue([Ready for Issuance])
 
-    Rejected --> UpdateRejected[(Update Requisition:<br/>- last_action=rejected<br/>- workflow_history with rejection)]
+    Rejected --> UpdateRejected[(Update Requisition:<br>- last_action=rejected<br>- workflow_history with rejection)]
     UpdateRejected --> EndReject([End: Rejected])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -428,7 +463,7 @@ workflow_history example:
     "actor_role": "Department Manager",
     "timestamp": "2025-01-16T09:15:00Z",
     "comments": "Approved for kitchen supplies",
-    "approved_items": ["all"]
+    "approved_items": ['all']
   },
   {
     "stage": "Store Manager Review",
@@ -439,7 +474,7 @@ workflow_history example:
     "actor_role": "Store Manager",
     "timestamp": "2025-01-16T14:30:00Z",
     "comments": "Stock available, approved for issuance",
-    "approved_items": ["all"]
+    "approved_items": ['all']
   }
 ]
 ```
@@ -452,52 +487,52 @@ workflow_history example:
 
 ```mermaid
 flowchart TD
-    Start([Approver views<br/>requisition items]) --> ReviewItems[Review Item List]
+    Start([Approver views<br>requisition items]) --> ReviewItems[Review Item List]
     ReviewItems --> SelectItem[Select Item to Review]
 
-    SelectItem --> CheckStock2[Check Stock Availability<br/>for Item]
-    CheckStock2 --> ShowInfo[Show Product Info:<br/>- Requested qty<br/>- Available stock<br/>- Unit cost<br/>- Total]
+    SelectItem --> CheckStock2[Check Stock Availability<br>for Item]
+    CheckStock2 --> ShowInfo[Show Product Info:<br>- Requested qty<br>- Available stock<br>- Unit cost<br>- Total]
 
-    ShowInfo --> ApproverDecision{Approver<br/>Decision?}
+    ShowInfo --> ApproverDecision{Approver<br>Decision?}
 
     ApproverDecision -->|Approve Full| ApproveFull[Approve Full Quantity]
-    ApproveFull --> SetApprovedQty1[Set approved_qty =<br/>requested_qty]
+    ApproveFull --> SetApprovedQty1[Set approved_qty =<br>requested_qty]
 
-    ApproverDecision -->|Approve Partial| ApprovePartial[Enter Approved Quantity<br/>< requested_qty]
-    ApprovePartial --> EnterComments1[Enter Comments<br/>explaining partial approval]
-    EnterComments1 --> ValidatePartial{Valid approved<br/>quantity?}
+    ApproverDecision -->|Approve Partial| ApprovePartial[Enter Approved Quantity<br>< requested_qty]
+    ApprovePartial --> EnterComments1[Enter Comments<br>explaining partial approval]
+    EnterComments1 --> ValidatePartial{Valid approved<br>quantity?}
     ValidatePartial -->|No| PartialError[Error: Invalid quantity]
     PartialError --> ApprovePartial
-    ValidatePartial -->|Yes| SetApprovedQty2[Set approved_qty to<br/>entered value]
+    ValidatePartial -->|Yes| SetApprovedQty2[Set approved_qty to<br>entered value]
 
     ApproverDecision -->|Reject| RejectItem[Reject Item]
-    RejectItem --> EnterRejectReason[Enter Rejection Reason<br/>required]
-    EnterRejectReason --> ValidateReject{Reason<br/>provided?}
+    RejectItem --> EnterRejectReason[Enter Rejection Reason<br>required]
+    EnterRejectReason --> ValidateReject{Reason<br>provided?}
     ValidateReject -->|No| RejectError[Error: Reason required]
     RejectError --> EnterRejectReason
-    ValidateReject -->|Yes| SetRejected[Set last_action=rejected<br/>approved_qty=NULL]
+    ValidateReject -->|Yes| SetRejected[Set last_action=rejected<br>approved_qty=NULL]
 
     ApproverDecision -->|Request Review| ReviewItem[Request Clarification]
     ReviewItem --> EnterReviewQuestion[Enter Review Question]
-    EnterReviewQuestion --> SetReview[Set last_action=reviewed<br/>review_message]
+    EnterReviewQuestion --> SetReview[Set last_action=reviewed<br>review_message]
 
-    SetApprovedQty1 --> UpdateItem1[(Update Line Item:<br/>- approved_qty<br/>- approved_by_id/name<br/>- approved_date_at<br/>- last_action=approved)]
+    SetApprovedQty1 --> UpdateItem1[(Update Line Item:<br>- approved_qty<br>- approved_by_id/name<br>- approved_date_at<br>- last_action=approved)]
     SetApprovedQty2 --> UpdateItem1
     SetRejected --> UpdateItem1
     SetReview --> UpdateItem1
 
     UpdateItem1 --> LogItemHistory[Add to Item history JSON]
-    LogItemHistory --> MoreItems{More items<br/>to review?}
+    LogItemHistory --> MoreItems{More items<br>to review?}
 
     MoreItems -->|Yes| SelectItem
-    MoreItems -->|No| CheckAllItems{All items<br/>processed?}
+    MoreItems -->|No| CheckAllItems{All items<br>processed?}
 
-    CheckAllItems -->|Yes| UpdateHeader[(Update Requisition Header:<br/>- last_action based on items<br/>- workflow_history)]
+    CheckAllItems -->|Yes| UpdateHeader[(Update Requisition Header:<br>- last_action based on items<br>- workflow_history)]
     CheckAllItems -->|No| PartialReview[Some Items Pending]
     PartialReview --> SaveProgress[(Save Progress)]
     SaveProgress --> End1([End: Partial Review])
 
-    UpdateHeader --> NotifyRequestor2[Notify Requestor of<br/>Item Approvals/Rejections]
+    UpdateHeader --> NotifyRequestor2[Notify Requestor of<br>Item Approvals/Rejections]
     NotifyRequestor2 --> Success([End: Items Reviewed])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -525,19 +560,19 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Requestor([Requestor:<br/>Chef, Housekeeper,<br/>Engineer]) -->|Creates Request| System{"Store Requisitions<br/>System"}
+    Requestor([Requestor:<br>Chef, Housekeeper,<br>Engineer]) -->|Creates Request| System{"Store Requisitions<br>System"}
     System -->|Status Notifications| Requestor
 
-    System <-->|Read/Write| DB[(Database:<br/>tb_store_requisition<br/>tb_store_requisition_detail)]
+    System <-->|Read/Write| DB[(Database:<br>tb_store_requisition<br>tb_store_requisition_detail)]
 
-    System -->|Send for Approval| Approver([Approver:<br/>Dept Manager,<br/>Store Manager,<br/>Purchasing Mgr])
+    System -->|Send for Approval| Approver([Approver:<br>Dept Manager,<br>Store Manager,<br>Purchasing Mgr])
     Approver -->|Approval Decision| System
 
-    System <-->|Stock Check<br/>Inventory Txn| InventorySys[Inventory<br/>Management<br/>System]
+    System <-->|Stock Check<br>Inventory Txn| InventorySys[Inventory<br>Management<br>System]
 
-    System <-->|Workflow Query<br/>Approval Routing| WorkflowEngine[Workflow<br/>Engine]
+    System <-->|Workflow Query<br>Approval Routing| WorkflowEngine[Workflow<br>Engine]
 
-    System <-->|User Info<br/>Permissions| UserMgmt[User<br/>Management<br/>System]
+    System <-->|User Info<br>Permissions| UserMgmt[User<br>Management<br>System]
 
     System -->|Issue Items| Storekeeper([Storekeeper])
     Storekeeper -->|Issuance Data| System
@@ -569,18 +604,18 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "Store Requisitions System"
-        P1[1.0<br/>Capture Requisition Data]
-        P2[2.0<br/>Validate Business Rules]
-        P3[3.0<br/>Manage Approval Workflow]
-        P4[4.0<br/>Check Inventory]
-        P5[5.0<br/>Issue Items]
-        P6[6.0<br/>Send Notifications]
+    subgraph SRS [Store Requisitions System]
+        P1[1.0<br>Capture Requisition Data]
+        P2[2.0<br>Validate Business Rules]
+        P3[3.0<br>Manage Approval Workflow]
+        P4[4.0<br>Check Inventory]
+        P5[5.0<br>Issue Items]
+        P6[6.0<br>Send Notifications]
 
-        DS1[(D1: tb_store_requisition<br/>Header data)]
-        DS2[(D2: tb_store_requisition_detail<br/>Line items)]
-        DS3[(D3: Workflow History<br/>JSON in header)]
-        DS4[(D4: Item History<br/>JSON in details)]
+        DS1[(D1: tb_store_requisition<br>Header data)]
+        DS2[(D2: tb_store_requisition_detail<br>Line items)]
+        DS3[(D3: Workflow History<br>JSON in header)]
+        DS4[(D4: Item History<br>JSON in details)]
     end
 
     Requestor([Requestor]) -->|Requisition Data| P1
@@ -651,9 +686,9 @@ flowchart TD
 ```mermaid
 sequenceDiagram
     actor Chef
-    participant UI as StoreRequisition<br/>List Page
-    participant DetailPage as StoreRequisition<br/>Detail Page
-    participant ServerAction as createRequisition<br/>Server Action
+    participant UI as StoreRequisition<br>List Page
+    participant DetailPage as StoreRequisition<br>Detail Page
+    participant ServerAction as createRequisition<br>Server Action
     participant InvService as Inventory Service
     participant DB as Database
     participant Workflow as Workflow Engine
@@ -672,17 +707,17 @@ sequenceDiagram
 
     ServerAction->>ServerAction: Validate data
     ServerAction->>DB: BEGIN TRANSACTION
-    ServerAction->>DB: INSERT tb_store_requisition<br/>(sr_no, status=in_progress)
+    ServerAction->>DB: INSERT tb_store_requisition<br>(sr_no, status=in_progress)
     DB-->>ServerAction: Return requisition id
 
-    ServerAction->>DB: INSERT tb_store_requisition_detail<br/>(items array)
+    ServerAction->>DB: INSERT tb_store_requisition_detail<br>(items array)
     DB-->>ServerAction: Return item ids
 
-    ServerAction->>Workflow: initiateWorkflow(requisitionId,<br/>departmentId)
+    ServerAction->>Workflow: initiateWorkflow(requisitionId,<br>departmentId)
     Workflow->>Workflow: Lookup workflow by dept
     Workflow-->>ServerAction: Return first stage + approvers
 
-    ServerAction->>DB: UPDATE requisition<br/>(workflow_id, workflow_current_stage)
+    ServerAction->>DB: UPDATE requisition<br>(workflow_id, workflow_current_stage)
     ServerAction->>DB: COMMIT TRANSACTION
     DB-->>ServerAction: Success
 
@@ -723,9 +758,9 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Manager
-    participant UI as Requisition<br/>Detail Page
-    participant ApprovalComp as Approval Workflow<br/>Component
-    participant ServerAction as approveRequisition<br/>Server Action
+    participant UI as Requisition<br>Detail Page
+    participant ApprovalComp as Approval Workflow<br>Component
+    participant ServerAction as approveRequisition<br>Server Action
     participant WorkflowSvc as Workflow Engine
     participant DB as Database
     participant NotifSvc as Notification Service
@@ -746,13 +781,13 @@ sequenceDiagram
     ServerAction->>ServerAction: Validate approver permission
     ServerAction->>DB: BEGIN TRANSACTION
 
-    ServerAction->>WorkflowSvc: recordApproval(requisitionId,<br/>stageId, approverId)
+    ServerAction->>WorkflowSvc: recordApproval(requisitionId,<br>stageId, approverId)
     WorkflowSvc->>WorkflowSvc: Validate stage + approver
     WorkflowSvc->>WorkflowSvc: Check if stage complete
-    WorkflowSvc-->>ServerAction: Return next stage or "completed"
+    WorkflowSvc-->>ServerAction: Return next stage or 'completed'
 
-    ServerAction->>DB: UPDATE tb_store_requisition<br/>workflow_history JSON (append approval)
-    ServerAction->>DB: UPDATE workflow_current_stage,<br/>last_action=approved
+    ServerAction->>DB: UPDATE tb_store_requisition<br>workflow_history JSON (append approval)
+    ServerAction->>DB: UPDATE workflow_current_stage,<br>last_action=approved
 
     alt More approval stages
         ServerAction->>DB: Update workflow_next_stage
@@ -790,9 +825,9 @@ sequenceDiagram
 ```mermaid
 sequenceDiagram
     actor Storekeeper
-    participant UI as Requisition<br/>Detail Page
-    participant IssueComp as Issue Items<br/>Component
-    participant ServerAction as issueItems<br/>Server Action
+    participant UI as Requisition<br>Detail Page
+    participant IssueComp as Issue Items<br>Component
+    participant ServerAction as issueItems<br>Server Action
     participant InvService as Inventory Service
     participant DB as Database
     participant NotifSvc as Notification Service
@@ -813,31 +848,31 @@ sequenceDiagram
     IssueComp->>Storekeeper: Confirm issuance
 
     Storekeeper->>IssueComp: Confirm
-    IssueComp->>ServerAction: issueItems(requisitionId,<br/>issuanceData)
+    IssueComp->>ServerAction: issueItems(requisitionId,<br>issuanceData)
 
     ServerAction->>ServerAction: Validate quantities
     ServerAction->>DB: BEGIN TRANSACTION
 
     loop For each item
-        ServerAction->>InvService: createInventoryTransaction({<br/>type: 'store_requisition',<br/>from_location_id,<br/>to_location_id,<br/>product_id,<br/>quantity: issued_qty,<br/>reference: sr_no<br/>})
+        ServerAction->>InvService: createInventoryTransaction({<br>type: 'store_requisition',<br>from_location_id,<br>to_location_id,<br>product_id,<br>quantity: issued_qty,<br>reference: sr_no<br>})
 
         InvService->>DB: INSERT tb_inventory_transaction
         DB-->>InvService: Return transaction_id
 
-        InvService->>DB: UPDATE stock levels:<br/>- Reduce from_location<br/>- Increase to_location
+        InvService->>DB: UPDATE stock levels:<br>- Reduce from_location<br>- Increase to_location
         DB-->>InvService: Stock updated
 
         InvService-->>ServerAction: Return transaction_id
 
-        ServerAction->>DB: UPDATE tb_store_requisition_detail<br/>(issued_qty, inventory_transaction_id)
+        ServerAction->>DB: UPDATE tb_store_requisition_detail<br>(issued_qty, inventory_transaction_id)
     end
 
     ServerAction->>ServerAction: Check if all items fully issued
 
     alt All items fully issued
-        ServerAction->>DB: UPDATE requisition<br/>status=completed
+        ServerAction->>DB: UPDATE requisition<br>status=completed
     else Partial issuance
-        ServerAction->>DB: UPDATE requisition<br/>status=in_progress
+        ServerAction->>DB: UPDATE requisition<br>status=in_progress
     end
 
     ServerAction->>DB: COMMIT TRANSACTION
@@ -1038,11 +1073,11 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    subgraph "Store Requisitions"
-        SR1[Check Stock<br/>Availability] --> SR2[Prepare Issuance Data]
+    subgraph SR [Store Requisitions]
+        SR1[Check Stock<br>Availability] --> SR2[Prepare Issuance Data]
         SR2 --> SR3[Call Inventory Service]
-        SR3 --> SR4{Transaction<br/>Success?}
-        SR4 -->|Yes| SR5[Update Line Item<br/>with Transaction ID]
+        SR3 --> SR4{Transaction<br>Success?}
+        SR4 -->|Yes| SR5[Update Line Item<br>with Transaction ID]
         SR4 -->|Error| SR6[Retry Logic]
         SR6 -->|Max Retries| SR7[Error Handler]
         SR6 -->|Retry| SR3
@@ -1050,16 +1085,16 @@ flowchart TD
         SR7 --> SR9[Alert Admin & Rollback]
     end
 
-    subgraph "Inventory Management"
+    subgraph INV [Inventory Management]
         INV1[Receive Stock Query] --> INV2[Calculate Available Stock]
         INV2 --> INV3[Return Stock Data]
 
-        INV4[Receive Transaction Request] --> INV5{Validate<br/>Transaction?}
+        INV4[Receive Transaction Request] --> INV5{Validate<br>Transaction?}
         INV5 -->|Invalid| INV6[Return Error]
         INV5 -->|Valid| INV7[BEGIN Transaction]
         INV7 --> INV8[Create Transaction Record]
-        INV8 --> INV9[Update Stock at Source<br/>Reduce Qty]
-        INV9 --> INV10[Update Stock at Destination<br/>Increase Qty]
+        INV8 --> INV9[Update Stock at Source<br>Reduce Qty]
+        INV9 --> INV10[Update Stock at Destination<br>Increase Qty]
         INV10 --> INV11[COMMIT Transaction]
         INV11 --> INV12[Return Success + Transaction ID]
     end
@@ -1105,7 +1140,7 @@ flowchart TD
   "quantity": 10.00000,
   "reference_type": "store_requisition",
   "reference_id": "requisition_uuid",
-  "reference_number": "SR-2025-0001",
+  "reference_number": "SR-2501-0001",
   "batch_lot_number": "BATCH-123 (optional)",
   "performed_by_id": "user_uuid"
 }
@@ -1135,10 +1170,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph "Store Requisitions"
-        WF1[Requisition Submitted] --> WF2[Extract Parameters:<br/>department, amount]
+    subgraph SR2 [Store Requisitions]
+        WF1[Requisition Submitted] --> WF2[Extract Parameters:<br>department, amount]
         WF2 --> WF3[Call Workflow Engine]
-        WF3 --> WF4{Workflow<br/>Returned?}
+        WF3 --> WF4{Workflow<br>Returned?}
         WF4 -->|No| WF5[Use Default Workflow]
         WF4 -->|Yes| WF6[Store Workflow Data]
         WF5 --> WF6
@@ -1146,14 +1181,14 @@ flowchart TD
 
         WF8[Approval Action] --> WF9[Call Workflow Engine]
         WF9 --> WF10[Record Approval]
-        WF10 --> WF11{More<br/>Stages?}
+        WF10 --> WF11{More<br>Stages?}
         WF11 -->|Yes| WF12[Get Next Stage]
         WF11 -->|No| WF13[Mark Complete]
         WF12 --> WF14[Notify Next Approvers]
     end
 
-    subgraph "Workflow Engine"
-        WFE1[Receive Workflow Query] --> WFE2{Lookup<br/>Rules}
+    subgraph WFE [Workflow Engine]
+        WFE1[Receive Workflow Query] --> WFE2{Lookup<br>Rules}
         WFE2 -->|Found| WFE3[Load Workflow Config]
         WFE2 -->|Not Found| WFE4[Return Error]
         WFE3 --> WFE5[Determine Stages]
@@ -1162,8 +1197,8 @@ flowchart TD
 
         WFE8[Receive Approval Record] --> WFE9[Validate Stage + Approver]
         WFE9 --> WFE10[Update Workflow State]
-        WFE10 --> WFE11{Stage<br/>Complete?}
-        WFE11 -->|Yes| WFE12{More<br/>Stages?}
+        WFE10 --> WFE11{Stage<br>Complete?}
+        WFE11 -->|Yes| WFE12{More<br>Stages?}
         WFE11 -->|No| WFE13[Wait More Approvals]
         WFE12 -->|Yes| WFE14[Return Next Stage]
         WFE12 -->|No| WFE15[Return Complete]
@@ -1200,7 +1235,7 @@ flowchart TD
       "stage_name": "Department Manager Approval",
       "stage_order": 1,
       "approvers": [
-        {"user_id": "uuid", "user_name": "John Smith", "role": "Department Manager"}
+        {'user_id': 'uuid', 'user_name': 'John Smith', 'role': 'Department Manager'}
       ]
     },
     {
@@ -1265,7 +1300,7 @@ flowchart TD
 
     E2 --> N1{Retryable?}
     N1 -->|Yes| N2[Exponential Backoff]
-    N2 --> N3{Retry Count<br/>< Max?}
+    N2 --> N3{Retry Count<br>< Max?}
     N3 -->|Yes| N4[Wait + Retry]
     N3 -->|No| N5[Exceed Max Retries]
     N4 --> Try
@@ -1277,7 +1312,7 @@ flowchart TD
     N6 --> Log1
 
     E3 --> B1[Display Business Error]
-    B1 --> B2{User Can<br/>Fix?}
+    B1 --> B2{User Can<br>Fix?}
     B2 -->|Yes| UserFix2[User Corrects]
     UserFix2 --> Try
     B2 -->|No| B3[Return Error to User]
@@ -1294,8 +1329,8 @@ flowchart TD
     Alert2 --> Manual2[Manual Intervention]
 
     E5 --> I1[Integration Error Handler]
-    I1 --> I2{Service<br/>Available?}
-    I2 -->|No| I3[Use Cached Data<br/>if available]
+    I1 --> I2{Service<br>Available?}
+    I2 -->|No| I3[Use Cached Data<br>if available]
     I3 --> I4[Display Warning to User]
     I4 --> End2([End: Degraded])
     I2 -->|Yes| I5[Service Error Response]
@@ -1409,7 +1444,7 @@ flowchart TD
 - **Integration Flow**: Shows interaction with external systems
 
 **Store Requisitions Specific**:
-- **SR Number**: Requisition business identifier (format: SR-YYYY-NNNN)
+- **SR Number**: Requisition business identifier (format: SR-YYMM-NNNN where YY is 2-digit year and MM is month)
 - **Workflow Stage**: Approval stage in multi-level workflow
 - **Item-Level Approval**: Approving individual line items independently
 - **Partial Approval**: Approving less than requested quantity

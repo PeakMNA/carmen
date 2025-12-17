@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-23 | System | Initial version based on UC-PL v1.0, BR-PL v1.0 |
 
 ---
@@ -688,7 +689,7 @@ Suggestions:
 **Format**:
 ```
 Kitchen Equipment - Monthly 2024
-PL-ABC-2024-0245 • Manual Entry • v1.0
+PL-ABC-2401-0245 • Manual Entry • v1.0
 ```
 
 **Components**:
@@ -804,7 +805,7 @@ Valid for 245 days
 
 **Style**: rounded-full px-2 py-1 text-xs font-medium
 
-**Tooltip**: Shows source reference (e.g., "Template: TPL-2024-001" or "RFQ: RFQ-2024-045")
+**Tooltip**: Shows source reference (e.g., "Template: TPL-2401-0001" or "RFQ: RFQ-2401-0045")
 
 **Click Action**: Navigate to source (template/RFQ detail page)
 
@@ -820,7 +821,7 @@ Valid for 245 days
 | Active | Blue (bg-blue-100 text-blue-800) | Activity | "45 days remaining" |
 | Expired | Orange (bg-orange-100 text-orange-800) | AlertTriangle | "Expired 3 days ago" |
 | Archived | Red (bg-red-100 text-red-800) | Archive | "Superseded" |
-| Superseded | Purple (bg-purple-100 text-purple-800) | Replace | "By PL-2024-0250" |
+| Superseded | Purple (bg-purple-100 text-purple-800) | Replace | "By PL-2401-00250" |
 
 **Sub-status**: Small text below badge, provides context
 - Pending: Shows who needs to approve

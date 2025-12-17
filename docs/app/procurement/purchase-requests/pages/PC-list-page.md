@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version from TS specification |
 
 ---
@@ -129,7 +130,7 @@ View and manage all purchase requests. Use filters to find specific requests, or
 ### Column Content Formats
 | Column | Display Format | Example |
 |--------|----------------|---------|
-| PR Number | PR-YYYY-NNNNNN (clickable link) | PR-2024-000123 |
+| PR Number | PR-YYMM-NNNN (clickable link) | PR-2401-0123 |
 | Requestor | First Name Last Name | Maria Santos |
 | Department | Full department name | Food & Beverage |
 | Date | DD MMM YYYY | 15 Jan 2024 |
@@ -235,7 +236,7 @@ Are you sure you want to delete this purchase request? This action cannot be und
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Date**: {DD MMM YYYY}
 - **Total Amount**: {$X,XXX.XX}
 - **Items**: {X} item(s)
@@ -348,7 +349,7 @@ Select export format and options
 ### Link Text
 | Link | Text | Destination |
 |------|------|-------------|
-| PR number | PR-2024-000123 | PR detail page |
+| PR number | PR-2401-0123 | PR detail page |
 | Breadcrumb - Procurement | Procurement | Procurement module home |
 | Breadcrumb - Home | Home | Application home |
 
@@ -412,7 +413,7 @@ Select export format and options
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PR-2024-000123 | System-generated reference number format |
+| PR-YYMM-NNNN | System-generated reference number format |
 | $, USD, EUR | Currency symbols and codes |
 | DD MMM YYYY | Standardized date format pattern |
 | Numbers (10, 20, 50, 100) | Pagination options |

@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version from TS specification |
 
 ---
@@ -597,7 +598,7 @@ USD ($) • 5 items
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PR-YYYY-NNNN | System-generated reference format |
+| PR-YYMM-NNNN | System-generated reference format |
 | $, USD, EUR | Currency symbols and codes |
 | DD/MM/YYYY | Standardized date format pattern |
 | Numbers (quantities, prices) | Numeric values |

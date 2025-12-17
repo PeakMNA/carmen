@@ -3,7 +3,7 @@
     {
       "id": "override-001",
       "prItemId": "pr-item-001",
-      "prId": "PR-2024-001",
+      "prId": "PR-2410-001",
       "productName": "Office Paper A4",
       "originalAssignment": {
         "vendorId": "vendor-001",
@@ -32,7 +32,7 @@
     {
       "id": "override-002",
       "prItemId": "pr-item-005",
-      "prId": "PR-2024-005",
+      "prId": "PR-2410-005",
       "productName": "Cleaning Supplies",
       "originalAssignment": {
         "vendorId": "vendor-003",
@@ -61,7 +61,7 @@
     {
       "id": "override-003",
       "prItemId": "pr-item-006",
-      "prId": "PR-2024-006",
+      "prId": "PR-2410-006",
       "productName": "IT Hardware Components",
       "originalAssignment": {
         "vendorId": "vendor-005",

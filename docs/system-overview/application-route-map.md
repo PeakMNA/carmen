@@ -567,9 +567,9 @@ Dashboard
 ### Dynamic Route Parameters
 | Parameter | Description | Example Values |
 |-----------|-------------|----------------|
-| `[id]` | Entity identifier | `PR-2024-001`, `vendor-001`, `user-123` |
+| `[id]` | Entity identifier | `PR-2401-0001`, `vendor-001`, `user-123` |
 | `[subItem]` | Sub-module routes | Module-specific navigation |
-| `[prId]` | Purchase request ID | `PR-2024-001` |
+| `[prId]` | Purchase request ID | `PR-2401-0001` |
 | `[itemId]` | Item identifier | `item-001`, `product-123` |
 | `[templateId]` | Template identifier | `template-001` |
 | `[reportId]` | Report identifier | `report-001` |

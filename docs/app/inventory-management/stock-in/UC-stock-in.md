@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version based on UI prototype and system analysis |
 
 ---
@@ -118,13 +119,13 @@ This document describes all use cases for the Stock In sub-module, which manages
 3. User selects Transaction Type from dropdown (Good Receive Note, Transfer, Issue Return, Adjustment, Credit Note)
 4. User selects Transaction Date (defaults to today)
 5. User selects Location from dropdown (filtered to user's accessible locations)
-6. User enters Related Document reference (e.g., GRN-2024-001)
+6. User enters Related Document reference (e.g., GRN-2401-0001)
 7. User enters Description (optional)
 8. User clicks "Create" button
 9. System validates all required fields (UC-STI-204)
-10. System generates unique reference number in format STK-IN-YYYY-NNNN (UC-STI-105)
+10. System generates unique reference number in format STK-IN-YYMM-NNNN (UC-STI-105)
 11. System creates transaction record with status = "Saved"
-12. System displays success message: "Transaction STK-IN-2024-0123 created successfully"
+12. System displays success message: "Transaction STK-IN-2501-0123 created successfully"
 13. System navigates to transaction detail page for line item entry
 14. Use case ends
 
@@ -133,7 +134,7 @@ This document describes all use cases for the Stock In sub-module, which manages
 **Alt-1A: Related Document Not Found** (At step 6)
 - 6a. User enters related document reference
 - 6b. System validates document exists (UC-STI-203)
-- 6c. System displays error: "Related document 'GRN-2024-999' not found. Please verify the reference number."
+- 6c. System displays error: "Related document 'GRN-2401-0999' not found. Please verify the reference number."
 - 6d. User corrects the reference or removes it
 - Resume at step 9
 
@@ -326,7 +327,7 @@ This document describes all use cases for the Stock In sub-module, which manages
 14. System receives GL posting confirmation with journal entry number
 15. System updates transaction record: status = "Committed", commitDate = now, committedBy = current user
 16. System creates activity log entry: "Committed by {User Name} on {DateTime}"
-17. System displays success message: "Transaction STK-IN-2024-0123 committed successfully. Inventory balances updated. GL Entry: JE-2024-5678"
+17. System displays success message: "Transaction STK-IN-2501-0123 committed successfully. Inventory balances updated. GL Entry: JE-2501-5678"
 18. System refreshes transaction detail view showing "Committed" badge and updated fields
 19. System disables edit/delete actions (only View and Reverse allowed)
 20. Use case ends
@@ -438,7 +439,7 @@ This document describes all use cases for the Stock In sub-module, which manages
     - Negative quantities (original qty * -1)
     - Same costs as original transaction
     - Reference to original Stock IN transaction number
-    - Description: "Reversal of STK-IN-2024-0123: {reversal reason}"
+    - Description: "Reversal of STK-IN-2401-0123: {reversal reason}"
 10. System updates inventory balances: decrease quantity on-hand by original amounts (UC-STI-103)
 11. System creates movement history records with negative stockOut quantities (UC-STI-104)
 12. System calls Finance Module to post GL reversal entry (UC-STI-202):
@@ -446,7 +447,7 @@ This document describes all use cases for the Stock In sub-module, which manages
     - Debit: Original contra account (AP, variance, etc.)
 13. System updates original transaction: isReversed = true, reversalTransactionId = new OUT transaction ID, reversalDate = now, reversalBy = current user
 14. System creates activity log entry in both original and new transactions
-15. System displays success message: "Transaction STK-IN-2024-0123 reversed successfully. Reversal transaction: STK-OUT-2024-0456"
+15. System displays success message: "Transaction STK-IN-2401-0123 reversed successfully. Reversal transaction: STK-OUT-2401-0456"
 16. System provides link to view reversal transaction
 17. Use case ends
 
@@ -718,7 +719,7 @@ This document describes all use cases for the Stock In sub-module, which manages
 
 **Alt-201A: Partial Cost Data Returned** (At step 8)
 - 8a. Service returns costs for some line items but not all
-- 8b. Response indicates errors for specific items: `{"success": false, "errors": [{"lineItemId": "uuid", "error": "Product not found in costing system"}]}`
+- 8b. Response indicates errors for specific items: `{"success": false, "errors": [{"lineItemId": 'uuid', 'error': 'Product not found in costing system'}]}`
 - 8c. System displays error listing problematic items
 - 8d. System halts commit process
 - Use case returns failure to commit process
@@ -800,8 +801,8 @@ This document describes all use cases for the Stock In sub-module, which manages
    ```json
    {
      "transactionDate": "2024-01-15",
-     "referenceNumber": "STK-IN-2024-0123",
-     "description": "Stock In - GRN-2024-001",
+     "referenceNumber": "STK-IN-2401-0123",
+     "description": "Stock In - GRN-2401-0001",
      "sourceModule": "Inventory Management",
      "lines": [
        {
@@ -827,14 +828,14 @@ This document describes all use cases for the Stock In sub-module, which manages
    ```json
    {
      "success": true,
-     "journalEntryNumber": "JE-2024-5678",
+     "journalEntryNumber": "JE-2401-5678",
      "postingDate": "2024-01-15T11:00:00Z",
      "status": "Posted"
    }
    ```
 9. System receives response and validates JE number format
 10. System stores JE number in transaction record (glJournalEntryNumber field)
-11. System creates activity log entry: "GL posted: JE-2024-5678"
+11. System creates activity log entry: "GL posted: JE-2401-5678"
 12. Use case returns success to commit process (UC-STI-004 step 14)
 
 **Alternative Flows**:

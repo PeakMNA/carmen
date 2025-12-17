@@ -695,9 +695,9 @@ Business meaning:
 ```
 Unit: CASE (Case, ORDER type)
 Referenced by purchase_order_items:
-  - PO-2024-001, Item: Bottled Water, Quantity: 10 CASE (vendor sells in cases only)
-  - PO-2024-002, Item: Canned Tomatoes, Quantity: 5 CASE (bulk discount for cases)
-  - PO-2024-003, Item: Beer, Quantity: 20 CASE (standard brewery packaging)
+  - PO-2401-0001, Item: Bottled Water, Quantity: 10 CASE (vendor sells in cases only)
+  - PO-2401-0002, Item: Canned Tomatoes, Quantity: 5 CASE (bulk discount for cases)
+  - PO-2401-0003, Item: Beer, Quantity: 20 CASE (standard brewery packaging)
 
 Business meaning:
   - Purchase orders match vendor packaging and pricing units

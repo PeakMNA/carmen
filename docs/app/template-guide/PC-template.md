@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author} | Initial version |
 
 ---
@@ -478,7 +479,7 @@ CTA: [Create Purchase Request]
 | {Content} | {Why not translated} |
 
 **Examples**:
-- PR-2024-000001: System-generated reference numbers
+- PR-2401-000001: System-generated reference numbers
 - USD, EUR: Currency codes
 - 10, 20, 50: Numeric values
 

@@ -51,27 +51,27 @@ This document provides comprehensive flow diagrams for the Period End Management
 
 ```mermaid
 graph TB
-    subgraph "Presentation Layer"
+    subgraph 'Presentation Layer'
         PL[Period List Page]
         PD[Period Detail Page]
         UI[UI Components]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         SA[Server Actions]
         BL[Business Logic]
         VAL[Validation Service]
         PERM[Permission Service]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         DB[(PostgreSQL)]
         PE[tb_period_end]
         PT[tb_period_task]
         PA[tb_period_activity]
     end
 
-    subgraph "Integration Layer"
+    subgraph 'Integration Layer'
         PC[Physical Count Module]
         ADJ[Adjustments Module]
         TXN[Transaction Validation]
@@ -103,7 +103,7 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph "User Actions"
+    subgraph 'User Actions'
         U1[Create Period]
         U2[Start Close Process]
         U3[Complete Tasks]
@@ -111,19 +111,19 @@ graph LR
         U5[Re-open Period]
     end
 
-    subgraph "Processing Layer"
+    subgraph 'Processing Layer'
         V[Validation]
         P[Permission Check]
         BL[Business Logic]
         AL[Activity Logging]
     end
 
-    subgraph "Data Storage"
+    subgraph 'Data Storage'
         DB[(Database)]
         CACHE[Application Cache]
     end
 
-    subgraph "Integrations"
+    subgraph 'Integrations'
         MOD[Other Modules]
         NOTIF[Notifications]
     end
@@ -158,33 +158,33 @@ graph LR
 
 ```mermaid
 flowchart TD
-    Start([User: Create Period]) --> CheckPerm{User Has<br/>Permission?}
+    Start([User: Create Period]) --> CheckPerm{User Has<br>Permission?}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
-    CheckPerm -->|Yes| CalcNext[Calculate Next Period<br/>ID, Dates, Name]
+    CheckPerm -->|Yes| CalcNext[Calculate Next Period<br>ID, Dates, Name]
 
-    CalcNext --> CheckDup{Period ID<br/>Already Exists?}
+    CalcNext --> CheckDup{Period ID<br>Already Exists?}
 
     CheckDup -->|Yes| ErrorDup[Error: Period Already Exists]
-    CheckDup -->|No| CheckPrior{Prior Period<br/>Closed?}
+    CheckDup -->|No| CheckPrior{Prior Period<br>Closed?}
 
-    CheckPrior -->|No| CheckOverride{Admin<br/>Override?}
+    CheckPrior -->|No| CheckOverride{Admin<br>Override?}
     CheckOverride -->|No| ErrorPrior[Error: Prior Period Not Closed]
     CheckOverride -->|Yes| ShowDialog
-    CheckPrior -->|Yes| ShowDialog[Show Confirmation Dialog<br/>Period ID, Name, Dates]
+    CheckPrior -->|Yes| ShowDialog[Show Confirmation Dialog<br>Period ID, Name, Dates]
 
-    ShowDialog --> UserConfirm{User<br/>Confirms?}
+    ShowDialog --> UserConfirm{User<br>Confirms?}
 
     UserConfirm -->|No| Cancel[Cancel Operation]
     UserConfirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> CreatePeriod[(Create tb_period_end Record<br/>Status: Open)]
+    BeginTx --> CreatePeriod[(Create tb_period_end Record<br>Status: Open)]
 
-    CreatePeriod --> CreateTasks[(Create 11 Validation Items:<br/>Inventory counts, Movements,<br/>Adjustments, Returns, Costing,<br/>GL entries, Allocations,<br/>Variance, Audit, Reports,<br/>Management approval)]
+    CreatePeriod --> CreateTasks[(Create 11 Validation Items:<br>Inventory counts, Movements,<br>Adjustments, Returns, Costing,<br>GL entries, Allocations,<br>Variance, Audit, Reports,<br>Management approval)]
 
-    CreateTasks --> LogActivity[(Log Activity:<br/>Action: Create<br/>User, IP, Timestamp)]
+    CreateTasks --> LogActivity[(Log Activity:<br>Action: Create<br>User, IP, Timestamp)]
 
-    Note over CreateTasks: Creates 11 default<br/>validation items
+    Note over CreateTasks: Creates 11 default<br>validation items
 
     LogActivity --> CommitTx[Commit Transaction]
 
@@ -213,51 +213,51 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: Close Period]) --> CheckStatus{Period Status<br/>= Closing?}
+    Start([User: Close Period]) --> CheckStatus{Period Status<br>= Closing?}
 
     CheckStatus -->|No| ErrorStatus[Error: Must Be In Closing Status]
-    CheckStatus -->|Yes| CheckPerm{User Has Close<br/>Permission?}
+    CheckStatus -->|Yes| CheckPerm{User Has Close<br>Permission?}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
-    CheckPerm -->|Yes| ValidateTasks{All 11 Validation<br/>Items Complete?}
+    CheckPerm -->|Yes| ValidateTasks{All 11 Validation<br>Items Complete?}
 
-    ValidateTasks -->|No| ErrorTasks[Error: Incomplete Items<br/>Display Checklist]
-    ValidateTasks -->|Yes| ValidateTxn{All Transactions<br/>Posted?}
+    ValidateTasks -->|No| ErrorTasks[Error: Incomplete Items<br>Display Checklist]
+    ValidateTasks -->|Yes| ValidateTxn{All Transactions<br>Posted?}
 
-    ValidateTxn -->|No| ErrorTxn[Warning: Unposted Transactions<br/>Show Count]
-    ValidateTxn -->|Yes| ValidatePC{Physical Counts<br/>Committed?}
+    ValidateTxn -->|No| ErrorTxn[Warning: Unposted Transactions<br>Show Count]
+    ValidateTxn -->|Yes| ValidatePC{Physical Counts<br>Committed?}
 
-    ValidatePC -->|No| ErrorPC[Warning: Uncommitted Counts<br/>Show List]
-    ValidatePC -->|Yes| CalcSummary[Calculate Summary:<br/>- Total Adjustments<br/>- Variance Amount<br/>- Last Transaction Date]
+    ValidatePC -->|No| ErrorPC[Warning: Uncommitted Counts<br>Show List]
+    ValidatePC -->|Yes| CalcSummary[Calculate Summary:<br>- Total Adjustments<br>- Variance Amount<br>- Last Transaction Date]
 
-    CalcSummary --> ShowDialog[Show Confirmation Dialog<br/>with Summary]
+    CalcSummary --> ShowDialog[Show Confirmation Dialog<br>with Summary]
 
-    ShowDialog --> UserConfirm{User<br/>Confirms?}
+    ShowDialog --> UserConfirm{User<br>Confirms?}
 
     UserConfirm -->|No| Cancel[Cancel Operation]
     UserConfirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> UpdateStatus[(Update Period:<br/>Status = Closed<br/>Completed By, At)]
+    BeginTx --> UpdateStatus[(Update Period:<br>Status = Closed<br>Completed By, At)]
 
-    UpdateStatus --> LogClose[(Log Activity:<br/>Action: Close<br/>User, IP, Timestamp<br/>Summary Data)]
+    UpdateStatus --> LogClose[(Log Activity:<br>Action: Close<br>User, IP, Timestamp<br>Summary Data)]
 
-    LogClose --> TriggerIntegration[Trigger Integration Events:<br/>- Notify Finance<br/>- Lock Transactions<br/>- Generate Reports]
+    LogClose --> TriggerIntegration[Trigger Integration Events:<br>- Notify Finance<br>- Lock Transactions<br>- Generate Reports]
 
     TriggerIntegration --> CommitTx[Commit Transaction]
 
     CommitTx --> RefreshCache[Refresh Period Cache]
 
-    RefreshCache --> SendNotif[Send Email Notifications:<br/>Financial Controller<br/>Inventory Managers]
+    RefreshCache --> SendNotif[Send Email Notifications:<br>Financial Controller<br>Inventory Managers]
 
     SendNotif --> Success([Success: Period Closed])
 
     ErrorStatus --> End([End])
     ErrorPerm --> End
     ErrorTasks --> End
-    ErrorTxn --> UserForce{Force Close<br/>Override?}
+    ErrorTxn --> UserForce{Force Close<br>Override?}
     UserForce -->|No| End
     UserForce -->|Yes| ValidatePC
-    ErrorPC --> UserForce2{Force Close<br/>Override?}
+    ErrorPC --> UserForce2{Force Close<br>Override?}
     UserForce2 -->|No| End
     UserForce2 -->|Yes| CalcSummary
     Cancel --> End
@@ -277,45 +277,45 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: Re-open Period]) --> CheckStatus{Period Status<br/>= Closed?}
+    Start([User: Re-open Period]) --> CheckStatus{Period Status<br>= Closed?}
 
-    CheckStatus -->|No| ErrorStatus[Error: Only Closed Periods<br/>Can Be Re-opened]
-    CheckStatus -->|Yes| CheckPerm{User Has Re-open<br/>Permission?<br/>Financial Manager<br/>or Admin}
+    CheckStatus -->|No| ErrorStatus[Error: Only Closed Periods<br>Can Be Re-opened]
+    CheckStatus -->|Yes| CheckPerm{User Has Re-open<br>Permission?<br>Financial Manager<br>or Admin}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
-    CheckPerm -->|Yes| CheckRecent{Is Most Recent<br/>Closed Period?}
+    CheckPerm -->|Yes| CheckRecent{Is Most Recent<br>Closed Period?}
 
-    CheckRecent -->|No| ErrorHistorical[Error: Cannot Re-open<br/>Historical Periods]
-    CheckRecent -->|Yes| CheckNext{Next Period<br/>Exists & Closed?}
+    CheckRecent -->|No| ErrorHistorical[Error: Cannot Re-open<br>Historical Periods]
+    CheckRecent -->|Yes| CheckNext{Next Period<br>Exists & Closed?}
 
-    CheckNext -->|Yes| ErrorNext[Error: Cannot Re-open<br/>Next Period Already Closed]
-    CheckNext -->|No| ShowDialog[Show Re-open Dialog<br/>Require Reason]
+    CheckNext -->|Yes| ErrorNext[Error: Cannot Re-open<br>Next Period Already Closed]
+    CheckNext -->|No| ShowDialog[Show Re-open Dialog<br>Require Reason]
 
-    ShowDialog --> UserReason[User Enters Reason<br/>Min 100 Characters]
+    ShowDialog --> UserReason[User Enters Reason<br>Min 100 Characters]
 
-    UserReason --> ValidateReason{Reason Length<br/>>= 100 Chars?}
+    UserReason --> ValidateReason{Reason Length<br>>= 100 Chars?}
 
     ValidateReason -->|No| ErrorReason[Error: Reason Too Short]
-    ValidateReason -->|Yes| UserConfirm{User<br/>Confirms?}
+    ValidateReason -->|Yes| UserConfirm{User<br>Confirms?}
 
     UserConfirm -->|No| Cancel[Cancel Operation]
     UserConfirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> Backup[Create Database Backup<br/>Safety Measure]
+    BeginTx --> Backup[Create Database Backup<br>Safety Measure]
 
-    Backup --> PreserveOriginal[(Store Original Close Info:<br/>Original Completed By<br/>Original Completed At)]
+    Backup --> PreserveOriginal[(Store Original Close Info:<br>Original Completed By<br>Original Completed At)]
 
-    PreserveOriginal --> UpdateStatus[(Update Period:<br/>Status = Reopened<br/>Reopened By, At, Reason<br/>Preserve Completed By/At)]
+    PreserveOriginal --> UpdateStatus[(Update Period:<br>Status = Reopened<br>Reopened By, At, Reason<br>Preserve Completed By/At)]
 
-    UpdateStatus --> LogReopen[(Log Activity:<br/>Action: Reopen<br/>User, IP, Timestamp<br/>Reason, Original Info)]
+    UpdateStatus --> LogReopen[(Log Activity:<br>Action: Reopen<br>User, IP, Timestamp<br>Reason, Original Info)]
 
-    LogReopen --> ResetTasks[(Reset Tasks to Pending<br/>Clear Completion Info)]
+    LogReopen --> ResetTasks[(Reset Tasks to Pending<br>Clear Completion Info)]
 
     ResetTasks --> CommitTx[Commit Transaction]
 
     CommitTx --> RefreshCache[Refresh Period Cache]
 
-    RefreshCache --> SendNotif[Send Email Notifications:<br/>Financial Controller<br/>System Administrators<br/>Include Reason]
+    RefreshCache --> SendNotif[Send Email Notifications:<br>Financial Controller<br>System Administrators<br>Include Reason]
 
     SendNotif --> Success([Success: Period Re-opened])
 
@@ -342,47 +342,47 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: Mark Task Complete]) --> CheckPeriod{Period Status<br/>= Open, Closing,<br/>or Reopened?}
+    Start([User: Mark Task Complete]) --> CheckPeriod{Period Status<br>= Open, Closing,<br>or Reopened?}
 
-    CheckPeriod -->|No| ErrorStatus[Error: Cannot Complete Tasks<br/>in Closed Period]
-    CheckPeriod -->|Yes| CheckPerm{User Has Task<br/>Complete Permission?}
+    CheckPeriod -->|No| ErrorStatus[Error: Cannot Complete Tasks<br>in Closed Period]
+    CheckPeriod -->|Yes| CheckPerm{User Has Task<br>Complete Permission?}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
-    CheckPerm -->|Yes| CheckAlready{Task Already<br/>Complete?}
+    CheckPerm -->|Yes| CheckAlready{Task Already<br>Complete?}
 
-    CheckAlready -->|Yes| ErrorAlready[Error: Task Already Complete<br/>Cannot Unmark]
-    CheckAlready -->|No| Validate[Validate Task Completion<br/>Based on Type]
+    CheckAlready -->|Yes| ErrorAlready[Error: Task Already Complete<br>Cannot Unmark]
+    CheckAlready -->|No| Validate[Validate Task Completion<br>Based on Type]
 
-    Validate --> CheckType{Validation<br/>Type?}
+    Validate --> CheckType{Validation<br>Type?}
 
-    CheckType -->|Manual| UserConfirm{User<br/>Confirms?}
-    CheckType -->|Automated| RunValidation[Run Automated Validation<br/>Check Completion Criteria]
+    CheckType -->|Manual| UserConfirm{User<br>Confirms?}
+    CheckType -->|Automated| RunValidation[Run Automated Validation<br>Check Completion Criteria]
 
-    RunValidation --> AutoResult{Validation<br/>Passed?}
+    RunValidation --> AutoResult{Validation<br>Passed?}
 
-    AutoResult -->|No| ErrorValidation[Error: Validation Failed<br/>Show Reason]
+    AutoResult -->|No| ErrorValidation[Error: Validation Failed<br>Show Reason]
     AutoResult -->|Yes| BeginTx
 
     UserConfirm -->|No| Cancel[Cancel Operation]
     UserConfirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> UpdateTask[(Update Task:<br/>Status = Completed<br/>Completed By, At)]
+    BeginTx --> UpdateTask[(Update Task:<br>Status = Completed<br>Completed By, At)]
 
-    UpdateTask --> LogActivity[(Log Activity:<br/>Action: Task Complete<br/>Task Name, User, IP)]
+    UpdateTask --> LogActivity[(Log Activity:<br>Action: Task Complete<br>Task Name, User, IP)]
 
-    LogActivity --> CheckAll{All 11<br/>Tasks Complete?}
+    LogActivity --> CheckAll{All 11<br>Tasks Complete?}
 
     CheckAll -->|No| CommitTx[Commit Transaction]
-    CheckAll -->|Yes| AutoProgress{Period Status<br/>= Open?}
+    CheckAll -->|Yes| AutoProgress{Period Status<br>= Open?}
 
-    AutoProgress -->|Yes| UpdatePeriod[(Update Period:<br/>Status = Closing<br/>Auto-transition)]
+    AutoProgress -->|Yes| UpdatePeriod[(Update Period:<br>Status = Closing<br>Auto-transition)]
     AutoProgress -->|No| CommitTx
 
-    UpdatePeriod --> LogStatus[(Log Activity:<br/>Action: Status Change<br/>Open → Closing)]
+    UpdatePeriod --> LogStatus[(Log Activity:<br>Action: Status Change<br>Open → Closing)]
 
     LogStatus --> CommitTx
 
-    CommitTx --> RefreshUI[Refresh UI:<br/>Update Checklist<br/>Show Progress]
+    CommitTx --> RefreshUI[Refresh UI:<br>Update Checklist<br>Show Progress]
 
     RefreshUI --> Success([Success: Task Completed])
 
@@ -406,34 +406,34 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: Cancel Period]) --> CheckStatus{Period Status<br/>= Open or<br/>In Progress?}
+    Start([User: Cancel Period]) --> CheckStatus{Period Status<br>= Open or<br>In Progress?}
 
-    CheckStatus -->|No| ErrorStatus[Error: Only Open/In Progress<br/>Periods Can Be Cancelled]
-    CheckStatus -->|Yes| CheckPerm{User Has Cancel<br/>Permission?}
+    CheckStatus -->|No| ErrorStatus[Error: Only Open/In Progress<br>Periods Can Be Cancelled]
+    CheckStatus -->|Yes| CheckPerm{User Has Cancel<br>Permission?}
 
     CheckPerm -->|No| ErrorPerm[Error: Insufficient Permissions]
-    CheckPerm -->|Yes| CheckTxn{Any Transactions<br/>Posted to Period?}
+    CheckPerm -->|Yes| CheckTxn{Any Transactions<br>Posted to Period?}
 
-    CheckTxn -->|Yes| ErrorTxn[Error: Cannot Cancel Period<br/>with Posted Transactions<br/>Use Re-open Instead]
-    CheckTxn -->|No| ShowDialog[Show Cancellation Dialog<br/>Require Reason]
+    CheckTxn -->|Yes| ErrorTxn[Error: Cannot Cancel Period<br>with Posted Transactions<br>Use Re-open Instead]
+    CheckTxn -->|No| ShowDialog[Show Cancellation Dialog<br>Require Reason]
 
-    ShowDialog --> UserReason[User Enters Reason<br/>Min 50 Characters]
+    ShowDialog --> UserReason[User Enters Reason<br>Min 50 Characters]
 
-    UserReason --> ValidateReason{Reason Length<br/>>= 50 Chars?}
+    UserReason --> ValidateReason{Reason Length<br>>= 50 Chars?}
 
     ValidateReason -->|No| ErrorReason[Error: Reason Too Short]
-    ValidateReason -->|Yes| UserConfirm{User<br/>Confirms?}
+    ValidateReason -->|Yes| UserConfirm{User<br>Confirms?}
 
     UserConfirm -->|No| Cancel[Cancel Operation]
     UserConfirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> UpdateStatus[(Update Period:<br/>Status = Void<br/>Cancelled By, At, Reason)]
+    BeginTx --> UpdateStatus[(Update Period:<br>Status = Void<br>Cancelled By, At, Reason)]
 
-    UpdateStatus --> SoftDelete[(Soft Delete Period:<br/>Set Deleted At<br/>Keep for Audit)]
+    UpdateStatus --> SoftDelete[(Soft Delete Period:<br>Set Deleted At<br>Keep for Audit)]
 
-    SoftDelete --> SoftDeleteTasks[(Soft Delete Tasks:<br/>Set Deleted At<br/>Keep for Audit)]
+    SoftDelete --> SoftDeleteTasks[(Soft Delete Tasks:<br>Set Deleted At<br>Keep for Audit)]
 
-    SoftDeleteTasks --> LogActivity[(Log Activity:<br/>Action: Cancel<br/>User, IP, Timestamp, Reason)]
+    SoftDeleteTasks --> LogActivity[(Log Activity:<br>Action: Cancel<br>User, IP, Timestamp, Reason)]
 
     LogActivity --> CommitTx[Commit Transaction]
 
@@ -469,14 +469,14 @@ flowchart TD
 stateDiagram-v2
     [*] --> Open: Create Period
 
-    Open --> Closing: Start Close Process<br/>(User Initiates)
+    Open --> Closing: Start Close Process<br>(User Initiates)
 
-    Closing --> Closed: Complete Period End<br/>(All 11 Tasks Done)
+    Closing --> Closed: Complete Period End<br>(All 11 Tasks Done)
     Closing --> Open: Cancel/Reset
 
-    Closed --> Reopened: Re-open Period<br/>(Most Recent Only)
+    Closed --> Reopened: Re-open Period<br>(Most Recent Only)
 
-    Reopened --> Closed: Re-close Period<br/>(After Corrections)
+    Reopened --> Closed: Re-close Period<br>(After Corrections)
 
     note right of Open
         Default status (green badge)
@@ -509,13 +509,13 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Pending: Task Created<br/>with Period
+    [*] --> Pending: Task Created<br>with Period
 
-    Pending --> Completed: Mark Complete<br/>(Manual or Automated)
+    Pending --> Completed: Mark Complete<br>(Manual or Automated)
 
-    Completed --> Pending: Period Re-opened<br/>(Reset All Tasks)
+    Completed --> Pending: Period Re-opened<br>(Reset All Tasks)
 
-    Completed --> [*]: Period Closed<br/>(Final State)
+    Completed --> [*]: Period Closed<br>(Final State)
 
     note right of Pending
         Default status
@@ -539,7 +539,7 @@ stateDiagram-v2
     state "Validation Passed?" as ValidCheck
     state "User Confirmed?" as ConfirmCheck
 
-    [*] --> Check: User Clicks<br/>"Close Period"
+    [*] --> Check: User Clicks<br>'Close Period'
 
     Check --> TaskCheck
 
@@ -570,9 +570,9 @@ sequenceDiagram
 
     User->>PeriodEnd: Close Period Request
     PeriodEnd->>PeriodEnd: Validate Checklist
-    PeriodEnd->>PhysicalCount: Check Count Status<br/>for Period Date Range
+    PeriodEnd->>PhysicalCount: Check Count Status<br>for Period Date Range
 
-    PhysicalCount->>Database: Query Physical Counts<br/>WHERE date BETWEEN<br/>period start AND end
+    PhysicalCount->>Database: Query Physical Counts<br>WHERE date BETWEEN<br>period start AND end
     Database-->>PhysicalCount: Return Count Records
 
     PhysicalCount->>PhysicalCount: Check All Committed?
@@ -582,7 +582,7 @@ sequenceDiagram
         PeriodEnd->>PeriodEnd: Continue Closure
         PeriodEnd-->>User: Period Closed
     else Uncommitted Counts Exist
-        PhysicalCount-->>PeriodEnd: Validation Failed<br/>List of Uncommitted
+        PhysicalCount-->>PeriodEnd: Validation Failed<br>List of Uncommitted
         PeriodEnd-->>User: Error: Complete Counts First
     end
 ```
@@ -596,11 +596,11 @@ sequenceDiagram
     participant PeriodEnd
     participant Database
 
-    Module->>Transaction: Post Transaction<br/>(itemId, date, etc.)
+    Module->>Transaction: Post Transaction<br>(itemId, date, etc.)
 
-    Transaction->>PeriodEnd: Check Period Status<br/>for Transaction Date
+    Transaction->>PeriodEnd: Check Period Status<br>for Transaction Date
 
-    PeriodEnd->>Database: SELECT status<br/>FROM tb_period_end<br/>WHERE date BETWEEN dates
+    PeriodEnd->>Database: SELECT status<br>FROM tb_period_end<br>WHERE date BETWEEN dates
 
     Database-->>PeriodEnd: Return Period Status
 
@@ -611,10 +611,10 @@ sequenceDiagram
         Transaction-->>Module: Transaction Posted
     else Period is Closed
         PeriodEnd-->>Transaction: Blocked
-        Transaction-->>Module: Error: Period Closed<br/>Cannot Post Transaction
+        Transaction-->>Module: Error: Period Closed<br>Cannot Post Transaction
     else Period is Void
         PeriodEnd-->>Transaction: Blocked
-        Transaction-->>Module: Error: Period Void<br/>Cannot Post Transaction
+        Transaction-->>Module: Error: Period Void<br>Cannot Post Transaction
     end
 ```
 
@@ -627,19 +627,19 @@ sequenceDiagram
     participant AdjustmentModule
     participant Database
 
-    User->>PeriodDetail: View Period Detail<br/>Click Adjustments Tab
+    User->>PeriodDetail: View Period Detail<br>Click Adjustments Tab
 
-    PeriodDetail->>AdjustmentModule: Get Adjustments for Period<br/>(startDate, endDate)
+    PeriodDetail->>AdjustmentModule: Get Adjustments for Period<br>(startDate, endDate)
 
-    AdjustmentModule->>Database: SELECT * FROM adjustments<br/>WHERE created_at BETWEEN<br/>period dates
+    AdjustmentModule->>Database: SELECT * FROM adjustments<br>WHERE created_at BETWEEN<br>period dates
 
     Database-->>AdjustmentModule: Return Adjustment Records
 
-    AdjustmentModule->>AdjustmentModule: Calculate Summary:<br/>- Total Count<br/>- Total Amount<br/>- By Type
+    AdjustmentModule->>AdjustmentModule: Calculate Summary:<br>- Total Count<br>- Total Amount<br>- By Type
 
     AdjustmentModule-->>PeriodDetail: Adjustment List + Summary
 
-    PeriodDetail-->>User: Display Adjustments Tab<br/>with Summary Stats
+    PeriodDetail-->>User: Display Adjustments Tab<br>with Summary Stats
 
     User->>PeriodDetail: Click Adjustment Row
     PeriodDetail->>AdjustmentModule: Navigate to Detail
@@ -655,7 +655,7 @@ sequenceDiagram
     participant ActivityLog
     participant Database
 
-    User->>PeriodService: Perform Action<br/>(Close, Re-open, etc.)
+    User->>PeriodService: Perform Action<br>(Close, Re-open, etc.)
 
     PeriodService->>PeriodService: Validate Action
     PeriodService->>Database: Begin Transaction
@@ -663,11 +663,11 @@ sequenceDiagram
     PeriodService->>Database: Update Period Record
     Database-->>PeriodService: Update Successful
 
-    PeriodService->>ActivityLog: Log Action<br/>(type, user, IP, details)
+    PeriodService->>ActivityLog: Log Action<br>(type, user, IP, details)
 
-    ActivityLog->>ActivityLog: Build Activity Record:<br/>- Action Type<br/>- User Context<br/>- Before/After State<br/>- Reason (if applicable)
+    ActivityLog->>ActivityLog: Build Activity Record:<br>- Action Type<br>- User Context<br>- Before/After State<br>- Reason (if applicable)
 
-    ActivityLog->>Database: INSERT INTO<br/>tb_period_activity
+    ActivityLog->>Database: INSERT INTO<br>tb_period_activity
     Database-->>ActivityLog: Log Recorded
 
     ActivityLog-->>PeriodService: Log Successful
@@ -675,7 +675,7 @@ sequenceDiagram
     PeriodService->>Database: Commit Transaction
     Database-->>PeriodService: Transaction Committed
 
-    PeriodService-->>User: Action Complete<br/>with Audit Trail
+    PeriodService-->>User: Action Complete<br>with Audit Trail
 ```
 
 ---
@@ -688,18 +688,18 @@ sequenceDiagram
 flowchart TD
     Start([User Action]) --> Validate[Run Validation]
 
-    Validate --> Check{Validation<br/>Passed?}
+    Validate --> Check{Validation<br>Passed?}
 
     Check -->|Yes| ProcessOK[Process Action]
     Check -->|No| CollectErrors[Collect All Validation Errors]
 
-    CollectErrors --> CategorizeErrors[Categorize Errors:<br/>- Permission<br/>- Business Rule<br/>- Data Integrity]
+    CollectErrors --> CategorizeErrors[Categorize Errors:<br>- Permission<br>- Business Rule<br>- Data Integrity]
 
-    CategorizeErrors --> BuildResponse[Build Error Response:<br/>- Error Code<br/>- User Message<br/>- Technical Details<br/>- Suggested Actions]
+    CategorizeErrors --> BuildResponse[Build Error Response:<br>- Error Code<br>- User Message<br>- Technical Details<br>- Suggested Actions]
 
-    BuildResponse --> DisplayError[Display Error to User<br/>with Clear Message]
+    BuildResponse --> DisplayError[Display Error to User<br>with Clear Message]
 
-    DisplayError --> UserAction{User<br/>Action?}
+    DisplayError --> UserAction{User<br>Action?}
 
     UserAction -->|Retry| Start
     UserAction -->|Cancel| End([End])
@@ -718,18 +718,18 @@ flowchart TD
 flowchart TD
     Start([Begin Transaction]) --> Execute[Execute Operations]
 
-    Execute --> Check{All Operations<br/>Successful?}
+    Execute --> Check{All Operations<br>Successful?}
 
     Check -->|Yes| Commit[Commit Transaction]
-    Check -->|No| CaptureError[Capture Error Details:<br/>- Error Type<br/>- Failed Operation<br/>- Stack Trace]
+    Check -->|No| CaptureError[Capture Error Details:<br>- Error Type<br>- Failed Operation<br>- Stack Trace]
 
-    CaptureError --> Rollback[Rollback Transaction<br/>Restore Previous State]
+    CaptureError --> Rollback[Rollback Transaction<br>Restore Previous State]
 
-    Rollback --> LogError[Log Error for Debugging:<br/>- User Context<br/>- Operation Details<br/>- Error Info]
+    Rollback --> LogError[Log Error for Debugging:<br>- User Context<br>- Operation Details<br>- Error Info]
 
-    LogError --> CheckRetry{Retryable<br/>Error?}
+    LogError --> CheckRetry{Retryable<br>Error?}
 
-    CheckRetry -->|Yes| RetryCount{Retry Count<br/>< Max?}
+    CheckRetry -->|Yes| RetryCount{Retry Count<br>< Max?}
     CheckRetry -->|No| FinalError[Return Error to User]
 
     RetryCount -->|Yes| Delay[Exponential Backoff Delay]
@@ -737,7 +737,7 @@ flowchart TD
 
     Delay --> Start
 
-    Commit --> VerifyCommit{Commit<br/>Successful?}
+    Commit --> VerifyCommit{Commit<br>Successful?}
 
     VerifyCommit -->|Yes| Success([Success])
     VerifyCommit -->|No| CaptureError
@@ -754,23 +754,23 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Action]) --> CheckAuth{User<br/>Authenticated?}
+    Start([User Action]) --> CheckAuth{User<br>Authenticated?}
 
-    CheckAuth -->|No| ErrorAuth[Error: Not Authenticated<br/>Redirect to Login]
-    CheckAuth -->|Yes| CheckRole{User Has<br/>Required Role?}
+    CheckAuth -->|No| ErrorAuth[Error: Not Authenticated<br>Redirect to Login]
+    CheckAuth -->|Yes| CheckRole{User Has<br>Required Role?}
 
-    CheckRole -->|No| ErrorRole[Error: Insufficient Role<br/>Show Required Role]
-    CheckRole -->|Yes| CheckScope{Action Within<br/>User Scope?}
+    CheckRole -->|No| ErrorRole[Error: Insufficient Role<br>Show Required Role]
+    CheckRole -->|Yes| CheckScope{Action Within<br>User Scope?}
 
-    CheckScope -->|No| ErrorScope[Error: Outside Scope<br/>Show Allowed Scope]
+    CheckScope -->|No| ErrorScope[Error: Outside Scope<br>Show Allowed Scope]
     CheckScope -->|Yes| ProcessOK[Process Action]
 
-    ErrorAuth --> LogAttempt[Log Security Event:<br/>- User ID<br/>- Action Attempted<br/>- IP Address<br/>- Timestamp]
+    ErrorAuth --> LogAttempt[Log Security Event:<br>- User ID<br>- Action Attempted<br>- IP Address<br>- Timestamp]
 
     ErrorRole --> LogAttempt
     ErrorScope --> LogAttempt
 
-    LogAttempt --> NotifyAdmin{Suspicious<br/>Pattern?}
+    LogAttempt --> NotifyAdmin{Suspicious<br>Pattern?}
 
     NotifyAdmin -->|Yes| Alert[Alert Security Team]
     NotifyAdmin -->|No| End([End])
@@ -795,9 +795,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Request Period Data]) --> CheckCache{Data in<br/>Cache?}
+    Start([Request Period Data]) --> CheckCache{Data in<br>Cache?}
 
-    CheckCache -->|Yes| ValidCache{Cache<br/>Valid?}
+    CheckCache -->|Yes| ValidCache{Cache<br>Valid?}
     CheckCache -->|No| QueryDB
 
     ValidCache -->|Yes| ReturnCache[Return Cached Data]
@@ -805,7 +805,7 @@ flowchart TD
 
     InvalidateCache --> QueryDB[(Query Database)]
 
-    QueryDB --> StoreCache[Store in Cache<br/>TTL: 5 minutes]
+    QueryDB --> StoreCache[Store in Cache<br>TTL: 5 minutes]
 
     StoreCache --> ReturnData[Return Fresh Data]
 
@@ -822,23 +822,23 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Query Period List]) --> CheckFilter{Filters<br/>Applied?}
+    Start([Query Period List]) --> CheckFilter{Filters<br>Applied?}
 
-    CheckFilter -->|Yes| BuildWhere[Build WHERE Clause<br/>with Indexes]
-    CheckFilter -->|No| BaseQuery[Base Query:<br/>SELECT * FROM periods]
+    CheckFilter -->|Yes| BuildWhere[Build WHERE Clause<br>with Indexes]
+    CheckFilter -->|No| BaseQuery[Base Query:<br>SELECT * FROM periods]
 
-    BuildWhere --> ApplyIndex[Use Indexes:<br/>- period_id<br/>- status<br/>- dates]
+    BuildWhere --> ApplyIndex[Use Indexes:<br>- period_id<br>- status<br>- dates]
 
-    ApplyIndex --> Paginate[Apply Pagination:<br/>LIMIT + OFFSET]
+    ApplyIndex --> Paginate[Apply Pagination:<br>LIMIT + OFFSET]
 
     BaseQuery --> Paginate
 
     Paginate --> Execute[(Execute Query)]
 
-    Execute --> CheckPerf{Query Time<br/>< 100ms?}
+    Execute --> CheckPerf{Query Time<br>< 100ms?}
 
     CheckPerf -->|Yes| ReturnResults[Return Results]
-    CheckPerf -->|No| LogSlow[Log Slow Query<br/>for Optimization]
+    CheckPerf -->|No| LogSlow[Log Slow Query<br>for Optimization]
 
     LogSlow --> ReturnResults
 

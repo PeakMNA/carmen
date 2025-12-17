@@ -57,6 +57,7 @@ import StatusBadge  from "@/components/ui/custom-status-badge"
 
 // ============================================================================
 // MOCK DATA
+// Transaction Code Format: ADJ-YYMM-NNNN (e.g., ADJ-2410-001 = Adjustment #001, October 2024)
 // ============================================================================
 // Sample adjustment records for development and testing.
 // Each record includes: id, date, type (IN/OUT), status, location, reason,
@@ -67,7 +68,7 @@ import StatusBadge  from "@/components/ui/custom-status-badge"
 
 const mockAdjustments = [
   {
-    id: "ADJ-2024-001",
+    id: "ADJ-2410-001",
     date: "2024-01-15",
     type: "IN",
     status: "Posted",
@@ -77,7 +78,7 @@ const mockAdjustments = [
     totalValue: 2845.50
   },
   {
-    id: "ADJ-2024-002",
+    id: "ADJ-2410-002",
     date: "2024-01-16",
     type: "OUT",
     status: "Posted",
@@ -87,7 +88,7 @@ const mockAdjustments = [
     totalValue: 567.80
   },
   {
-    id: "ADJ-2024-003",
+    id: "ADJ-2410-003",
     date: "2024-01-17",
     type: "IN",
     status: "Posted",
@@ -97,7 +98,7 @@ const mockAdjustments = [
     totalValue: 1234.60
   },
   {
-    id: "ADJ-2024-004",
+    id: "ADJ-2410-004",
     date: "2024-01-18",
     type: "OUT",
     status: "Draft",
@@ -107,7 +108,7 @@ const mockAdjustments = [
     totalValue: 890.25
   },
   {
-    id: "ADJ-2024-005",
+    id: "ADJ-2410-005",
     date: "2024-01-18",
     type: "IN",
     status: "Draft",
@@ -117,7 +118,7 @@ const mockAdjustments = [
     totalValue: 445.75
   },
   {
-    id: "ADJ-2024-006",
+    id: "ADJ-2410-006",
     date: "2024-01-19",
     type: "OUT",
     status: "Voided",
@@ -127,7 +128,7 @@ const mockAdjustments = [
     totalValue: 3567.90
   },
   {
-    id: "ADJ-2024-007",
+    id: "ADJ-2410-007",
     date: "2024-01-19",
     type: "IN",
     status: "Posted",
@@ -137,7 +138,7 @@ const mockAdjustments = [
     totalValue: 789.30
   },
   {
-    id: "ADJ-2024-008",
+    id: "ADJ-2410-008",
     date: "2024-01-20",
     type: "OUT",
     status: "Draft",
@@ -149,6 +150,15 @@ const mockAdjustments = [
 ]
 
 // ============================================================================
+// COMPONENT PROPS
+// ============================================================================
+
+interface InventoryAdjustmentListProps {
+  /** Filter adjustments by type (IN or OUT). If undefined, shows all adjustments. */
+  typeFilter?: "IN" | "OUT"
+}
+
+// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -156,14 +166,16 @@ const mockAdjustments = [
  * InventoryAdjustmentList - Tabular list of all inventory adjustments
  *
  * Provides a comprehensive view of all adjustment records with:
+ * - Optional type filter prop for tab-based filtering
  * - Search bar for quick filtering by any field
  * - Filter/Sort options via FilterSortOptions component
  * - Clickable rows to navigate to adjustment details
  * - Dropdown menu with contextual actions
  *
+ * @param typeFilter - Optional filter to show only IN or OUT adjustments
  * @returns The adjustment list table with search, filter, and sort controls
  */
-export function InventoryAdjustmentList() {
+export function InventoryAdjustmentList({ typeFilter }: InventoryAdjustmentListProps) {
   const router = useRouter()
 
   // ============================================================================
@@ -186,17 +198,23 @@ export function InventoryAdjustmentList() {
   /**
    * Filtered and sorted adjustment data
    *
-   * Applies a three-stage processing pipeline:
-   * 1. Search filter - matches query against all adjustment fields
-   * 2. Category filter - matches status, type, or location
-   * 3. Sort - orders by selected field in specified direction
+   * Applies a four-stage processing pipeline:
+   * 1. Type filter - filters by adjustment type (IN/OUT) from tab selection
+   * 2. Search filter - matches query against all adjustment fields
+   * 3. Category filter - matches status, type, or location
+   * 4. Sort - orders by selected field in specified direction
    *
    * Uses useMemo for performance optimization on large datasets.
    */
   const filteredAndSortedData = useMemo(() => {
     let filtered = mockAdjustments
 
-    // Stage 1: Apply search filter across all fields
+    // Stage 1: Apply type filter from props (tab selection)
+    if (typeFilter) {
+      filtered = filtered.filter(item => item.type === typeFilter)
+    }
+
+    // Stage 2: Apply search filter across all fields
     if (searchQuery) {
       filtered = filtered.filter(item =>
         Object.values(item).some(value =>
@@ -205,18 +223,31 @@ export function InventoryAdjustmentList() {
       )
     }
 
-    // Stage 2: Apply category filters (status, type, or location)
+    // Stage 3: Apply category filters (status, type, or location)
     if (activeFilters.length > 0) {
+      // Map display values to actual data values for type filter
+      const typeDisplayToValue: Record<string, string> = {
+        "Stock In": "IN",
+        "Stock Out": "OUT"
+      }
+
       filtered = filtered.filter(item =>
-        activeFilters.some(filter =>
-          item.status === filter ||
-          item.type === filter ||
-          item.location === filter
-        )
+        activeFilters.some(filter => {
+          // Check if filter matches status or location directly
+          if (item.status === filter || item.location === filter) {
+            return true
+          }
+          // Check if filter is a type filter (map display value to data value)
+          const mappedType = typeDisplayToValue[filter]
+          if (mappedType && item.type === mappedType) {
+            return true
+          }
+          return false
+        })
       )
     }
 
-    // Stage 3: Apply sorting with type-aware comparison
+    // Stage 4: Apply sorting with type-aware comparison
     return [...filtered].sort((a: any, b: any) => {
       const aValue = a[sortConfig.field]
       const bValue = b[sortConfig.field]
@@ -233,7 +264,7 @@ export function InventoryAdjustmentList() {
         ? aValue - bValue
         : bValue - aValue
     })
-  }, [mockAdjustments, searchQuery, activeFilters, sortConfig])
+  }, [mockAdjustments, searchQuery, activeFilters, sortConfig, typeFilter])
 
   // ============================================================================
   // RENDER

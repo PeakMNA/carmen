@@ -10,7 +10,7 @@
       },
       "resource": {
         "type": "purchase_request",
-        "id": "PR-2024-001",
+        "id": "PR-2410-001",
         "attributes": {
           "value": 750,
           "category": "food",
@@ -47,7 +47,7 @@
       },
       "resource": {
         "type": "purchase_request",
-        "id": "PR-2024-002",
+        "id": "PR-2410-002",
         "attributes": {
           "value": 2500,
           "category": "food",
@@ -164,12 +164,12 @@
       "resources": [
         {
           "type": "purchase_request",
-          "id": "PR-2024-003",
+          "id": "PR-2410-003",
           "attributes": {"value": 5000, "category": "equipment"}
         },
         {
           "type": "purchase_request", 
-          "id": "PR-2024-004",
+          "id": "PR-2410-004",
           "attributes": {"value": 1200, "category": "supplies"}
         },
         {
@@ -196,8 +196,8 @@
       "rulesEvaluated": 12,
       "obligationCount": 4,
       "bulkResults": [
-        {"resourceId": "PR-2024-003", "decision": "PERMIT"},
-        {"resourceId": "PR-2024-004", "decision": "PERMIT"},
+        {"resourceId": "PR-2410-003", "decision": "PERMIT"},
+        {"resourceId": "PR-2410-004", "decision": "PERMIT"},
         {"resourceId": "VENDOR-001", "decision": "PERMIT"}
       ]
     }

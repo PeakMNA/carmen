@@ -67,7 +67,7 @@ The data model consists of five core entities: approval_queue_items for pending 
    - Business meaning: Each approval action belongs to a specific queue item (document)
    - Cardinality: One queue item can have multiple approval actions (Level 1, Level 2, Level 3)
    - Foreign key: queue_item_id references approval_queue_items.id
-   - Example: PR-2025-001234 has 3 approval actions (Dept Head, Purchasing Mgr, Finance Controller)
+   - Example: PR-2501-001234 has 3 approval actions (Dept Head, Purchasing Mgr, Finance Controller)
 
 4. **approval_actions → users**: Many-to-One relationship
    - Business meaning: Each approval action is performed by a specific user
@@ -125,7 +125,7 @@ The data model consists of five core entities: approval_queue_items for pending 
 **Primary Identification**:
 - **ID Field**: id - UUID primary key, auto-generated using gen_random_uuid()
 - **Business Key**: No human-readable key (system-generated queue entries)
-- **Display Name**: Document reference number from source document (e.g., PR-2025-001234)
+- **Display Name**: Document reference number from source document (e.g., PR-2501-001234)
 
 **Core Business Fields**:
 - **document_id**: UUID reference to source document
@@ -142,7 +142,7 @@ The data model consists of five core entities: approval_queue_items for pending 
 - **document_reference_number**: VARCHAR(50) - Human-readable document number
   - Required: Yes
   - Purpose: Display reference for user identification (denormalized from source document for query performance)
-  - Example: PR-2025-001234, WAS-2025-000456
+  - Example: PR-2501-001234, WAS-2501-000456
 
 - **submission_timestamp**: TIMESTAMPTZ - When document was submitted for approval
   - Required: Yes
@@ -385,7 +385,7 @@ The data model consists of five core entities: approval_queue_items for pending 
 | id | UUID | Yes | gen_random_uuid() | Primary key, unique identifier | 550e8400-e29b-41d5-a716-446655440000 | PK, NOT NULL |
 | document_id | UUID | Yes | - | Reference to source document | 660e8400-e29b-41d5-a716-446655440001 | NOT NULL, INDEX |
 | document_type | VARCHAR(50) | Yes | - | Type of document | purchase_request, wastage | NOT NULL, CHECK (IN allowed values), INDEX |
-| document_reference_number | VARCHAR(50) | Yes | - | Human-readable document number | PR-2025-001234 | NOT NULL |
+| document_reference_number | VARCHAR(50) | Yes | - | Human-readable document number | PR-2501-001234 | NOT NULL |
 | submission_timestamp | TIMESTAMPTZ | Yes | - | When document submitted for approval | 2025-11-12 08:30:00+00 | NOT NULL, INDEX |
 | approval_level_required | INTEGER | Yes | - | Total approval levels needed | 3 | NOT NULL, CHECK (1-10) |
 | current_approval_level | INTEGER | Yes | - | Current approval level | 2 | NOT NULL, CHECK (1-10) |
@@ -505,7 +505,7 @@ The data model consists of five core entities: approval_queue_items for pending 
   - Required: Yes
   - Purpose: Link action to specific queue item (and through it, to document)
   - Foreign key: approval_queue_items(id) ON DELETE RESTRICT
-  - Example: Queue item UUID for PR-2025-001234 Level 2 approval
+  - Example: Queue item UUID for PR-2501-001234 Level 2 approval
 
 - **document_id**: UUID reference to source document (denormalized)
   - Required: Yes
@@ -520,7 +520,7 @@ The data model consists of five core entities: approval_queue_items for pending 
 - **document_reference_number**: VARCHAR(50) - Human-readable reference (denormalized)
   - Required: Yes
   - Purpose: Display in audit trail without JOIN
-  - Example: PR-2025-001234
+  - Example: PR-2501-001234
 
 - **approval_level**: INTEGER - Which approval level this action occurred at
   - Required: Yes
@@ -566,7 +566,7 @@ The data model consists of five core entities: approval_queue_items for pending 
   - Min length: 20 characters
   - Max length: 500 characters
   - Purpose: Clear communication to requestor
-  - Example: Rejected. Similar items already ordered via PR-2025-001180 last week.
+  - Example: Rejected. Similar items already ordered via PR-2501-001180 last week.
 
 - **info_request_text**: TEXT - Information requested from requestor
   - Required: Yes (if action_type = 'request_info')
@@ -729,7 +729,7 @@ The data model consists of five core entities: approval_queue_items for pending 
 | queue_item_id | UUID | Yes | - | Reference to queue item | Queue UUID | NOT NULL, FK approval_queue_items(id), INDEX |
 | document_id | UUID | Yes | - | Reference to source document | Document UUID | NOT NULL, INDEX |
 | document_type | VARCHAR(50) | Yes | - | Type of document | purchase_request | NOT NULL, INDEX |
-| document_reference_number | VARCHAR(50) | Yes | - | Human-readable document ref | PR-2025-001234 | NOT NULL |
+| document_reference_number | VARCHAR(50) | Yes | - | Human-readable document ref | PR-2501-001234 | NOT NULL |
 | approval_level | INTEGER | Yes | - | Approval level number | 2 | NOT NULL, CHECK (1-10) |
 | approver_user_id | UUID | Yes | - | Approver user | User UUID | NOT NULL, FK users(id) ON DELETE SET NULL, INDEX |
 | approver_name | VARCHAR(255) | Yes | - | Approver display name | Sarah Johnson | NOT NULL |

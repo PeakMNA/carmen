@@ -645,7 +645,7 @@ POST   /api/grn/:id/stock-movements # Process stock movements
 ```json
 {
   "vendorId": "vendor-123",
-  "poIds": ["PO-2023-001", "PO-2023-002"],
+  "poIds": ["PO-2301-0001", "PO-2301-0002"],
   "date": "2023-06-15",
   "invoiceNumber": "INV-456",
   "invoiceDate": "2023-06-14",
@@ -663,8 +663,8 @@ POST   /api/grn/:id/stock-movements # Process stock movements
 **GRN Response**:
 ```json
 {
-  "id": "GRN-2023-001",
-  "ref": "GRN-2023-001",
+  "id": "GRN-2301-0001",
+  "ref": "GRN-2301-0001",
   "status": "Received",
   "vendor": {
     "id": "vendor-123",

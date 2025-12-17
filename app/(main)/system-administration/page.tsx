@@ -80,7 +80,7 @@ export default function SystemAdministrationPage() {
               Set up integrations with POS, ERP, and other external systems.
             </p>
             <Button asChild className="w-full" variant="default">
-              <Link href="/system-administration/system-integrations" className="flex items-center justify-between">
+              <Link href="/system-administration/system-integration" className="flex items-center justify-between">
                 Manage Integrations
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Link>
@@ -150,7 +150,7 @@ export default function SystemAdministrationPage() {
           <CardContent>
             <div className="space-y-2">
               <Button asChild variant="outline" className="w-full justify-start text-left" size="sm">
-                <Link href="/system-administration/system-integrations/pos/transactions" className="flex items-center justify-between">
+                <Link href="/system-administration/system-integration/pos/transactions" className="flex items-center justify-between">
                   <div className="flex items-center">
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     POS Transactions

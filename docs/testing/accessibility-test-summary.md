@@ -66,7 +66,7 @@ The test suite covers **130+ routes** across all major modules:
 
 #### Dynamic Routes
 The test suite also includes sample dynamic routes with mock IDs:
-- Detail pages (`/procurement/purchase-requests/PR-2024-001`)
+- Detail pages (`/procurement/purchase-requests/PR-2401-0001`)
 - Edit forms (`/vendor-management/vendors/vendor-001/edit`)
 - Configuration pages (`/system-administration/workflow/workflow-configuration/workflow-001`)
 

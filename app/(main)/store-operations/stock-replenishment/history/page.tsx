@@ -64,7 +64,7 @@ import {
 // Mock data for transfer history
 const transferHistoryData = [
   {
-    id: 'TR-2024-0089',
+    id: 'TR-2410-0089',
     fromLocation: 'Central Store',
     toLocation: 'Main Kitchen',
     requestedBy: 'John Smith',
@@ -77,7 +77,7 @@ const transferHistoryData = [
     deliveryTime: '4.5 hours',
   },
   {
-    id: 'TR-2024-0088',
+    id: 'TR-2410-0088',
     fromLocation: 'Central Store',
     toLocation: 'Pool Bar',
     requestedBy: 'Maria Garcia',
@@ -90,7 +90,7 @@ const transferHistoryData = [
     deliveryTime: '2.3 hours',
   },
   {
-    id: 'TR-2024-0087',
+    id: 'TR-2410-0087',
     fromLocation: 'Central Store',
     toLocation: 'Rooftop Restaurant',
     requestedBy: 'James Wilson',
@@ -103,7 +103,7 @@ const transferHistoryData = [
     deliveryTime: '6.2 hours',
   },
   {
-    id: 'TR-2024-0086',
+    id: 'TR-2410-0086',
     fromLocation: 'Central Store',
     toLocation: 'Lobby Café',
     requestedBy: 'Emma Brown',
@@ -116,7 +116,7 @@ const transferHistoryData = [
     deliveryTime: '1.8 hours',
   },
   {
-    id: 'TR-2024-0085',
+    id: 'TR-2410-0085',
     fromLocation: 'Central Store',
     toLocation: 'Banquet Hall',
     requestedBy: 'Robert Johnson',
@@ -129,7 +129,7 @@ const transferHistoryData = [
     rejectionReason: 'Insufficient stock in central store',
   },
   {
-    id: 'TR-2024-0084',
+    id: 'TR-2410-0084',
     fromLocation: 'Central Store',
     toLocation: 'Main Kitchen',
     requestedBy: 'John Smith',
@@ -142,7 +142,7 @@ const transferHistoryData = [
     deliveryTime: '3.1 hours',
   },
   {
-    id: 'TR-2024-0083',
+    id: 'TR-2410-0083',
     fromLocation: 'Central Store',
     toLocation: 'Pool Bar',
     requestedBy: 'Maria Garcia',
@@ -155,7 +155,7 @@ const transferHistoryData = [
     deliveryTime: '2.0 hours',
   },
   {
-    id: 'TR-2024-0082',
+    id: 'TR-2410-0082',
     fromLocation: 'Central Store',
     toLocation: 'Rooftop Restaurant',
     requestedBy: 'James Wilson',
@@ -168,7 +168,7 @@ const transferHistoryData = [
     deliveryTime: '5.5 hours',
   },
   {
-    id: 'TR-2024-0081',
+    id: 'TR-2410-0081',
     fromLocation: 'Central Store',
     toLocation: 'Lobby Café',
     requestedBy: 'Emma Brown',
@@ -181,7 +181,7 @@ const transferHistoryData = [
     cancellationReason: 'Duplicate request',
   },
   {
-    id: 'TR-2024-0080',
+    id: 'TR-2410-0080',
     fromLocation: 'Central Store',
     toLocation: 'Main Kitchen',
     requestedBy: 'John Smith',

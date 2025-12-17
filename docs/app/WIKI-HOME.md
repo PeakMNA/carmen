@@ -6,6 +6,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ---
@@ -47,30 +48,30 @@ Carmen uses 7 specialized document types to cover all aspects of the system:
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         A[Next.js 14 App Router]
         B[React Components]
         C[Shadcn/ui + Tailwind]
     end
 
-    subgraph "State Management"
+    subgraph 'State Management'
         D[Zustand - Global State]
         E[React Query - Server State]
         F[React Hook Form - Form State]
     end
 
-    subgraph "Backend Layer"
+    subgraph 'Backend Layer'
         G[Next.js API Routes]
         H[Server Actions]
         I[Prisma ORM]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         J[(PostgreSQL Database)]
         K[Mock Data - JSON]
     end
 
-    subgraph "Business Modules"
+    subgraph 'Business Modules'
         L[Finance]
         M[Inventory Management]
         N[Procurement]

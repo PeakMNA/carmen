@@ -16,6 +16,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial validation specification created |
 
 ---
@@ -103,7 +104,7 @@ const costSettingsSchema = z.object({
   return total <= 100
 }, {
   message: "Total of all cost percentages cannot exceed 100%",
-  path: ["targetFoodCostPercentage"] // Show error on last field
+  path: ['targetFoodCostPercentage'] // Show error on last field
 })
 
 // Margin settings nested schema
@@ -119,7 +120,7 @@ const marginSettingsSchema = z.object({
   return data.targetMargin >= data.minimumMargin
 }, {
   message: "Target margin must be greater than or equal to minimum margin",
-  path: ["targetMargin"]
+  path: ['targetMargin']
 })
 
 // Base category schema
@@ -290,7 +291,7 @@ export const categoryFilterSchema = z.object({
   return true
 }, {
   message: "Minimum recipes cannot be greater than maximum recipes",
-  path: ["maxRecipes"]
+  path: ['maxRecipes']
 }).refine((data) => {
   if (data.minMargin !== null && data.maxMargin !== null) {
     return data.minMargin <= data.maxMargin
@@ -298,7 +299,7 @@ export const categoryFilterSchema = z.object({
   return true
 }, {
   message: "Minimum margin cannot be greater than maximum margin",
-  path: ["maxMargin"]
+  path: ['maxMargin']
 })
 
 export type CategoryFilter = z.infer<typeof categoryFilterSchema>
@@ -1385,7 +1386,7 @@ export const warningMessages = {
         <Input {...field} placeholder="APP" />
       </FormControl>
       <FormMessage />
-      {/* Error: "Category code 'APP' is already in use" */}
+      {/* Error: 'Category code 'APP' is already in use' */}
     </FormItem>
   )}
 />
@@ -1508,8 +1509,8 @@ export function CreateCategoryForm() {
     "text-green-600"
   )}>
     {totalCost.toFixed(2)}%
-    {totalCost > 100 && " (exceeds 100%)"}
-    {totalCost > 85 && totalCost <= 100 && " (high)"}
+    {totalCost > 100 && ' (exceeds 100%)'}
+    {totalCost > 85 && totalCost <= 100 && ' (high)'}
   </span>
 </div>
 

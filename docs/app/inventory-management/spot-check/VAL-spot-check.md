@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version |
 | 2.0.0 | 2025-12-06 | System | Updated to reflect actual implementation with client-side validation |
 | 2.1.0 | 2025-12-09 | System | Updated for 2-step wizard, revised SelectionMethod values |
@@ -644,7 +645,7 @@ function isValidItemTransition(from: ItemCheckStatus, to: ItemCheckStatus): bool
   (data) => !data.dueDate || data.dueDate >= data.scheduledDate,
   {
     message: "Due date must be on or after scheduled date",
-    path: ["dueDate"]
+    path: ['dueDate']
   }
 )
 ```
@@ -843,7 +844,7 @@ const spotCheckFormSchema = z.object({
   },
   {
     message: "Item count or selected items required based on selection method",
-    path: ["itemCount"]
+    path: ['itemCount']
   }
 )
 ```

@@ -194,7 +194,7 @@
 - Audit log
 
 **Test Data:**
-- Transaction ID: TXN-2025-001234
+- Transaction ID: TXN-2501-001234
 - Date: Today's date
 - Location: Downtown Store
 - 5 line items

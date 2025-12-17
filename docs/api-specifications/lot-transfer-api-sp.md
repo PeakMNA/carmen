@@ -127,7 +127,7 @@ RETURNS TABLE (
 POST /api/lot-transfers
 {
   "itemId": "ITEM-001",
-  "lotNumber": "LOT-2024-001",
+  "lotNumber": "LOT-2401-0001",
   "fromLocationId": "LOC-001",
   "toLocationId": "LOC-002",
   "quantity": 50,
@@ -144,7 +144,7 @@ POST /api/lot-transfers
 
 // Response
 {
-  "transferId": "TRF-2024-001",
+  "transferId": "TRF-2401-0001",
   "status": "Pending",
   "validations": {
     "isValid": true,
@@ -185,7 +185,7 @@ POST /api/lot-transfers
     "item": {
       "id": "ITEM-001",
       "name": "Laptop Dell XPS 13",
-      "lotNumber": "LOT-2024-001"
+      "lotNumber": "LOT-2401-0001"
     },
     "locations": {
       "from": {
@@ -216,7 +216,7 @@ POST /api/lot-transfers
 #### Process Transfer
 ```typescript
 // Request
-POST /api/lot-transfers/TRF-2024-001/process
+POST /api/lot-transfers/TRF-2401-0001/process
 {
   "actualQuantity": 50,
   "transferDate": "2024-03-28T10:00:00Z",
@@ -265,7 +265,7 @@ POST /api/lot-transfers/TRF-2024-001/process
     "timestamp": "2024-03-28T09:45:00Z"
   },
   "lotStatus": {
-    "lotNumber": "LOT-2024-001",
+    "lotNumber": "LOT-2401-0001",
     "qualityStatus": "Good",
     "shelfLifeStatus": "Valid"
   }
@@ -277,18 +277,18 @@ POST /api/lot-transfers/TRF-2024-001/process
 #### Get Transfer History
 ```typescript
 // Request
-GET /api/lot-transfers/history?lotNumber=LOT-2024-001
+GET /api/lot-transfers/history?lotNumber=LOT-2401-0001
 
 // Response
 {
-  "lotNumber": "LOT-2024-001",
+  "lotNumber": "LOT-2401-0001",
   "itemDetails": {
     "id": "ITEM-001",
     "name": "Laptop Dell XPS 13"
   },
   "transfers": [
     {
-      "transferId": "TRF-2024-001",
+      "transferId": "TRF-2401-0001",
       "type": "Internal",
       "status": "Completed",
       "fromLocation": {
@@ -404,7 +404,7 @@ GET /api/lot-transfers/history?lotNumber=LOT-2024-001
   "error": "InsufficientQuantityError",
   "message": "Available quantity less than requested transfer quantity",
   "details": {
-    "lotNumber": "LOT-2024-001",
+    "lotNumber": "LOT-2401-0001",
     "availableQuantity": 48,
     "requestedQuantity": 50,
     "locationId": "LOC-001"
@@ -416,9 +416,9 @@ GET /api/lot-transfers/history?lotNumber=LOT-2024-001
   "error": "QualityHoldError",
   "message": "Lot is currently under quality hold",
   "details": {
-    "lotNumber": "LOT-2024-001",
+    "lotNumber": "LOT-2401-0001",
     "holdType": "Quality Investigation",
-    "holdReference": "QH-2024-001",
+    "holdReference": "QH-2401-0001",
     "holdDate": "2024-03-27T09:00:00Z"
   }
 }

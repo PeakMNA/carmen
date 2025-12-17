@@ -24,8 +24,8 @@ export default function EnhancedPRDemoPage() {
 
   // Mock PR data
   const prData = {
-    id: "PR-2024-001",
-    refNumber: "PR-2024-001",
+    id: "PR-2410-001",
+    refNumber: "PR-2410-001",
     title: "Q1 Office Supplies & Equipment",
     requestor: "John Doe",
     department: "Operations",

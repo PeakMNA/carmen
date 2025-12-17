@@ -9,6 +9,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -98,12 +99,12 @@ flowchart TD
     RealTimeValidate --> ClickSave[User Clicks Save]
 
     ClickSave --> ValidateForm[Validate All Fields]
-    ValidateForm --> CheckDuplicates{Check Duplicates<br/>excluding self?}
+    ValidateForm --> CheckDuplicates{Check Duplicates<br>excluding self?}
 
     CheckDuplicates -->|Duplicate| ShowError[Show Duplicate Error]
     ShowError --> ModifyFields
 
-    CheckDuplicates -->|Unique| CheckMarginChange{Margin Changed<br/>& Recipe Count >= 10?}
+    CheckDuplicates -->|Unique| CheckMarginChange{Margin Changed<br>& Recipe Count >= 10?}
 
     CheckMarginChange -->|Yes| ShowWarningDialog[Show Warning Dialog]
     ShowWarningDialog --> Confirm{User Confirms?}
@@ -138,29 +139,29 @@ flowchart TD
     Start([User Clicks Delete]) --> FetchCounts[Fetch Recipe & Subcategory Counts]
     FetchCounts --> OpenDialog[Open Delete Confirmation]
 
-    OpenDialog --> CheckActive{Has Active<br/>Recipes?}
+    OpenDialog --> CheckActive{Has Active<br>Recipes?}
     CheckActive -->|Yes| BlockDelete[Show Error: Cannot Delete]
     BlockDelete --> Cancel[User Clicks Cancel]
     Cancel --> End1([Deletion Cancelled])
 
-    CheckActive -->|No| CheckSubcats{Has<br/>Subcategories?}
+    CheckActive -->|No| CheckSubcats{Has<br>Subcategories?}
     CheckSubcats -->|Yes| BlockDelete
 
-    CheckSubcats -->|No| CheckInactive{Has Inactive<br/>Recipes?}
+    CheckSubcats -->|No| CheckInactive{Has Inactive<br>Recipes?}
     CheckInactive -->|Yes| ShowWarning[Show Warning + Checkbox]
     CheckInactive -->|No| ShowSafe[Show Safe Delete Message]
 
-    ShowWarning --> WaitConfirm{Checkbox<br/>Checked?}
+    ShowWarning --> WaitConfirm{Checkbox<br>Checked?}
     WaitConfirm -->|No| DisableButton[Disable Confirm Button]
     DisableButton --> WaitConfirm
 
     WaitConfirm -->|Yes| EnableButton[Enable Confirm Button]
     ShowSafe --> EnableButton
 
-    EnableButton --> UserConfirm{User Clicks<br/>Confirm?}
+    EnableButton --> UserConfirm{User Clicks<br>Confirm?}
     UserConfirm -->|No| Cancel
 
-    UserConfirm -->|Yes| UnassignRecipes{Has Inactive<br/>Recipes?}
+    UserConfirm -->|Yes| UnassignRecipes{Has Inactive<br>Recipes?}
     UnassignRecipes -->|Yes| UnassignAll[Unassign All Recipes]
     UnassignRecipes -->|No| DeleteRecord[Delete Category Record]
 
@@ -219,7 +220,7 @@ flowchart TD
     UserAction -->|Clicks Clear Filters| ResetFilters[Reset All Filters]
     ResetFilters --> InitialLoad
 
-    UserAction -->|Clicks Export| DetermineScope{Filters/Selection<br/>Active?}
+    UserAction -->|Clicks Export| DetermineScope{Filters/Selection<br>Active?}
     DetermineScope -->|Yes| ExportFiltered[Export Filtered/Selected]
     DetermineScope -->|No| ExportAll[Export All Categories]
     ExportFiltered --> GenerateFile[Generate Export File]
@@ -240,9 +241,9 @@ flowchart TD
     Start([User Views List with Hierarchy]) --> RenderParents[Render Parent Categories]
     RenderParents --> ShowChevrons[Show Chevron Icons]
 
-    ShowChevrons --> UserClick{User Clicks<br/>Chevron?}
+    ShowChevrons --> UserClick{User Clicks<br>Chevron?}
 
-    UserClick -->|Yes| CheckState{Currently<br/>Expanded?}
+    UserClick -->|Yes| CheckState{Currently<br>Expanded?}
 
     CheckState -->|Yes| CollapseAction[Collapse Category]
     CollapseAction --> HideChildren[Hide Subcategories]
@@ -259,11 +260,11 @@ flowchart TD
     Animate2 --> UpdateState2[Update Expanded State Set]
     UpdateState2 --> UserClick
 
-    UserClick -->|No| OtherAction{User Performs<br/>Other Action?}
+    UserClick -->|No| OtherAction{User Performs<br>Other Action?}
 
     OtherAction -->|Search/Filter| MaintainState[Maintain Expansion State]
     MaintainState --> ApplySearchFilter[Apply Search/Filter]
-    ApplySearchFilter --> AutoExpand{Match in<br/>Subcategory?}
+    ApplySearchFilter --> AutoExpand{Match in<br>Subcategory?}
     AutoExpand -->|Yes| ForceExpand[Auto-expand Parent]
     AutoExpand -->|No| RenderFiltered[Render Filtered Results]
     ForceExpand --> RenderFiltered
@@ -302,7 +303,7 @@ flowchart TD
     ShowMenu --> UserAction
     HideMenu --> UserAction
 
-    UserAction -->|Clicks Select All| CheckFilters{Filters<br/>Active?}
+    UserAction -->|Clicks Select All| CheckFilters{Filters<br>Active?}
     CheckFilters -->|Yes| SelectFiltered[Select All Filtered Categories]
     CheckFilters -->|No| SelectAll[Select All Visible Categories]
     SelectFiltered --> UpdateCount2[Update Selected Count]
@@ -355,7 +356,7 @@ flowchart TD
     Start([Recipe Change Event]) --> DetectChange[Detect Recipe Create/Update/Delete]
     DetectChange --> GetCategoryID[Get Category ID from Recipe]
 
-    GetCategoryID --> CheckCategory{Category<br/>Exists?}
+    GetCategoryID --> CheckCategory{Category<br>Exists?}
     CheckCategory -->|No| End1([Skip Calculation])
 
     CheckCategory -->|Yes| StartCalc[Start Metric Calculation]
@@ -364,7 +365,7 @@ flowchart TD
     CountActive --> CalcAvgCost[Calculate Average Cost]
     CalcAvgCost --> CalcAvgMargin[Calculate Average Margin]
 
-    CalcAvgMargin --> CheckThresholds{Average Margin<br/>vs Targets?}
+    CalcAvgMargin --> CheckThresholds{Average Margin<br>vs Targets?}
     CheckThresholds -->|Below Minimum| SetRedBadge[Set Performance Badge: RED]
     CheckThresholds -->|Between Min & Target| SetYellowBadge[Set Performance Badge: YELLOW]
     CheckThresholds -->|At/Above Target| SetGreenBadge[Set Performance Badge: GREEN]
@@ -374,7 +375,7 @@ flowchart TD
     SetGreenBadge --> UpdateDB
 
     UpdateDB --> SetTimestamp[Set last_updated Timestamp]
-    SetTimestamp --> CheckParent{Has Parent<br/>Category?}
+    SetTimestamp --> CheckParent{Has Parent<br>Category?}
 
     CheckParent -->|Yes| TriggerParent[Trigger Parent Metric Recalculation]
     CheckParent -->|No| ClearCache[Clear React Query Cache]
@@ -430,7 +431,7 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([User Attempts Action]) --> CheckAuth{User<br/>Authenticated?}
+    Start([User Attempts Action]) --> CheckAuth{User<br>Authenticated?}
     CheckAuth -->|No| RedirectLogin[Redirect to Login]
     RedirectLogin --> End1([Action Denied])
 
@@ -442,11 +443,11 @@ flowchart TD
     DetermineAction -->|Delete| CheckDeletePerm[Check category.delete Permission]
     DetermineAction -->|Export| CheckExportPerm[Check category.export Permission]
 
-    CheckViewPerm --> HasViewPerm{Has<br/>Permission?}
-    CheckCreatePerm --> HasCreatePerm{Has<br/>Permission?}
-    CheckEditPerm --> HasEditPerm{Has<br/>Permission?}
-    CheckDeletePerm --> HasDeletePerm{Has<br/>Permission?}
-    CheckExportPerm --> HasExportPerm{Has<br/>Permission?}
+    CheckViewPerm --> HasViewPerm{Has<br>Permission?}
+    CheckCreatePerm --> HasCreatePerm{Has<br>Permission?}
+    CheckEditPerm --> HasEditPerm{Has<br>Permission?}
+    CheckDeletePerm --> HasDeletePerm{Has<br>Permission?}
+    CheckExportPerm --> HasExportPerm{Has<br>Permission?}
 
     HasViewPerm -->|No| ShowError[Show Permission Denied Error]
     HasCreatePerm -->|No| ShowError
@@ -502,12 +503,12 @@ flowchart TD
     DetectError -->|Network Error| ShowToast[Show Error Toast]
     ShowToast --> MaintainState[Maintain Form State]
     MaintainState --> ProvideRetry[Show Retry Button]
-    ProvideRetry --> UserRetries{User Clicks<br/>Retry?}
+    ProvideRetry --> UserRetries{User Clicks<br>Retry?}
     UserRetries -->|Yes| RetryAction[Retry Original Action]
     UserRetries -->|No| End2([Action Cancelled])
     RetryAction --> CheckSuccess{Successful?}
     CheckSuccess -->|No| IncrementRetry[Increment Retry Count]
-    IncrementRetry --> CheckRetries{Retry Count<br/>> 3?}
+    IncrementRetry --> CheckRetries{Retry Count<br>> 3?}
     CheckRetries -->|Yes| ShowPersistent[Show Persistent Error]
     CheckRetries -->|No| ShowToast
     ShowPersistent --> SuggestSupport[Suggest Contacting Support]

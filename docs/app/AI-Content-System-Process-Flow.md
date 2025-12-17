@@ -536,6 +536,7 @@ Content-Type: application/json
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 ## Process 4: Human Editing in WordPress
@@ -1001,7 +1002,7 @@ INSERT INTO rag_queries (
 ) VALUES (
   'What are the latest trends in hospitality technology for improving guest experiences?',
   'corpora-abc123',
-  '[{"source": {"title": "The Future of Hospitality Technology"}, "relevanceScore": 0.94}]'::jsonb,
+  '[{"source": {'title': 'The Future of Hospitality Technology'}, 'relevanceScore': 0.94}]'::jsonb,
   'Based on the latest research in hospitality technology...',
   0.94,
   '2025-01-10T15:46:00.000Z', -- 1 hour from now

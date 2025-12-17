@@ -518,23 +518,40 @@ export default function RecipeList() {
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    <div className="flex gap-2">
-                      <Link href={`/operational-planning/recipe-management/recipes/${recipe.id}`}>
-                        <Button variant="outline" size="sm">
-                          <FileText className="h-4 w-4 mr-2" />
-                          View
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="h-4 w-4" />
+                          <span className="sr-only">Open menu</span>
                         </Button>
-                      </Link>
-                      <Link href={`/operational-planning/recipe-management/recipes/${recipe.id}/edit`}>
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4 mr-2" />
-                          Edit
-                        </Button>
-                      </Link>
-                      <Button size="sm" variant="outline">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem asChild>
+                          <Link href={`/operational-planning/recipe-management/recipes/${recipe.id}`}>
+                            <FileText className="h-4 w-4 mr-2" />
+                            View Details
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem asChild>
+                          <Link href={`/operational-planning/recipe-management/recipes/${recipe.id}/edit`}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <Printer className="h-4 w-4 mr-2" />
+                          Print
+                        </DropdownMenuItem>
+                        <DropdownMenuItem>
+                          <FileDown className="h-4 w-4 mr-2" />
+                          Export
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="text-destructive focus:text-destructive">
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </TableCell>
                 </TableRow>
               ))}

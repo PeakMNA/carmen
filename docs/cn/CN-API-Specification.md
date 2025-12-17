@@ -497,12 +497,12 @@ POST /api/credit-notes
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
-  "refNumber": "CN-2024-0001",
+  "refNumber": "CN-2401-0001",
   "date": "2024-03-15T10:00:00Z",
   "poId": "550e8400-e29b-41d4-a716-446655440000",
-  "poRefNumber": "PO-2024-0001",
+  "poRefNumber": "PO-2401-0001",
   "grnId": "550e8400-e29b-41d4-a716-446655440001",
-  "grnRefNumber": "GRN-2024-0001",
+  "grnRefNumber": "GRN-2401-0001",
   "status": "Draft",
   "type": "Return",
   "reason": "Damaged items received",
@@ -588,7 +588,7 @@ POST /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/complete
 ```json
 {
   "id": "550e8400-e29b-41d4-a716-446655440006",
-  "refNumber": "CN-2024-0001",
+  "refNumber": "CN-2401-0001",
   "status": "Completed",
   "updatedAt": "2024-03-15T14:30:45Z",
   "message": "Credit note has been completed successfully"
@@ -606,7 +606,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/inventory-impact
 ```json
 {
   "creditNoteId": "550e8400-e29b-41d4-a716-446655440006",
-  "refNumber": "CN-2024-0001",
+  "refNumber": "CN-2401-0001",
   "items": [
     {
       "itemId": "550e8400-e29b-41d4-a716-446655440008",
@@ -615,7 +615,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/inventory-impact
       "quantityReturned": 5,
       "unit": "EA",
       "warehouseLocation": "Shelf A-123",
-      "lotNumber": "LOT-2024-001",
+      "lotNumber": "LOT-2401-0001",
       "expiryDate": "2025-12-31",
       "currentStock": 50,
       "newStock": 55,
@@ -628,7 +628,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/inventory-impact
       "quantityReturned": 2,
       "unit": "EA",
       "warehouseLocation": "Shelf B-456",
-      "lotNumber": "LOT-2024-002",
+      "lotNumber": "LOT-2401-0002",
       "expiryDate": "2025-10-15",
       "currentStock": 25,
       "newStock": 27,
@@ -656,7 +656,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/financial-impact
 ```json
 {
   "creditNoteId": "550e8400-e29b-41d4-a716-446655440006",
-  "refNumber": "CN-2024-0001",
+  "refNumber": "CN-2401-0001",
   "journalEntries": [
     {
       "id": "550e8400-e29b-41d4-a716-446655440011",
@@ -664,7 +664,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/financial-impact
       "accountName": "Accounts Payable",
       "debit": 111.29,
       "credit": 0,
-      "description": "Credit note CN-2024-0001 for vendor Acme Supplies"
+      "description": "Credit note CN-2401-0001 for vendor Acme Supplies"
     },
     {
       "id": "550e8400-e29b-41d4-a716-446655440012",
@@ -672,7 +672,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/financial-impact
       "accountName": "Inventory",
       "debit": 0,
       "credit": 104.00,
-      "description": "Inventory return for credit note CN-2024-0001"
+      "description": "Inventory return for credit note CN-2401-0001"
     },
     {
       "id": "550e8400-e29b-41d4-a716-446655440013",
@@ -680,7 +680,7 @@ GET /api/credit-notes/550e8400-e29b-41d4-a716-446655440006/financial-impact
       "accountName": "Sales Tax Payable",
       "debit": 0,
       "credit": 7.29,
-      "description": "Tax adjustment for credit note CN-2024-0001"
+      "description": "Tax adjustment for credit note CN-2401-0001"
     }
   ],
   "taxEntries": [

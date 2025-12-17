@@ -256,6 +256,16 @@ export interface RecipeCategory extends Category {
   // Menu organization
   menuSection?: string;
   displayOrder?: number;
+  // Cost and margin settings (inherited by recipes in this category)
+  defaultCostSettings?: {
+    laborCostPercentage: number;
+    overheadPercentage: number;
+    targetFoodCostPercentage: number;
+  };
+  defaultMargins?: {
+    minimumMargin: number;
+    targetMargin: number;
+  };
 }
 
 // ====== CUISINE TYPES ======
@@ -439,6 +449,128 @@ export interface QualityCheck {
   checkedAt: Date;
   notes?: string;
   correctiveAction?: string;
+}
+
+// ====== EQUIPMENT MANAGEMENT ======
+
+/**
+ * Equipment status types
+ */
+export type EquipmentStatus = 'active' | 'inactive' | 'maintenance' | 'retired';
+
+/**
+ * Equipment category types
+ */
+export type EquipmentCategory =
+  | 'cooking'
+  | 'preparation'
+  | 'refrigeration'
+  | 'storage'
+  | 'serving'
+  | 'cleaning'
+  | 'small_appliance'
+  | 'utensil'
+  | 'other';
+
+/**
+ * Kitchen equipment used in recipe preparation
+ */
+export interface Equipment {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  category: EquipmentCategory;
+  // Physical details
+  brand?: string;
+  model?: string;
+  serialNumber?: string;
+  // Capacity and specifications
+  capacity?: string; // e.g., "10 liters", "6 burners"
+  powerRating?: string; // e.g., "2000W", "Gas"
+  dimensions?: {
+    width: number;
+    height: number;
+    depth: number;
+    unit: 'cm' | 'inch';
+  };
+  // Location and assignment
+  locationId?: string;
+  station?: string; // Kitchen station (e.g., "Grill Station", "Prep Area")
+  // Operational details
+  operatingInstructions?: string;
+  safetyNotes?: string;
+  cleaningInstructions?: string;
+  // Maintenance
+  maintenanceSchedule?: string; // e.g., "Weekly", "Monthly"
+  lastMaintenanceDate?: Date;
+  nextMaintenanceDate?: Date;
+  // Status and availability
+  status: EquipmentStatus;
+  isPortable: boolean;
+  availableQuantity: number;
+  totalQuantity: number;
+  // Usage tracking
+  usageCount?: number;
+  averageUsageTime?: number; // minutes per use
+  // Media
+  image?: string;
+  manualUrl?: string;
+  // Display
+  displayOrder: number;
+  isActive: boolean;
+  // Audit
+  createdAt?: Date;
+  updatedAt?: Date;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+// ====== RECIPE UNITS MANAGEMENT ======
+
+/**
+ * Recipe unit of measure for ingredients and yields
+ */
+export interface RecipeUnit {
+  id: string;
+  code: string; // e.g., "kg", "ml", "pcs", "tbsp"
+  name: string; // e.g., "Kilogram", "Milliliter", "Pieces", "Tablespoon"
+  pluralName?: string; // e.g., "Kilograms", "Milliliters"
+  // Display
+  displayOrder: number;
+  showInDropdown: boolean;
+  // Precision
+  decimalPlaces: number; // How many decimal places to display
+  roundingMethod: 'round' | 'floor' | 'ceil';
+  // Status
+  isActive: boolean;
+  isSystemUnit: boolean; // System-defined vs user-created
+  // Examples for user guidance
+  example?: string; // e.g., "1 tbsp = 15ml"
+  notes?: string;
+  // Audit
+  createdAt?: Date;
+  updatedAt?: Date;
+  createdBy?: string;
+  updatedBy?: string;
+}
+
+/**
+ * Unit conversion definition
+ */
+export interface UnitConversion {
+  id: string;
+  fromUnitId: string;
+  fromUnitCode: string;
+  toUnitId: string;
+  toUnitCode: string;
+  conversionFactor: number; // fromUnit * factor = toUnit
+  // Context-specific conversions
+  productId?: string; // For product-specific conversions (e.g., 1 egg = 50g)
+  categoryId?: string; // For category-specific conversions
+  isApproximate: boolean; // Whether conversion is approximate
+  notes?: string;
+  isActive: boolean;
 }
 
 // ====== RECIPE ANALYTICS ======

@@ -10,6 +10,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.2.0 | 2025-11-25 | System | Updated address format to Asian international standard; Full certification management with status tracking implemented |
 | 2.1.0 | 2025-11-25 | System | Added multi-address and multi-contact management with primary designation |
 | 2.0.0 | 2025-11-25 | System | Updated to match actual code implementation |
@@ -136,7 +137,7 @@ INDEX vendor_name_u ON tb_vendor(name)
     "default_terms": "NET30",
     "discount_terms": "2/10 NET30",
     "currency_preference": "USD",
-    "payment_methods": ["bank_transfer", "check", "credit_card"]
+    "payment_methods": ['bank_transfer', 'check', 'credit_card']
   },
   "delivery_info": {
     "lead_time_days": 7,
@@ -148,7 +149,7 @@ INDEX vendor_name_u ON tb_vendor(name)
     "enabled": true,
     "username": "vendor@company.com",
     "last_login": "2025-01-15T10:30:00Z",
-    "features": ["view_po", "submit_invoice", "update_pricelist"]
+    "features": ['view_po', 'submit_invoice', 'update_pricelist']
   },
   "certifications_summary": {
     "total": 5,
@@ -166,9 +167,9 @@ INDEX vendor_name_u ON tb_vendor(name)
 **dimension field** - Multi-dimensional attributes:
 ```json
 {
-  "department_ids": ["uuid1", "uuid2"],
-  "location_ids": ["uuid3", "uuid4"],
-  "cost_center_ids": ["uuid5"],
+  "department_ids": ['uuid1', 'uuid2'],
+  "location_ids": ['uuid3', 'uuid4'],
+  "cost_center_ids": ['uuid5'],
   "procurement_category": "food-beverage",
   "vendor_tier": "platinum",
   "geographic_region": "north-america"
@@ -580,8 +581,8 @@ CREATE INDEX idx_vendor_document_expiry
   "review_required": true,
   "reviewed_by_id": "uuid",
   "reviewed_date": "2025-01-16",
-  "tags": ["legal", "annual", "2025"],
-  "related_documents": ["doc_id_1", "doc_id_2"]
+  "tags": ['legal', 'annual', '2025'],
+  "related_documents": ['doc_id_1', 'doc_id_2']
 }
 ```
 

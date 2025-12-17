@@ -3,11 +3,12 @@
 import { useMemo } from 'react'
 import Link from 'next/link'
 import { Department } from '@/lib/types'
-import { mockUsers } from '@/lib/mock-data'
+import { mockUsers, mockLocations } from '@/lib/mock-data'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Edit, Trash2, ArrowLeft, Users, Building2, DollarSign } from 'lucide-react'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Edit, Trash2, ArrowLeft, Users, Building2, MapPin } from 'lucide-react'
 
 interface DepartmentDetailProps {
   department: Department
@@ -16,17 +17,23 @@ interface DepartmentDetailProps {
 }
 
 export function DepartmentDetail({ department, onEdit, onDelete }: DepartmentDetailProps) {
-  // Get department manager
-  const manager = useMemo(() => {
-    if (!department.manager) return null
-    return mockUsers.find(user => user.id === department.manager)
-  }, [department.manager])
+  // Get department managers (heads)
+  const managers = useMemo(() => {
+    if (!department.managers || department.managers.length === 0) return []
+    return mockUsers.filter(user => department.managers?.includes(user.id))
+  }, [department.managers])
 
   // Get assigned users
   const assignedUsers = useMemo(() => {
     if (!department.assignedUsers || department.assignedUsers.length === 0) return []
     return mockUsers.filter(user => department.assignedUsers?.includes(user.id))
   }, [department.assignedUsers])
+
+  // Get assigned locations
+  const assignedLocations = useMemo(() => {
+    if (!department.assignedLocations || department.assignedLocations.length === 0) return []
+    return mockLocations.filter(location => department.assignedLocations?.includes(location.id))
+  }, [department.assignedLocations])
 
   return (
     <div className="space-y-6">
@@ -115,16 +122,27 @@ export function DepartmentDetail({ department, onEdit, onDelete }: DepartmentDet
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
-                Head of Department
+                Department Heads ({managers.length})
               </p>
-              {manager ? (
-                <div className="mt-1">
-                  <p className="text-base font-medium text-gray-900 dark:text-gray-100">
-                    {manager.name}
-                  </p>
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {manager.email}
-                  </p>
+              {managers.length > 0 ? (
+                <div className="mt-2 space-y-2">
+                  {managers.map(manager => (
+                    <div key={manager.id} className="flex items-center gap-2 p-2 bg-gray-50 dark:bg-gray-800 rounded-md">
+                      <div className="flex-shrink-0 h-8 w-8 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                        <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                          {manager.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">
+                          {manager.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">
+                          {manager.email}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <p className="text-base text-gray-500 dark:text-gray-400 mt-1">
@@ -146,43 +164,81 @@ export function DepartmentDetail({ department, onEdit, onDelete }: DepartmentDet
         </CardContent>
       </Card>
 
-      {/* Assigned Users */}
+      {/* Tabs for Users and Locations */}
       <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Assigned Users ({assignedUsers.length})
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          {assignedUsers.length === 0 ? (
-            <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
-              No users assigned to this department
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {assignedUsers.map(user => (
-                <div
-                  key={user.id}
-                  className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
-                >
-                  <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
-                    <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
-                      {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
-                    </span>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                      {user.name}
-                    </p>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
-                      {user.email}
-                    </p>
-                  </div>
+        <CardContent className="pt-6">
+          <Tabs defaultValue="users">
+            <TabsList className="grid w-full grid-cols-2 max-w-md">
+              <TabsTrigger value="users" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Users ({assignedUsers.length})
+              </TabsTrigger>
+              <TabsTrigger value="locations" className="flex items-center gap-2">
+                <MapPin className="h-4 w-4" />
+                Locations ({assignedLocations.length})
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="users" className="mt-6">
+              {assignedUsers.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                  No users assigned to this department
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {assignedUsers.map(user => (
+                    <div
+                      key={user.id}
+                      className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                    >
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-blue-100 dark:bg-blue-900 flex items-center justify-center">
+                        <span className="text-sm font-medium text-blue-700 dark:text-blue-300">
+                          {user.name.split(' ').map((n: string) => n[0]).join('').slice(0, 2)}
+                        </span>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {user.name}
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                          {user.email}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
+              )}
+            </TabsContent>
+
+            <TabsContent value="locations" className="mt-6">
+              {assignedLocations.length === 0 ? (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center py-8">
+                  No locations assigned to this department
+                </p>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  {assignedLocations.map(location => (
+                    <div
+                      key={location.id}
+                      className="flex items-center gap-3 p-3 border border-gray-200 dark:border-gray-700 rounded-lg"
+                    >
+                      <div className="flex-shrink-0 h-10 w-10 rounded-full bg-green-100 dark:bg-green-900 flex items-center justify-center">
+                        <MapPin className="h-5 w-5 text-green-700 dark:text-green-300" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                          {location.name}
+                        </p>
+                        <Badge variant="outline" className="text-xs capitalize">
+                          {location.type}
+                        </Badge>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
     </div>

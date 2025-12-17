@@ -9,6 +9,16 @@
  *
  * VALIDATION SEQUENCE: Transactions → Spot Checks → Physical Counts
  *
+ * TRANSACTION CODE FORMAT: PREFIX-YYMM-NNNN
+ * - PREFIX: Document type (ADJ = Adjustment, TRF = Transfer, SC = Spot Check, PC = Physical Count)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Examples:
+ *   - ADJ-2410-011 = Adjustment #011 from October 2024
+ *   - SC-2410-042 = Spot Check #042 from October 2024
+ *   - PC-2410-015 = Physical Count #015 from October 2024
+ *
  * USAGE:
  * - Import mock data for component development without API
  * - Use helper functions to generate test scenarios
@@ -181,8 +191,8 @@ export const mockTransactionResultsAllPassed: TransactionCheckResult[] = [
  * Used to demonstrate the UI when transaction validations fail.
  *
  * FAILURES:
- * - ADJ: 2 of 12 adjustments not posted (ADJ-2024-011 shown as sample)
- * - TRF: 1 of 8 transfers not posted (TRF-2024-008 shown as sample)
+ * - ADJ: 2 of 12 adjustments not posted (ADJ-2410-011 shown as sample)
+ * - TRF: 1 of 8 transfers not posted (TRF-2410-008 shown as sample)
  *
  * These failures will block period close until resolved.
  */
@@ -200,7 +210,7 @@ export const mockTransactionResultsWithFailures: TransactionCheckResult[] = [
     documentTypeName: 'Inventory Adjustment',
     totalCount: 12,
     pendingCount: 2,
-    sampleDocumentId: 'ADJ-2024-011', // Link to first pending document
+    sampleDocumentId: 'ADJ-2410-011', // Link to first pending document
     isValid: false,
     message: '2 ADJ documents not posted',
   },
@@ -209,7 +219,7 @@ export const mockTransactionResultsWithFailures: TransactionCheckResult[] = [
     documentTypeName: 'Stock Transfer',
     totalCount: 8,
     pendingCount: 1,
-    sampleDocumentId: 'TRF-2024-008', // Link to first pending document
+    sampleDocumentId: 'TRF-2410-008', // Link to first pending document
     isValid: false,
     message: '1 TRF document not posted',
   },
@@ -243,24 +253,24 @@ export const mockTransactionResultsWithFailures: TransactionCheckResult[] = [
  */
 export const mockSpotCheckResultsAllPassed: SpotCheckCheckResult[] = [
   {
-    checkId: 'SC-2024-042',
-    checkNumber: 'SC-2024-042',
+    checkId: 'SC-2410-042',
+    checkNumber: 'SC-2410-042',
     location: 'Main Kitchen',
     status: 'completed',
     isValid: true,
     message: 'Spot check completed',
   },
   {
-    checkId: 'SC-2024-043',
-    checkNumber: 'SC-2024-043',
+    checkId: 'SC-2410-043',
+    checkNumber: 'SC-2410-043',
     location: 'Bar Storage',
     status: 'completed',
     isValid: true,
     message: 'Spot check completed',
   },
   {
-    checkId: 'SC-2024-044',
-    checkNumber: 'SC-2024-044',
+    checkId: 'SC-2410-044',
+    checkNumber: 'SC-2410-044',
     location: 'Cold Storage',
     status: 'completed',
     isValid: true,
@@ -272,28 +282,28 @@ export const mockSpotCheckResultsAllPassed: SpotCheckCheckResult[] = [
  * Mock spot check validation results - With failures.
  *
  * Represents a period where one spot check is still in progress.
- * SC-2024-044 at Cold Storage has 'in-progress' status and blocks close.
+ * SC-2410-044 at Cold Storage has 'in-progress' status and blocks close.
  */
 export const mockSpotCheckResultsWithFailures: SpotCheckCheckResult[] = [
   {
-    checkId: 'SC-2024-042',
-    checkNumber: 'SC-2024-042',
+    checkId: 'SC-2410-042',
+    checkNumber: 'SC-2410-042',
     location: 'Main Kitchen',
     status: 'completed',
     isValid: true,
     message: 'Spot check completed',
   },
   {
-    checkId: 'SC-2024-043',
-    checkNumber: 'SC-2024-043',
+    checkId: 'SC-2410-043',
+    checkNumber: 'SC-2410-043',
     location: 'Bar Storage',
     status: 'completed',
     isValid: true,
     message: 'Spot check completed',
   },
   {
-    checkId: 'SC-2024-044',
-    checkNumber: 'SC-2024-044',
+    checkId: 'SC-2410-044',
+    checkNumber: 'SC-2410-044',
     location: 'Cold Storage',
     status: 'in-progress',
     isValid: false,
@@ -314,24 +324,24 @@ export const mockSpotCheckResultsWithFailures: SpotCheckCheckResult[] = [
  */
 export const mockPhysicalCountResultsAllPassed: PhysicalCountCheckResult[] = [
   {
-    countId: 'PC-2024-015',
-    countNumber: 'PC-2024-015',
+    countId: 'PC-2410-015',
+    countNumber: 'PC-2410-015',
     location: 'Main Warehouse',
     status: 'finalized',
     isValid: true,
     message: 'Count finalized and adjustments posted',
   },
   {
-    countId: 'PC-2024-016',
-    countNumber: 'PC-2024-016',
+    countId: 'PC-2410-016',
+    countNumber: 'PC-2410-016',
     location: 'Production Store',
     status: 'finalized',
     isValid: true,
     message: 'Count finalized and adjustments posted',
   },
   {
-    countId: 'PC-2024-017',
-    countNumber: 'PC-2024-017',
+    countId: 'PC-2410-017',
+    countNumber: 'PC-2410-017',
     location: 'Cold Storage',
     status: 'finalized',
     isValid: true,
@@ -343,29 +353,29 @@ export const mockPhysicalCountResultsAllPassed: PhysicalCountCheckResult[] = [
  * Mock physical count validation results - With failures.
  *
  * Represents a period where one physical count is still in progress.
- * PC-2024-017 at Cold Storage has 'in-progress' status and blocks close.
+ * PC-2410-017 at Cold Storage has 'in-progress' status and blocks close.
  * Even if count is 'completed', it must be 'finalized' (with GL posting).
  */
 export const mockPhysicalCountResultsWithFailures: PhysicalCountCheckResult[] = [
   {
-    countId: 'PC-2024-015',
-    countNumber: 'PC-2024-015',
+    countId: 'PC-2410-015',
+    countNumber: 'PC-2410-015',
     location: 'Main Warehouse',
     status: 'finalized',
     isValid: true,
     message: 'Count finalized and adjustments posted',
   },
   {
-    countId: 'PC-2024-016',
-    countNumber: 'PC-2024-016',
+    countId: 'PC-2410-016',
+    countNumber: 'PC-2410-016',
     location: 'Production Store',
     status: 'finalized',
     isValid: true,
     message: 'Count finalized and adjustments posted',
   },
   {
-    countId: 'PC-2024-017',
-    countNumber: 'PC-2024-017',
+    countId: 'PC-2410-017',
+    countNumber: 'PC-2410-017',
     location: 'Cold Storage',
     status: 'in-progress',
     isValid: false,
@@ -434,8 +444,8 @@ export function generatePassingChecklist(periodId: string): PeriodCloseChecklist
  *
  * FAILURES:
  * - 3 pending transactions (2 ADJ + 1 TRF)
- * - 1 incomplete spot check (SC-2024-044 in-progress)
- * - 1 non-finalized physical count (PC-2024-017 in-progress)
+ * - 1 incomplete spot check (SC-2410-044 in-progress)
+ * - 1 non-finalized physical count (PC-2410-017 in-progress)
  *
  * @param periodId - The period ID to associate with the checklist
  * @returns A PeriodCloseChecklist with validation failures

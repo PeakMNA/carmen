@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added context for inventory costing methods (FIFO or Periodic Average) used for inventory valuation |
 | 1.0.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
 | 1.0.0 | 2025-01-11 | Documentation Team | Initial version from source code analysis |
@@ -430,43 +431,43 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TB
-    subgraph "GRN Module Pages"
-        List["🏠 List Page<br/>/procurement/goods-received-note"]
-        VendorSelect["📋 Vendor Selection<br/>/procurement/goods-received-note/new/vendor-selection"]
-        POSelect["📦 PO Selection<br/>/procurement/goods-received-note/new/po-selection"]
-        Detail["📄 Detail Page<br/>/procurement/goods-received-note/[id]"]
+    subgraph 'GRN Module Pages'
+        List['🏠 List Page<br>/procurement/goods-received-note']
+        VendorSelect['📋 Vendor Selection<br>/procurement/goods-received-note/new/vendor-selection']
+        POSelect['📦 PO Selection<br>/procurement/goods-received-note/new/po-selection']
+        Detail["📄 Detail Page<br>/procurement/goods-received-note/[id]"]
 
-        List --> |"New GRN → From PO"| VendorSelect
-        List --> |"New GRN → Manual"| Detail
-        VendorSelect --> |"Select Vendor"| POSelect
-        POSelect --> |"Select PO Lines"| Detail
-        List --> |"View GRN"| Detail
+        List --> |'New GRN → From PO'| VendorSelect
+        List --> |'New GRN → Manual'| Detail
+        VendorSelect --> |'Select Vendor'| POSelect
+        POSelect --> |'Select PO Lines'| Detail
+        List --> |'View GRN'| Detail
     end
 
-    subgraph "List Page Tabs"
-        L1["All GRNs"]
-        L2["My GRNs"]
-        L3["Draft"]
-        L4["Received"]
-        L5["Committed"]
-        L6["Voided"]
+    subgraph 'List Page Tabs'
+        L1['All GRNs']
+        L2['My GRNs']
+        L3['Draft']
+        L4['Received']
+        L5['Committed']
+        L6['Voided']
     end
 
-    subgraph "Detail Page Tabs"
-        D1["GRN Items"]
-        D2["Extra Costs"]
-        D3["Tax"]
-        D4["Stock Movement"]
-        D5["Financial Summary"]
-        D6["Activity Log"]
-        D7["Comments & Attachments"]
-        D8["Related POs"]
+    subgraph 'Detail Page Tabs'
+        D1['GRN Items']
+        D2['Extra Costs']
+        D3['Tax']
+        D4['Stock Movement']
+        D5['Financial Summary']
+        D6['Activity Log']
+        D7['Comments & Attachments']
+        D8['Related POs']
     end
 
-    subgraph "Dialog Types"
-        Modal["🔲 Modal Dialogs<br/>(21 types)"]
-        Drawer["📱 Drawer Dialogs<br/>(1 type)"]
-        Toast["📬 Toast Notifications<br/>(6 types)"]
+    subgraph 'Dialog Types'
+        Modal['🔲 Modal Dialogs<br>(21 types)']
+        Drawer['📱 Drawer Dialogs<br>(1 type)']
+        Toast['📬 Toast Notifications<br>(6 types)']
     end
 
     List -.-> L1 & L2 & L3 & L4 & L5 & L6
@@ -969,36 +970,36 @@ graph TB
 graph TD
     Start([User Opens GRN Module]) --> List[GRN List Page]
 
-    List --> |"New GRN"| ProcessDialog{Process Type?}
-    ProcessDialog --> |"From PO"| VendorSelect[Vendor Selection]
-    ProcessDialog --> |"Manual"| ManualDetail[Detail Page - Manual]
+    List --> |'New GRN'| ProcessDialog{Process Type?}
+    ProcessDialog --> |'From PO'| VendorSelect[Vendor Selection]
+    ProcessDialog --> |'Manual'| ManualDetail[Detail Page - Manual]
 
-    VendorSelect --> |"Select Vendor"| POSelect[PO Selection]
-    POSelect --> |"Select PO Lines"| PODetail[Detail Page - PO-based]
+    VendorSelect --> |'Select Vendor'| POSelect[PO Selection]
+    POSelect --> |'Select PO Lines'| PODetail[Detail Page - PO-based]
 
-    PODetail --> |"Edit Items Tab"| ItemsEdit[Edit Items & Quantities]
-    ItemsEdit --> |"Save Draft"| PODetail
-    ItemsEdit --> |"Confirm"| ReceivedStatus[GRN Status = RECEIVED]
+    PODetail --> |'Edit Items Tab'| ItemsEdit[Edit Items & Quantities]
+    ItemsEdit --> |'Save Draft'| PODetail
+    ItemsEdit --> |'Confirm'| ReceivedStatus[GRN Status = RECEIVED]
 
-    ManualDetail --> |"Add Items"| ManualItems[Add Items Manually]
-    ManualItems --> |"Save Draft"| ManualDetail
-    ManualItems --> |"Confirm"| ReceivedStatus
+    ManualDetail --> |'Add Items'| ManualItems[Add Items Manually]
+    ManualItems --> |'Save Draft'| ManualDetail
+    ManualItems --> |'Confirm'| ReceivedStatus
 
-    ReceivedStatus --> |"Review"| ReviewTabs{Review Tabs}
-    ReviewTabs --> |"Items"| ItemsTab[Items Tab]
-    ReviewTabs --> |"Extra Costs"| ExtraCostsTab[Extra Costs Tab]
-    ReviewTabs --> |"Tax"| TaxTab[Tax Tab]
+    ReceivedStatus --> |'Review'| ReviewTabs{Review Tabs}
+    ReviewTabs --> |'Items'| ItemsTab[Items Tab]
+    ReviewTabs --> |'Extra Costs'| ExtraCostsTab[Extra Costs Tab]
+    ReviewTabs --> |'Tax'| TaxTab[Tax Tab]
 
-    ExtraCostsTab --> |"Add/Distribute Costs"| DistributeDialog[Distribution Dialog]
-    DistributeDialog --> |"Apply"| RecalculateItems[Recalculate Item Costs]
+    ExtraCostsTab --> |'Add/Distribute Costs'| DistributeDialog[Distribution Dialog]
+    DistributeDialog --> |'Apply'| RecalculateItems[Recalculate Item Costs]
     RecalculateItems --> ReviewTabs
 
-    ItemsTab --> |"Assign Locations"| LocationDialog[Location Selector]
-    LocationDialog --> |"Save"| ItemsTab
+    ItemsTab --> |'Assign Locations'| LocationDialog[Location Selector]
+    LocationDialog --> |'Save'| ItemsTab
 
-    ReviewTabs --> |"Commit to Inventory"| CommitConfirm{Authorization?}
-    CommitConfirm --> |"Authorized"| Commit[Commit GRN]
-    CommitConfirm --> |"Not Authorized"| AuthError[Authorization Required]
+    ReviewTabs --> |'Commit to Inventory'| CommitConfirm{Authorization?}
+    CommitConfirm --> |'Authorized'| Commit[Commit GRN]
+    CommitConfirm --> |'Not Authorized'| AuthError[Authorization Required]
 
     Commit --> CommittedStatus[GRN Status = COMMITTED]
     CommittedStatus --> GenerateMovements[Generate Stock Movements]
@@ -1007,23 +1008,23 @@ graph TD
     UpdatePO --> UpdateInventory[Update Inventory Levels]
     UpdateInventory --> Success([Completion])
 
-    List --> |"View GRN"| ViewDetail[Detail Page - View Mode]
-    ViewDetail --> |"Edit"| EditMode{Can Edit?}
-    EditMode --> |"Draft/Received"| EditDetail[Detail Page - Edit Mode]
-    EditMode --> |"Committed/Voided"| ViewDetail
+    List --> |'View GRN'| ViewDetail[Detail Page - View Mode]
+    ViewDetail --> |'Edit'| EditMode{Can Edit?}
+    EditMode --> |'Draft/Received'| EditDetail[Detail Page - Edit Mode]
+    EditMode --> |'Committed/Voided'| ViewDetail
 
-    EditDetail --> |"Save Changes"| ViewDetail
+    EditDetail --> |'Save Changes'| ViewDetail
 
-    ViewDetail --> |"Void"| VoidDialog{Authorization?}
-    VoidDialog --> |"Authorized"| VoidGRN[Void GRN]
-    VoidDialog --> |"Not Authorized"| AuthError
+    ViewDetail --> |'Void'| VoidDialog{Authorization?}
+    VoidDialog --> |'Authorized'| VoidGRN[Void GRN]
+    VoidDialog --> |'Not Authorized'| AuthError
     VoidGRN --> VoidedStatus[GRN Status = VOIDED]
     VoidedStatus --> List
 
-    ManualDetail --> |"Cancel"| CancelDialog{Discard Changes?}
-    PODetail --> |"Cancel"| CancelDialog
-    CancelDialog --> |"Yes"| List
-    CancelDialog --> |"No"| PODetail
+    ManualDetail --> |'Cancel'| CancelDialog{Discard Changes?}
+    PODetail --> |'Cancel'| CancelDialog
+    CancelDialog --> |'Yes'| List
+    CancelDialog --> |'No'| PODetail
 
     Success --> List
     AuthError --> ReviewTabs
@@ -1045,7 +1046,7 @@ graph TD
 
 #### Journey 1: Create GRN from Purchase Order (PO-Based Workflow)
 
-**Scenario**: Warehouse staff receives delivery of kitchen supplies ordered via PO-2025-0123.
+**Scenario**: Warehouse staff receives delivery of kitchen supplies ordered via PO-2501-0123.
 
 **Steps**:
 
@@ -1068,7 +1069,7 @@ graph TD
 4. **Select Purchase Order Lines**
    - System navigates to PO selection page
    - System displays 3 pending POs for ABC Kitchen Supplies
-   - User selects PO-2025-0123 (Kitchen Equipment order)
+   - User selects PO-2501-0123 (Kitchen Equipment order)
    - System displays 15 line items from the PO
    - User checks 12 items that were actually delivered
    - For each item, user enters:
@@ -1132,7 +1133,7 @@ graph TD
       - Quantities are valid ✓
       - Financial calculations correct ✓
     - System saves GRN with status = RECEIVED
-    - System generates GRN number: GRN-2025-0156
+    - System generates GRN number: GRN-2501-0156
     - User clicks "Commit to Inventory" button
     - System changes status to COMMITTED
     - System generates 12 stock movement records
@@ -1140,8 +1141,8 @@ graph TD
       - Debit: Inventory Asset $5,246.00
       - Debit: VAT Input $509.60
       - Credit: Accounts Payable $5,755.60
-    - System updates PO-2025-0123 fulfillment (12 of 15 items received)
-    - Success toast: "GRN-2025-0156 committed successfully"
+    - System updates PO-2501-0123 fulfillment (12 of 15 items received)
+    - Success toast: "GRN-2501-0156 committed successfully"
     - User can view Stock Movement tab and Financial Summary tab
 
 **Duration**: ~10-15 minutes
@@ -1187,7 +1188,7 @@ graph TD
      - Contact: Mark Johnson
      - Phone: 555-0123
      - Tax ID: 12-3456789
-   - System creates vendor and assigns code: VEN-2025-0234
+   - System creates vendor and assigns code: VEN-2501-0234
    - Vendor selected automatically
 
 4. **Add Items Manually**
@@ -1217,7 +1218,7 @@ graph TD
 5. **Enter GRN Header Information**
    - User enters GRN details:
      - GRN Date: 2025-01-15 (today)
-     - Invoice Number: LHS-2025-0089
+     - Invoice Number: LHS-2501-0089
      - Delivery Note: DN-LHS-123
      - Received By: (auto-filled with current user)
      - Notes: "Emergency purchase for production line motor repair"
@@ -1262,7 +1263,7 @@ graph TD
     - User clicks "Confirm GRN" button
     - System validates all fields complete
     - System changes status to RECEIVED
-    - System assigns final GRN number: GRN-2025-0157
+    - System assigns final GRN number: GRN-2501-0157
     - User clicks "Commit to Inventory" button
     - System requires authorization for manual GRN (over $100)
     - User enters manager authorization code: MGR-AUTH-456
@@ -1272,7 +1273,7 @@ graph TD
       - Generates 4 stock movements to Maintenance Storage
       - Posts journal voucher
       - Updates inventory levels
-    - Success toast: "GRN-2025-0157 committed successfully"
+    - Success toast: "GRN-2501-0157 committed successfully"
 
 **Duration**: ~8-12 minutes
 
@@ -1295,7 +1296,7 @@ graph TD
 
 1. **Create GRN from PO**
    - User follows standard PO-based workflow (Journey 1, steps 1-6)
-   - User selects PO-2025-0145 (Office Supplies order)
+   - User selects PO-2501-0145 (Office Supplies order)
    - PO has 20 line items (various office supplies)
 
 2. **Partial Delivery Detected**
@@ -1377,19 +1378,19 @@ graph TD
     - User clicks "Confirm GRN" button
     - System validates all items have locations
     - System saves GRN with status = RECEIVED
-    - GRN Number: GRN-2025-0158
+    - GRN Number: GRN-2501-0158
     - User clicks "Commit to Inventory" button
     - System commits GRN:
       - Generates stock movements only for accepted items
       - Posts journal voucher for $1,764.50 (accepted amount only)
       - Updates inventory levels in assigned storage locations
-      - Updates PO-2025-0145 as "Partially Received"
+      - Updates PO-2501-0145 as "Partially Received"
       - Flags PO for vendor follow-up (credit note and re-shipment required)
-    - Success toast: "GRN-2025-0158 committed. Damaged/Short items: 29 units ($85.50)"
+    - Success toast: "GRN-2501-0158 committed. Damaged/Short items: 29 units ($85.50)"
 
 12. **Follow-up Actions** (After Commitment)
     - User views Related POs tab
-    - System shows PO-2025-0145 with "Partially Received" status
+    - System shows PO-2501-0145 with "Partially Received" status
     - System shows remaining items not yet received (5 items + 22 short-shipped)
     - User notes in activity log: "Credit note and re-shipment pending"
     - User creates calendar reminder for credit note and delivery follow-up
@@ -1430,7 +1431,7 @@ graph TD
 
 #### Screen Reader Support
 - **ARIA Labels**: All interactive elements have descriptive labels
-  - "GRN Number: GRN-2025-0156"
+  - "GRN Number: GRN-2501-0156"
   - "Received Quantity: 48 units"
   - "Commit to Inventory button - requires authorization"
 - **Status Announcements**: Real-time feedback for actions
@@ -1495,7 +1496,7 @@ Implemented in components using conditional rendering and validation logic:
 Components enforce business rules through conditional logic:
 
 - **Status Transitions**: Edit buttons disabled for COMMITTED/VOID status
-- **GRN Numbering**: System generates unique GRN-YYYY-NNN format numbers
+- **GRN Numbering**: System generates unique GRN-YYMM-NNNN format numbers
 - **Discrepancy Detection**: Auto-flags items where delivered ≠ ordered
 - **Financial Calculations**: Validates journal voucher balance before posting
 

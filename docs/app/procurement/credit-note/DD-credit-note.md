@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.4 | 2025-12-03 | Documentation Team | Updated to support configurable costing method (FIFO or Periodic Average) per system settings |
 | 1.0.3 | 2025-12-03 | Documentation Team | Added Related Shared Data Structures section with references to SM-inventory-operations |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added Backend Data Structures section for server actions and API contracts |
@@ -131,7 +132,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 
 **Primary Identification**:
 - **ID Field**: Unique identifier (UUID, auto-generated)
-- **Business Key**: cnNumber - Human-readable unique identifier following format CN-YYYY-NNN
+- **Business Key**: cnNumber - Human-readable unique identifier following format CN-YYMM-NNNN
 - **Display Name**: cnNumber concatenated with vendor name
 
 **Core Business Fields**:
@@ -176,7 +177,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **grnNumber**: Denormalized GRN number for display
   - Required: No
   - Data type: String (max 50 characters)
-  - Example: "GRN-2024-001"
+  - Example: "GRN-2401-0001"
 
 - **grnDate**: Date of source GRN
   - Required: No
@@ -186,7 +187,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **invoiceReference**: Vendor's original invoice number being credited
   - Required: No (recommended for amount discounts)
   - Data type: String (max 100 characters)
-  - Example: "INV-2024-0523"
+  - Example: "INV-2401-0523"
 
 - **invoiceDate**: Date of original invoice
   - Required: No
@@ -283,7 +284,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **commitmentReference**: Journal voucher or commitment reference number
   - Required: No (NULL until committed)
   - Data type: String (max 50 characters)
-  - Example: "JV-2024-1523"
+  - Example: "JV-2401-001523"
 
 **Void Information**:
 - **voidDate**: Date when credit note was voided
@@ -293,7 +294,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **voidReason**: Reason for voiding credit note
   - Required: No (required if status = VOID)
   - Data type: Text
-  - Example: "Error in quantities, replacement credit note CN-2024-156 created"
+  - Example: "Error in quantities, replacement credit note CN-2401-156 created"
 
 **Audit Fields** (Standard):
 - **createdDate**: Timestamp when credit note was created
@@ -307,18 +308,18 @@ The Credit Note module utilizes data structures defined in the centralized Share
 | Field Name | Data Type | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto | Primary key identifier | 550e8400-e29b-41d4-... | Unique, Non-null |
-| cnNumber | VARCHAR(50) | Yes | Auto | Business identifier | CN-2024-001 | Unique, Format: CN-YYYY-NNN |
+| cnNumber | VARCHAR(50) | Yes | Auto | Business identifier | CN-2401-0001 | Unique, Format: CN-YYMM-NNNN |
 | documentDate | DATE | Yes | - | Credit note issue date | 2024-10-23 | Cannot be >7 days future |
 | vendorId | UUID | Yes | - | Vendor reference | 550e8400-... | FK to vendors.id |
 | vendorName | VARCHAR(255) | Yes | - | Vendor name (denormalized) | ABC Suppliers | Non-empty |
 | vendorCode | VARCHAR(50) | Yes | - | Vendor code (denormalized) | VEND-001 | Non-empty |
 | creditType | VARCHAR(20) | Yes | QUANTITY_RETURN | Credit type classification | QUANTITY_RETURN | QUANTITY_RETURN\|AMOUNT_DISCOUNT |
 | grnId | UUID | No | NULL | GRN reference (optional) | 550e8400-... | FK to goods_receive_notes.id |
-| grnNumber | VARCHAR(50) | No | NULL | GRN number (denormalized) | GRN-2024-001 | - |
+| grnNumber | VARCHAR(50) | No | NULL | GRN number (denormalized) | GRN-2401-0001 | - |
 | grnDate | DATE | No | NULL | GRN date | 2024-10-15 | - |
-| invoiceReference | VARCHAR(100) | No | NULL | Original invoice number | INV-2024-0523 | - |
+| invoiceReference | VARCHAR(100) | No | NULL | Original invoice number | INV-2401-0523 | - |
 | invoiceDate | DATE | No | NULL | Original invoice date | 2024-10-10 | - |
-| taxInvoiceReference | VARCHAR(100) | No | NULL | Tax invoice number | TAX-2024-001 | - |
+| taxInvoiceReference | VARCHAR(100) | No | NULL | Tax invoice number | TAX-2401-0001 | - |
 | taxDate | DATE | No | NULL | Tax invoice date | 2024-10-10 | - |
 | status | VARCHAR(20) | Yes | DRAFT | Credit note lifecycle status | COMMITTED | DRAFT\|COMMITTED\|VOID |
 | creditReason | VARCHAR(50) | Yes | - | Standardized reason code | DAMAGED | DAMAGED\|EXPIRED\|WRONG_DELIVERY\|QUALITY_ISSUE\|PRICE_ADJUSTMENT\|OTHER |
@@ -331,7 +332,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 | totalAmount | DECIMAL(15,2) | Yes | 0.00 | Total credit with tax | 4720.00 | ≥ 0 |
 | notes | TEXT | No | NULL | Internal notes | Vendor acknowledged issues | - |
 | committedDate | DATE | No | NULL | GL commitment date | 2024-10-25 | Cannot be NULL if COMMITTED |
-| commitmentReference | VARCHAR(50) | No | NULL | Commitment reference | JV-2024-1523 | - |
+| commitmentReference | VARCHAR(50) | No | NULL | Commitment reference | JV-2401-001523 | - |
 | voidDate | DATE | No | NULL | Void date | 2024-10-30 | Cannot be NULL if VOID |
 | voidReason | TEXT | No | NULL | Void reason | Error in quantities... | Required if VOID |
 | createdDate | TIMESTAMPTZ | Yes | NOW() | Creation timestamp | 2024-10-23T10:00:00Z | Immutable |
@@ -349,7 +350,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 
 **Unique Constraints**:
 - `cnNumber`: Must be unique among all credit notes (including soft-deleted)
-  - Format: CN-{YYYY}-{NNN} where YYYY is year and NNN is sequential 3-digit number
+  - Format: CN-{YYMM}-{NNN} where YY is 2-digit year and MM is month and NNN is sequential 3-digit number
   - Sequential numbering resets each calendar year
 
 **Foreign Key Relationships**:
@@ -491,7 +492,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **grnNumber**: Source GRN number for this item
   - Required: No (recommended for quantity returns)
   - Data type: String (max 50 characters)
-  - Example: "GRN-2024-001"
+  - Example: "GRN-2401-0001"
 
 - **grnDate**: Source GRN date
   - Required: No
@@ -508,7 +509,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 | productName | VARCHAR(255) | Yes | - | Product name | Commercial Blender | Non-empty |
 | productDescription | TEXT | No | NULL | Product description | 1500W professional blender | - |
 | location | VARCHAR(50) | No | NULL | Storage location code | WH-MAIN | Required for qty returns |
-| lotNo | VARCHAR(50) | No | NULL | Lot number (display) | LOT-2024-001 | - |
+| lotNo | VARCHAR(50) | No | NULL | Lot number (display) | LOT-2401-0001 | - |
 | orderUnit | VARCHAR(20) | Yes | - | Order unit of measure | piece | Non-empty |
 | inventoryUnit | VARCHAR(20) | Yes | - | Inventory unit of measure | piece | Non-empty |
 | rcvQty | DECIMAL(15,3) | No | NULL | Originally received quantity | 50.000 | ≥ 0 if not NULL |
@@ -521,7 +522,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 | taxRate | DECIMAL(5,2) | Yes | 0.00 | Tax rate percentage | 18.00 | 0-100 |
 | tax | DECIMAL(15,2) | Yes | 0.00 | Tax amount | 684.00 | ≥ 0 |
 | total | DECIMAL(15,2) | Yes | 0.00 | Total line amount | 4484.00 | ≥ 0 |
-| grnNumber | VARCHAR(50) | No | NULL | Source GRN number | GRN-2024-001 | - |
+| grnNumber | VARCHAR(50) | No | NULL | Source GRN number | GRN-2401-0001 | - |
 | grnDate | DATE | No | NULL | Source GRN date | 2024-10-15 | - |
 
 #### Data Constraints and Rules
@@ -593,7 +594,7 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **lotNumber**: Inventory lot number being credited
   - Required: Yes
   - Data type: String (max 50 characters)
-  - Example: "LOT-2024-0523"
+  - Example: "LOT-2401-0523"
 
 - **receiveDate**: Date when this lot was originally received
   - Required: Yes
@@ -603,12 +604,12 @@ The Credit Note module utilizes data structures defined in the centralized Share
 - **grnNumber**: GRN number where this lot was originally received
   - Required: Yes
   - Data type: String (max 50 characters)
-  - Example: "GRN-2024-115"
+  - Example: "GRN-2401-0115"
 
 - **invoiceNumber**: Original vendor invoice for this lot
   - Required: No
   - Data type: String (max 100 characters)
-  - Example: "INV-2024-0523"
+  - Example: "INV-2401-0523"
 
 **Quantity and Cost**:
 - **quantity**: Quantity being returned from this lot
@@ -629,10 +630,10 @@ The Credit Note module utilizes data structures defined in the centralized Share
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto | Primary key identifier | 550e8400-e29b-41d4-... | Unique, Non-null |
 | creditNoteItemId | UUID | Yes | - | Parent item reference | 550e8400-... | FK to credit_note_items.id |
-| lotNumber | VARCHAR(50) | Yes | - | Inventory lot number | LOT-2024-0523 | Non-empty |
+| lotNumber | VARCHAR(50) | Yes | - | Inventory lot number | LOT-2401-0523 | Non-empty |
 | receiveDate | DATE | Yes | - | Original receive date | 2024-05-23 | Cannot be future |
-| grnNumber | VARCHAR(50) | Yes | - | Original GRN number | GRN-2024-115 | Non-empty |
-| invoiceNumber | VARCHAR(100) | No | NULL | Original invoice number | INV-2024-0523 | - |
+| grnNumber | VARCHAR(50) | Yes | - | Original GRN number | GRN-2401-0115 | Non-empty |
+| invoiceNumber | VARCHAR(100) | No | NULL | Original invoice number | INV-2401-0523 | - |
 | quantity | DECIMAL(15,3) | Yes | - | Return quantity | 5.000 | > 0 |
 | unitCost | DECIMAL(15,4) | Yes | - | Unit cost from lot | 387.5000 | ≥ 0 |
 
@@ -1395,7 +1396,7 @@ This section defines data structures required for server actions and API contrac
 **CNNumberResponse**:
 - **Description**: Generated CN number
 - **Fields**:
-  - cnNumber: String - Generated number (e.g., CN-2024-001)
+  - cnNumber: String - Generated number (e.g., CN-2401-001)
   - sequence: Integer - Sequence number used
   - year: Integer - Year component
 

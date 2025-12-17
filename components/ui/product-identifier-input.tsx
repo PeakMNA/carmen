@@ -13,7 +13,7 @@
  * - Visual feedback for valid/invalid format
  * - Automatic parsing into code and name parts
  *
- * Created: 2025-11-17 - Per ARC-2024-001
+ * Created: 2025-11-17 - Per ARC-2410-001
  */
 
 import * as React from "react"

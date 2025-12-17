@@ -23,6 +23,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.4.0 | 2025-12-03 | System | Mermaid 8.8.2 compatibility fixes: Updated stateDiagram to stateDiagram-v2, removed unsupported subgraph styling |
 | 2.3.0 | 2025-12-02 | System Analyst | Added Diagram 10: QR Code Generation for Mobile Receiving flow, updated PO creation flow (Diagram 1) to include QR code generation step |
 | 2.1.0 | 2025-12-01 | System | Added Comments & Attachments sidebar feature; Updated page layout description to include collapsible right sidebar with Comments, Attachments, and Activity Log sections |
@@ -62,20 +63,20 @@ graph TD
     ManualEntry --> SelectVendor[Select Vendor]
     SelectVendor --> PopulateForm
     
-    PopulateForm --> EnterDetails[Enter Order Details:<br/>- Delivery Date<br/>- Location<br/>- Terms]
+    PopulateForm --> EnterDetails[Enter Order Details:<br>- Delivery Date<br>- Location<br>- Terms]
     EnterDetails --> AddLineItems[Add/Review Line Items]
-    AddLineItems --> ApplyDiscount[Apply Discount<br/>Optional]
-    ApplyDiscount --> AddShipping[Add Shipping<br/>Optional]
+    AddLineItems --> ApplyDiscount[Apply Discount<br>Optional]
+    ApplyDiscount --> AddShipping[Add Shipping<br>Optional]
     AddShipping --> CalcTotals[Calculate Totals]
-    CalcTotals --> AllocateBudget[Allocate to<br/>Budget Accounts]
+    CalcTotals --> AllocateBudget[Allocate to<br>Budget Accounts]
     
-    AllocateBudget --> ValidateBudget{Budget<br/>Available?}
+    AllocateBudget --> ValidateBudget{Budget<br>Available?}
     ValidateBudget -->|No| ShowBudgetError[Show Budget Error]
     ShowBudgetError --> AdjustPO{Adjust PO?}
     AdjustPO -->|Yes| AddLineItems
     AdjustPO -->|No| CancelCreate[Cancel Creation]
     
-    ValidateBudget -->|Yes| ValidateForm{Form<br/>Valid?}
+    ValidateBudget -->|Yes| ValidateForm{Form<br>Valid?}
     ValidateForm -->|No| ShowErrors[Show Validation Errors]
     ShowErrors --> EnterDetails
     
@@ -83,10 +84,10 @@ graph TD
     CreatePO --> GeneratePONum[Generate PO Number]
     GeneratePONum --> CreateLineItems[Create Line Items]
     CreateLineItems --> CreateBudgetAlloc[Create Budget Allocations]
-    CreateBudgetAlloc --> UpdatePRStatus[Update PR Status<br/>if from PR]
-    UpdatePRStatus --> GenerateQRCode[Generate QR Code<br/>for PO number]
+    CreateBudgetAlloc --> UpdatePRStatus[Update PR Status<br>if from PR]
+    UpdatePRStatus --> GenerateQRCode[Generate QR Code<br>for PO number]
     GenerateQRCode --> CreateAuditLog[Create Audit Log Entry]
-    CreateAuditLog --> End([PO Created<br/>Status: Draft])
+    CreateAuditLog --> End([PO Created<br>Status: Draft])
     
     CancelCreate --> EndCancel([Creation Cancelled])
 ```
@@ -97,53 +98,53 @@ graph TD
 
 ```mermaid
 graph TD
-    Start([PO Status Draft]) --> UserClickSend[User Clicks<br/>Send to Vendor]
+    Start([PO Status Draft]) --> UserClickSend[User Clicks<br>Send to Vendor]
     UserClickSend --> DisplayDialog[Display Send Dialog]
     
-    DisplayDialog --> LoadVendorEmail[Load Vendor<br/>Email Address]
-    LoadVendorEmail --> ValidateEmail{Email<br/>Valid?}
+    DisplayDialog --> LoadVendorEmail[Load Vendor<br>Email Address]
+    LoadVendorEmail --> ValidateEmail{Email<br>Valid?}
     
-    ValidateEmail -->|No| ShowEmailError[Show Error:<br/>Invalid Email]
-    ShowEmailError --> AllowManual[Allow Manual<br/>Email Entry]
+    ValidateEmail -->|No| ShowEmailError[Show Error:<br>Invalid Email]
+    ShowEmailError --> AllowManual[Allow Manual<br>Email Entry]
     AllowManual --> DisplayDialog
     
-    ValidateEmail -->|Yes| PrepareEmail[Prepare Email:<br/>- Subject<br/>- Body Template<br/>- CC Recipients]
-    PrepareEmail --> UserReview[User Reviews<br/>Email Content]
-    UserReview --> UserAdditions{Add CC or<br/>Attachments?}
+    ValidateEmail -->|Yes| PrepareEmail[Prepare Email:<br>- Subject<br>- Body Template<br>- CC Recipients]
+    PrepareEmail --> UserReview[User Reviews<br>Email Content]
+    UserReview --> UserAdditions{Add CC or<br>Attachments?}
     
-    UserAdditions -->|Yes| AddCCAttach[Add CC Recipients<br/>or Attachments]
+    UserAdditions -->|Yes| AddCCAttach[Add CC Recipients<br>or Attachments]
     AddCCAttach --> UserReview
     
-    UserAdditions -->|No| UserConfirm{User<br/>Confirms<br/>Send?}
+    UserAdditions -->|No| UserConfirm{User<br>Confirms<br>Send?}
     UserConfirm -->|No| SaveDraft[Save as Draft]
-    SaveDraft --> EndDraft([Email Saved<br/>Not Sent])
+    SaveDraft --> EndDraft([Email Saved<br>Not Sent])
     
     UserConfirm -->|Yes| GeneratePDF[Generate PO PDF]
-    GeneratePDF --> PDFSuccess{PDF<br/>Generated?}
+    GeneratePDF --> PDFSuccess{PDF<br>Generated?}
     
     PDFSuccess -->|No| PDFError[Show PDF Error]
     PDFError --> RetryPDF{Retry?}
     RetryPDF -->|Yes| GeneratePDF
     RetryPDF -->|No| EndError([Send Failed])
     
-    PDFSuccess -->|Yes| SendEmail[Send Email<br/>with Attachments]
-    SendEmail --> EmailSuccess{Email<br/>Sent?}
+    PDFSuccess -->|Yes| SendEmail[Send Email<br>with Attachments]
+    SendEmail --> EmailSuccess{Email<br>Sent?}
     
     EmailSuccess -->|No| LogEmailError[Log Email Error]
     LogEmailError --> ShowEmailFailed[Show Error Message]
-    ShowEmailFailed --> RetryOptions{User<br/>Action}
+    ShowEmailFailed --> RetryOptions{User<br>Action}
     RetryOptions -->|Retry| SendEmail
-    RetryOptions -->|Download PDF| DownloadPDF[Download PDF<br/>for Manual Send]
+    RetryOptions -->|Download PDF| DownloadPDF[Download PDF<br>for Manual Send]
     RetryOptions -->|Cancel| EndError
-    DownloadPDF --> EndManual([Manual Send<br/>Required])
+    DownloadPDF --> EndManual([Manual Send<br>Required])
     
-    EmailSuccess -->|Yes| UpdatePOStatus[Update PO Status<br/>to 'Sent']
-    UpdatePOStatus --> RecordSentDetails[Record:<br/>- Sent Timestamp<br/>- Sent By<br/>- Recipient Email]
-    RecordSentDetails --> CreateCommLog[Create Communication<br/>Log Entry]
-    CreateCommLog --> SetExpectedAck[Set Expected<br/>Acknowledgment Date]
+    EmailSuccess -->|Yes| UpdatePOStatus[Update PO Status<br>to 'Sent']
+    UpdatePOStatus --> RecordSentDetails[Record:<br>- Sent Timestamp<br>- Sent By<br>- Recipient Email]
+    RecordSentDetails --> CreateCommLog[Create Communication<br>Log Entry]
+    CreateCommLog --> SetExpectedAck[Set Expected<br>Acknowledgment Date]
     SetExpectedAck --> UpdateActivityLog[Update Activity Log]
-    UpdateActivityLog --> NotifyStaff[Notify Purchasing<br/>Staff]
-    NotifyStaff --> End([PO Sent to Vendor<br/>Status: Sent])
+    UpdateActivityLog --> NotifyStaff[Notify Purchasing<br>Staff]
+    NotifyStaff --> End([PO Sent to Vendor<br>Status: Sent])
 ```
 
 **Description**: Process for sending purchase order to vendor via email with PDF attachment.
@@ -154,53 +155,53 @@ graph TD
 
 ```mermaid
 graph TD
-    Start([PO Status Sent or Acknowledged]) --> UserInitiate[User Clicks<br/>Request Change Order]
+    Start([PO Status Sent or Acknowledged]) --> UserInitiate[User Clicks<br>Request Change Order]
     UserInitiate --> DisplayChangeForm[Display Change Order Form]
     
-    DisplayChangeForm --> ShowCurrentPO[Show Current<br/>PO Details<br/>Read-Only]
-    ShowCurrentPO --> UserMakeChanges[User Makes Changes:<br/>- Quantities<br/>- Prices<br/>- Dates<br/>- Add/Remove Items]
+    DisplayChangeForm --> ShowCurrentPO[Show Current<br>PO Details<br>Read-Only]
+    ShowCurrentPO --> UserMakeChanges[User Makes Changes:<br>- Quantities<br>- Prices<br>- Dates<br>- Add/Remove Items]
     
-    UserMakeChanges --> CalculateImpact[Calculate Impact:<br/>- New Totals<br/>- Change %<br/>- Budget Impact]
-    CalculateImpact --> DisplayComparison[Display Comparison:<br/>Original vs New]
+    UserMakeChanges --> CalculateImpact[Calculate Impact:<br>- New Totals<br>- Change %<br>- Budget Impact]
+    CalculateImpact --> DisplayComparison[Display Comparison:<br>Original vs New]
     
-    DisplayComparison --> UserEnterReason[User Enters<br/>Change Reason<br/>Required]
-    UserEnterReason --> UserSubmitChange{User<br/>Submits<br/>Change?}
+    DisplayComparison --> UserEnterReason[User Enters<br>Change Reason<br>Required]
+    UserEnterReason --> UserSubmitChange{User<br>Submits<br>Change?}
     
-    UserSubmitChange -->|No| CancelChange([Change<br/>Cancelled])
+    UserSubmitChange -->|No| CancelChange([Change<br>Cancelled])
     
-    UserSubmitChange -->|Yes| ValidateChanges{Changes<br/>Valid?}
+    UserSubmitChange -->|Yes| ValidateChanges{Changes<br>Valid?}
     ValidateChanges -->|No| ShowErrors[Show Validation Errors]
     ShowErrors --> UserMakeChanges
     
-    ValidateChanges -->|Yes| CheckBudget{Budget<br/>Available<br/>for Increase?}
+    ValidateChanges -->|Yes| CheckBudget{Budget<br>Available<br>for Increase?}
     CheckBudget -->|No| BudgetError[Show Budget Error]
-    BudgetError --> AdjustChange{Adjust<br/>Changes?}
+    BudgetError --> AdjustChange{Adjust<br>Changes?}
     AdjustChange -->|Yes| UserMakeChanges
     AdjustChange -->|No| CancelChange
     
-    CheckBudget -->|Yes| EvaluateSignificance{Total<br/>Change<br/>>10%?}
+    CheckBudget -->|Yes| EvaluateSignificance{Total<br>Change<br>>10%?}
 
-    EvaluateSignificance -->|Yes| RequireManagerAuth[Require Manager<br/>Authorization]
+    EvaluateSignificance -->|Yes| RequireManagerAuth[Require Manager<br>Authorization]
     RequireManagerAuth --> NotifyManager[Notify Manager]
-    NotifyManager --> ManagerReview{Manager<br/>Authorizes?}
+    NotifyManager --> ManagerReview{Manager<br>Authorizes?}
 
     ManagerReview -->|No| RejectChange[Reject Change Order]
     RejectChange --> NotifyRejection[Notify User]
     NotifyRejection --> EndRejected([Change Rejected])
 
-    ManagerReview -->|Yes| ApplyChanges[Apply Changes<br/>Immediately]
+    ManagerReview -->|Yes| ApplyChanges[Apply Changes<br>Immediately]
 
     EvaluateSignificance -->|No| ApplyChanges
     
-    ApplyChanges --> CreateRevision[Create PO Revision<br/>Rev 1, Rev 2, etc.]
+    ApplyChanges --> CreateRevision[Create PO Revision<br>Rev 1, Rev 2, etc.]
     CreateRevision --> UpdatePO[Update PO Details]
-    UpdatePO --> LogHistory[Log All Changes<br/>in History]
-    LogHistory --> CheckPOSent{Was PO<br/>Already<br/>Sent?}
+    UpdatePO --> LogHistory[Log All Changes<br>in History]
+    LogHistory --> CheckPOSent{Was PO<br>Already<br>Sent?}
     
-    CheckPOSent -->|No| UpdateBudget[Update Budget<br/>Encumbrance]
-    CheckPOSent -->|Yes| PrepareVendorNotice[Prepare Vendor<br/>Change Notice]
-    PrepareVendorNotice --> SendChangeNotice[Send Revised PO<br/>to Vendor]
-    SendChangeNotice --> LogVendorComm[Log Vendor<br/>Communication]
+    CheckPOSent -->|No| UpdateBudget[Update Budget<br>Encumbrance]
+    CheckPOSent -->|Yes| PrepareVendorNotice[Prepare Vendor<br>Change Notice]
+    PrepareVendorNotice --> SendChangeNotice[Send Revised PO<br>to Vendor]
+    SendChangeNotice --> LogVendorComm[Log Vendor<br>Communication]
     LogVendorComm --> UpdateBudget
     
     UpdateBudget --> NotifyStakeholders[Notify Stakeholders]
@@ -215,64 +216,64 @@ graph TD
 
 ```mermaid
 graph TD
-    Start([User Initiates Cancellation]) --> CheckPOStatus{Current<br/>PO Status}
+    Start([User Initiates Cancellation]) --> CheckPOStatus{Current<br>PO Status}
     
-    CheckPOStatus -->|Draft| SimpleCancellation[Simple Cancellation<br/>No Vendor Notification]
-    CheckPOStatus -->|Sent/Acknowledged| CheckReceipts{Items<br/>Received?}
+    CheckPOStatus -->|Draft| SimpleCancellation[Simple Cancellation<br>No Vendor Notification]
+    CheckPOStatus -->|Sent/Acknowledged| CheckReceipts{Items<br>Received?}
     
-    CheckReceipts -->|Yes| CannotCancel[Cannot Cancel:<br/>Items Already Received]
-    CannotCancel --> OfferOptions[Offer Options:<br/>- Partial Cancel<br/>- Return Process<br/>- Close PO]
-    OfferOptions --> UserChoice{User<br/>Selects}
-    UserChoice -->|Partial| PartialCancel[Cancel Unreceived<br/>Items Only]
-    UserChoice -->|Return| RedirectReturn[Redirect to<br/>Return Process]
-    UserChoice -->|Close| ClosePO[Close PO as<br/>Completed]
+    CheckReceipts -->|Yes| CannotCancel[Cannot Cancel:<br>Items Already Received]
+    CannotCancel --> OfferOptions[Offer Options:<br>- Partial Cancel<br>- Return Process<br>- Close PO]
+    OfferOptions --> UserChoice{User<br>Selects}
+    UserChoice -->|Partial| PartialCancel[Cancel Unreceived<br>Items Only]
+    UserChoice -->|Return| RedirectReturn[Redirect to<br>Return Process]
+    UserChoice -->|Close| ClosePO[Close PO as<br>Completed]
     UserChoice -->|Cancel| EndNoAction([Action Cancelled])
     
-    CheckReceipts -->|No| CheckShipment{Items<br/>in Transit?}
-    CheckShipment -->|Yes| WarnTransit[Warn: Items May<br/>Arrive, Prepare to Return]
-    WarnTransit --> RequireConfirm{User<br/>Confirms<br/>Risk?}
+    CheckReceipts -->|No| CheckShipment{Items<br>in Transit?}
+    CheckShipment -->|Yes| WarnTransit[Warn: Items May<br>Arrive, Prepare to Return]
+    WarnTransit --> RequireConfirm{User<br>Confirms<br>Risk?}
     RequireConfirm -->|No| EndNoAction
     RequireConfirm -->|Yes| VendorNotification
     
-    CheckShipment -->|No| VendorNotification[Vendor Notification<br/>Required]
+    CheckShipment -->|No| VendorNotification[Vendor Notification<br>Required]
     SimpleCancellation --> ShowCancelDialog[Display Cancellation Dialog]
     VendorNotification --> ShowCancelDialog
     
-    ShowCancelDialog --> RequireReason[Require Cancellation<br/>Reason Entry]
-    RequireReason --> EnterComments[User Enters<br/>Detailed Comments]
-    EnterComments --> CheckAuthority{User Has<br/>Authority?}
+    ShowCancelDialog --> RequireReason[Require Cancellation<br>Reason Entry]
+    RequireReason --> EnterComments[User Enters<br>Detailed Comments]
+    EnterComments --> CheckAuthority{User Has<br>Authority?}
     
-    CheckAuthority -->|No| RequestManagerApproval[Request Manager<br/>Approval]
-    RequestManagerApproval --> ManagerReviews[Manager Reviews<br/>Cancellation Request]
-    ManagerReviews --> ManagerDecision{Manager<br/>Approves?}
-    ManagerDecision -->|No| NotifyDenied[Notify User:<br/>Request Denied]
+    CheckAuthority -->|No| RequestManagerApproval[Request Manager<br>Approval]
+    RequestManagerApproval --> ManagerReviews[Manager Reviews<br>Cancellation Request]
+    ManagerReviews --> ManagerDecision{Manager<br>Approves?}
+    ManagerDecision -->|No| NotifyDenied[Notify User:<br>Request Denied]
     NotifyDenied --> EndDenied([Cancellation Denied])
-    ManagerDecision -->|Yes| ProceedCancel[Proceed with<br/>Cancellation]
+    ManagerDecision -->|Yes| ProceedCancel[Proceed with<br>Cancellation]
     
-    CheckAuthority -->|Yes| UserConfirm{User<br/>Confirms?}
+    CheckAuthority -->|Yes| UserConfirm{User<br>Confirms?}
     UserConfirm -->|No| EndNoAction
     UserConfirm -->|Yes| ProceedCancel
     
-    ProceedCancel --> UpdatePOStatus[Update PO Status<br/>to 'Cancelled']
-    UpdatePOStatus --> RecordCancellation[Record:<br/>- Cancelled Timestamp<br/>- Cancelled By<br/>- Reason]
-    RecordCancellation --> ReleaseBudget[Release Budget<br/>Encumbrance]
+    ProceedCancel --> UpdatePOStatus[Update PO Status<br>to 'Cancelled']
+    UpdatePOStatus --> RecordCancellation[Record:<br>- Cancelled Timestamp<br>- Cancelled By<br>- Reason]
+    RecordCancellation --> ReleaseBudget[Release Budget<br>Encumbrance]
     ReleaseBudget --> UpdatePRStatus{From PR?}
     
-    UpdatePRStatus -->|Yes| RevertPRStatus[Update PR Status<br/>to 'Approved - Not Ordered']
+    UpdatePRStatus -->|Yes| RevertPRStatus[Update PR Status<br>to 'Approved - Not Ordered']
     UpdatePRStatus -->|No| CreateAuditLog
-    RevertPRStatus --> CreateAuditLog[Create Audit Log<br/>Entry]
+    RevertPRStatus --> CreateAuditLog[Create Audit Log<br>Entry]
     
-    CreateAuditLog --> NeedVendorNotice{Vendor<br/>Notification<br/>Needed?}
-    NeedVendorNotice -->|Yes| SendCancellationEmail[Send Cancellation<br/>Notice to Vendor]
-    SendCancellationEmail --> LogVendorComm[Log Vendor<br/>Communication]
+    CreateAuditLog --> NeedVendorNotice{Vendor<br>Notification<br>Needed?}
+    NeedVendorNotice -->|Yes| SendCancellationEmail[Send Cancellation<br>Notice to Vendor]
+    SendCancellationEmail --> LogVendorComm[Log Vendor<br>Communication]
     LogVendorComm --> NotifyStakeholders
     
-    NeedVendorNotice -->|No| NotifyStakeholders[Notify:<br/>- Creator<br/>- Manager<br/>- Budget Controller]
+    NeedVendorNotice -->|No| NotifyStakeholders[Notify:<br>- Creator<br>- Manager<br>- Budget Controller]
     NotifyStakeholders --> End([PO Cancelled])
     
-    PartialCancel --> PartialProcess[Process Partial<br/>Cancellation]
+    PartialCancel --> PartialProcess[Process Partial<br>Cancellation]
     PartialProcess --> End
-    RedirectReturn --> EndRedirect([Redirected to<br/>Return Module])
+    RedirectReturn --> EndRedirect([Redirected to<br>Return Module])
     ClosePO --> EndClosed([PO Closed])
 ```
 
@@ -393,7 +394,7 @@ stateDiagram-v2
 
 ```mermaid
 graph LR
-    subgraph PO_System["Purchase Order System"]
+    subgraph PO_System['Purchase Order System']
         CreatePO[Create PO]
         SendPO[Send PO to Vendor]
         ModifyPO[Modify PO]
@@ -401,12 +402,12 @@ graph LR
         ReceiveGoods[Receive Goods via GRN]
     end
 
-    subgraph Budget_System["Budget Management System"]
-        CheckAvailability[Check Budget<br/>Availability]
-        CreateEncumbrance[Create<br/>Encumbrance]
-        AdjustEncumbrance[Adjust<br/>Encumbrance]
-        ReleaseEncumbrance[Release<br/>Encumbrance]
-        ConvertToExpense[Convert<br/>to Expense]
+    subgraph Budget_System['Budget Management System']
+        CheckAvailability[Check Budget<br>Availability]
+        CreateEncumbrance[Create<br>Encumbrance]
+        AdjustEncumbrance[Adjust<br>Encumbrance]
+        ReleaseEncumbrance[Release<br>Encumbrance]
+        ConvertToExpense[Convert<br>to Expense]
     end
 
     CreatePO -->|Budget Check Request| CheckAvailability
@@ -483,46 +484,46 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    Start([GRN Created]) --> GRNApproved{GRN<br/>Approved?}
+    Start([GRN Created]) --> GRNApproved{GRN<br>Approved?}
     
     GRNApproved -->|No| EndWait([Wait for GRN Approval])
     
-    GRNApproved -->|Yes| GetPORef[Get Referenced<br/>PO ID]
+    GRNApproved -->|Yes| GetPORef[Get Referenced<br>PO ID]
     GetPORef --> FetchPO[Fetch PO Details]
     FetchPO --> GetGRNLines[Get GRN Line Items]
     
-    GetGRNLines --> LoopLines{For Each<br/>GRN Line}
-    LoopLines --> FindPOLine[Find Matching<br/>PO Line Item]
-    FindPOLine --> UpdateReceived[Update<br/>Quantity Received]
-    UpdateReceived --> CalcRemaining[Calculate<br/>Quantity Remaining]
-    CalcRemaining --> CheckTolerance{Within<br/>Tolerance?}
+    GetGRNLines --> LoopLines{For Each<br>GRN Line}
+    LoopLines --> FindPOLine[Find Matching<br>PO Line Item]
+    FindPOLine --> UpdateReceived[Update<br>Quantity Received]
+    UpdateReceived --> CalcRemaining[Calculate<br>Quantity Remaining]
+    CalcRemaining --> CheckTolerance{Within<br>Tolerance?}
     
-    CheckTolerance -->|No| FlagOverReceipt[Flag Over-Receipt<br/>Requires Review]
+    CheckTolerance -->|No| FlagOverReceipt[Flag Over-Receipt<br>Requires Review]
     CheckTolerance -->|Yes| NextLine
-    FlagOverReceipt --> NextLine{More<br/>Lines?}
+    FlagOverReceipt --> NextLine{More<br>Lines?}
     
     NextLine -->|Yes| LoopLines
-    NextLine -->|No| EvaluateStatus[Evaluate Overall<br/>PO Status]
+    NextLine -->|No| EvaluateStatus[Evaluate Overall<br>PO Status]
     
-    EvaluateStatus --> AnyRemaining{Any Items<br/>Remaining?}
-    AnyRemaining -->|Yes| SetPartiallyReceived[Set Status:<br/>'Partially Received']
-    AnyRemaining -->|No| SetFullyReceived[Set Status:<br/>'Fully Received']
+    EvaluateStatus --> AnyRemaining{Any Items<br>Remaining?}
+    AnyRemaining -->|Yes| SetPartiallyReceived[Set Status:<br>'Partially Received']
+    AnyRemaining -->|No| SetFullyReceived[Set Status:<br>'Fully Received']
     
-    SetPartiallyReceived --> UpdateBudget1[Convert Received<br/>Portion to Expense]
-    SetFullyReceived --> UpdateBudget2[Convert All<br/>Encumbrance to Expense]
+    SetPartiallyReceived --> UpdateBudget1[Convert Received<br>Portion to Expense]
+    SetFullyReceived --> UpdateBudget2[Convert All<br>Encumbrance to Expense]
     
     UpdateBudget1 --> LogHistory1[Log Status Change]
     UpdateBudget2 --> LogHistory2[Log Status Change]
     
-    LogHistory1 --> NotifyPartial[Notify Purchasing Staff:<br/>Partial Receipt]
-    LogHistory2 --> NotifyFull[Notify All:<br/>Fully Received]
+    LogHistory1 --> NotifyPartial[Notify Purchasing Staff:<br>Partial Receipt]
+    LogHistory2 --> NotifyFull[Notify All:<br>Fully Received]
     
-    NotifyPartial --> SetAutoComplete{30 Days<br/>Since Full<br/>Receipt?}
+    NotifyPartial --> SetAutoComplete{30 Days<br>Since Full<br>Receipt?}
     NotifyFull --> SetAutoComplete
     
     SetAutoComplete -->|No| End([Status Updated])
     SetAutoComplete -->|Yes| AutoComplete[Auto-Complete PO]
-    AutoComplete --> FinalizeStatus[Set Status:<br/>'Completed']
+    AutoComplete --> FinalizeStatus[Set Status:<br>'Completed']
     FinalizeStatus --> ArchivePO[Archive PO]
     ArchivePO --> End
 ```
@@ -593,44 +594,44 @@ graph TD
 
 ```mermaid
 graph TD
-    Start([PO Created/Updated]) --> CheckPONum{PO Number<br/>Generated?}
+    Start([PO Created/Updated]) --> CheckPONum{PO Number<br>Generated?}
     CheckPONum -->|No| WaitForNum[Wait for PO Number]
     WaitForNum --> CheckPONum
 
-    CheckPONum -->|Yes| BuildValue[Build QR Value<br/>Format: PO:po_number]
+    CheckPONum -->|Yes| BuildValue[Build QR Value<br>Format: PO:po_number]
     BuildValue --> CallQRLib[Call qrcode Library v1.5.3]
 
-    CallQRLib --> SetOptions[Set QR Options:<br/>- Error Correction: M 15%<br/>- Width: 300px<br/>- Margin: 4 modules]
+    CallQRLib --> SetOptions[Set QR Options:<br>- Error Correction: M 15%<br>- Width: 300px<br>- Margin: 4 modules]
     SetOptions --> GenerateImage[Generate Base64 Image]
 
-    GenerateImage --> CheckSuccess{Generation<br/>Success?}
+    GenerateImage --> CheckSuccess{Generation<br>Success?}
     CheckSuccess -->|No| LogError[Log Error]
     LogError --> SetNull[Set qr_code fields = NULL]
     SetNull --> End([QR Code Generation Failed])
 
-    CheckSuccess -->|Yes| StoreValue[Store qr_code value<br/>e.g., "PO:PO-2025-0001"]
-    StoreValue --> StoreImage[Store qr_code_image<br/>Base64 data URL]
-    StoreImage --> StoreTimestamp[Store qr_code_generated_at<br/>Current timestamp]
+    CheckSuccess -->|Yes| StoreValue[Store qr_code value<br>e.g., 'PO:PO-2501-0001']
+    StoreValue --> StoreImage[Store qr_code_image<br>Base64 data URL]
+    StoreImage --> StoreTimestamp[Store qr_code_generated_at<br>Current timestamp]
 
-    StoreTimestamp --> DisplayOnUI[Display QR Code<br/>on PO Detail Page]
-    DisplayOnUI --> ShowActions[Show Actions:<br/>- Download QR<br/>- Copy PO Number]
-    ShowActions --> ShowInstructions[Show Mobile<br/>Scanning Instructions]
+    StoreTimestamp --> DisplayOnUI[Display QR Code<br>on PO Detail Page]
+    DisplayOnUI --> ShowActions[Show Actions:<br>- Download QR<br>- Copy PO Number]
+    ShowActions --> ShowInstructions[Show Mobile<br>Scanning Instructions]
 
     ShowInstructions --> UserAction{User Action?}
-    UserAction -->|Download| DownloadQR[Generate High-Res QR<br/>400x400px, 4 margin]
-    DownloadQR --> SaveFile[Save as PNG:<br/>po_number-QR.png]
+    UserAction -->|Download| DownloadQR[Generate High-Res QR<br>400x400px, 4 margin]
+    DownloadQR --> SaveFile[Save as PNG:<br>po_number-QR.png]
     SaveFile --> UserAction
 
-    UserAction -->|Copy| CopyToClipboard[Copy PO Number<br/>to Clipboard]
-    CopyToClipboard --> ShowConfirm[Show "Copied!"<br/>Confirmation]
+    UserAction -->|Copy| CopyToClipboard[Copy PO Number<br>to Clipboard]
+    CopyToClipboard --> ShowConfirm[Show 'Copied!'<br>Confirmation]
     ShowConfirm --> UserAction
 
     UserAction -->|None| Ready([Ready for Mobile Scan])
 
     Ready --> MobileScan[Mobile App Scans QR]
-    MobileScan --> ExtractPO[Extract PO Number<br/>from QR Value]
+    MobileScan --> ExtractPO[Extract PO Number<br>from QR Value]
     ExtractPO --> FetchPO[API: Fetch PO Details]
-    FetchPO --> CreateGRN[Auto-Create GRN<br/>Status: RECEIVED]
+    FetchPO --> CreateGRN[Auto-Create GRN<br>Status: RECEIVED]
     CreateGRN --> OpenGRNPage[Open GRN Detail Page]
     OpenGRNPage --> MobileEnd([Mobile Receiving Workflow])
 ```
@@ -639,7 +640,7 @@ graph TD
 
 **Key Components**:
 - **QR Library**: qrcode v1.5.3 (npm package)
-- **QR Format**: `PO:{orderNumber}` (e.g., "PO:PO-2025-0001")
+- **QR Format**: `PO:{orderNumber}` (e.g., "PO:PO-2501-0001")
 - **Desktop Component**: `QRCodeSection.tsx` at `app/(main)/procurement/purchase-orders/components/`
 - **Utilities**: `lib/utils/qr-code.ts` with 7+ utility functions
 - **Mobile Integration**: cmobile app scans QR → Extracts PO number → Auto-creates GRN

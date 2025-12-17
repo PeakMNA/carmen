@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version consolidating all shared dialogs |
 
 ---
@@ -57,7 +58,7 @@ Are you sure you want to delete this purchase request? This action cannot be und
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Date**: {DD MMM YYYY}
 - **Total Amount**: {$X,XXX.XX}
 - **Items**: {X} item(s)
@@ -199,7 +200,7 @@ You are about to cancel this purchase request. This action cannot be undone. Can
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Total Amount**: {$X,XXX.XX}
 - **Items**: {X} item(s)
 
@@ -378,7 +379,7 @@ You are about to approve this purchase request. Please review the details and ad
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Requestor**: {Requestor name}
 - **Department**: {Department name}
 - **Total Amount**: {$X,XXX.XX}
@@ -418,7 +419,7 @@ You are about to reject this purchase request. Please provide a reason for rejec
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Requestor**: {Requestor name}
 - **Total Amount**: {$X,XXX.XX}
 
@@ -459,7 +460,7 @@ You are about to recall this purchase request from the approval process. It will
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Current Approver**: {Approver name} ({Role})
 - **Total Amount**: {$X,XXX.XX}
 
@@ -777,13 +778,13 @@ Oct 2023: █████ 5 uses
 
 **Recent Usage Timeline** (reverse chronological):
 ```
-15 Jan 2024, 14:30 • Maria Santos created PR-2024-000123
+15 Jan 2024, 14:30 • Maria Santos created PR-2401-0123
    Items: 12 • Total: $1,234.56 • Status: Approved
 
-12 Jan 2024, 09:15 • David Miller created PR-2024-000115
+12 Jan 2024, 09:15 • David Miller created PR-2401-0115
    Items: 12 • Total: $1,189.00 • Status: Pending Approval
 
-08 Jan 2024, 11:20 • Maria Santos created PR-2024-000098
+08 Jan 2024, 11:20 • Maria Santos created PR-2401-0098
    Items: 11 • Total: $1,105.45 • Status: Completed
 ...
 ```
@@ -987,7 +988,7 @@ Oct 2023: █████ 5 uses
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PR-YYYY-NNNNNN | System-generated reference format |
+| PR-YYMM-NNNN | System-generated reference format |
 | $, USD, EUR | Currency symbols and codes |
 | Numbers (quantities, counts) | Numeric values |
 | Dates and times | System-generated timestamps |

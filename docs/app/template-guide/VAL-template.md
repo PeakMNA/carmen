@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author} | Initial version |
 
 ---
@@ -313,13 +314,13 @@ Data Stored
 **Examples**:
 
 **Scenario 1: Sufficient Budget**
-- Budget Code: DEPT-2025-001
+- Budget Code: DEPT-2501-0001
 - Available: $10,000
 - Requested: $5,000
 - Result: ✅ Passes (sufficient budget)
 
 **Scenario 2: Insufficient Budget**
-- Budget Code: DEPT-2025-001
+- Budget Code: DEPT-2501-0001
 - Available: $2,000
 - Requested: $5,000
 - Result: ❌ Fails (shortfall of $3,000)

@@ -17,6 +17,7 @@ This document outlines the requirements for building an AI-powered content manag
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -513,13 +514,13 @@ Format the output in Markdown with proper headings, lists, and formatting.`
         content: generatedContent,
         storagePath: markdownPath
       }),
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 })
@@ -626,13 +627,13 @@ serve(async (req) => {
         geminiFileId,
         corpusId: GEMINI_CORPUS_ID
       }),
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 })
@@ -678,7 +679,7 @@ serve(async (req) => {
             contexts: cachedQuery.retrieved_contexts,
             cached: true
           }),
-          { headers: { "Content-Type": "application/json" } }
+          { headers: { 'Content-Type': 'application/json' } }
         )
       }
     }
@@ -737,13 +738,13 @@ serve(async (req) => {
         cached: false,
         tokensUsed: geminiData.usageMetadata?.totalTokenCount || 0
       }),
-      { headers: { "Content-Type": "application/json" } }
+      { headers: { 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 })
@@ -807,7 +808,7 @@ serve(async (req) => {
           action: 'updated',
           contentId: existing.id
         }),
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { 'Content-Type': 'application/json' } }
       )
     } else {
       // Create new record (WordPress post created outside AI flow)
@@ -849,14 +850,14 @@ serve(async (req) => {
           action: 'created',
           contentId: newContent.id
         }),
-        { headers: { "Content-Type": "application/json" } }
+        { headers: { 'Content-Type': 'application/json' } }
       )
     }
 
   } catch (error) {
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { 'Content-Type': 'application/json' } }
     )
   }
 })

@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author} | Initial version |
 
 ---
@@ -122,7 +123,7 @@ Use the following markers to indicate schema alignment status:
 
 **Primary Identification**:
 - **ID Field**: Unique identifier (UUID format, auto-generated)
-- **Business Key**: {Natural/human-readable identifier if applicable - e.g., "PR-2024-001"}
+- **Business Key**: {Natural/human-readable identifier if applicable - e.g., "PR-2401-001"}
 - **Display Name**: {Primary field used for display purposes}
 
 **Core Business Fields**:
@@ -186,7 +187,7 @@ Use the following markers to indicate schema alignment status:
 | Field Name | Data Type | Schema Status | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|---------------|----------|---------|-------------|----------------|-------------|
 | id | UUID | ✅ CORE | Yes | Auto-generated | Primary key, unique identifier | 550e8400-... | Unique, Non-null |
-| {business_key} | VARCHAR(100) | ✅ CORE | Yes | - | Human-readable business identifier | PR-2024-001 | Unique within active records |
+| {business_key} | VARCHAR(100) | ✅ CORE | Yes | - | Human-readable business identifier | PR-2401-001 | Unique within active records |
 | name | VARCHAR(255) | ✅ CORE | Yes | - | Display name or title | "Kitchen Equipment Request" | Non-empty string |
 | description | TEXT | ✅ CORE | No | NULL | Detailed description or notes | "Replacement for broken..." | - |
 | status | VARCHAR(50) | ✅ CORE | Yes | 'draft' | Current status in workflow | draft, submitted, approved | Must be from allowed values |
@@ -213,7 +214,7 @@ Use the following markers to indicate schema alignment status:
 **Unique Constraints**:
 - `{business_key}`: Must be unique among non-deleted records
   - Allows reuse after soft delete
-  - Format: {Describe format pattern - e.g., "PR-YYYY-NNN"}
+  - Format: {Describe format pattern - e.g., "PR-YYMM-NNNN"}
 
 **Foreign Key Relationships**:
 - **Parent Entity** (`parent_id` → `parent_table.id`)
@@ -260,7 +261,7 @@ Use the following markers to indicate schema alignment status:
 **Example 1: Standard Purchase Request**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440001
-Business Key: PR-2024-001
+Business Key: PR-2401-001
 Name: Kitchen Equipment Purchase
 Description: New commercial refrigerator for main kitchen
 Status: approved
@@ -274,7 +275,7 @@ Created By: John Smith (Head Chef)
 **Example 2: Multi-item Request**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440002
-Business Key: PR-2024-002
+Business Key: PR-2401-002
 Name: Cleaning Supplies Bulk Order
 Description: Monthly cleaning supplies for housekeeping
 Status: submitted
@@ -289,7 +290,7 @@ Created By: Maria Garcia (Housekeeping Manager)
 **Example 3: Urgent Request**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440003
-Business Key: PR-2024-003
+Business Key: PR-2401-003
 Name: Emergency HVAC Repair Parts
 Description: Replacement parts for broken AC unit in presidential suite
 Status: draft
@@ -336,13 +337,13 @@ Created By: Robert Lee (Chief Engineer)
 
 **Example Scenario**:
 ```
-Parent: Purchase Request PR-2024-001
+Parent: Purchase Request PR-2401-001
 Children:
   - Line Item 1: "Commercial Refrigerator"
   - Line Item 2: "Installation Services"
   - Line Item 3: "Extended Warranty"
 
-When PR-2024-001 is deleted:
+When PR-2401-001 is deleted:
   - All 3 line items are automatically deleted (CASCADE)
   - Ensures no orphaned line items exist
 ```
@@ -388,12 +389,12 @@ When PR-2024-001 is deleted:
 
 **Example Scenario**:
 ```
-Entity A: Purchase Request (PR-2024-001)
+Entity A: Purchase Request (PR-2401-001)
 Entity B: Vendor (Vendor-123, Vendor-456)
 
 Junction Records:
-  - PR-2024-001 ↔ Vendor-123 (role: "primary", priority: 1)
-  - PR-2024-001 ↔ Vendor-456 (role: "backup", priority: 2)
+  - PR-2401-001 ↔ Vendor-123 (role: "primary", priority: 1)
+  - PR-2401-001 ↔ Vendor-456 (role: "backup", priority: 2)
 
 Business meaning:
   - Request can be fulfilled by multiple vendors
@@ -672,7 +673,7 @@ Root: Hotel Operations (parent_id = NULL)
 - Dates: Must be within acceptable business timeframe
 
 **Format Constraints**:
-- Business keys: Follow consistent format (e.g., "PR-YYYY-NNNN")
+- Business keys: Follow consistent format (e.g., "PR-YYMM-NNNN")
 - Phone numbers: Consistent format for easier validation
 - Currency codes: Must be valid ISO 4217 codes
 - Email addresses: Must match email format pattern
@@ -1538,7 +1539,7 @@ Delete test data:
 
 **Business Terms**:
 - **Entity**: Business object represented by a database table (e.g., Purchase Request)
-- **Business Key**: Human-readable identifier (e.g., PR-2024-001)
+- **Business Key**: Human-readable identifier (e.g., PR-2401-001)
 - **Status**: Current state in a workflow (e.g., draft, submitted, approved)
 - **Workflow**: Series of steps and approvals for a business process
 - **Department**: Organizational unit that owns data (e.g., Kitchen, Housekeeping)

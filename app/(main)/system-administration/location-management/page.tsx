@@ -101,7 +101,7 @@ export default function LocationManagementPage() {
   }
 
   const handleExport = () => {
-    const headers = ['Code', 'Name', 'Type', 'Status', 'Physical Count', 'Shelves', 'Products', 'Users', 'Department']
+    const headers = ['Code', 'Name', 'Type', 'Status', 'Physical Count', 'Shelves', 'Products', 'Users']
     const csvData = locations.map(loc => [
       loc.code,
       loc.name,
@@ -110,8 +110,7 @@ export default function LocationManagementPage() {
       loc.physicalCountEnabled ? 'Yes' : 'No',
       loc.shelvesCount,
       loc.assignedProductsCount,
-      loc.assignedUsersCount,
-      loc.departmentName || ''
+      loc.assignedUsersCount
     ])
 
     const csv = [headers, ...csvData].map(row => row.join(',')).join('\n')

@@ -55,6 +55,9 @@ import {
   Package,
   Calendar,
   ClipboardList,
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
 } from 'lucide-react'
 
 // Chart data
@@ -86,7 +89,7 @@ const wastageByLocationData = [
 // Recent wastage records
 const recentWastageRecords = [
   {
-    id: 'WR-2024-0089',
+    id: 'WR-2410-0089',
     date: '2024-01-15',
     location: 'Main Kitchen',
     itemCode: 'BEV-001',
@@ -100,7 +103,7 @@ const recentWastageRecords = [
     status: 'pending',
   },
   {
-    id: 'WR-2024-0088',
+    id: 'WR-2410-0088',
     date: '2024-01-15',
     location: 'Pool Bar',
     itemCode: 'LIQ-003',
@@ -114,7 +117,7 @@ const recentWastageRecords = [
     status: 'approved',
   },
   {
-    id: 'WR-2024-0087',
+    id: 'WR-2410-0087',
     date: '2024-01-14',
     location: 'Rooftop Restaurant',
     itemCode: 'MTT-001',
@@ -128,7 +131,7 @@ const recentWastageRecords = [
     status: 'under_review',
   },
   {
-    id: 'WR-2024-0086',
+    id: 'WR-2410-0086',
     date: '2024-01-14',
     location: 'Lobby Café',
     itemCode: 'BAK-002',
@@ -142,7 +145,7 @@ const recentWastageRecords = [
     status: 'approved',
   },
   {
-    id: 'WR-2024-0085',
+    id: 'WR-2410-0085',
     date: '2024-01-13',
     location: 'Main Kitchen',
     itemCode: 'VEG-005',
@@ -187,14 +190,62 @@ function getReasonBadge(reason: string) {
   }
 }
 
+// ============================================================================
+// SORT CONFIGURATION
+// ============================================================================
+// Sort options for the Recent Wastage Reports table.
+// Users can sort by:
+// - Date: View reports chronologically (newest/oldest first)
+// - Loss Value: Identify top wastage items by cost (highest/lowest)
+// - Item Name: Alphabetical sorting for easy lookup
+// - Quantity: Sort by volume of wastage
+// ============================================================================
+
+type SortField = 'date' | 'totalLoss' | 'itemName' | 'quantity' | 'status'
+type SortDirection = 'asc' | 'desc'
+
+interface SortOption {
+  field: SortField
+  direction: SortDirection
+  label: string
+}
+
+const sortOptions: SortOption[] = [
+  { field: 'date', direction: 'desc', label: 'Date (Newest First)' },
+  { field: 'date', direction: 'asc', label: 'Date (Oldest First)' },
+  { field: 'totalLoss', direction: 'desc', label: 'Loss Value (Highest)' },
+  { field: 'totalLoss', direction: 'asc', label: 'Loss Value (Lowest)' },
+  { field: 'itemName', direction: 'asc', label: 'Item Name (A-Z)' },
+  { field: 'itemName', direction: 'desc', label: 'Item Name (Z-A)' },
+  { field: 'quantity', direction: 'desc', label: 'Quantity (Highest)' },
+  { field: 'quantity', direction: 'asc', label: 'Quantity (Lowest)' },
+]
+
 export default function WastageReportingDashboard() {
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
   const [searchQuery, setSearchQuery] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [locationFilter, setLocationFilter] = useState('all')
+  const [sortBy, setSortBy] = useState('date-desc') // Default: newest reports first
 
-  // Filter records
+  // Parse sort selection into field and direction
+  // Format: "field-direction" (e.g., "totalLoss-desc" for top wastage items)
+  const currentSort = useMemo(() => {
+    const [field, direction] = sortBy.split('-') as [SortField, SortDirection]
+    return { field, direction }
+  }, [sortBy])
+
+  // ============================================================================
+  // FILTER AND SORT RECORDS
+  // ============================================================================
+  // Applies search, status, and location filters, then sorts the results.
+  // Sorting is applied after filtering for better performance.
+  // ============================================================================
   const filteredRecords = useMemo(() => {
-    return recentWastageRecords.filter(record => {
+    // Step 1: Apply filters
+    let records = recentWastageRecords.filter(record => {
       const matchesSearch = record.id.toLowerCase().includes(searchQuery.toLowerCase()) ||
         record.itemName.toLowerCase().includes(searchQuery.toLowerCase()) ||
         record.itemCode.toLowerCase().includes(searchQuery.toLowerCase())
@@ -202,7 +253,39 @@ export default function WastageReportingDashboard() {
       const matchesLocation = locationFilter === 'all' || record.location === locationFilter
       return matchesSearch && matchesStatus && matchesLocation
     })
-  }, [searchQuery, statusFilter, locationFilter])
+
+    // Step 2: Apply sorting based on selected field and direction
+    records = [...records].sort((a, b) => {
+      const { field, direction } = currentSort
+      let comparison = 0
+
+      switch (field) {
+        case 'date':
+          comparison = new Date(a.date).getTime() - new Date(b.date).getTime()
+          break
+        case 'totalLoss':
+          // Sort by loss value - useful for identifying top wastage items
+          comparison = a.totalLoss - b.totalLoss
+          break
+        case 'itemName':
+          comparison = a.itemName.localeCompare(b.itemName)
+          break
+        case 'quantity':
+          comparison = a.quantity - b.quantity
+          break
+        case 'status':
+          comparison = a.status.localeCompare(b.status)
+          break
+        default:
+          comparison = 0
+      }
+
+      // Reverse comparison for descending order
+      return direction === 'desc' ? -comparison : comparison
+    })
+
+    return records
+  }, [searchQuery, statusFilter, locationFilter, currentSort])
 
   return (
     <div className="space-y-6">
@@ -521,6 +604,29 @@ export default function WastageReportingDashboard() {
                 />
               </div>
               <div className="flex gap-2">
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger className="w-[180px]">
+                    <ArrowUpDown className="mr-2 h-4 w-4" />
+                    <SelectValue placeholder="Sort by" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {sortOptions.map((option) => (
+                      <SelectItem
+                        key={`${option.field}-${option.direction}`}
+                        value={`${option.field}-${option.direction}`}
+                      >
+                        <span className="flex items-center gap-2">
+                          {option.direction === 'desc' ? (
+                            <ArrowDown className="h-3 w-3 text-muted-foreground" />
+                          ) : (
+                            <ArrowUp className="h-3 w-3 text-muted-foreground" />
+                          )}
+                          {option.label}
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select value={statusFilter} onValueChange={setStatusFilter}>
                   <SelectTrigger className="w-[150px]">
                     <SelectValue placeholder="Status" />
@@ -607,31 +713,6 @@ export default function WastageReportingDashboard() {
               ))}
             </TableBody>
           </Table>
-        </CardContent>
-      </Card>
-
-      {/* Cross-link Card */}
-      <Card className="bg-amber-50 border-amber-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center flex-shrink-0">
-                <Package className="h-5 w-5 text-amber-600" />
-              </div>
-              <div>
-                <p className="font-medium text-amber-900">Need to adjust inventory levels?</p>
-                <p className="text-sm text-amber-700">
-                  Update stock quantities after wastage is approved in Inventory Management.
-                </p>
-              </div>
-            </div>
-            <Link href="/inventory-management/adjustments">
-              <Button variant="outline" className="border-amber-300 text-amber-700 hover:bg-amber-100">
-                Go to Stock Adjustments
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
         </CardContent>
       </Card>
     </div>

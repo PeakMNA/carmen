@@ -25,8 +25,8 @@ const mockComments: Comment[] = [
     id: 'comment-po-001',
     userId: 'user-buyer-001',
     userName: 'Purchasing Manager Sarah',
-    text: 'Purchase order created from approved PR-2024-0015. Vendor has been notified.',
-    content: 'Purchase order created from approved PR-2024-0015. Vendor has been notified.',
+    text: 'Purchase order created from approved PR-2410-0015. Vendor has been notified.',
+    content: 'Purchase order created from approved PR-2410-0015. Vendor has been notified.',
     timestamp: new Date('2024-01-15T10:30:00Z'),
   },
   {

@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Document Status**: Active
 
@@ -285,7 +286,7 @@ This document defines use cases for the System Integrations module, focusing on 
 
 ### Main Flow (Automated Processing)
 1. System receives POS transaction data:
-   - Transaction ID: "TXN-2025-001234"
+   - Transaction ID: "TXN-2501-001234"
    - POS Item Code: "PIZZA-MARG-SLICE"
    - Quantity: 3
    - POS Location ID: "POS-LOC-001"
@@ -360,7 +361,7 @@ This document defines use cases for the System Integrations module, focusing on 
    - Date Range
    - Location
 3. User views failed transaction details:
-   - Transaction ID: "TXN-2025-001234"
+   - Transaction ID: "TXN-2501-001234"
    - POS Item Code: "NEW-DESSERT-01"
    - Failure Reason: "Unmapped Item"
    - Suggested Action: "Create Recipe Mapping"
@@ -425,7 +426,7 @@ This document defines use cases for the System Integrations module, focusing on 
    - Pending Count: 5 transactions
    - Sorted by oldest first
 3. User views transaction requiring approval:
-   - Transaction ID: "TXN-2025-005678"
+   - Transaction ID: "TXN-2501-005678"
    - POS Item: "Caesar Salad"
    - Quantity Sold: 10
    - Recipe: "Caesar Salad Recipe"

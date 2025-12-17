@@ -563,7 +563,7 @@ CREATE TABLE department_approval_configs (
       max_amount: 2500,
       currency: "USD",
       approvers: [
-        {approver_type: "department_head", approver_id: "user123", priority_order: 1}
+        {approver_type: 'department_head', approver_id: 'user123', priority_order: 1}
       ],
       approval_required: 1,
       timeout_hours: 24,

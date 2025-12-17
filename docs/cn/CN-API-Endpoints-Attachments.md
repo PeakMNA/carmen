@@ -84,7 +84,7 @@ GET /api/credit-notes/:creditNoteId/attachments
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/attachments?fileType=application/pdf
+GET /api/credit-notes/CN-2401-0001/attachments?fileType=application/pdf
 ```
 
 ### Get Attachment by ID
@@ -107,7 +107,7 @@ Attachment
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/attachments/ATT-001
+GET /api/credit-notes/CN-2401-0001/attachments/ATT-001
 ```
 
 ### Upload Attachment
@@ -140,7 +140,7 @@ Attachment
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/attachments
+POST /api/credit-notes/CN-2401-0001/attachments
 {
   "fileName": "damage_evidence.pdf",
   "fileType": "application/pdf",
@@ -168,7 +168,7 @@ Binary file content with appropriate Content-Type header
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/attachments/ATT-001/download
+GET /api/credit-notes/CN-2401-0001/attachments/ATT-001/download
 ```
 
 ### Delete Attachment
@@ -194,7 +194,7 @@ DELETE /api/credit-notes/:creditNoteId/attachments/:attachmentId
 
 **Example:**
 ```
-DELETE /api/credit-notes/CN-2024-001/attachments/ATT-001
+DELETE /api/credit-notes/CN-2401-0001/attachments/ATT-001
 ```
 
 ## Error Responses
@@ -207,7 +207,7 @@ DELETE /api/credit-notes/CN-2024-001/attachments/ATT-001
   "error": "NotFoundError",
   "message": "Attachment not found",
   "details": {
-    "creditNoteId": "CN-2024-001",
+    "creditNoteId": "CN-2401-0001",
     "attachmentId": "ATT-999"
   }
 }

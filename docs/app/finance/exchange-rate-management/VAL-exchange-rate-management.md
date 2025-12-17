@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -417,7 +418,7 @@ Spread: (1.276000 - 1.274000) / 1.274000 × 100% = 0.16%
 - "European Central Bank"
 - "Bank of England"
 - "Citibank Quote"
-- "Forward Contract FWD-2025-001234"
+- "Forward Contract FWD-2501-001234"
 
 **Implementation Requirements**:
 - **Client-Side**: Text input or dropdown with common sources, required field
@@ -857,7 +858,7 @@ Approval: Finance Manager required (5-10% threshold)
 
 **Validation Rule**: Forward exchange rates must have future effective date and mandatory contract reference number.
 
-**Contract Reference Format**: {Contract Type}-{Year}-{Sequence} (e.g., FWD-2025-001234)
+**Contract Reference Format**: {Contract Type}-{Year}-{Sequence} (e.g., FWD-2501-001234)
 
 **Implementation Requirements**:
 - **Client-Side**: When rate_type = 'forward', require effective_until date and contract reference
@@ -866,7 +867,7 @@ Approval: Finance Manager required (5-10% threshold)
 
 **Error Codes**:
 - VAL-EXRATE-111A: "Forward rate requires future effective date and expiry date"
-- VAL-EXRATE-111B: "Forward rate requires contract reference number (e.g., FWD-2025-001234)"
+- VAL-EXRATE-111B: "Forward rate requires contract reference number (e.g., FWD-2501-001234)"
 
 **User Action**: User must provide forward contract details or change rate_type to 'spot'.
 
@@ -876,7 +877,7 @@ Rate Type: forward
 Effective Date: 2025-01-13 (contract date)
 Effective Until: 2025-04-13 (90-day forward)
 Exchange Rate: 1.2650 USD/GBP (agreed forward rate)
-Contract Reference: FWD-2025-001234
+Contract Reference: FWD-2501-001234
 Bank: Citibank
 ```
 
@@ -1225,7 +1226,7 @@ Equity:
 - "Period-end rate from auditor's confirmation letter"
 
 **Test Cases**:
-- ✅ Valid: Reason "Bank quote from Citibank for forward contract FWD-2025-001"
+- ✅ Valid: Reason "Bank quote from Citibank for forward contract FWD-2501-0001"
 - ❌ Invalid: Reason "" (empty)
 - ❌ Invalid: Reason "quote" (too short, < 10 characters)
 

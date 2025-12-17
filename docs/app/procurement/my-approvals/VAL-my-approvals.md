@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -709,7 +710,7 @@ Data Stored
 
 **Test Cases**:
 - ✅ Valid: "all_documents"
-- ✅ Valid: "specific_types" + document_types = ["purchase_request"]
+- ✅ Valid: "specific_types" + document_types = ['purchase_request']
 - ✅ Valid: "specific_departments" + departments = [dept_uuid]
 - ❌ Invalid: "all" (not in enum)
 - ❌ Invalid: null
@@ -1451,7 +1452,7 @@ recalled → [TERMINAL]
 - 4 pass all validations
 - 1 fails (already approved by someone else concurrently)
 - Result: ❌ All rollback
-- Error: "Bulk approval failed. Document PR-2025-0123 was already approved."
+- Error: "Bulk approval failed. Document PR-2501-0123 was already approved."
 - User must: Refresh and reselect documents
 
 ---
@@ -1685,7 +1686,7 @@ recalled → [TERMINAL]
 - Document amount: $10,000
 - Budget API response: is_frozen = true, available_budget = $50,000
 - Result: ❌ Approval rejected
-- Error: "Budget code DEPT-2025-001 is currently frozen. Contact budget manager."
+- Error: "Budget code DEPT-2501-0001 is currently frozen. Contact budget manager."
 - User must: Contact budget manager to unfreeze or use alternative budget code
 
 ---
@@ -2215,7 +2216,7 @@ All validation rules must have:
 
 **Test Steps**:
 1. Navigate to My Approvals queue
-2. Verify document PR-2025-0123 appears in queue
+2. Verify document PR-2501-0123 appears in queue
 3. Click on document to review
 4. Click "Approve" button
 5. Enter optional comments: "Approved as per budget allocation"
@@ -2224,7 +2225,7 @@ All validation rules must have:
 **Input Data**:
 - action_type: approve
 - action_comments: "Approved as per budget allocation"
-- document_id: PR-2025-0123
+- document_id: PR-2501-0123
 - document_amount: $10,000
 - user_authority: $50,000
 
@@ -2252,13 +2253,13 @@ All validation rules must have:
 **Test Type**: Negative
 **Preconditions**:
 - User authenticated
-- User created document PR-2025-0456
+- User created document PR-2501-0456
 - Same user is configured as Level 1 approver
 - Document routed to user's approval queue
 
 **Test Steps**:
 1. Navigate to My Approvals queue
-2. Find document PR-2025-0456 in queue
+2. Find document PR-2501-0456 in queue
 3. Click on document
 4. Attempt to click "Approve" button
 5. Observe button state and error message
@@ -2403,7 +2404,7 @@ All validation rules must have:
 **Test Description**: Two users attempt to approve same document simultaneously
 **Test Type**: Integration
 **Preconditions**:
-- Document PR-2025-0789 in queue
+- Document PR-2501-0789 in queue
 - doc_version = 5
 - Two Level 1 approvers: User A and User B
 - Both have document in their queue

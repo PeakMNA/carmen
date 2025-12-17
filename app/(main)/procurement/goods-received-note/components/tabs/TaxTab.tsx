@@ -176,7 +176,7 @@ export function TaxTab({
       </div>
 
       <div className="mt-4 flex justify-between items-center text-sm text-gray-600 border-t pt-4">
-        <div>Document Reference: GRN-2024-001</div>
+        <div>Document Reference: GRN-2410-001</div>
         <div className="text-blue-600 cursor-pointer hover:underline">View VAT Report</div>
       </div>
     </div>

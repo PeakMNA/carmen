@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|-----------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version from TS specification |
 
 ---
@@ -35,7 +36,7 @@
 
 ### Page Title
 **Text**: Edit Purchase Request {PR Number}
-**Example**: Edit Purchase Request PR-2024-000123
+**Example**: Edit Purchase Request PR-2401-0123
 **Style**: H1, bold, text-gray-900
 **Location**: Top left of page
 
@@ -472,7 +473,7 @@ Click ↻ to restore original
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PR-YYYY-NNNNNN | System-generated reference format |
+| PR-YYMM-NNNN | System-generated reference format |
 | ↻ | Universal reset symbol |
 | Timestamps | System-generated times |
 | Field values | User-entered data |

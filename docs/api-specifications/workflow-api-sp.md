@@ -516,7 +516,7 @@ POST /api/workflows
 
 // Response
 {
-  "id": "WF-2024-001",
+  "id": "WF-2401-0001",
   "name": "Purchase Request Workflow",
   "type": "PURCHASE_REQUEST",
   // ... rest of the workflow data ...
@@ -529,9 +529,9 @@ POST /api/workflows
 #### Start Workflow
 ```typescript
 // Request
-POST /api/workflows/WF-2024-001/execute
+POST /api/workflows/WF-2401-0001/execute
 {
-  "documentId": "PR-2024-03-0001",
+  "documentId": "PR-2403-0001-0001",
   "initiator": "user123",
   "initialData": {
     "requestType": "Purchase",
@@ -550,7 +550,7 @@ POST /api/workflows/WF-2024-001/execute
 
 // Response
 {
-  "instanceId": "WFI-2024-001",
+  "instanceId": "WFI-2401-0001",
   "currentStage": {
     "id": 1,
     "name": "Department Approval",
@@ -564,7 +564,7 @@ POST /api/workflows/WF-2024-001/execute
 #### Process Stage Action
 ```typescript
 // Request
-POST /api/workflows/WF-2024-001/instances/WFI-2024-001/action
+POST /api/workflows/WF-2401-0001/instances/WFI-2401-0001/action
 {
   "action": "Approve",
   "userId": "dept_head_123",
@@ -589,13 +589,13 @@ POST /api/workflows/WF-2024-001/instances/WFI-2024-001/action
 #### Get Instance Status
 ```typescript
 // Request
-GET /api/workflows/WF-2024-001/instances/WFI-2024-001
+GET /api/workflows/WF-2401-0001/instances/WFI-2401-0001
 
 // Response
 {
-  "instanceId": "WFI-2024-001",
+  "instanceId": "WFI-2401-0001",
   "workflow": {
-    "id": "WF-2024-001",
+    "id": "WF-2401-0001",
     "name": "Purchase Request Workflow",
     // ... rest of workflow data ...
   },

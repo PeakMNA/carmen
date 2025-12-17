@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.2.0 | 2025-11-25 | System | Added certification management use cases (UC-VD-031 to UC-VD-034); Added address management with Asian international format (UC-VD-035 to UC-VD-038); Updated address schema to 15 countries |
 | 2.1.0 | 2025-11-25 | System | Added multi-address and multi-contact management with primary designation |
 | 2.0.0 | 2025-11-25 | System | Updated to match actual code implementation |
@@ -190,7 +191,7 @@ This document covers all user interactions with the Vendor Directory module as d
 
 **AF-001: Auto-generate Vendor Code**
 - At step 4, if user doesn't enter vendor code:
-  - System auto-generates code based on naming pattern (e.g., VEN-2024-001)
+  - System auto-generates code based on naming pattern (e.g., VEN-2401-0001)
   - System displays generated code
   - User can accept or modify
   - Continue to step 5

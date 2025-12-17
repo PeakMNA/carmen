@@ -135,8 +135,8 @@ interface InventoryAdjustment {
 // ============================================================================
 
 const mockAdjustments: Record<string, InventoryAdjustment> = {
-  "ADJ-2024-001": {
-    id: "ADJ-2024-001",
+  "ADJ-2410-001": {
+    id: "ADJ-2410-001",
     date: "2024-01-15",
     type: "IN",
     status: "Posted",
@@ -199,8 +199,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 2575.00
     }
   },
-  "ADJ-2024-002": {
-    id: "ADJ-2024-002",
+  "ADJ-2410-002": {
+    id: "ADJ-2410-002",
     date: "2024-01-16",
     type: "OUT",
     status: "Posted",
@@ -240,8 +240,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 449.95
     }
   },
-  "ADJ-2024-003": {
-    id: "ADJ-2024-003",
+  "ADJ-2410-003": {
+    id: "ADJ-2410-003",
     date: "2024-01-17",
     type: "IN",
     status: "Posted",
@@ -304,8 +304,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 735.00
     }
   },
-  "ADJ-2024-004": {
-    id: "ADJ-2024-004",
+  "ADJ-2410-004": {
+    id: "ADJ-2410-004",
     date: "2024-01-18",
     type: "OUT",
     status: "Draft",
@@ -345,8 +345,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 250.00
     }
   },
-  "ADJ-2024-005": {
-    id: "ADJ-2024-005",
+  "ADJ-2410-005": {
+    id: "ADJ-2410-005",
     date: "2024-01-18",
     type: "IN",
     status: "Draft",
@@ -386,8 +386,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 312.50
     }
   },
-  "ADJ-2024-006": {
-    id: "ADJ-2024-006",
+  "ADJ-2410-006": {
+    id: "ADJ-2410-006",
     date: "2024-01-19",
     type: "OUT",
     status: "Voided",
@@ -450,8 +450,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 1520.00
     }
   },
-  "ADJ-2024-007": {
-    id: "ADJ-2024-007",
+  "ADJ-2410-007": {
+    id: "ADJ-2410-007",
     date: "2024-01-19",
     type: "IN",
     status: "Posted",
@@ -491,8 +491,8 @@ const mockAdjustments: Record<string, InventoryAdjustment> = {
       totalCost: 260.00
     }
   },
-  "ADJ-2024-008": {
-    id: "ADJ-2024-008",
+  "ADJ-2410-008": {
+    id: "ADJ-2410-008",
     date: "2024-01-20",
     type: "OUT",
     status: "Draft",
@@ -583,11 +583,11 @@ const mockJournalEntries: {
 } = {
   header: {
     status: "Posted",
-    journalNo: "JE-2024-001",
+    journalNo: "JE-2410-001",
     postingDate: "2024-01-15",
     postingPeriod: "2024-01",
     description: "Inventory Adjustment - Physical Count Variance",
-    reference: "ADJ-2024-001",
+    reference: "ADJ-2410-001",
     createdBy: "John Smith",
     createdAt: "2024-01-15 09:30:00",
     postedBy: "Sarah Johnson",
@@ -601,7 +601,7 @@ const mockJournalEntries: {
       debit: 2845.50,
       credit: 0,
       department: "Warehouse",
-      reference: "ADJ-2024-001"
+      reference: "ADJ-2410-001"
     },
     {
       id: "JE-002",
@@ -610,7 +610,7 @@ const mockJournalEntries: {
       debit: 0,
       credit: 2845.50,
       department: "Warehouse",
-      reference: "ADJ-2024-001"
+      reference: "ADJ-2410-001"
     }
   ]
 }

@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.4 | 2025-12-03 | Documentation Team | Added Periodic Average Cost as configurable costing method option alongside FIFO |
 | 1.0.3 | 2025-12-03 | Documentation Team | Added cross-references to Shared Methods (Inventory Valuation, Inventory Operations) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added Backend Requirements section (BR-BE-001 to BR-BE-014) to document server actions needed to support existing UI features |
@@ -87,7 +88,7 @@ The system must support creating credit notes for physical returns of goods, lin
 - Track return quantity per item and lot
 - Generate negative stock movements to reduce inventory
 - Auto-populate item details from selected GRN (description, unit price, location)
-- Generate unique credit note number following format: CN-YYYY-NNN
+- Generate unique credit note number following format: CN-YYMM-NNNN
 - Set credit note type to QUANTITY_RETURN
 
 **Related Requirements**: FR-CN-005, FR-CN-006, FR-CN-008, FR-CN-009
@@ -514,7 +515,7 @@ The system must support printing credit notes and exporting data for external us
 
 ### General Rules
 
-- **BR-CN-001**: Credit note numbers follow format CN-YYYY-NNNNNN where YYYY is year and NNNNNN is sequential number
+- **BR-CN-001**: Credit note numbers follow format CN-YYMM-NNNN where YY is 2-digit year and MM is month and NNNNNN is sequential number
 - **BR-CN-002**: Credit note numbers must be unique system-wide and auto-generated
 - **BR-CN-003**: Credit note date cannot be in the future
 - **BR-CN-004**: Credit note date should not be more than 90 days after related GRN date (warning if exceeded)
@@ -588,6 +589,75 @@ The system must support printing credit notes and exporting data for external us
 - **BR-CN-063**: Audit log must record all create, update, commit, void operations
 - **BR-CN-064**: Cannot modify credit note created by another user (unless manager/admin)
 
+### Location Type Business Rules
+
+Credit note processing behavior varies based on the **location type** of the original GRN receiving location. The system supports three location types that determine whether inventory adjustments are created and how costs are reversed.
+
+#### Location Type Definitions
+
+| Location Type | Code | Purpose | Examples |
+|---------------|------|---------|----------|
+| **INVENTORY** | INV | Standard tracked warehouse locations | Main Warehouse, Central Kitchen Store |
+| **DIRECT** | DIR | Direct expense locations (no stock balance) | Restaurant Bar Direct, Kitchen Direct |
+| **CONSIGNMENT** | CON | Vendor-owned inventory locations | Beverage Consignment, Linen Consignment |
+
+#### BR-CN-065: Location Type Processing Rules
+
+**INVENTORY Locations (INV)**:
+- ✅ Full credit note processing with inventory adjustment
+- ✅ Reverses FIFO cost layer (oldest layers first)
+- ✅ Decreases inventory asset balance
+- ✅ GL: Debit Accounts Payable, Credit Inventory Asset
+- ✅ Full stock movement recorded (negative quantities)
+- ✅ Lot tracking maintained for return items
+
+**DIRECT Locations (DIR)**:
+- ❌ No inventory adjustment (no stock balance exists)
+- ❌ No cost layer reversal
+- ✅ Credit note for expense reversal only
+- ✅ GL: Debit Accounts Payable, Credit Expense Reversal
+- ⚠️ Items filtered out from stock movement display
+- ⚠️ Alert displayed indicating expense reversal only
+
+**CONSIGNMENT Locations (CON)**:
+- ✅ Full credit note processing with inventory adjustment
+- ✅ Reverses consignment cost layer
+- ✅ Decreases vendor liability balance
+- ✅ GL: Debit Vendor Liability, Credit Consignment Asset
+- ✅ Full stock movement recorded with vendor reference
+- ✅ Vendor notification of credit/return
+
+#### BR-CN-066: Location Type Feature Matrix
+
+| Feature | INVENTORY | DIRECT | CONSIGNMENT |
+|---------|-----------|--------|-------------|
+| **Inventory Adjustment** | ✅ Stock decrease | ❌ None | ✅ Stock decrease |
+| **Cost Layer Reversal** | ✅ FIFO reversal | ❌ None | ✅ FIFO reversal |
+| **Lot Selection** | ✅ Required | ❌ N/A | ✅ Required |
+| **GL Posting** | AP vs Inventory | AP vs Expense | AP vs Vendor Liability |
+| **Stock Movement** | ✅ Recorded | ❌ Filtered out | ✅ Recorded |
+| **Vendor Notification** | Optional | Optional | ✅ Required |
+| **Cost Variance** | ✅ Calculated | ❌ N/A | ✅ Calculated |
+| **Realized Gain/Loss** | ✅ Recorded | ❌ N/A | ✅ Recorded |
+
+#### BR-CN-067: Location Type Validation Rules
+
+1. **Credit Type Restrictions**:
+   - QUANTITY_RETURN from DIRECT location: Blocked (no stock to return)
+   - AMOUNT_DISCOUNT from any location: Allowed (no inventory impact)
+   - QUANTITY_RETURN from INVENTORY/CONSIGNMENT: Full processing
+
+2. **UI Behavior**:
+   - Location type badge displayed for GRN items
+   - DIRECT location items disabled for quantity-based credits
+   - Warning when creating credit for DIRECT location GRN
+   - Stock movement tab filters DIRECT location items
+
+3. **Lot Selection**:
+   - INVENTORY: Must select from available lots
+   - DIRECT: Lot selection disabled (no lots exist)
+   - CONSIGNMENT: Must select from vendor-owned lots
+
 ---
 
 ## Conceptual Data Models
@@ -597,7 +667,7 @@ Primary entity for vendor credit documentation.
 
 **Key Fields**:
 - `id` (integer, PK, auto-increment)
-- `refNumber` (string, unique, format: CN-YYYY-NNNNNN)
+- `refNumber` (string, unique, format: CN-YYMM-NNNN)
 - `docNumber` (string, unique, internal document tracking)
 - `docDate` (date, credit note date)
 - `creditType` (enum: QUANTITY_RETURN, AMOUNT_DISCOUNT)
@@ -725,7 +795,7 @@ actions/
 **Acceptance Criteria**:
 - `getCreditNotes`: Support filters (status, vendor, date range, reason, type), sorting, search, pagination
 - `getCreditNoteById`: Return credit note with items, lots, attachments, journal entries, stock movements
-- `createCreditNote`: Validate required fields, generate CN number (CN-YYYY-NNNNNN), set status to DRAFT
+- `createCreditNote`: Validate required fields, generate CN number (CN-YYMM-NNNN), set status to DRAFT
 - `updateCreditNote`: Only allow updates on DRAFT status, validate all business rules
 - `deleteCreditNote`: Only allow deletion of DRAFT status, cascade delete items and attachments
 - All actions must use Supabase client with proper error handling
@@ -875,7 +945,7 @@ async function generateJournalEntries(input: JournalEntryInput): Promise<Journal
 ```
 
 **Acceptance Criteria**:
-- Generate journal voucher header with unique number (JV-YYYY-NNNNNN)
+- Generate journal voucher header with unique number (JV-YYMM-NNNN)
 - For QUANTITY_RETURN type:
   - Debit: Accounts Payable (2100) - total amount
   - Credit: Inventory Raw Materials (1140) - net amount
@@ -1067,11 +1137,11 @@ The system must generate unique sequential credit note numbers.
 **Required Function**:
 ```typescript
 async function generateCreditNoteNumber(): Promise<string>
-// Returns: "CN-2024-000001"
+// Returns: "CN-2401-000001"
 ```
 
 **Acceptance Criteria**:
-- Format: CN-YYYY-NNNNNN (year + 6-digit sequence)
+- Format: CN-YYMM-NNNN (2-digit year + month + 6-digit sequence)
 - Sequence resets annually
 - Must be atomic to prevent duplicate numbers
 - Use database sequence or transaction-safe increment

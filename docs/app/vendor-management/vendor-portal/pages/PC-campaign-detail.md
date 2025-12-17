@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-01-23 | System | Initial version based on UC v2.0, TS v2.0, FD v2.0 |
 
 ---
@@ -58,7 +59,7 @@ Q1 2024 Kitchen Equipment Pricing  🟢 Active
 **Location**: Below title
 **Format**:
 ```
-Campaign ID: CAM-2024-001234 • Created by John Doe on 10 Jan 2024 • Last updated 2 hours ago
+Campaign ID: CAM-2401-001234 • Created by John Doe on 10 Jan 2024 • Last updated 2 hours ago
 ```
 
 ---
@@ -379,7 +380,7 @@ Sort by: [Submission Date ▼]  [Search submissions...]
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ ABC Kitchen Supplies                                         │
-│ Submitted: 21 Jan 2024, 14:23 • Reference: PL-2024-001234   │
+│ Submitted: 21 Jan 2024, 14:23 • Reference: PL-2401-001234   │
 │                                                              │
 │ Status: ✅ Approved                                         │
 │ Quality Score: 88/100 ⭐⭐⭐⭐                                │
@@ -398,7 +399,7 @@ Sort by: [Submission Date ▼]  [Search submissions...]
 
 ┌─────────────────────────────────────────────────────────────┐
 │ Global Foodservice Equipment                                 │
-│ Submitted: 23 Jan 2024, 09:15 • Reference: PL-2024-001237   │
+│ Submitted: 23 Jan 2024, 09:15 • Reference: PL-2401-001237   │
 │                                                              │
 │ Status: 📋 Pending Review                                   │
 │ Quality Score: 92/100 ⭐⭐⭐⭐⭐                              │
@@ -417,7 +418,7 @@ Sort by: [Submission Date ▼]  [Search submissions...]
 
 ┌─────────────────────────────────────────────────────────────┐
 │ Premium Restaurant Supply                                    │
-│ Submitted: 20 Jan 2024, 16:45 • Reference: PL-2024-001228   │
+│ Submitted: 20 Jan 2024, 16:45 • Reference: PL-2401-001228   │
 │                                                              │
 │ Status: 🔄 Revision Requested                               │
 │ Quality Score: 65/100 ⭐⭐⭐                                 │
@@ -907,7 +908,7 @@ Products with >20% variance: 4 of 20 (flagged for review)
 │ Submission Received                                          │
 │                                                              │
 │ Global Foodservice Equipment submitted pricelist            │
-│ • Reference: PL-2024-001237                                 │
+│ • Reference: PL-2401-001237                                 │
 │ • Quality Score: 92/100                                     │
 │ • Products: 20/20 (100% complete)                           │
 │ • Method: Online Entry                                       │
@@ -921,7 +922,7 @@ Products with >20% variance: 4 of 20 (flagged for review)
 │ Approval Action                                              │
 │                                                              │
 │ John Doe approved submission from ABC Kitchen Supplies      │
-│ • Reference: PL-2024-001234                                 │
+│ • Reference: PL-2401-001234                                 │
 │ • Approval Notes: "Pricing is competitive and complete"    │
 │ • Quality Score: 88/100                                     │
 │                                                              │
@@ -946,7 +947,7 @@ Products with >20% variance: 4 of 20 (flagged for review)
 │ Revision Requested                                           │
 │                                                              │
 │ Maria Garcia requested revisions from Premium Restaurant     │
-│ • Reference: PL-2024-001228                                 │
+│ • Reference: PL-2401-001228                                 │
 │ • Issues: 3 products missing pricing, 2 invalid lead times  │
 │ • Revision Notes: "Please provide pricing for all products" │
 │                                                              │
@@ -959,7 +960,7 @@ Products with >20% variance: 4 of 20 (flagged for review)
 │ Campaign Launched                                            │
 │                                                              │
 │ John Doe launched campaign                                   │
-│ • Campaign ID: CAM-2024-001234                              │
+│ • Campaign ID: CAM-2401-001234                              │
 │ • Vendors: 12 invitations sent                              │
 │ • Duration: 16 days (15 Jan - 31 Jan)                       │
 │ • Template: Kitchen Equipment Template                      │
@@ -1110,7 +1111,7 @@ Resume options:
 **Submission Summary**:
 ```
 Vendor: Global Foodservice Equipment
-Reference: PL-2024-001237
+Reference: PL-2401-001237
 Submitted: 23 Jan 2024, 09:15
 
 Quality Score: 92/100 ⭐⭐⭐⭐⭐
@@ -1169,7 +1170,7 @@ Approval Notes:
 **Submission Details**:
 ```
 Vendor: Premium Restaurant Supply
-Reference: PL-2024-001228
+Reference: PL-2401-001228
 Submitted: 20 Jan 2024, 16:45
 ```
 

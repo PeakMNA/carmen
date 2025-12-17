@@ -10,7 +10,7 @@
  * - Displays currency code and symbol
  * - Supports custom currency list or defaults to common currencies
  *
- * Created: 2025-11-17 - Per ARC-2024-001
+ * Created: 2025-11-17 - Per ARC-2410-001
  */
 
 import * as React from "react"

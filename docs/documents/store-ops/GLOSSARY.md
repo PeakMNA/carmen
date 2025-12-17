@@ -45,7 +45,7 @@ The standard unit used to count or measure an item (e.g., Box, Bag, Kg, Liter, P
 A formal request to transfer inventory items from one location (store/warehouse) to another operational unit or department.
 
 ### SR Number
-Unique reference number for a store requisition following the format: SR-YYYY-NNN (e.g., SR-2024-001).
+Unique reference number for a store requisition following the format: SR-YYMM-NNNN (e.g., SR-2401-0001).
 
 ### Requisition Status
 Current state of a requisition in its lifecycle:

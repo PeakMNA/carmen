@@ -237,7 +237,7 @@ function NewStaffPricelistPageContent() {
               <Label htmlFor="pricelistNumber">Pricelist Number *</Label>
               <Input
                 id="pricelistNumber"
-                placeholder="Enter pricelist number (e.g., PL-2024-001)"
+                placeholder="Enter pricelist number (e.g., PL-2410-001)"
                 value={formData.pricelistNumber}
                 onChange={(e) => updateFormData('pricelistNumber', e.target.value)}
               />

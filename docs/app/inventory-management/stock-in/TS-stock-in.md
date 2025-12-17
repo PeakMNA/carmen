@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version |
 
 ---
@@ -205,12 +206,12 @@ app/(main)/inventory-management/stock-in/
 4. **Client validates**: React Hook Form validates using Zod schema
 5. **Submit form**: Server action `createStockInTransaction` called
 6. **Server validates**: Re-validate on server, check permissions, validate related document
-7. **Generate ref number**: Call `generateReferenceNumber` function (STK-IN-YYYY-NNNN)
+7. **Generate ref number**: Call `generateReferenceNumber` function (STK-IN-YYMM-NNNN)
 8. **Create record**: Prisma transaction creates stock_in_transaction row with status = 'Saved'
 9. **Create activity log**: Insert activity_log entry: "Created by {user}"
 10. **Return success**: Return transaction ID and reference number
 11. **Navigate to detail**: Redirect to `/inventory-management/stock-in/[id]` for line item entry
-12. **Show success message**: Toast notification "Transaction STK-IN-2024-0123 created"
+12. **Show success message**: Toast notification "Transaction STK-IN-2501-0123 created"
 
 ### Add Line Items Flow
 
@@ -247,13 +248,13 @@ app/(main)/inventory-management/stock-in/
    - INSERT INTO stock_movement (commit_date, location, product, stock_in_qty, stock_out_qty = 0, amount, reference)
 8. **Post to GL**: Call Finance Module API `/api/gl/journal-entry`
    - Debit: Inventory Asset, Credit: AP/Variance/Transfer Account
-   - Receive JE number (e.g., JE-2024-5678)
+   - Receive JE number (e.g., JE-2401-5678)
 9. **Update transaction**: SET status = 'Committed', commit_date = NOW(), committed_by = user_id, gl_journal_entry_number
 10. **Create activity log**: "Committed by {user} on {date/time}. GL Entry: {JE number}"
 11. **Commit DB transaction**: COMMIT TRANSACTION
 12. **Return success**: Transaction data with Committed status
 13. **Update UI**: Show Committed badge, disable edit actions, display GL entry number
-14. **Show success message**: "Transaction committed. Inventory updated. GL Entry: JE-2024-5678"
+14. **Show success message**: "Transaction committed. Inventory updated. GL Entry: JE-2401-5678"
 
 **Rollback Scenarios**:
 - If any step fails (cost calculation, balance update, GL posting): ROLLBACK TRANSACTION
@@ -428,8 +429,8 @@ Content-Type: application/json
 ```
 {
   "transactionDate": "2024-01-15",
-  "referenceNumber": "STK-IN-2024-0123",
-  "description": "Stock In - GRN-2024-001",
+  "referenceNumber": "STK-IN-2401-0123",
+  "description": "Stock In - GRN-2401-0001",
   "sourceModule": "Inventory Management",
   "sourceTransactionId": "uuid",
   "lines": [
@@ -458,7 +459,7 @@ Content-Type: application/json
 ```
 {
   "success": true,
-  "journalEntryNumber": "JE-2024-5678",
+  "journalEntryNumber": "JE-2401-5678",
   "postingDate": "2024-01-15T11:00:00Z",
   "status": "Posted",
   "lines": [...]  // Echo back lines with generated IDs

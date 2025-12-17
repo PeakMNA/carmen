@@ -48,8 +48,8 @@
 
 "use client"
 
-import { useState, useMemo, useCallback, useEffect } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useMemo, useCallback, useEffect, Suspense } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import { format } from "date-fns"
 import {
   ArrowLeft,
@@ -62,9 +62,11 @@ import {
   ArrowUpCircle,
   ArrowDownCircle,
   AlertCircle,
-  Check
+  Check,
+  ChevronsUpDown
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -107,17 +109,21 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
+import { getCategoryOptionsForType } from "@/lib/mock-data/transaction-categories"
+import type { AdjustmentType } from "@/lib/types/transaction-category"
 
 // ============================================================================
 // TYPE DEFINITIONS
 // ============================================================================
-
-/** Adjustment direction - IN increases stock, OUT decreases stock */
-type AdjustmentType = "IN" | "OUT"
+// Note: AdjustmentType is imported from @/lib/types/transaction-category
 
 /**
  * Represents a single item in the adjustment form.
  * Contains product details, quantities, costs, and per-item reason.
+ *
+ * CATEGORY/REASON FEATURE:
+ * - Category is at header level (AdjustmentFormData.category)
+ * - Reason is per-item, filtered by the header-level category
  */
 interface AdjustmentItem {
   id: string
@@ -129,20 +135,24 @@ interface AdjustmentItem {
   unit: string
   unitCost: number  // Required for IN, optional for OUT
   totalCost: number
-  reason: string
+  reason: string    // CATEGORY/REASON: Specific reason within header-level category
   notes?: string
 }
 
 /**
  * Complete form data structure for creating a new adjustment.
  * Tracks header information and all line items.
+ *
+ * CATEGORY/REASON FEATURE:
+ * - category: Header-level category for financial reporting (maps to GL accounts)
+ * - items[].reason: Item-level reason filtered by the header category
  */
 interface AdjustmentFormData {
   type: AdjustmentType
   date: string
   locationId: string
   locationName: string
-  reason: string
+  category: string    // CATEGORY/REASON: Header-level category for financial reporting
   description: string
   items: AdjustmentItem[]
 }
@@ -176,28 +186,28 @@ const mockProducts = [
   { id: "prod-010", name: "Tomato Sauce", sku: "SAU-TOM-001", unit: "L", currentStock: 120, avgCost: 6.50 },
 ]
 
-/**
- * Pre-defined adjustment reasons grouped by type.
- * Stock IN and Stock OUT have different valid reasons.
- */
-const adjustmentReasons = {
-  IN: [
-    { value: "count_variance", label: "Physical Count Variance" },
-    { value: "found_items", label: "Found Items" },
-    { value: "return_to_stock", label: "Return to Stock" },
-    { value: "system_correction", label: "System Correction" },
-    { value: "other", label: "Other" },
-  ],
-  OUT: [
-    { value: "damaged", label: "Damaged Goods" },
-    { value: "expired", label: "Expired Items" },
-    { value: "theft_loss", label: "Theft / Loss" },
-    { value: "spoilage", label: "Spoilage" },
-    { value: "count_variance", label: "Physical Count Variance" },
-    { value: "quality_rejection", label: "Quality Control Rejection" },
-    { value: "other", label: "Other" },
-  ]
-}
+// ============================================================================
+// CATEGORY/REASON FEATURE - Two-Level Classification System
+// ============================================================================
+//
+// PURPOSE:
+// Implements a two-level Category → Reason structure for financial reporting
+// and GL account mapping. This allows:
+// - Categories at HEADER level: Maps to GL accounts (Wastage Expense, COGS, etc.)
+// - Reasons at ITEM level: Provides specific detail within each category
+//
+// STRUCTURE:
+// - Category is selected once per adjustment (header-level)
+// - Each item can have a different reason within the selected category
+// - When category changes, all item reasons are reset
+// - When type (IN/OUT) changes, category and reasons are reset
+//
+// DATA SOURCE:
+// Categories and reasons are now managed via Transaction Category master CRUD:
+// - Navigate to: /inventory-management/transaction-categories
+// - Data is loaded from: getCategoryOptionsForType() from @/lib/mock-data/transaction-categories
+// - TODO: Replace mock data with API call: GET /api/transaction-categories?type={IN|OUT}
+// ============================================================================
 
 // ============================================================================
 // HELPER FUNCTIONS
@@ -212,87 +222,6 @@ function generateId() {
 }
 
 // ============================================================================
-// SUBCOMPONENTS
-// ============================================================================
-
-/**
- * ProductSelector - Searchable dropdown for adding products to the adjustment
- *
- * Features:
- * - Search by product name or SKU
- * - Shows current stock and unit
- * - Excludes already-selected products
- * - Uses Command component for keyboard navigation
- *
- * @param onSelect - Callback when a product is selected
- * @param excludeIds - Product IDs to exclude from the list
- */
-function ProductSelector({
-  onSelect,
-  excludeIds,
-}: {
-  onSelect: (product: typeof mockProducts[0]) => void
-  excludeIds: string[]
-}) {
-  const [open, setOpen] = useState(false)
-  const [search, setSearch] = useState("")
-
-  const filteredProducts = useMemo(() => {
-    return mockProducts.filter(
-      (p) =>
-        !excludeIds.includes(p.id) &&
-        (p.name.toLowerCase().includes(search.toLowerCase()) ||
-          p.sku.toLowerCase().includes(search.toLowerCase()))
-    )
-  }, [search, excludeIds])
-
-  return (
-    <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button variant="outline" className="gap-2">
-          <Plus className="h-4 w-4" />
-          Add Item
-        </Button>
-      </PopoverTrigger>
-      <PopoverContent className="w-[400px] p-0" align="start">
-        <Command>
-          <CommandInput
-            placeholder="Search products..."
-            value={search}
-            onValueChange={setSearch}
-          />
-          <CommandList>
-            <CommandEmpty>No products found.</CommandEmpty>
-            <CommandGroup>
-              {filteredProducts.map((product) => (
-                <CommandItem
-                  key={product.id}
-                  value={product.id}
-                  onSelect={() => {
-                    onSelect(product)
-                    setOpen(false)
-                    setSearch("")
-                  }}
-                  className="flex items-center justify-between"
-                >
-                  <div>
-                    <div className="font-medium">{product.name}</div>
-                    <div className="text-sm text-muted-foreground">
-                      SKU: {product.sku} | Stock: {product.currentStock} {product.unit}
-                    </div>
-                  </div>
-                  <Badge variant="outline">{product.unit}</Badge>
-                </CommandItem>
-              ))}
-            </CommandGroup>
-          </CommandList>
-        </Command>
-      </PopoverContent>
-    </Popover>
-  )
-}
-
-// ============================================================================
 // MAIN COMPONENT
 // ============================================================================
 
@@ -304,8 +233,15 @@ function ProductSelector({
  *
  * @returns The new adjustment form page
  */
-export default function NewInventoryAdjustmentPage() {
+function NewInventoryAdjustmentContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Read type from URL query param (?type=in or ?type=out)
+  const preselectedType = searchParams.get('type')
+
+  // Type is locked when pre-selected from URL (create from specific tab) or in edit mode
+  const isTypeLocked = preselectedType === 'in' || preselectedType === 'out'
 
   // ============================================================================
   // STATE MANAGEMENT
@@ -320,16 +256,33 @@ export default function NewInventoryAdjustmentPage() {
   /** Validation errors keyed by field name or item ID */
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  /** Main form data containing all adjustment information */
-  const [formData, setFormData] = useState<AdjustmentFormData>({
-    type: "OUT",
+  /**
+   * Main form data containing all adjustment information.
+   *
+   * CATEGORY/REASON FEATURE:
+   * - category: Initialized empty, user selects from dropdown
+   * - items[].reason: Set when adding items (filtered by category)
+   */
+  const [formData, setFormData] = useState<AdjustmentFormData>(() => ({
+    type: preselectedType === 'in' ? "IN" : "OUT",
     date: format(new Date(), "yyyy-MM-dd"),
     locationId: "",
     locationName: "",
-    reason: "",
+    category: "",       // CATEGORY/REASON: Header-level category for financial reporting
     description: "",
     items: [],
-  })
+  }))
+
+  // Inline Add Item state (store requisition pattern)
+  const [isAddingItem, setIsAddingItem] = useState(false)
+  const [productSearchOpen, setProductSearchOpen] = useState(false)
+  const [newItemProductId, setNewItemProductId] = useState<string>("")
+  const [newItemQty, setNewItemQty] = useState(1)
+  const [newItemUnitCost, setNewItemUnitCost] = useState<number>(0)
+  const [newItemReason, setNewItemReason] = useState("")
+
+  // Bulk selection state
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
 
   // ============================================================================
   // SIDE EFFECTS
@@ -360,31 +313,52 @@ export default function NewInventoryAdjustmentPage() {
     return { totalQty, totalValue }
   }, [formData.items])
 
+  /**
+   * Get available products for inline add (excludes already added items)
+   */
+  const availableProducts = useMemo(() => {
+    const excludeIds = formData.items.map(item => item.productId)
+    return mockProducts.filter(p => !excludeIds.includes(p.id))
+  }, [formData.items])
+
+  /**
+   * Get selected product details for inline add row
+   */
+  const selectedProduct = useMemo(() => {
+    return mockProducts.find(p => p.id === newItemProductId)
+  }, [newItemProductId])
+
+  /**
+   * Check if all items are selected
+   */
+  const isAllSelected = formData.items.length > 0 && selectedItems.length === formData.items.length
+
+  /**
+   * CATEGORY/REASON FEATURE: Get available categories from master CRUD
+   *
+   * Uses getCategoryOptionsForType to load active categories filtered by adjustment type.
+   * This data is managed via /inventory-management/transaction-categories
+   */
+  const availableCategories = useMemo(() => {
+    return getCategoryOptionsForType(formData.type)
+  }, [formData.type])
+
+  /**
+   * CATEGORY/REASON FEATURE: Get available reasons based on header-level category
+   *
+   * This filters the reasons array based on the selected header-level category.
+   * When no category is selected, returns empty array (item reason dropdowns are disabled).
+   * When category changes, this automatically updates to show new available reasons.
+   */
+  const availableReasons = useMemo(() => {
+    if (!formData.category) return []
+    const category = availableCategories.find(c => c.value === formData.category)
+    return category?.reasons || []
+  }, [formData.category, availableCategories])
+
   // ============================================================================
   // EVENT HANDLERS
   // ============================================================================
-
-  /**
-   * Add a new product to the adjustment items list.
-   * Sets initial quantity to 1 and cost based on adjustment type.
-   *
-   * @param product - The product to add from the selector
-   */
-  const handleAddItem = useCallback((product: typeof mockProducts[0]) => {
-    const newItem: AdjustmentItem = {
-      id: generateId(),
-      productId: product.id,
-      productName: product.name,
-      sku: product.sku,
-      currentStock: product.currentStock,
-      adjustmentQty: 1,
-      unit: product.unit,
-      unitCost: formData.type === "IN" ? 0 : product.avgCost, // For OUT, use avg cost; for IN, user must enter
-      totalCost: formData.type === "IN" ? 0 : product.avgCost,
-      reason: "",
-    }
-    setFormData(prev => ({ ...prev, items: [...prev.items, newItem] }))
-  }, [formData.type])
 
   /**
    * Update a specific field on an adjustment item.
@@ -426,7 +400,11 @@ export default function NewInventoryAdjustmentPage() {
 
   /**
    * Validate the form before submission.
-   * Checks required fields, item quantities, and unit costs.
+   * Checks required fields, item quantities, unit costs, and category/reason.
+   *
+   * CATEGORY/REASON FEATURE: Validates:
+   * - Header-level category is required
+   * - Each item has a reason selected (within the category)
    *
    * @returns true if form is valid, false otherwise
    */
@@ -436,8 +414,9 @@ export default function NewInventoryAdjustmentPage() {
     if (!formData.locationId) {
       newErrors.location = "Location is required"
     }
-    if (!formData.reason) {
-      newErrors.reason = "Reason is required"
+    // CATEGORY/REASON: Validate header-level category
+    if (!formData.category) {
+      newErrors.category = "Category is required"
     }
     if (formData.items.length === 0) {
       newErrors.items = "At least one item is required"
@@ -445,14 +424,14 @@ export default function NewInventoryAdjustmentPage() {
 
     // For Stock IN, validate unit cost for each item
     if (formData.type === "IN") {
-      formData.items.forEach((item, index) => {
+      formData.items.forEach((item) => {
         if (!item.unitCost || item.unitCost <= 0) {
           newErrors[`item_${item.id}_cost`] = "Unit cost is required for Stock In"
         }
       })
     }
 
-    // Validate quantities
+    // Validate quantities and reason for each item
     formData.items.forEach((item) => {
       if (item.adjustmentQty <= 0) {
         newErrors[`item_${item.id}_qty`] = "Quantity must be greater than 0"
@@ -460,6 +439,10 @@ export default function NewInventoryAdjustmentPage() {
       // For Stock OUT, check if quantity exceeds current stock
       if (formData.type === "OUT" && item.adjustmentQty > item.currentStock) {
         newErrors[`item_${item.id}_qty`] = `Cannot exceed current stock (${item.currentStock})`
+      }
+      // CATEGORY/REASON: Validate item-level reason is set
+      if (!item.reason) {
+        newErrors[`item_${item.id}_reason`] = "Reason is required"
       }
     })
 
@@ -504,37 +487,142 @@ export default function NewInventoryAdjustmentPage() {
 
   /**
    * Handle adjustment type toggle between IN and OUT.
-   * Resets reason (as valid reasons differ by type) and recalculates
-   * item costs based on the new type.
+   *
+   * CATEGORY/REASON FEATURE: When type changes:
+   * 1. Resets header-level category (as available categories differ by type)
+   * 2. Resets all item-level reasons (as they depend on category)
+   * 3. Recalculates item costs based on the new type
    *
    * @param type - The new adjustment type
    */
   const handleTypeChange = (type: AdjustmentType) => {
     if (formData.items.length > 0) {
-      // If items exist, update their costs based on new type
+      // CATEGORY/REASON: Reset category and all item reasons when type changes
       setFormData(prev => ({
         ...prev,
         type,
-        reason: "", // Reset reason as reasons differ by type
+        category: "", // Reset category as options differ by type
         items: prev.items.map(item => {
           const product = mockProducts.find(p => p.id === item.productId)
           return {
             ...item,
             unitCost: type === "IN" ? 0 : (product?.avgCost || 0),
             totalCost: type === "IN" ? 0 : item.adjustmentQty * (product?.avgCost || 0),
+            reason: "",   // Reset reason as it depends on category
           }
         })
       }))
     } else {
-      setFormData(prev => ({ ...prev, type, reason: "" }))
+      setFormData(prev => ({ ...prev, type, category: "" }))
     }
+    // Also reset inline add state
+    setNewItemReason("")
+  }
+
+  // ============================================================================
+  // INLINE ADD ITEM HANDLERS
+  // ============================================================================
+
+  /**
+   * Start adding a new item (shows inline add row)
+   */
+  const handleStartAddItem = () => {
+    setIsAddingItem(true)
+    setNewItemProductId("")
+    setNewItemQty(1)
+    setNewItemUnitCost(0)
+    setNewItemReason("")
+  }
+
+  /**
+   * Confirm and add the new item from inline row
+   */
+  const handleConfirmAddItem = () => {
+    if (!selectedProduct) return
+
+    const newItem: AdjustmentItem = {
+      id: generateId(),
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
+      sku: selectedProduct.sku,
+      unit: selectedProduct.unit,
+      currentStock: selectedProduct.currentStock,
+      adjustmentQty: newItemQty,
+      unitCost: formData.type === "IN" ? newItemUnitCost : (selectedProduct.avgCost || 0),
+      totalCost: formData.type === "IN"
+        ? newItemQty * newItemUnitCost
+        : newItemQty * (selectedProduct.avgCost || 0),
+      reason: newItemReason,
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      items: [...prev.items, newItem],
+    }))
+
+    // Reset inline add state
+    setIsAddingItem(false)
+    setNewItemProductId("")
+    setNewItemQty(1)
+    setNewItemUnitCost(0)
+    setNewItemReason("")
+  }
+
+  /**
+   * Cancel adding a new item
+   */
+  const handleCancelAddItem = () => {
+    setIsAddingItem(false)
+    setNewItemProductId("")
+    setNewItemQty(1)
+    setNewItemUnitCost(0)
+    setNewItemReason("")
+  }
+
+  // ============================================================================
+  // BULK SELECTION HANDLERS
+  // ============================================================================
+
+  /**
+   * Toggle select all items
+   */
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedItems([])
+    } else {
+      setSelectedItems(formData.items.map(item => item.id))
+    }
+  }
+
+  /**
+   * Toggle select a single item
+   */
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    )
+  }
+
+  /**
+   * Remove all selected items
+   */
+  const handleRemoveSelected = () => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.filter(item => !selectedItems.includes(item.id))
+    }))
+    setSelectedItems([])
   }
 
   /**
    * Check if form has any user changes.
    * Used to warn user before discarding unsaved changes.
+   *
+   * CATEGORY/REASON FEATURE: Includes category in change detection
    */
-  const hasChanges = formData.locationId || formData.reason || formData.items.length > 0
+  const hasChanges = formData.locationId || formData.category || formData.description || formData.items.length > 0
 
   // ============================================================================
   // RENDER
@@ -563,6 +651,13 @@ export default function NewInventoryAdjustmentPage() {
           <div className="flex items-center gap-2">
             <Button
               variant="outline"
+              onClick={() => hasChanges ? setShowDiscardDialog(true) : router.back()}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="outline"
               onClick={() => handleSave(true)}
               disabled={isSaving}
             >
@@ -581,17 +676,24 @@ export default function NewInventoryAdjustmentPage() {
         <Card>
           <CardHeader>
             <CardTitle className="text-base">Adjustment Type</CardTitle>
+            {isTypeLocked && (
+              <p className="text-sm text-muted-foreground">
+                Type is locked based on your selection from the list screen
+              </p>
+            )}
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-4">
               <button
                 type="button"
-                onClick={() => handleTypeChange("OUT")}
+                onClick={() => !isTypeLocked && handleTypeChange("OUT")}
+                disabled={isTypeLocked}
                 className={cn(
                   "flex items-center gap-4 p-4 rounded-lg border-2 transition-all",
                   formData.type === "OUT"
                     ? "border-red-500 bg-red-50"
-                    : "border-muted hover:border-muted-foreground/30"
+                    : "border-muted hover:border-muted-foreground/30",
+                  isTypeLocked && "cursor-not-allowed opacity-60"
                 )}
               >
                 <div className={cn(
@@ -616,12 +718,14 @@ export default function NewInventoryAdjustmentPage() {
 
               <button
                 type="button"
-                onClick={() => handleTypeChange("IN")}
+                onClick={() => !isTypeLocked && handleTypeChange("IN")}
+                disabled={isTypeLocked}
                 className={cn(
                   "flex items-center gap-4 p-4 rounded-lg border-2 transition-all",
                   formData.type === "IN"
                     ? "border-green-500 bg-green-50"
-                    : "border-muted hover:border-muted-foreground/30"
+                    : "border-muted hover:border-muted-foreground/30",
+                  isTypeLocked && "cursor-not-allowed opacity-60"
                 )}
               >
                 <div className={cn(
@@ -688,26 +792,40 @@ export default function NewInventoryAdjustmentPage() {
                 )}
               </div>
 
-              {/* Reason */}
+              {/*
+                CATEGORY/REASON FEATURE: Header-Level Category Dropdown
+
+                This is the first level of the two-level classification system.
+                - Categories are filtered by adjustment type (IN/OUT)
+                - When category changes, all item-level reasons are reset
+                - Maps to GL accounts for financial reporting
+              */}
               <div className="space-y-2">
-                <Label htmlFor="reason">Reason *</Label>
+                <Label htmlFor="category">Category *</Label>
                 <Select
-                  value={formData.reason}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, reason: value }))}
+                  value={formData.category}
+                  onValueChange={(value) => {
+                    // CATEGORY/REASON: Reset all item reasons when category changes
+                    setFormData(prev => ({
+                      ...prev,
+                      category: value,
+                      items: prev.items.map(item => ({ ...item, reason: "" }))
+                    }))
+                  }}
                 >
-                  <SelectTrigger className={errors.reason ? "border-red-500" : ""}>
-                    <SelectValue placeholder="Select reason" />
+                  <SelectTrigger className={errors.category ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {adjustmentReasons[formData.type].map((reason) => (
-                      <SelectItem key={reason.value} value={reason.value}>
-                        {reason.label}
+                    {availableCategories.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.reason && (
-                  <p className="text-sm text-red-500">{errors.reason}</p>
+                {errors.category && (
+                  <p className="text-sm text-red-500">{errors.category}</p>
                 )}
               </div>
             </div>
@@ -728,52 +846,86 @@ export default function NewInventoryAdjustmentPage() {
 
         {/* Items Section */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between">
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
             <div>
               <CardTitle className="text-base">Adjustment Items</CardTitle>
               {errors.items && (
                 <p className="text-sm text-red-500 mt-1">{errors.items}</p>
               )}
             </div>
-            <ProductSelector
-              onSelect={handleAddItem}
-              excludeIds={formData.items.map(i => i.productId)}
-            />
+            <div className="flex items-center gap-2">
+              {/* Bulk delete button - shows when items are selected */}
+              {selectedItems.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRemoveSelected}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove ({selectedItems.length})
+                </Button>
+              )}
+              {/* Add Item button */}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartAddItem}
+                disabled={isAddingItem}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Item
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
-            {formData.items.length === 0 ? (
+            {formData.items.length === 0 && !isAddingItem ? (
               <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                 <Package className="h-12 w-12 mb-3" />
                 <p className="font-medium">No items added</p>
-                <p className="text-sm">Click "Add Item" to add products to this adjustment</p>
+                <p className="text-sm">Click &quot;Add Item&quot; to add products to this adjustment</p>
               </div>
             ) : (
-              <div className="rounded-md border">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[250px]">Product</TableHead>
-                      <TableHead className="text-right">Current Stock</TableHead>
-                      <TableHead className="text-right w-[120px]">Quantity</TableHead>
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="w-[40px] p-3">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all items"
+                        />
+                      </th>
+                      <th className="p-3 text-left text-xs font-medium text-muted-foreground">Product</th>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Stock</th>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Quantity</th>
                       {formData.type === "IN" && (
-                        <TableHead className="text-right w-[120px]">Unit Cost *</TableHead>
+                        <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Unit Cost</th>
                       )}
-                      <TableHead className="text-right">Total Value</TableHead>
-                      <TableHead className="w-[180px]">Item Reason</TableHead>
-                      <TableHead className="w-[50px]"></TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Total</th>
+                      <th className="w-[160px] p-3 text-xs font-medium text-muted-foreground">Reason</th>
+                      <th className="w-[60px] p-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
                     {formData.items.map((item) => (
-                      <TableRow key={item.id}>
-                        <TableCell>
+                      <tr key={item.id} className="hover:bg-muted/30">
+                        <td className="p-3">
+                          <Checkbox
+                            checked={selectedItems.includes(item.id)}
+                            onCheckedChange={() => handleSelectItem(item.id)}
+                            aria-label={`Select ${item.productName}`}
+                          />
+                        </td>
+                        <td className="p-3">
                           <div className="font-medium">{item.productName}</div>
-                          <div className="text-sm text-muted-foreground">{item.sku}</div>
-                        </TableCell>
-                        <TableCell className="text-right">
+                          <div className="text-xs text-muted-foreground">{item.sku}</div>
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
                           {item.currentStock} {item.unit}
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td className="p-3">
                           <Input
                             type="number"
                             min="1"
@@ -781,16 +933,13 @@ export default function NewInventoryAdjustmentPage() {
                             value={item.adjustmentQty}
                             onChange={(e) => handleUpdateItem(item.id, "adjustmentQty", parseFloat(e.target.value) || 0)}
                             className={cn(
-                              "w-full text-right",
+                              "w-20 h-8 text-right ml-auto",
                               errors[`item_${item.id}_qty`] ? "border-red-500" : ""
                             )}
                           />
-                          {errors[`item_${item.id}_qty`] && (
-                            <p className="text-xs text-red-500 mt-1">{errors[`item_${item.id}_qty`]}</p>
-                          )}
-                        </TableCell>
+                        </td>
                         {formData.type === "IN" && (
-                          <TableCell>
+                          <td className="p-3">
                             <Input
                               type="number"
                               min="0"
@@ -799,51 +948,213 @@ export default function NewInventoryAdjustmentPage() {
                               onChange={(e) => handleUpdateItem(item.id, "unitCost", parseFloat(e.target.value) || 0)}
                               placeholder="0.00"
                               className={cn(
-                                "w-full text-right",
+                                "w-20 h-8 text-right ml-auto",
                                 errors[`item_${item.id}_cost`] ? "border-red-500" : ""
                               )}
                             />
-                            {errors[`item_${item.id}_cost`] && (
-                              <p className="text-xs text-red-500 mt-1">{errors[`item_${item.id}_cost`]}</p>
-                            )}
-                          </TableCell>
+                          </td>
                         )}
-                        <TableCell className="text-right font-medium">
+                        <td className="p-3 text-right font-medium">
                           {item.totalCost.toLocaleString("en-US", {
                             style: "currency",
                             currency: "USD"
                           })}
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        {/*
+                          CATEGORY/REASON FEATURE: Item-Level Reason Dropdown
+
+                          This is the second level of the two-level classification system.
+                          - Reasons are filtered by the header-level category (availableReasons)
+                          - Disabled until a category is selected at header level
+                          - Each item can have a different reason within the same category
+                        */}
+                        <td className="p-3">
                           <Select
                             value={item.reason}
                             onValueChange={(value) => handleUpdateItem(item.id, "reason", value)}
+                            disabled={!formData.category}
                           >
-                            <SelectTrigger className="w-full">
-                              <SelectValue placeholder="Select..." />
+                            <SelectTrigger className={cn(
+                              "h-8 text-xs",
+                              errors[`item_${item.id}_reason`] ? "border-red-500" : "",
+                              !formData.category && "opacity-50"
+                            )}>
+                              <SelectValue placeholder={formData.category ? "Select reason..." : "Select category first"} />
                             </SelectTrigger>
                             <SelectContent>
-                              {adjustmentReasons[formData.type].map((reason) => (
+                              {availableReasons.map((reason) => (
                                 <SelectItem key={reason.value} value={reason.value}>
                                   {reason.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                        </TableCell>
-                        <TableCell>
+                        </td>
+                        <td className="p-3">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => handleRemoveItem(item.id)}
+                            className="h-8 w-8 text-destructive hover:text-destructive"
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
-                        </TableCell>
-                      </TableRow>
+                        </td>
+                      </tr>
                     ))}
-                  </TableBody>
-                </Table>
+
+                    {/* Inline Add Item Row */}
+                    {isAddingItem && (
+                      <tr className="bg-blue-50/50 border-t-2 border-blue-200">
+                        <td className="p-3">
+                          <span className="text-muted-foreground">-</span>
+                        </td>
+                        <td className="p-3">
+                          {/* Searchable Product Dropdown */}
+                          <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={productSearchOpen}
+                                className="w-full justify-between min-w-[200px] h-9"
+                              >
+                                {selectedProduct ? (
+                                  <div className="flex flex-col items-start">
+                                    <span className="text-sm font-medium truncate max-w-[180px]">{selectedProduct.name}</span>
+                                    <span className="text-xs text-muted-foreground">{selectedProduct.sku}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground flex items-center gap-2">
+                                    <Search className="h-4 w-4" />
+                                    Search products...
+                                  </span>
+                                )}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[350px] p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search by name or SKU..." />
+                                <CommandList>
+                                  <CommandEmpty>No product found.</CommandEmpty>
+                                  <CommandGroup heading="Products">
+                                    {availableProducts.map((product) => (
+                                      <CommandItem
+                                        key={product.id}
+                                        value={`${product.name} ${product.sku}`}
+                                        onSelect={() => {
+                                          setNewItemProductId(product.id)
+                                          setProductSearchOpen(false)
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{product.name}</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {product.sku} · {product.unit} · Stock: {product.currentStock}
+                                          </span>
+                                        </div>
+                                        <Check
+                                          className={cn(
+                                            "ml-auto h-4 w-4",
+                                            newItemProductId === product.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          {selectedProduct ? `${selectedProduct.currentStock} ${selectedProduct.unit}` : '-'}
+                        </td>
+                        <td className="p-3">
+                          <Input
+                            type="number"
+                            min="1"
+                            max={formData.type === "OUT" && selectedProduct ? selectedProduct.currentStock : undefined}
+                            value={newItemQty}
+                            onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-20 h-8 text-right ml-auto"
+                          />
+                        </td>
+                        {formData.type === "IN" && (
+                          <td className="p-3">
+                            <Input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={newItemUnitCost || ""}
+                              onChange={(e) => setNewItemUnitCost(parseFloat(e.target.value) || 0)}
+                              placeholder="0.00"
+                              className="w-20 h-8 text-right ml-auto"
+                            />
+                          </td>
+                        )}
+                        <td className="p-3 text-right font-medium">
+                          {selectedProduct
+                            ? (formData.type === "IN"
+                                ? newItemQty * newItemUnitCost
+                                : newItemQty * (selectedProduct.avgCost || 0)
+                              ).toLocaleString("en-US", { style: "currency", currency: "USD" })
+                            : '-'
+                          }
+                        </td>
+                        {/*
+                          CATEGORY/REASON FEATURE: Inline Add Row - Reason Dropdown
+
+                          Same two-level classification for new items being added.
+                          Uses the same availableReasons computed from header-level category.
+                        */}
+                        <td className="p-3">
+                          <Select
+                            value={newItemReason}
+                            onValueChange={setNewItemReason}
+                            disabled={!formData.category}
+                          >
+                            <SelectTrigger className={cn(
+                              "h-8 text-xs",
+                              !formData.category && "opacity-50"
+                            )}>
+                              <SelectValue placeholder={formData.category ? "Select reason..." : "Select category first"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableReasons.map((reason) => (
+                                <SelectItem key={reason.value} value={reason.value}>
+                                  {reason.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleConfirmAddItem}
+                              disabled={!newItemProductId}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleCancelAddItem}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             )}
           </CardContent>
@@ -915,5 +1226,13 @@ export default function NewInventoryAdjustmentPage() {
         </DialogContent>
       </Dialog>
     </div>
+  )
+}
+
+export default function NewInventoryAdjustmentPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-64">Loading...</div>}>
+      <NewInventoryAdjustmentContent />
+    </Suspense>
   )
 }

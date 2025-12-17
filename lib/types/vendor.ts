@@ -147,13 +147,13 @@ export interface VendorBankAccount {
 
 /**
  * Price list validity and status
- * Updated: 2025-11-17 - Changed 'expired' to 'inactive' per ARC-2024-001
+ * Updated: 2025-11-17 - Changed 'expired' to 'inactive' per ARC-2410-001
  */
 export type PriceListStatus = 'draft' | 'active' | 'inactive' | 'superseded' | 'cancelled';
 
 /**
  * Vendor price list header
- * Updated: 2025-11-17 - Changed effectiveDate to effectiveStartDate/effectiveEndDate per ARC-2024-001
+ * Updated: 2025-11-17 - Changed effectiveDate to effectiveStartDate/effectiveEndDate per ARC-2410-001
  */
 export interface VendorPriceList {
   id: string;
@@ -201,7 +201,7 @@ export interface VolumeDiscount {
 
 /**
  * Price list item
- * Updated: 2025-11-17 - Added FOC, tax fields, product_identifier per ARC-2024-001
+ * Updated: 2025-11-17 - Added FOC, tax fields, product_identifier per ARC-2410-001
  */
 export interface VendorPriceListItem {
   id: string;
@@ -218,7 +218,7 @@ export interface VendorPriceListItem {
   unitPrice: Money;
   minimumOrderQuantity: number;
   leadTimeDays?: number; // Made optional
-  // Tax information (Added per ARC-2024-001)
+  // Tax information (Added per ARC-2410-001)
   isFoc: boolean; // Free of Charge indicator
   taxProfileId?: string; // Optional FK to tax profile
   taxRate?: number; // Tax rate percentage (0-100)
@@ -242,7 +242,7 @@ export interface VendorPriceListItem {
 
 /**
  * Tax Profile
- * Added: 2025-11-17 - Support for tax profiles per ARC-2024-001
+ * Added: 2025-11-17 - Support for tax profiles per ARC-2410-001
  */
 export interface TaxProfile {
   id: string;
@@ -260,7 +260,7 @@ export interface TaxProfile {
 
 /**
  * Import Result for bulk price list item imports
- * Added: 2025-11-17 - Support for bulk import feature per ARC-2024-001
+ * Added: 2025-11-17 - Support for bulk import feature per ARC-2410-001
  */
 export interface ImportResult {
   success: boolean;
@@ -274,7 +274,7 @@ export interface ImportResult {
 
 /**
  * Import Error details
- * Added: 2025-11-17 - Error tracking for imports per ARC-2024-001
+ * Added: 2025-11-17 - Error tracking for imports per ARC-2410-001
  */
 export interface ImportError {
   row: number;

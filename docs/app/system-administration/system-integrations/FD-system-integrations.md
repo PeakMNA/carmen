@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Implementation Status**: Partially Implemented (POS Integration)
 
@@ -80,11 +81,11 @@ flowchart TD
     PortionConfig --> SelectBaseRecipe
     CustomConfig --> SelectBaseRecipe
 
-    SelectBaseRecipe --> EnterVariantName[Enter Variant Name: e.g., "Pizza Slice"]
+    SelectBaseRecipe --> EnterVariantName[Enter Variant Name: e.g., 'Pizza Slice']
     EnterVariantName --> EnterPiecesPerUnit[Enter Pieces per Unit: e.g., 8 slices]
     EnterPiecesPerUnit --> AutoCalculate[Auto-calculate Conversion Rate: 1/8 = 0.125]
     AutoCalculate --> Preview[Preview Inventory Impact]
-    Preview --> ShowPreview["Example: 1 slice sold = 0.125 pizza deducted"]
+    Preview --> ShowPreview['Example: 1 slice sold = 0.125 pizza deducted']
     ShowPreview --> ConfirmPreview{User Confirms?}
     ConfirmPreview -->|No| EnterPiecesPerUnit
     ConfirmPreview -->|Yes| CreateVariants{Create Multiple Variants?}

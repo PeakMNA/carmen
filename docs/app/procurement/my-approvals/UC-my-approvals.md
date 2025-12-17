@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Documentation Team | Initial version |
 
 ---
@@ -282,7 +283,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
 **A5: Search by Reference Number**
 - **Trigger**: User knows specific document reference number
 - **Flow**:
-  - 9a. User enters reference number in search box (e.g., "PR-2025-001234")
+  - 9a. User enters reference number in search box (e.g., "PR-2501-001234")
   - 9b. System performs real-time search as user types (debounced 300ms)
   - 9c. System filters queue to show matching documents
   - 9d. If exact match found, system highlights it in queue
@@ -332,7 +333,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
 - **Flow**:
   - 11a. System receives real-time update that document approved by another user
   - 11b. System removes document from current user's queue immediately
-  - 11c. System displays temporary notification: "Document PR-2025-001234 approved by John Doe"
+  - 11c. System displays temporary notification: "Document PR-2501-001234 approved by John Doe"
   - 11d. System updates pending count
   - **Main flow continues at step 10**
 
@@ -432,7 +433,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
     - **Notification Service**: Sends approval confirmation to requestor
     - **Workflow Engine**: Routes to next approver (if applicable)
     - **Audit Service**: Logs approval action with full context
-16. System displays success confirmation: "Document PR-2025-001234 approved successfully"
+16. System displays success confirmation: "Document PR-2501-001234 approved successfully"
 17. System removes document from user's approval queue
 18. System updates queue count (-1)
 19. System displays option to return to queue or review next document
@@ -638,7 +639,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
    - "Missing required attachments"
    - "Other (custom reason)"
 6. User selects quick reason or enters custom rejection reason
-7. User adds detailed explanation (mandatory, min 20 characters): "Rejected. Similar items already ordered via PR-2025-001180 last week. Please check with inventory before creating new PR."
+7. User adds detailed explanation (mandatory, min 20 characters): "Rejected. Similar items already ordered via PR-2501-001180 last week. Please check with inventory before creating new PR."
 8. System validates rejection reason (minimum length, not empty)
 9. User clicks "Confirm Rejection" button
 10. System validates:
@@ -655,7 +656,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
     - **Workflow Engine**: Terminates approval workflow (no further routing)
     - **Notification Service**: Sends rejection notification to requestor with reason
     - **Audit Service**: Logs rejection action with full context
-13. System displays success confirmation: "Document PR-2025-001234 rejected successfully"
+13. System displays success confirmation: "Document PR-2501-001234 rejected successfully"
 14. System removes document from user's approval queue
 15. System updates queue count (-1)
 16. System displays option to return to queue or review next document
@@ -794,7 +795,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
   - 1e. Requestor clicks "Submit Response" and selects approver from dropdown
   - 1f. System updates document status back to "Pending Approval"
   - 1g. System resumes SLA timer from pause point
-  - 1h. System sends notification to original approver: "Requestor has provided additional information for PR-2025-001234"
+  - 1h. System sends notification to original approver: "Requestor has provided additional information for PR-2501-001234"
   - 1i. System displays "New Info Available" badge in approver's queue
   - 1j. Approver reviews updated document (returns to UC-APPR-002)
   - **Use case resumes at UC-APPR-002 for approval decision**
@@ -819,7 +820,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
 - **Flow**:
   - (48 hours after information request sent)
   - 1a. Background job detects response deadline passed
-  - 1b. System sends reminder notification to requestor: "Reminder: Information request for PR-2025-001234 is overdue. Please respond to proceed with approval."
+  - 1b. System sends reminder notification to requestor: "Reminder: Information request for PR-2501-001234 is overdue. Please respond to proceed with approval."
   - 1c. System sends escalation notification to requestor's manager
   - 1d. System displays "Info Overdue" badge in approver's queue
   - 1e. Approver can choose to:
@@ -835,7 +836,7 @@ This document describes the use cases for the My Approvals sub-module, which pro
   - 1a. Requestor clicks "Recall Document" button in their document view
   - 1b. System updates document status to "Recalled"
   - 1c. System removes document from all approval queues
-  - 1d. System sends notification to approver: "PR-2025-001234 recalled by requestor"
+  - 1d. System sends notification to approver: "PR-2501-001234 recalled by requestor"
   - 1e. System releases budget commitment
   - 1f. System allows requestor to edit and resubmit later
   - **Use case ends**
@@ -943,12 +944,12 @@ This document describes the use cases for the My Approvals sub-module, which pro
   - 17a. System begins processing bulk approval transaction
   - 17b. Document 7 of 15 fails validation (e.g., concurrent modification detected)
   - 17c. System rolls back entire transaction (atomic operation)
-  - 17d. System displays error modal: "Bulk approval failed. Document PR-2025-001240 was modified by another user during bulk approval."
+  - 17d. System displays error modal: "Bulk approval failed. Document PR-2501-001240 was modified by another user during bulk approval."
   - 17e. System shows two options:
      - **Option 1**: Remove failed document and retry bulk approval with remaining 14
      - **Option 2**: Cancel bulk approval and review failed document individually
   - 17f. User selects Option 1: Remove failed document
-  - 17g. System deselects PR-2025-001240 from bulk selection
+  - 17g. System deselects PR-2501-001240 from bulk selection
   - 17h. System updates summary: 14 documents, Total: $11,850
   - 17i. User clicks "Retry Bulk Approval"
   - **Main flow continues at step 16** (retry with reduced set)
@@ -966,8 +967,8 @@ This document describes the use cases for the My Approvals sub-module, which pro
 - **Trigger**: User notices one document in selection needs individual review
 - **Flow**:
   - 9a. User reviews bulk selection panel
-  - 9b. User notices PR-2025-001245 has higher amount than others ($2,500 vs. average $800)
-  - 9c. User clicks X icon next to PR-2025-001245 to deselect
+  - 9b. User notices PR-2501-001245 has higher amount than others ($2,500 vs. average $800)
+  - 9c. User clicks X icon next to PR-2501-001245 to deselect
   - 9d. System removes document from bulk selection
   - 9e. System updates summary: 14 documents, Total: $9,950
   - **Main flow continues at step 10**

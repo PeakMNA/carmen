@@ -14,7 +14,7 @@
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         A[StockCardListPage] --> B[SummaryCards]
         A --> C[FilterBar]
         A --> D[ListView]
@@ -22,17 +22,17 @@ graph TB
         A --> F[GroupedView]
     end
 
-    subgraph "Components"
+    subgraph 'Components'
         G[GroupedTable]
         H[ExportButton]
     end
 
-    subgraph "Utilities"
+    subgraph 'Utilities'
         I[Export Utils]
         J[Formatters]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         K[Mock Product Generator]
         L[User Context]
     end

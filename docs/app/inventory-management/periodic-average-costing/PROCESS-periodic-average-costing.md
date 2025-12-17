@@ -207,7 +207,7 @@ Location: Main Kitchen (MK)
 
 #### Transaction Details
 ```yaml
-Document: GRN-2025-001
+Document: GRN-2501-0001
 Date: 2025-01-05
 Quantity: 100 kg
 Unit Cost: $10.00/kg
@@ -221,7 +221,7 @@ Total Cost: $1,000.00
 // tb_inventory_transaction_detail
 {
   id: "uuid-txn-001",
-  transaction_id: "GRN-2025-001",
+  transaction_id: "GRN-2501-0001",
   transaction_type: "good_received_note",
   transaction_date: "2025-01-05T10:00:00Z",
   product_id: "flour-uuid",
@@ -293,7 +293,7 @@ CR: GRN/Accrued Payables        $1,000.00
 
 #### Transaction Details
 ```yaml
-Document: ADJ-2025-001234
+Document: ADJ-2501-001234
 Date: 2025-01-10
 Type: Stock-In
 Quantity: +20 kg
@@ -327,7 +327,7 @@ await invalidatePeriodCache(productId, januaryPeriod, "Stock-in adjustment");
 
 #### Transaction Details
 ```yaml
-Document: TRF-2025-001
+Document: TRF-2501-0001
 Date: 2025-01-15
 From: Pastry Venue (PV)
 To: Main Kitchen (MK)
@@ -377,7 +377,7 @@ Calculated Average: $3,755.00 ÷ 330 = $11.3788/kg
 
 #### Transaction Details
 ```yaml
-Document: ISS-2025-050
+Document: ISS-2501-0050
 Date: 2025-01-20
 Quantity: 60 kg
 Purpose: Production Order #1234
@@ -419,7 +419,7 @@ async function getPeriodAverageCost(
 ```typescript
 {
   id: "uuid-txn-issue",
-  transaction_id: "ISS-2025-050",
+  transaction_id: "ISS-2501-0050",
   transaction_type: "issue",
   transaction_date: "2025-01-20T16:00:00Z",
   product_id: "flour-uuid",
@@ -479,7 +479,7 @@ CR: Inventory Asset (Flour)          $682.73
 
 #### Transaction Details
 ```yaml
-Document: TRF-2025-002
+Document: TRF-2501-0002
 Date: 2025-01-22
 From: Main Kitchen (MK)
 To: Pastry Venue (PV)
@@ -532,7 +532,7 @@ await invalidatePeriodCache("flour-uuid", januaryPeriod, "Transfer-in");
 
 #### Transaction Details
 ```yaml
-Document: ADJ-2025-001235
+Document: ADJ-2501-001235
 Date: 2025-01-25
 Type: Stock-Out
 Quantity: -15 kg
@@ -570,7 +570,7 @@ CR: Inventory Asset (Flour)      $170.68
 
 #### Transaction Details
 ```yaml
-Document: CN-2025-005
+Document: CN-2501-0005
 Date: 2025-01-28
 Quantity: 25 kg
 Reason: "Quality issue"
@@ -617,7 +617,7 @@ Costing Method: Periodic Average
 
 #### Transaction Details
 ```yaml
-Document: CN-2025-006
+Document: CN-2501-0006
 Type: Credit Note (Amount-Only Discount)
 Credit Type: AMOUNT_DISCOUNT
 Discount Amount: $500.00 (4% of $12,500)
@@ -634,7 +634,7 @@ Total Credit: $590.00
 **Step 1: Create Amount-Only Credit Note**
 ```typescript
 {
-  credit_note_id: "CN-2025-006",
+  credit_note_id: "CN-2501-0006",
   credit_type: "AMOUNT_DISCOUNT",         // 🟢 No physical return
   vendor_id: "vendor-premium-uuid",
   discount_amount: 500.00000,
@@ -666,7 +666,7 @@ Total Credit: $590.00
 ```typescript
 {
   id: "uuid-txn-cn-discount",
-  transaction_id: "CN-2025-006",
+  transaction_id: "CN-2501-0006",
   transaction_type: "credit_note",
   transaction_date: "2025-03-31T16:00:00Z",
   vendor_id: "vendor-premium-uuid",
@@ -733,7 +733,7 @@ Operational Impact:
 
 #### Initial State
 ```yaml
-Original Receipt (GRN-2025-120):
+Original Receipt (GRN-2501-0120):
   - Product: Chicken Breast (Fresh)
   - Received: 50 kg @ $8.50/kg (original GRN cost)
   - Month: December 2025
@@ -747,14 +747,14 @@ Current Status:
 
 #### Transaction Details
 ```yaml
-Document: CN-2025-007
+Document: CN-2501-0007
 Type: Credit Note (Vendor Return - Partial Availability)
 Credit Type: QUANTITY_RETURN
 Product: Chicken Breast (Fresh)
 Return Quantity: 30 kg (requested by purchasing)
 Reason: QUALITY_ISSUE (temperature abuse during transport)
 Vendor: Fresh Poultry Suppliers
-Original GRN: GRN-2025-120
+Original GRN: GRN-2501-0120
 Period: December 2025
 Period Average Cost: $8.35/kg
 

@@ -408,7 +408,7 @@ GET /api/grns/{id}/items/{itemId}/stock-movements
   "stockMovements": [
     {
       "id": "123e4567-e89b-12d3-a456-426614174030",
-      "transactionNumber": "INV-2024-0001",
+      "transactionNumber": "INV-2401-0001",
       "transactionType": "RECEIPT",
       "productId": "123e4567-e89b-12d3-a456-426614174028",
       "productCode": "PROD-002",

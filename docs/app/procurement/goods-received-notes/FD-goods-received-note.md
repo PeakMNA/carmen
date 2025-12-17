@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.5 | 2025-12-03 | Documentation Team | Added costing method context (FIFO or Periodic Average configurable at system level) |
 | 1.0.4 | 2025-12-03 | Documentation Team | Mermaid 8.8.2 compatibility: Removed colons, equals signs, and parentheses from flowchart node labels in Diagrams 1, 2, 4, 5 |
 | 1.0.3 | 2025-12-03 | Documentation Team | Mermaid 8.8.2 compatibility: Removed parentheses from sequenceDiagram messages, replaced special characters in flowcharts |
@@ -61,32 +62,32 @@ flowchart TD
     Start([User clicks New GRN]) --> Select{Select Process Type}
     Select -->|From PO| VendorSelect[Select Vendor]
 
-    VendorSelect --> LoadPOs[System loads<br/>pending POs for vendor]
-    LoadPOs --> DisplayPOs[Display pending<br/>PO list]
+    VendorSelect --> LoadPOs[System loads<br>pending POs for vendor]
+    LoadPOs --> DisplayPOs[Display pending<br>PO list]
 
-    DisplayPOs --> SelectPO[User selects<br/>PO lines to receive<br/>from one or more POs]
-    SelectPO --> CreateGRN[System creates GRN<br/>with line-level PO references]
+    DisplayPOs --> SelectPO[User selects<br>PO lines to receive<br>from one or more POs]
+    SelectPO --> CreateGRN[System creates GRN<br>with line-level PO references]
 
-    CreateGRN --> PrePopulate[Pre-populate<br/>Vendor info, Items,<br/>Ordered qty, Prices]
+    CreateGRN --> PrePopulate[Pre-populate<br>Vendor info, Items,<br>Ordered qty, Prices]
 
-    PrePopulate --> EnterQty[User enters<br/>received quantities]
-    EnterQty --> AutoDisc[System auto-detects<br/>discrepancies]
+    PrePopulate --> EnterQty[User enters<br>received quantities]
+    EnterQty --> AutoDisc[System auto-detects<br>discrepancies]
 
-    AutoDisc --> CheckDisc{Has<br/>discrepancies?}
-    CheckDisc -->|Yes| FlagItems[Flag items<br/>with discrepancy indicator]
+    AutoDisc --> CheckDisc{Has<br>discrepancies?}
+    CheckDisc -->|Yes| FlagItems[Flag items<br>with discrepancy indicator]
     CheckDisc -->|No| EnterDelivery
-    FlagItems --> EnterDelivery[User enters delivery info<br/>Invoice, Delivery note,<br/>Vehicle and driver]
+    FlagItems --> EnterDelivery[User enters delivery info<br>Invoice, Delivery note,<br>Vehicle and driver]
 
-    EnterDelivery --> Validate{Validation<br/>passed?}
-    Validate -->|No| ShowErrors[Display<br/>validation errors]
+    EnterDelivery --> Validate{Validation<br>passed?}
+    Validate -->|No| ShowErrors[Display<br>validation errors]
     ShowErrors --> EnterQty
 
-    Validate -->|Yes| GenNumber[System generates<br/>GRN number<br/>GRN-YYYY-NNN]
-    GenNumber --> SetStatus[Set status to<br/>RECEIVED]
+    Validate -->|Yes| GenNumber[System generates<br>GRN number<br>GRN-YYMM-NNNN]
+    GenNumber --> SetStatus[Set status to<br>RECEIVED]
 
-    SetStatus --> SaveGRN[(Save GRN to<br/>Zustand store)]
-    SaveGRN --> NavDetail[Navigate to<br/>GRN detail page]
-    NavDetail --> Success([GRN Created<br/>Successfully])
+    SetStatus --> SaveGRN[(Save GRN to<br>Zustand store)]
+    SaveGRN --> NavDetail[Navigate to<br>GRN detail page]
+    NavDetail --> Success([GRN Created<br>Successfully])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Success fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
@@ -113,7 +114,7 @@ flowchart TD
 14. **Validation**: System validates required fields, quantity rules, date constraints
     - If invalid: Show specific error messages, return to entry
     - If valid: Continue to save
-15. **Generate GRN Number**: System assigns unique sequential number GRN-2024-001
+15. **Generate GRN Number**: System assigns unique sequential number GRN-2401-001
 16. **Set Status**: GRN status set to RECEIVED (skipping DRAFT for PO-based)
 17. **Save GRN**: Data saved to Zustand store (future: database via server action)
 18. **Navigate**: Route to GRN detail page for review and further actions
@@ -137,40 +138,40 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User clicks New GRN]) --> Select{Select Process Type}
-    Select -->|Manual| GenTemp[System generates<br/>temporary ID<br/>new-UUID]
+    Select -->|Manual| GenTemp[System generates<br>temporary ID<br>new-UUID]
 
-    GenTemp --> InitStore[Initialize Zustand store<br/>with placeholder data]
-    InitStore --> NavConfirm[Navigate to detail page<br/>in confirm mode]
+    GenTemp --> InitStore[Initialize Zustand store<br>with placeholder data]
+    InitStore --> NavConfirm[Navigate to detail page<br>in confirm mode]
 
-    NavConfirm --> SelectVendor[User selects vendor<br/>from dropdown]
-    SelectVendor --> EnterDelivery[User enters delivery info<br/>Invoice, Delivery note,<br/>Vehicle and driver]
+    NavConfirm --> SelectVendor[User selects vendor<br>from dropdown]
+    SelectVendor --> EnterDelivery[User enters delivery info<br>Invoice, Delivery note,<br>Vehicle and driver]
 
-    EnterDelivery --> SearchItem[User searches for items<br/>in product catalog]
-    SearchItem --> AddItem{Add<br/>item?}
+    EnterDelivery --> SearchItem[User searches for items<br>in product catalog]
+    SearchItem --> AddItem{Add<br>item?}
 
-    AddItem -->|Yes| SelectProduct[User selects product<br/>from search results]
+    AddItem -->|Yes| SelectProduct[User selects product<br>from search results]
     SelectProduct --> ItemForm[Item detail form opens]
 
-    ItemForm --> EnterItem[User enters<br/>Qty, Price, Location,<br/>Batch, Expiry]
+    ItemForm --> EnterItem[User enters<br>Qty, Price, Location,<br>Batch, Expiry]
 
-    EnterItem --> CalcLine[System calculates<br/>line total]
+    EnterItem --> CalcLine[System calculates<br>line total]
     CalcLine --> AddToList[Add item to GRN]
-    AddToList --> UpdateTotal[System recalculates<br/>GRN subtotal]
+    AddToList --> UpdateTotal[System recalculates<br>GRN subtotal]
     UpdateTotal --> SearchItem
 
-    AddItem -->|No, done adding| Receipt[User enters<br/>Receipt date and<br/>Receiver name]
-    Receipt --> Validate{Validation<br/>passed?}
+    AddItem -->|No, done adding| Receipt[User enters<br>Receipt date and<br>Receiver name]
+    Receipt --> Validate{Validation<br>passed?}
 
-    Validate -->|No| ShowErrors[Display<br/>validation errors]
+    Validate -->|No| ShowErrors[Display<br>validation errors]
     ShowErrors --> Receipt
 
-    Validate -->|Yes| GenNumber[System generates<br/>GRN number<br/>GRN-YYYY-NNN]
-    GenNumber --> SetStatus[Set status to<br/>RECEIVED]
+    Validate -->|Yes| GenNumber[System generates<br>GRN number<br>GRN-YYMM-NNNN]
+    GenNumber --> SetStatus[Set status to<br>RECEIVED]
 
     SetStatus --> SaveGRN[(Save GRN)]
-    SaveGRN --> UpdateID[Replace temp ID<br/>with real GRN number]
-    UpdateID --> NavDetail[Navigate to<br/>detail view]
-    NavDetail --> Success([GRN Created<br/>Successfully])
+    SaveGRN --> UpdateID[Replace temp ID<br>with real GRN number]
+    UpdateID --> NavDetail[Navigate to<br>detail view]
+    NavDetail --> Success([GRN Created<br>Successfully])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Success fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
@@ -229,11 +230,11 @@ stateDiagram-v2
     DRAFT --> COMMITTED: User saves & commits directly
     DRAFT --> VOID: User/Manager voids GRN
 
-    RECEIVED --> COMMITTED: User commits GRN<br/>all validations pass
+    RECEIVED --> COMMITTED: User commits GRN<br>all validations pass
     RECEIVED --> VOID: User/Manager voids GRN
-    RECEIVED --> DRAFT: User changes status back<br/>edits needed
+    RECEIVED --> DRAFT: User changes status back<br>edits needed
 
-    COMMITTED --> VOID: Manager voids GRN<br/>reverses stock movements
+    COMMITTED --> VOID: Manager voids GRN<br>reverses stock movements
 
     VOID --> [*]
     COMMITTED --> [*]
@@ -298,44 +299,44 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([User clicks<br/>Commit GRN]) --> CheckStatus{GRN status<br/>RECEIVED?}
-    CheckStatus -->|No| ErrorStatus[Error - Can only commit<br/>RECEIVED status GRNs]
+    Start([User clicks<br>Commit GRN]) --> CheckStatus{GRN status<br>RECEIVED?}
+    CheckStatus -->|No| ErrorStatus[Error - Can only commit<br>RECEIVED status GRNs]
     ErrorStatus --> End1([End - Failed])
 
-    CheckStatus -->|Yes| CheckLoc{All items have<br/>locations?}
-    CheckLoc -->|No| ErrorLoc[Error - Assign storage<br/>locations to all items]
+    CheckStatus -->|Yes| CheckLoc{All items have<br>locations?}
+    CheckLoc -->|No| ErrorLoc[Error - Assign storage<br>locations to all items]
     ErrorLoc --> End1
 
-    CheckLoc -->|Yes| Confirm[Display commitment<br/>confirmation dialog]
+    CheckLoc -->|Yes| Confirm[Display commitment<br>confirmation dialog]
 
-    Confirm --> UserConfirm{User<br/>confirms?}
+    Confirm --> UserConfirm{User<br>confirms?}
     UserConfirm -->|No| End2([End - Cancelled])
 
-    UserConfirm -->|Yes| ChangeStatus[Change status to<br/>COMMITTED]
-    ChangeStatus --> GenStock[Generate stock movements<br/>for each item]
+    UserConfirm -->|Yes| ChangeStatus[Change status to<br>COMMITTED]
+    ChangeStatus --> GenStock[Generate stock movements<br>for each item]
 
-    GenStock --> UpdateInv[Update inventory levels<br/>in storage locations]
-    UpdateInv --> CalcFinance[Calculate financial totals<br/>Subtotal, Tax,<br/>Extra costs, Grand total]
+    GenStock --> UpdateInv[Update inventory levels<br>in storage locations]
+    UpdateInv --> CalcFinance[Calculate financial totals<br>Subtotal, Tax,<br>Extra costs, Grand total]
 
-    CalcFinance --> GenJV[Generate journal voucher<br/>Debit Inventory,<br/>Credit AP, Tax entries]
+    CalcFinance --> GenJV[Generate journal voucher<br>Debit Inventory,<br>Credit AP, Tax entries]
 
-    GenJV --> ValidateJV{Journal voucher<br/>balanced?}
+    GenJV --> ValidateJV{Journal voucher<br>balanced?}
     ValidateJV -->|No| RollbackJV[Rollback transaction]
     RollbackJV --> ErrorJV[Error - JV unbalanced]
     ErrorJV --> End1
 
-    ValidateJV -->|Yes| PostJV[Post JV to<br/>Finance Module]
-    PostJV --> UpdatePO{Linked to<br/>PO?}
+    ValidateJV -->|Yes| PostJV[Post JV to<br>Finance Module]
+    PostJV --> UpdatePO{Linked to<br>PO?}
 
-    UpdatePO -->|Yes| UpdateFulfill[Update PO<br/>fulfillment status]
+    UpdatePO -->|Yes| UpdateFulfill[Update PO<br>fulfillment status]
     UpdateFulfill --> Log
 
-    UpdatePO -->|No| Log[Create activity log entry<br/>Action COMMITTED,<br/>User, Timestamp]
+    UpdatePO -->|No| Log[Create activity log entry<br>Action COMMITTED,<br>User, Timestamp]
 
-    Log --> Notify[Send notifications<br/>Finance, Warehouse,<br/>Purchasing]
+    Log --> Notify[Send notifications<br>Finance, Warehouse,<br>Purchasing]
 
-    Notify --> LockGRN[Lock GRN<br/>set to immutable]
-    LockGRN --> Success([End - Committed<br/>Successfully])
+    Notify --> LockGRN[Lock GRN<br>set to immutable]
+    LockGRN --> Success([End - Committed<br>Successfully])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Success fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
@@ -391,32 +392,32 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User opens<br/>Extra Costs tab]) --> Display[Display existing<br/>extra costs list]
-    Display --> Action{User<br/>action?}
+    Start([User opens<br>Extra Costs tab]) --> Display[Display existing<br>extra costs list]
+    Display --> Action{User<br>action?}
 
-    Action -->|Add Cost| EnterCost[User enters<br/>Cost type, Amount,<br/>Currency]
+    Action -->|Add Cost| EnterCost[User enters<br>Cost type, Amount,<br>Currency]
     EnterCost --> SaveCost[Save cost to list]
     SaveCost --> SelectMethod
 
-    Action -->|Change Method| SelectMethod[User selects<br/>distribution method]
-    SelectMethod --> Method{Which<br/>method?}
+    Action -->|Change Method| SelectMethod[User selects<br>distribution method]
+    SelectMethod --> Method{Which<br>method?}
 
-    Method -->|Net Amount| CalcNet[For each item:<br/>allocation = <br/>item_net / total_net<br/>* total_extra_costs]
+    Method -->|Net Amount| CalcNet[For each item:<br>allocation = <br>item_net / total_net<br>* total_extra_costs]
 
-    Method -->|Quantity| CalcQty[For each item:<br/>allocation = <br/>item_qty / total_qty<br/>* total_extra_costs]
+    Method -->|Quantity| CalcQty[For each item:<br>allocation = <br>item_qty / total_qty<br>* total_extra_costs]
 
-    Method -->|Equal| CalcEqual[For each item:<br/>allocation = <br/>total_extra_costs<br/>/ item_count]
+    Method -->|Equal| CalcEqual[For each item:<br>allocation = <br>total_extra_costs<br>/ item_count]
 
-    CalcNet --> UpdateItems[Update each item<br/>allocated extra cost]
+    CalcNet --> UpdateItems[Update each item<br>allocated extra cost]
     CalcQty --> UpdateItems
     CalcEqual --> UpdateItems
 
-    UpdateItems --> RecalcItem[For each item:<br/>total = <br/>qty * price<br/>+ extra_cost]
+    UpdateItems --> RecalcItem[For each item:<br>total = <br>qty * price<br>+ extra_cost]
 
-    RecalcItem --> RecalcGRN[Recalculate GRN totals:<br/>- Subtotal<br/>- Net amount<br/>- Grand total]
+    RecalcItem --> RecalcGRN[Recalculate GRN totals:<br>- Subtotal<br>- Net amount<br>- Grand total]
 
-    RecalcGRN --> UpdateDisplay[Update financial<br/>summary display]
-    UpdateDisplay --> Done([Extra costs<br/>distributed])
+    RecalcGRN --> UpdateDisplay[Update financial<br>summary display]
+    UpdateDisplay --> Done([Extra costs<br>distributed])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Done fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000

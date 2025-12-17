@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional RFQ features (bidding, evaluation, awards, contracts); Updated to reflect Price Collection Campaign functionality; Updated mermaid syntax to 8.8.2 |
 | 1.0 | 2024-01-15 | System | Initial flow diagrams document |
 
@@ -31,20 +32,20 @@ The module enables procurement staff to create pricing collection campaigns, inv
 
 ```mermaid
 graph TB
-    subgraph Frontend["Frontend Layer"]
+    subgraph Frontend['Frontend Layer']
         UI[Next.js UI Components]
         Wizard[4-Step Campaign Wizard]
         Forms[React Hook Form + Zod]
         State[Zustand + React Query]
     end
 
-    subgraph Application["Application Layer"]
+    subgraph Application['Application Layer']
         Pages[Server Components]
         Actions[Server Actions]
         API[Route Handlers]
     end
 
-    subgraph Business["Business Logic Layer"]
+    subgraph Business['Business Logic Layer']
         Auth[Authentication Service]
         Validation[Validation Service]
         Campaign[Campaign Service]
@@ -53,7 +54,7 @@ graph TB
         Notification[Notification Service]
     end
 
-    subgraph Data["Data Layer"]
+    subgraph Data['Data Layer']
         MockData[Mock Data Layer]
         Types[TypeScript Interfaces]
     end
@@ -528,7 +529,7 @@ flowchart LR
 flowchart TD
     Start([Click Duplicate]) --> LoadCampaign[Load Original Campaign]
     LoadCampaign --> CopyData[Copy Campaign Data]
-    CopyData --> ModifyName[Add " (Copy)" to Name]
+    CopyData --> ModifyName[Add ' (Copy)' to Name]
     ModifyName --> ResetStatus[Set Status: Draft]
     ResetStatus --> ResetProgress[Reset Progress Metrics]
     ResetProgress --> CreateNew[Create New Campaign]

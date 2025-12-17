@@ -933,14 +933,14 @@ INSERT INTO tb_inventory_transaction_detail (
   reference_document
 ) VALUES (
   'trans-uuid-001',
-  'GRN-2025-001',
+  'GRN-2501-0001',
   'good_received_note',
   '2025-11-07 10:30:00+00',
   'prod-uuid-flour',
   'loc-uuid-main-kitchen',
   100.00000,
   4.75000,
-  'PO-2025-100'
+  'PO-2501-0100'
 );
 ```
 
@@ -1022,14 +1022,14 @@ INSERT INTO tb_inventory_transaction_detail (
   reference_document
 ) VALUES (
   'trans-uuid-002',
-  'ISS-2025-050',
+  'ISS-2501-0050',
   'issue',
   '2025-11-07 14:00:00+00',
   'prod-uuid-flour',
   'loc-uuid-main-kitchen',
   150.00000,
   4.61667,  -- Weighted average
-  'REQ-2025-025'
+  'REQ-2501-0025'
 );
 ```
 

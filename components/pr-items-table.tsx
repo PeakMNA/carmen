@@ -1,3 +1,14 @@
+/**
+ * Purchase Request Items Table Component
+ *
+ * Transaction Code Format: PR-YYMM-NNNN
+ * - PR: Purchase Request prefix
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: PR-2410-001 = Purchase Request #001 from October 2024
+ */
+
 "use client";
 
 import { useState } from "react";
@@ -15,10 +26,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ItemDetailsEditForm } from "@/app/(main)/procurement/purchase-requests/components/item-details-edit-form";
 import { useUser } from "@/lib/context/user-context";
 
+// Mock data with transaction codes using format: PR-YYMM-NNNN
 const mockRelatedPRItems = [
   {
     id: 'PR001',
-    prNumber: 'PR-2024-001',
+    prNumber: 'PR-2410-001',
     department: 'Human Resources',
     requestedQuantity: 10,
     approvedQuantity: 8,
@@ -36,7 +48,7 @@ const mockRelatedPRItems = [
   },
   {
     id: 'PR002',
-    prNumber: 'PR-2024-002',
+    prNumber: 'PR-2410-002',
     department: 'IT',
     requestedQuantity: 20,
     approvedQuantity: 20,

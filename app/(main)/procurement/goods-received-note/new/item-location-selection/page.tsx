@@ -1,3 +1,20 @@
+/**
+ * Item Location Selection Page for GRN Creation
+ *
+ * Allows users to select items and locations for receiving in a new GRN.
+ *
+ * LOCATION TYPE HANDLING:
+ * This page shows items from selected POs and their delivery locations.
+ * Location types affect how received items will be processed:
+ *
+ * - INVENTORY: Standard receiving with full inventory tracking
+ * - DIRECT: Items will be expensed immediately (no stock-in)
+ * - CONSIGNMENT: Items tracked as vendor-owned inventory
+ *
+ * The location filter badges show icons indicating the location type,
+ * helping users understand how items will be processed upon receiving.
+ */
+
 'use client'
 
 import React, { useState, useEffect, useMemo } from 'react';
@@ -9,40 +26,133 @@ import { Input } from '@/components/ui/input';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { Search, ChevronLeft } from 'lucide-react';
+import { Alert, AlertDescription } from "@/components/ui/alert"
+import { Search, ChevronLeft, Package, DollarSign, Truck, Info } from 'lucide-react';
 import { PurchaseOrder, PurchaseOrderItem, GoodsReceiveNoteItem, GoodsReceiveNote } from '@/lib/types';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { InventoryLocationType } from '@/lib/types/location-management';
+import {
+  requiresStockIn,
+  getLocationTypeLabel,
+  getGRNProcessingBehavior,
+} from '@/lib/utils/location-type-helpers';
 
 
-// Helper to flatten PO items and add PO reference, currency, rate
-const flattenPOItems = (pos: PurchaseOrder[]): (PurchaseOrderItem & { 
-    poNumber: string, 
-    poCurrencyCode: string, 
-    poExchangeRate: number, 
-    poBaseCurrencyCode: string, 
-    location: string, 
-    isSelected?: boolean, 
-    receivingQuantity?: number 
+/**
+ * Helper to flatten PO items and add PO reference, currency, rate, and location type
+ *
+ * LOCATION TYPE ASSIGNMENT:
+ * In real implementation, location type comes from the location master data.
+ * This mock assigns types based on location name patterns:
+ * - Warehouse/Receiving: INVENTORY (INV) - Standard stock tracking
+ * - Kitchen/Direct: DIRECT (DIR) - Immediate expense
+ * - Consignment: CONSIGNMENT (CON) - Vendor-owned inventory
+ */
+const flattenPOItems = (pos: PurchaseOrder[]): (PurchaseOrderItem & {
+    poNumber: string,
+    poCurrencyCode: string,
+    poExchangeRate: number,
+    poBaseCurrencyCode: string,
+    location: string,
+    locationType: string, // Location type code (INV, DIR, CON)
+    isSelected?: boolean,
+    receivingQuantity?: number
 })[] => {
   return pos.flatMap(po =>
     (po as any).items.map((item: any, index: number) => {
       // Assign more diverse mock locations based on PO number or index
+      // Each location has an associated location type
       let mockLocation = 'Main Warehouse';
-      if ((po as any).number === 'PO-002') mockLocation = 'Store Room A';
-      else if ((po as any).number === 'PO-003') mockLocation = 'Kitchen Prep Area';
-      else if (index % 2 === 0 && (po as any).number === 'PO-001') mockLocation = 'Receiving Bay'; // Example for variety within a PO
+      let locationType = 'INV'; // Default to INVENTORY
+
+      if ((po as any).number === 'PO-002') {
+        mockLocation = 'Store Room A';
+        locationType = 'INV'; // Standard inventory location
+      } else if ((po as any).number === 'PO-003') {
+        mockLocation = 'Kitchen Prep Area';
+        locationType = 'DIR'; // Direct expense - immediate consumption
+      } else if (index % 3 === 0 && (po as any).number === 'PO-001') {
+        mockLocation = 'Receiving Bay';
+        locationType = 'INV';
+      } else if (index % 3 === 1 && (po as any).number === 'PO-001') {
+        mockLocation = 'Beverage Consignment';
+        locationType = 'CON'; // Vendor-owned consignment
+      }
 
       return {
         ...item,
         poNumber: (po as any).number,
         poCurrencyCode: (po as any).currencyCode,
-        poExchangeRate: (po as any).exchangeRate, // Add Exchange Rate from PO
-        poBaseCurrencyCode: (po as any).baseCurrencyCode, // Add Base Currency Code from PO
-        location: mockLocation
+        poExchangeRate: (po as any).exchangeRate,
+        poBaseCurrencyCode: (po as any).baseCurrencyCode,
+        location: mockLocation,
+        locationType: locationType
       };
     })
   );
+};
+
+/**
+ * Get icon for location type
+ *
+ * LOCATION TYPE ICONS:
+ * - INVENTORY (INV): Package icon - standard tracked inventory
+ * - DIRECT (DIR): DollarSign icon - immediate expense items
+ * - CONSIGNMENT (CON): Truck icon - vendor-owned inventory
+ */
+const getLocationTypeIcon = (type: string) => {
+  switch (type.toUpperCase()) {
+    case 'INV':
+    case 'INVENTORY':
+      return <Package className="h-3 w-3" />;
+    case 'DIR':
+    case 'DIRECT':
+      return <DollarSign className="h-3 w-3" />;
+    case 'CON':
+    case 'CONSIGNMENT':
+      return <Truck className="h-3 w-3" />;
+    default:
+      return <Package className="h-3 w-3" />;
+  }
+};
+
+/**
+ * Get display label for location type
+ */
+const getLocationTypeLabelLocal = (type: string) => {
+  switch (type.toUpperCase()) {
+    case 'INV':
+    case 'INVENTORY':
+      return 'Inventory';
+    case 'DIR':
+    case 'DIRECT':
+      return 'Direct';
+    case 'CON':
+    case 'CONSIGNMENT':
+      return 'Consignment';
+    default:
+      return 'Unknown';
+  }
+};
+
+/**
+ * Get badge variant for location type
+ */
+const getLocationBadgeVariant = (type: string): 'default' | 'secondary' | 'outline' => {
+  switch (type.toUpperCase()) {
+    case 'INV':
+    case 'INVENTORY':
+      return 'default';
+    case 'DIR':
+    case 'DIRECT':
+      return 'secondary';
+    case 'CON':
+    case 'CONSIGNMENT':
+      return 'outline';
+    default:
+      return 'default';
+  }
 };
 
 export default function ItemLocationSelectionPage() {
@@ -354,22 +464,47 @@ export default function ItemLocationSelectionPage() {
         </div>
       </CardHeader>
       <CardContent>
-        {/* Location Filter */}
+        {/* Location Filter
+            LOCATION TYPE DISPLAY:
+            Each location badge shows the location type icon to help users
+            understand how items at that location will be processed.
+        */}
         <div className="mb-4">
             <Label className='mr-2'>Filter by Location:</Label>
             <div className="flex flex-wrap gap-2 mt-1">
-            {locations.map(loc => (
-                <Badge
-                key={loc}
-                variant={selectedLocations.has(loc) ? 'default' : 'outline'}
-                onClick={() => handleToggleLocation(loc)}
-                className="cursor-pointer"
-                >
-                {loc}
-                </Badge>
-            ))}
+            {locations.map(loc => {
+                // Find the location type for this location from any item
+                const locItem = allPOItems.find(item => (item as any).location === loc);
+                const locType = (locItem as any)?.locationType || 'INV';
+                return (
+                  <Badge
+                    key={loc}
+                    variant={selectedLocations.has(loc) ? getLocationBadgeVariant(locType) : 'outline'}
+                    onClick={() => handleToggleLocation(loc)}
+                    className="cursor-pointer flex items-center gap-1"
+                  >
+                    {getLocationTypeIcon(locType)}
+                    {loc}
+                    <span className="text-xs opacity-70">({getLocationTypeLabelLocal(locType)})</span>
+                  </Badge>
+                );
+            })}
             </div>
         </div>
+
+        {/* Alert for Direct Expense Locations */}
+        {Array.from(selectedLocations).some(loc => {
+          const locItem = allPOItems.find(item => (item as any).location === loc);
+          return (locItem as any)?.locationType === 'DIR';
+        }) && (
+          <Alert className="mb-4 border-amber-200 bg-amber-50">
+            <Info className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-800">
+              <strong>Direct Expense Location Selected:</strong> Items received to Direct locations
+              will be expensed immediately without creating inventory stock.
+            </AlertDescription>
+          </Alert>
+        )}
 
          {/* Search Input */}
         <div className="mb-4">
@@ -433,7 +568,16 @@ export default function ItemLocationSelectionPage() {
                           <div className="text-xs text-muted-foreground">{(item as any).description}</div>
                         </TableCell>
                         <TableCell>{(item as any).poNumber}</TableCell>
-                        <TableCell>{(item as any).location}</TableCell>
+                        {/* Location Column with Type Indicator */}
+                        <TableCell>
+                          <div className="flex flex-col gap-0.5">
+                            <span>{(item as any).location}</span>
+                            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                              {getLocationTypeIcon((item as any).locationType || 'INV')}
+                              <span>{getLocationTypeLabelLocal((item as any).locationType || 'INV')}</span>
+                            </div>
+                          </div>
+                        </TableCell>
                         <TableCell className="text-right">
                           {(item as any).orderedQuantity} {(item as any).orderUnit}
                         </TableCell>

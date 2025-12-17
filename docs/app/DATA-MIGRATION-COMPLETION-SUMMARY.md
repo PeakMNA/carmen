@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Completion Date**: November 15, 2025
 **Total Documents**: 28/28 (100%)
@@ -233,7 +234,7 @@ All documents include:
 ### Costing Methods
 
 **FIFO (Lot-Based Costing)**:
-- lot_no: "LOT-2025-001" (unique identifier)
+- lot_no: "LOT-2501-0001" (unique identifier)
 - parent_lot_no: "PARENT-001" (hierarchy)
 - cost_per_unit: Specific lot cost
 - Pattern: Each lot has unique cost tracking

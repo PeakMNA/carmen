@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version with comprehensive Mermaid diagrams |
 
 ---
@@ -51,25 +52,25 @@ This document provides visual representations of Stock In workflows using Mermai
 graph TD
     Start([User Initiates Stock In]) --> Create[Create Transaction]
     Create --> AddItems[Add Line Items]
-    AddItems --> Validate{All Items<br/>Added?}
+    AddItems --> Validate{All Items<br>Added?}
     Validate -->|No| AddItems
     Validate -->|Yes| Review[Review Transaction]
-    Review --> MoreChanges{Need<br/>Changes?}
+    Review --> MoreChanges{Need<br>Changes?}
     MoreChanges -->|Yes| AddItems
     MoreChanges -->|No| Commit[Commit Transaction]
 
-    Commit --> CostCalc[Calculate Costs<br/>Valuation Service]
-    CostCalc --> UpdateBal[Update Inventory<br/>Balances]
-    UpdateBal --> CreateMov[Create Movement<br/>History]
-    CreateMov --> PostGL[Post to<br/>General Ledger]
+    Commit --> CostCalc[Calculate Costs<br>Valuation Service]
+    CostCalc --> UpdateBal[Update Inventory<br>Balances]
+    UpdateBal --> CreateMov[Create Movement<br>History]
+    CreateMov --> PostGL[Post to<br>General Ledger]
     PostGL --> Complete([Transaction Committed])
 
     Review --> Cancel{Cancel?}
     Cancel -->|Yes| Void[Void Transaction]
     Void --> End([Transaction Voided])
 
-    Complete --> Reverse{Need<br/>Reversal?}
-    Reverse -->|Yes| ReverseFlow[Create Reversal<br/>Transaction]
+    Complete --> Reverse{Need<br>Reversal?}
+    Reverse -->|Yes| ReverseFlow[Create Reversal<br>Transaction]
     ReverseFlow --> End2([Reversed])
     Reverse -->|No| End3([Final])
 
@@ -87,37 +88,37 @@ graph TD
 ```mermaid
 flowchart TD
     Start([User Clicks Add New]) --> ShowForm[Display Transaction Form]
-    ShowForm --> EnterData[User Enters:<br/>- Type<br/>- Date<br/>- Location<br/>- Related Doc<br/>- Description]
+    ShowForm --> EnterData[User Enters:<br>- Type<br>- Date<br>- Location<br>- Related Doc<br>- Description]
 
-    EnterData --> ValidateClient{Client-Side<br/>Validation}
+    EnterData --> ValidateClient{Client-Side<br>Validation}
     ValidateClient -->|Invalid| ShowErrors[Display Field Errors]
     ShowErrors --> EnterData
 
     ValidateClient -->|Valid| Submit[User Clicks Create]
-    Submit --> ServerValidate{Server-Side<br/>Validation}
+    Submit --> ServerValidate{Server-Side<br>Validation}
 
     ServerValidate -->|Invalid| ReturnErrors[Return Validation Errors]
     ReturnErrors --> ShowErrors
 
-    ServerValidate -->|Valid| CheckPerms{User Has<br/>Create Permission?}
+    ServerValidate -->|Valid| CheckPerms{User Has<br>Create Permission?}
     CheckPerms -->|No| PermError[Return Permission Error]
     PermError --> ShowPermError[Display: Access Denied]
     ShowPermError --> End1([Creation Cancelled])
 
-    CheckPerms -->|Yes| CheckLocation{Location<br/>Accessible?}
+    CheckPerms -->|Yes| CheckLocation{Location<br>Accessible?}
     CheckLocation -->|No| LocError[Return Location Error]
     LocError --> ShowLocError[Display: Invalid Location]
     ShowLocError --> End1
 
-    CheckLocation -->|Yes| ValidateRelDoc{Related Doc<br/>Exists?}
+    CheckLocation -->|Yes| ValidateRelDoc{Related Doc<br>Exists?}
     ValidateRelDoc -->|No| DocError[Return Doc Error]
     DocError --> ShowDocError[Display: Related Doc Not Found]
     ShowDocError --> EnterData
 
-    ValidateRelDoc -->|Yes| GenRefNo[Generate Reference Number<br/>STK-IN-YYYY-NNNN]
-    GenRefNo --> CreateRecord[Create Transaction Record<br/>status = Saved]
-    CreateRecord --> CreateActivity[Create Activity Log:<br/>Created by User]
-    CreateActivity --> ReturnSuccess[Return Transaction ID<br/>and Ref Number]
+    ValidateRelDoc -->|Yes| GenRefNo[Generate Reference Number<br>STK-IN-YYMM-NNNN]
+    GenRefNo --> CreateRecord[Create Transaction Record<br>status = Saved]
+    CreateRecord --> CreateActivity[Create Activity Log:<br>Created by User]
+    CreateActivity --> ReturnSuccess[Return Transaction ID<br>and Ref Number]
     ReturnSuccess --> Navigate[Navigate to Detail Page]
     Navigate --> ShowSuccess[Display: Transaction Created]
     ShowSuccess --> End2([Ready for Line Items])
@@ -137,21 +138,21 @@ flowchart TD
     Start([User on Detail Page]) --> ClickAdd[User Clicks Add Product]
     ClickAdd --> OpenDialog[Display Product Search Dialog]
     OpenDialog --> Search[User Searches Products]
-    Search --> FetchProducts[API: Fetch Products<br/>from Product Master]
+    Search --> FetchProducts[API: Fetch Products<br>from Product Master]
     FetchProducts --> DisplayResults[Display Search Results]
     DisplayResults --> SelectProduct[User Selects Product]
 
-    SelectProduct --> LoadDetails[Load Product Details:<br/>- Code<br/>- Description<br/>- Available Units]
+    SelectProduct --> LoadDetails[Load Product Details:<br>- Code<br>- Description<br>- Available Units]
     LoadDetails --> ShowForm[Display Line Item Form]
-    ShowForm --> EnterQty[User Enters:<br/>- Quantity<br/>- Unit<br/>- Location<br/>- Comment]
+    ShowForm --> EnterQty[User Enters:<br>- Quantity<br>- Unit<br>- Location<br>- Comment]
 
-    EnterQty --> ValidateForm{Form<br/>Validation}
+    EnterQty --> ValidateForm{Form<br>Validation}
     ValidateForm -->|Invalid| ShowErrors[Display Inline Errors]
     ShowErrors --> EnterQty
 
-    ValidateForm -->|Valid| CheckDupe{Duplicate<br/>Product?}
-    CheckDupe -->|Yes| ShowWarning[Display: Product Already Exists<br/>Update or Change Unit/Location?]
-    ShowWarning --> UserChoice{User<br/>Choice}
+    ValidateForm -->|Valid| CheckDupe{Duplicate<br>Product?}
+    CheckDupe -->|Yes| ShowWarning[Display: Product Already Exists<br>Update or Change Unit/Location?]
+    ShowWarning --> UserChoice{User<br>Choice}
     UserChoice -->|Update Existing| EditExisting[Edit Existing Line Item]
     UserChoice -->|Change Details| EnterQty
     UserChoice -->|Cancel| End1([Cancelled])
@@ -159,11 +160,11 @@ flowchart TD
     CheckDupe -->|No| Submit[User Clicks Add]
     Submit --> ServerAction[Server Action: addLineItem]
     ServerAction --> CreateItem[Create stock_in_item Record]
-    CreateItem --> FetchInventory[Fetch Inventory Info:<br/>On Hand, Reorder, etc.]
-    FetchInventory --> CalcTotal[Calculate Total Qty:<br/>SUM all line items]
-    CalcTotal --> UpdateHeader[Update Transaction<br/>total_qty]
+    CreateItem --> FetchInventory[Fetch Inventory Info:<br>On Hand, Reorder, etc.]
+    FetchInventory --> CalcTotal[Calculate Total Qty:<br>SUM all line items]
+    CalcTotal --> UpdateHeader[Update Transaction<br>total_qty]
     UpdateHeader --> AutoSave[Trigger Auto-Save]
-    AutoSave --> ReturnItem[Return Line Item<br/>with Inventory Context]
+    AutoSave --> ReturnItem[Return Line Item<br>with Inventory Context]
     ReturnItem --> UpdateUI[Update Line Item Grid]
     UpdateUI --> ShowSuccess[Display: Item Added]
     ShowSuccess --> End2([Item Added])
@@ -184,47 +185,47 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Commit]) --> ShowConfirm[Display Confirmation Dialog<br/>with Summary]
-    ShowConfirm --> UserConfirm{User<br/>Confirms?}
+    Start([User Clicks Commit]) --> ShowConfirm[Display Confirmation Dialog<br>with Summary]
+    ShowConfirm --> UserConfirm{User<br>Confirms?}
     UserConfirm -->|No| Cancel([Commit Cancelled])
 
     UserConfirm -->|Yes| BeginTx[BEGIN DATABASE TRANSACTION]
-    BeginTx --> ValidateTx{Transaction<br/>Committable?}
+    BeginTx --> ValidateTx{Transaction<br>Committable?}
     ValidateTx -->|No| RollbackVal[ROLLBACK]
-    RollbackVal --> ShowError1[Display: Cannot Commit<br/>Validation Error]
+    RollbackVal --> ShowError1[Display: Cannot Commit<br>Validation Error]
     ShowError1 --> End1([Commit Failed])
 
-    ValidateTx -->|Yes| CheckPerms{User Has<br/>Commit Permission?}
+    ValidateTx -->|Yes| CheckPerms{User Has<br>Commit Permission?}
     CheckPerms -->|No| RollbackPerm[ROLLBACK]
     RollbackPerm --> ShowError2[Display: Access Denied]
     ShowError2 --> End1
 
-    CheckPerms -->|Yes| CallValuation[Call Inventory Valuation Service<br/>Calculate Costs for All Items]
-    CallValuation --> ValuationSuccess{Valuation<br/>Success?}
+    CheckPerms -->|Yes| CallValuation[Call Inventory Valuation Service<br>Calculate Costs for All Items]
+    CallValuation --> ValuationSuccess{Valuation<br>Success?}
     ValuationSuccess -->|No| RollbackVal1[ROLLBACK]
-    RollbackVal1 --> ShowError3[Display: Cost Calculation Failed<br/>Try Again Later]
+    RollbackVal1 --> ShowError3[Display: Cost Calculation Failed<br>Try Again Later]
     ShowError3 --> End1
 
-    ValuationSuccess -->|Yes| UpdateCosts[Update Line Items<br/>with Unit Costs & Total Costs]
-    UpdateCosts --> LockBalances[SELECT inventory_balance<br/>FOR UPDATE<br/>Lock Rows]
-    LockBalances --> UpdateBal[Update Inventory Balances:<br/>on_hand_qty += qty]
-    UpdateBal --> CheckNegative{Allow<br/>Negative?}
+    ValuationSuccess -->|Yes| UpdateCosts[Update Line Items<br>with Unit Costs & Total Costs]
+    UpdateCosts --> LockBalances[SELECT inventory_balance<br>FOR UPDATE<br>Lock Rows]
+    LockBalances --> UpdateBal[Update Inventory Balances:<br>on_hand_qty += qty]
+    UpdateBal --> CheckNegative{Allow<br>Negative?}
     CheckNegative -->|No and Balance < 0| RollbackBal[ROLLBACK]
-    RollbackBal --> ShowError4[Display: Negative Inventory<br/>Not Allowed]
+    RollbackBal --> ShowError4[Display: Negative Inventory<br>Not Allowed]
     ShowError4 --> End1
 
-    CheckNegative -->|Yes or Balance >= 0| CreateMov[Create Movement Records<br/>for Each Line Item]
-    CreateMov --> CallGL[Call Finance Module<br/>Post GL Journal Entry]
-    CallGL --> GLSuccess{GL Post<br/>Success?}
+    CheckNegative -->|Yes or Balance >= 0| CreateMov[Create Movement Records<br>for Each Line Item]
+    CreateMov --> CallGL[Call Finance Module<br>Post GL Journal Entry]
+    CallGL --> GLSuccess{GL Post<br>Success?}
     GLSuccess -->|No| RollbackGL[ROLLBACK All Changes]
-    RollbackGL --> ShowError5[Display: GL Posting Failed<br/>Contact Finance Team]
+    RollbackGL --> ShowError5[Display: GL Posting Failed<br>Contact Finance Team]
     ShowError5 --> End1
 
-    GLSuccess -->|Yes| UpdateStatus[Update Transaction:<br/>status = Committed<br/>commit_date = NOW()<br/>committed_by = user<br/>gl_journal_entry_number]
-    UpdateStatus --> CreateActivity[Create Activity Log:<br/>Committed by User]
+    GLSuccess -->|Yes| UpdateStatus[Update Transaction:<br>status = Committed<br>commit_date = NOW()<br>committed_by = user<br>gl_journal_entry_number]
+    UpdateStatus --> CreateActivity[Create Activity Log:<br>Committed by User]
     CreateActivity --> CommitTx[COMMIT DATABASE TRANSACTION]
     CommitTx --> RefreshUI[Refresh Transaction Detail]
-    RefreshUI --> ShowSuccess[Display: Transaction Committed<br/>Inventory Updated<br/>GL Entry: JE-XXXX]
+    RefreshUI --> ShowSuccess[Display: Transaction Committed<br>Inventory Updated<br>GL Entry: JE-XXXX]
     ShowSuccess --> End2([Successfully Committed])
 
     style BeginTx fill:#fff4e1
@@ -244,40 +245,40 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Reverse]) --> ShowDialog[Display Reversal Dialog<br/>with Warning]
+    Start([User Clicks Reverse]) --> ShowDialog[Display Reversal Dialog<br>with Warning]
     ShowDialog --> EnterReason[User Enters Reversal Reason]
-    EnterReason --> UserConfirm{User<br/>Confirms?}
+    EnterReason --> UserConfirm{User<br>Confirms?}
     UserConfirm -->|No| Cancel([Reversal Cancelled])
 
-    UserConfirm -->|Yes| ValidatePerms{User Has<br/>Reverse Permission?}
-    ValidatePerms -->|No| ShowError1[Display: Access Denied<br/>Manager Permission Required]
+    UserConfirm -->|Yes| ValidatePerms{User Has<br>Reverse Permission?}
+    ValidatePerms -->|No| ShowError1[Display: Access Denied<br>Manager Permission Required]
     ShowError1 --> End1([Reversal Denied])
 
-    ValidatePerms -->|Yes| CheckReversed{Already<br/>Reversed?}
-    CheckReversed -->|Yes| ShowError2[Display: Already Reversed<br/>View Reversal Transaction]
+    ValidatePerms -->|Yes| CheckReversed{Already<br>Reversed?}
+    CheckReversed -->|Yes| ShowError2[Display: Already Reversed<br>View Reversal Transaction]
     ShowError2 --> End1
 
     CheckReversed -->|No| BeginTx[BEGIN DATABASE TRANSACTION]
-    BeginTx --> CreateStockOut[Create Stock OUT Transaction<br/>- Mirror-image line items<br/>- Negative quantities<br/>- Same costs]
-    CreateStockOut --> CheckInventory{Sufficient<br/>Inventory?}
+    BeginTx --> CreateStockOut[Create Stock OUT Transaction<br>- Mirror-image line items<br>- Negative quantities<br>- Same costs]
+    CreateStockOut --> CheckInventory{Sufficient<br>Inventory?}
     CheckInventory -->|No| RollbackInv[ROLLBACK]
-    RollbackInv --> ShowError3[Display: Insufficient Inventory<br/>Resolve Discrepancy First]
+    RollbackInv --> ShowError3[Display: Insufficient Inventory<br>Resolve Discrepancy First]
     ShowError3 --> End1
 
-    CheckInventory -->|Yes| UpdateBalances[Update Inventory Balances:<br/>on_hand_qty -= original_qty]
-    UpdateBalances --> CreateMovements[Create Movement Records<br/>with Negative Stock Out Qty]
-    CreateMovements --> CallGL[Call Finance Module<br/>Post GL Reversal Entry]
-    CallGL --> GLSuccess{GL Reversal<br/>Success?}
+    CheckInventory -->|Yes| UpdateBalances[Update Inventory Balances:<br>on_hand_qty -= original_qty]
+    UpdateBalances --> CreateMovements[Create Movement Records<br>with Negative Stock Out Qty]
+    CreateMovements --> CallGL[Call Finance Module<br>Post GL Reversal Entry]
+    CallGL --> GLSuccess{GL Reversal<br>Success?}
     GLSuccess -->|No| RollbackGL[ROLLBACK]
-    RollbackGL --> ShowError4[Display: GL Reversal Failed<br/>Contact Finance Team]
+    RollbackGL --> ShowError4[Display: GL Reversal Failed<br>Contact Finance Team]
     ShowError4 --> End1
 
-    GLSuccess -->|Yes| UpdateOriginal[Update Original Transaction:<br/>is_reversed = true<br/>reversal_transaction_id<br/>reversal_date<br/>reversal_by<br/>reversal_reason]
-    UpdateOriginal --> CreateActivity[Create Activity Logs<br/>in Both Transactions]
+    GLSuccess -->|Yes| UpdateOriginal[Update Original Transaction:<br>is_reversed = true<br>reversal_transaction_id<br>reversal_date<br>reversal_by<br>reversal_reason]
+    UpdateOriginal --> CreateActivity[Create Activity Logs<br>in Both Transactions]
     CreateActivity --> CommitTx[COMMIT DATABASE TRANSACTION]
     CommitTx --> RefreshUI[Refresh Transaction Detail]
-    RefreshUI --> ShowSuccess[Display: Transaction Reversed<br/>Reversal: STK-OUT-XXXX]
-    ShowSuccess --> ProvideLink[Provide Link to<br/>Reversal Transaction]
+    RefreshUI --> ShowSuccess[Display: Transaction Reversed<br>Reversal: STK-OUT-XXXX]
+    ShowSuccess --> ProvideLink[Provide Link to<br>Reversal Transaction]
     ProvideLink --> End2([Successfully Reversed])
 
     style CreateStockOut fill:#ffe1e1
@@ -297,14 +298,14 @@ graph LR
         GRN[GRN Module]
         Transfer[Transfer Module]
         IssueReturn[Store Operations]
-        Valuation[Inventory<br/>Valuation Service]
-        Finance[Finance Module<br/>GL]
+        Valuation[Inventory<br>Valuation Service]
+        Finance[Finance Module<br>GL]
     end
 
     subgraph Stock In Module
-        UI[User Interface<br/>React Components]
-        ServerActions[Server Actions<br/>Business Logic]
-        DB[(PostgreSQL<br/>Database)]
+        UI[User Interface<br>React Components]
+        ServerActions[Server Actions<br>Business Logic]
+        DB[(PostgreSQL<br>Database)]
     end
 
     subgraph Master Data
@@ -357,7 +358,7 @@ sequenceDiagram
     User->>UI: Click "Add New"
     UI->>SA: createStockInTransaction(data)
     SA->>DB: Generate ref number
-    DB-->>SA: STK-IN-2024-0123
+    DB-->>SA: STK-IN-2501-0123
     SA->>DB: INSERT stock_in_transaction
     DB-->>SA: Transaction created
     SA-->>UI: Return transaction ID
@@ -395,7 +396,7 @@ sequenceDiagram
 
     SA->>GL: POST /journal-entry (GL data)
     GL->>GL: Validate and create JE
-    GL-->>SA: JE-2024-5678
+    GL-->>SA: JE-2501-5678
     SA->>DB: UPDATE stock_in_transaction (status, JE number)
     SA->>DB: INSERT stock_in_activity (Committed)
     SA->>DB: COMMIT TRANSACTION
@@ -416,13 +417,13 @@ sequenceDiagram
 stateDiagram-v2
     [*] --> Saved: Create Transaction
 
-    Saved --> InProgress: User Editing<br/>(Auto-save active)
+    Saved --> InProgress: User Editing<br>(Auto-save active)
     InProgress --> Saved: Auto-save Complete
 
-    Saved --> Committed: Commit<br/>(Cost calc, Balance update, GL post)
-    Saved --> Void: Void<br/>(User cancels)
+    Saved --> Committed: Commit<br>(Cost calc, Balance update, GL post)
+    Saved --> Void: Void<br>(User cancels)
 
-    Committed --> Reversed: Reverse<br/>(Create offsetting Stock OUT)
+    Committed --> Reversed: Reverse<br>(Create offsetting Stock OUT)
 
     Void --> [*]
     Reversed --> [*]
@@ -462,41 +463,41 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([Commit Process:<br/>Need Cost Calculation]) --> PrepareReq[Prepare API Request:<br/>- Transaction Date<br/>- Line Items with Products,<br/>  Locations, Quantities]
-    PrepareReq --> SendReq[POST /api/valuation/calculate-cost<br/>Timeout: 5 seconds]
-    SendReq --> WaitResp{Response<br/>Received?}
+    Start([Commit Process:<br>Need Cost Calculation]) --> PrepareReq[Prepare API Request:<br>- Transaction Date<br>- Line Items with Products,<br>  Locations, Quantities]
+    PrepareReq --> SendReq[POST /api/valuation/calculate-cost<br>Timeout: 5 seconds]
+    SendReq --> WaitResp{Response<br>Received?}
 
-    WaitResp -->|Timeout| Retry{Retry<br/>Count < 3?}
-    Retry -->|Yes| Wait[Wait with Exponential Backoff<br/>1s, 2s, 4s]
+    WaitResp -->|Timeout| Retry{Retry<br>Count < 3?}
+    Retry -->|Yes| Wait[Wait with Exponential Backoff<br>1s, 2s, 4s]
     Wait --> SendReq
     Retry -->|No| LogError[Log: Valuation Service Unavailable]
-    LogError --> ReturnError[Return Error to User:<br/>Service Unavailable]
+    LogError --> ReturnError[Return Error to User:<br>Service Unavailable]
     ReturnError --> End1([Commit Failed])
 
-    WaitResp -->|Error Response| CheckError{Error<br/>Type?}
+    WaitResp -->|Error Response| CheckError{Error<br>Type?}
     CheckError -->|4xx Client Error| LogClientErr[Log: Request Validation Failed]
     LogClientErr --> ReturnClientErr[Return Error: Invalid Request Data]
     ReturnClientErr --> End1
     CheckError -->|5xx Server Error| Retry
 
-    WaitResp -->|Success| ValidateResp{Response<br/>Valid?}
+    WaitResp -->|Success| ValidateResp{Response<br>Valid?}
     ValidateResp -->|No| LogInvalid[Log: Invalid Response Structure]
     LogInvalid --> ReturnInvalid[Return Error: Invalid Cost Data]
     ReturnInvalid --> End1
 
-    ValidateResp -->|Yes| ExtractCosts[Extract Cost Data:<br/>- Unit Cost 4 decimals<br/>- Total Cost<br/>- Calculation Method<br/>- Cost Layer ID FIFO]
-    ExtractCosts --> ValidateCosts{All Items<br/>Have Costs?}
+    ValidateResp -->|Yes| ExtractCosts[Extract Cost Data:<br>- Unit Cost 4 decimals<br>- Total Cost<br>- Calculation Method<br>- Cost Layer ID FIFO]
+    ExtractCosts --> ValidateCosts{All Items<br>Have Costs?}
     ValidateCosts -->|No| LogMissing[Log: Missing Cost for Items]
     LogMissing --> ReturnMissing[Return Error: Cost Calculation Incomplete]
     ReturnMissing --> End1
 
-    ValidateCosts -->|Yes| CheckValues{Costs<br/>Valid?}
+    ValidateCosts -->|Yes| CheckValues{Costs<br>Valid?}
     CheckValues -->|No unit_cost >= 0| LogNegative[Log: Negative Unit Cost]
     LogNegative --> ReturnNegative[Return Error: Invalid Cost Values]
     ReturnNegative --> End1
 
-    CheckValues -->|Valid| LogSuccess[Log: Cost Calculation Successful<br/>Request ID, Duration, Method]
-    LogSuccess --> UpdateItems[Update Line Items<br/>with Cost Data]
+    CheckValues -->|Valid| LogSuccess[Log: Cost Calculation Successful<br>Request ID, Duration, Method]
+    LogSuccess --> UpdateItems[Update Line Items<br>with Cost Data]
     UpdateItems --> End2([Cost Calculation Complete])
 
     style SendReq fill:#e1f0ff
@@ -515,14 +516,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Commit Process:<br/>Ready for GL Post]) --> DetermineAccts[Determine GL Accounts<br/>Based on Transaction Type]
-    DetermineAccts --> TypeGRN{Transaction<br/>Type?}
+    Start([Commit Process:<br>Ready for GL Post]) --> DetermineAccts[Determine GL Accounts<br>Based on Transaction Type]
+    DetermineAccts --> TypeGRN{Transaction<br>Type?}
 
-    TypeGRN -->|GRN| AcctGRN[Debit: Inventory Asset<br/>Credit: Accounts Payable]
-    TypeGRN -->|Transfer| AcctTransfer[Debit: Inventory Asset Dest<br/>Credit: Inventory Asset Source]
-    TypeGRN -->|Issue Return| AcctReturn[Debit: Inventory Asset<br/>Credit: COGS/Dept Expense]
-    TypeGRN -->|Adjustment| AcctAdj[Debit: Inventory Asset<br/>Credit: Inventory Variance]
-    TypeGRN -->|Credit Note| AcctCN[Debit: Accounts Payable<br/>Credit: Inventory Asset]
+    TypeGRN -->|GRN| AcctGRN[Debit: Inventory Asset<br>Credit: Accounts Payable]
+    TypeGRN -->|Transfer| AcctTransfer[Debit: Inventory Asset Dest<br>Credit: Inventory Asset Source]
+    TypeGRN -->|Issue Return| AcctReturn[Debit: Inventory Asset<br>Credit: COGS/Dept Expense]
+    TypeGRN -->|Adjustment| AcctAdj[Debit: Inventory Asset<br>Credit: Inventory Variance]
+    TypeGRN -->|Credit Note| AcctCN[Debit: Accounts Payable<br>Credit: Inventory Asset]
 
     AcctGRN --> CalcAmounts
     AcctTransfer --> CalcAmounts
@@ -530,22 +531,22 @@ flowchart TD
     AcctAdj --> CalcAmounts
     AcctCN --> CalcAmounts
 
-    CalcAmounts[Calculate GL Amounts:<br/>SUM line item total_cost] --> PrepareJE[Prepare JE Request:<br/>- Transaction Date<br/>- Reference Number<br/>- Description<br/>- Lines with Accounts<br/>- Idempotency Key]
-    PrepareJE --> SendJE[POST /api/gl/journal-entry<br/>Timeout: 10 seconds]
-    SendJE --> WaitJE{Response<br/>Received?}
+    CalcAmounts[Calculate GL Amounts:<br>SUM line item total_cost] --> PrepareJE[Prepare JE Request:<br>- Transaction Date<br>- Reference Number<br>- Description<br>- Lines with Accounts<br>- Idempotency Key]
+    PrepareJE --> SendJE[POST /api/gl/journal-entry<br>Timeout: 10 seconds]
+    SendJE --> WaitJE{Response<br>Received?}
 
-    WaitJE -->|Timeout| RetryJE{Retry<br/>Count < 2?}
+    WaitJE -->|Timeout| RetryJE{Retry<br>Count < 2?}
     RetryJE -->|Yes| WaitDelay[Wait 2 seconds]
     WaitDelay --> SendJE
     RetryJE -->|No| LogJETimeout[Log: GL Service Timeout]
     LogJETimeout --> ReturnJEError[Return Error: GL Unavailable]
     ReturnJEError --> End1([GL Post Failed])
 
-    WaitJE -->|Error Response| CheckJEError{Error<br/>Code?}
+    WaitJE -->|Error Response| CheckJEError{Error<br>Code?}
     CheckJEError -->|403 Period Closed| LogPeriod[Log: Accounting Period Closed]
-    LogPeriod --> ReturnPeriod[Return Error: Period Closed<br/>Change Transaction Date]
+    LogPeriod --> ReturnPeriod[Return Error: Period Closed<br>Change Transaction Date]
     ReturnPeriod --> End1
-    CheckJEError -->|409 Duplicate| CheckIdempotent{JE Number<br/>Matches?}
+    CheckJEError -->|409 Duplicate| CheckIdempotent{JE Number<br>Matches?}
     CheckIdempotent -->|Yes| LogDupe[Log: Duplicate Request Idempotent]
     LogDupe --> ExtractJE[Extract JE Number]
     ExtractJE --> End2([GL Post Success])
@@ -556,14 +557,14 @@ flowchart TD
     LogOther --> ReturnOther[Return Error with Details]
     ReturnOther --> End1
 
-    WaitJE -->|Success| ValidateJE{JE Response<br/>Valid?}
+    WaitJE -->|Success| ValidateJE{JE Response<br>Valid?}
     ValidateJE -->|No| LogInvalidJE[Log: Invalid JE Response]
     LogInvalidJE --> ReturnInvalidJE[Return Error: Invalid GL Response]
     ReturnInvalidJE --> End1
 
-    ValidateJE -->|Yes| ExtractJENum[Extract JE Number:<br/>JE-YYYY-NNNN]
-    ExtractJENum --> LogJESuccess[Log: GL Posted Successfully<br/>JE Number, Post Date]
-    LogJESuccess --> StoreJE[Store JE Number<br/>in Transaction Record]
+    ValidateJE -->|Yes| ExtractJENum[Extract JE Number:<br>JE-YYMM-NNNN]
+    ExtractJENum --> LogJESuccess[Log: GL Posted Successfully<br>JE Number, Post Date]
+    LogJESuccess --> StoreJE[Store JE Number<br>in Transaction Record]
     StoreJE --> End2
 
     style SendJE fill:#e1f0ff
@@ -581,31 +582,31 @@ flowchart TD
 
 ```mermaid
 graph TD
-    subgraph "Client Layer"
-        ListPage[Stock In List Page<br/>Server Component]
-        DetailPage[Stock In Detail Page<br/>Server Component]
-        ListClient[StockInList.tsx<br/>Client Component]
-        DetailClient[StockInDetail.tsx<br/>Client Component]
-        LineGrid[LineItemGrid.tsx<br/>Client Component]
-        ProductSel[ProductSelector.tsx<br/>Client Component]
+    subgraph 'Client Layer'
+        ListPage[Stock In List Page<br>Server Component]
+        DetailPage[Stock In Detail Page<br>Server Component]
+        ListClient[StockInList.tsx<br>Client Component]
+        DetailClient[StockInDetail.tsx<br>Client Component]
+        LineGrid[LineItemGrid.tsx<br>Client Component]
+        ProductSel[ProductSelector.tsx<br>Client Component]
     end
 
-    subgraph "Application Layer"
-        ListAction[list/actions.ts<br/>Server Actions]
-        DetailAction[id/actions.ts<br/>Server Actions]
+    subgraph 'Application Layer'
+        ListAction[list/actions.ts<br>Server Actions]
+        DetailAction[id/actions.ts<br>Server Actions]
         ValClient[api-clients/valuation-service.ts]
         GLClient[api-clients/finance-service.ts]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         Prisma[Prisma ORM]
         DB[(PostgreSQL)]
     end
 
-    subgraph "External Services"
-        ValService[Inventory<br/>Valuation Service]
-        GLService[Finance Module<br/>GL API]
-        ProductAPI[Product Master<br/>API]
+    subgraph 'External Services'
+        ValService[Inventory<br>Valuation Service]
+        GLService[Finance Module<br>GL API]
+        ProductAPI[Product Master<br>API]
     end
 
     User[User] -->|Navigate| ListPage
@@ -642,57 +643,57 @@ graph TD
 
 ```mermaid
 flowchart TD
-    Start([Error Detected]) --> IdentifyError{Error<br/>Category?}
+    Start([Error Detected]) --> IdentifyError{Error<br>Category?}
 
     IdentifyError -->|Validation Error| ValError[Field Validation Failed]
-    ValError --> DisplayField[Display Inline Error<br/>Highlight Field]
+    ValError --> DisplayField[Display Inline Error<br>Highlight Field]
     DisplayField --> UserFix[User Corrects Data]
     UserFix --> Retry1([Retry Operation])
 
     IdentifyError -->|Network Error| NetError[API Call Failed]
-    NetError --> RetryLogic{Auto<br/>Retry?}
-    RetryLogic -->|Yes| ExponentialBackoff[Exponential Backoff<br/>1s, 2s, 4s]
-    ExponentialBackoff --> RetryAttempt{Retry<br/>Success?}
+    NetError --> RetryLogic{Auto<br>Retry?}
+    RetryLogic -->|Yes| ExponentialBackoff[Exponential Backoff<br>1s, 2s, 4s]
+    ExponentialBackoff --> RetryAttempt{Retry<br>Success?}
     RetryAttempt -->|Yes| Success([Operation Success])
     RetryAttempt -->|No, Max Retries| NetFail[All Retries Failed]
     NetFail --> LocalStorage[Save to Local Storage]
-    LocalStorage --> DisplayWarning[Display: Network Error<br/>Changes Saved Locally<br/>Will Retry]
+    LocalStorage --> DisplayWarning[Display: Network Error<br>Changes Saved Locally<br>Will Retry]
     DisplayWarning --> BackgroundRetry[Background Retry Loop]
-    BackgroundRetry --> BackgroundSuccess{Eventually<br/>Success?}
+    BackgroundRetry --> BackgroundSuccess{Eventually<br>Success?}
     BackgroundSuccess -->|Yes| ClearLocal[Clear Local Storage]
     ClearLocal --> Success
-    BackgroundSuccess -->|No| ManualIntervention[Require Manual Save<br/>When Online]
+    BackgroundSuccess -->|No| ManualIntervention[Require Manual Save<br>When Online]
     ManualIntervention --> End1([Pending User Action])
 
     IdentifyError -->|Business Rule Error| BizError[Business Rule Violation]
-    BizError --> DisplayBizError[Display Business Error<br/>with Explanation]
-    DisplayBizError --> UserAction{User<br/>Action?}
+    BizError --> DisplayBizError[Display Business Error<br>with Explanation]
+    DisplayBizError --> UserAction{User<br>Action?}
     UserAction -->|Fix Data| UserFix
     UserAction -->|Contact Support| ContactSupport[Log Issue for Support]
     ContactSupport --> End2([Awaiting Support])
     UserAction -->|Cancel| End3([Operation Cancelled])
 
     IdentifyError -->|System Error| SysError[Database/Server Error]
-    SysError --> LogError[Log Full Error Details<br/>Stack Trace, Context]
-    LogError --> Rollback{Transaction<br/>Active?}
+    SysError --> LogError[Log Full Error Details<br>Stack Trace, Context]
+    LogError --> Rollback{Transaction<br>Active?}
     Rollback -->|Yes| PerformRollback[ROLLBACK DATABASE TRANSACTION]
-    PerformRollback --> DisplaySysError[Display: System Error<br/>Please Try Again]
+    PerformRollback --> DisplaySysError[Display: System Error<br>Please Try Again]
     Rollback -->|No| DisplaySysError
-    DisplaySysError --> AlertSupport[Alert Support Team<br/>if Critical]
-    AlertSupport --> UserRetry{User<br/>Retries?}
+    DisplaySysError --> AlertSupport[Alert Support Team<br>if Critical]
+    AlertSupport --> UserRetry{User<br>Retries?}
     UserRetry -->|Yes| Retry1
     UserRetry -->|No| End3
 
     IdentifyError -->|Integration Error| IntError[External Service Failed]
-    IntError --> CheckService{Which<br/>Service?}
+    IntError --> CheckService{Which<br>Service?}
     CheckService -->|Valuation Service| ValFail[Cost Calculation Failed]
-    ValFail --> DisplayValError[Display: Valuation Service Unavailable<br/>Transaction Remains Saved<br/>Retry Later]
-    DisplayValError --> QueueRetry[Queue for Auto Retry<br/>Every 5 minutes]
+    ValFail --> DisplayValError[Display: Valuation Service Unavailable<br>Transaction Remains Saved<br>Retry Later]
+    DisplayValError --> QueueRetry[Queue for Auto Retry<br>Every 5 minutes]
     QueueRetry --> End4([Pending Retry])
     CheckService -->|Finance GL| GLFail[GL Posting Failed]
     GLFail --> RollbackInv[Rollback Inventory Changes]
-    RollbackInv --> DisplayGLError[Display: GL Posting Failed<br/>Contact Finance Team]
-    DisplayGLError --> CreateTicket[Create Support Ticket<br/>with Transaction Details]
+    RollbackInv --> DisplayGLError[Display: GL Posting Failed<br>Contact Finance Team]
+    DisplayGLError --> CreateTicket[Create Support Ticket<br>with Transaction Details]
     CreateTicket --> End5([Awaiting Finance Resolution])
 
     style DisplayField fill:#ffe1e1

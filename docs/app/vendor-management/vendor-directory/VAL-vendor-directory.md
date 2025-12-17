@@ -2045,7 +2045,7 @@ logger.error({
   code: 'VEN-001',
   message: 'Vendor code already exists',
   details: {
-    vendorCode: 'VEN-2024-001',
+    vendorCode: 'VEN-2401-0001',
     existingVendorId: 'vendor-uuid',
   },
   userId: currentUser.id,
@@ -2062,7 +2062,7 @@ logger.error({
 | Test Case ID | Validation Rule | Input | Expected Result |
 |--------------|-----------------|-------|-----------------|
 | UT-VEN-001 | Vendor code format | "ven-001" | Error: Must be uppercase |
-| UT-VEN-002 | Vendor code format | "VEN-2024-001" | Success |
+| UT-VEN-002 | Vendor code format | "VEN-2401-0001" | Success |
 | UT-VEN-003 | Vendor code length | "VE" | Error: Minimum 3 characters |
 | UT-VEN-004 | Email format | "user@domain" | Error: Invalid email |
 | UT-VEN-005 | Email format | "user@domain.com" | Success |
@@ -2098,23 +2098,23 @@ logger.error({
 
 | Test Case ID | Scenario | Steps | Expected Result |
 |--------------|----------|-------|-----------------|
-| IT-VEN-001 | Create vendor with duplicate code | 1. Create vendor "VEN-001"<br/>2. Try create another "VEN-001" | Error on step 2 |
-| IT-VEN-002 | Submit without primary contact | 1. Create vendor<br/>2. Submit without contacts | Error: Primary contact required |
-| IT-VEN-003 | Block vendor with active PO | 1. Create vendor<br/>2. Create PO<br/>3. Try to block | Warning: Active PO exists |
-| IT-VEN-004 | Approve own submission | 1. User A creates vendor<br/>2. User A tries to approve | Error: Self-approval |
-| IT-VEN-005 | Upload invalid file type | 1. Select .exe file<br/>2. Try to upload | Error: Invalid file type |
-| IT-CERT-001 | Add duplicate certification type | 1. Add Halal certification<br/>2. Try to add another Halal certification | Error: Duplicate type |
-| IT-CERT-002 | Certification limit reached | 1. Add 20 certifications<br/>2. Try to add 21st certification | Error: Limit exceeded |
-| IT-CERT-003 | Status auto-calculation | 1. Add certification with expiry in 15 days<br/>2. View certification list | Status shows "Expiring Soon" |
-| IT-CERT-004 | Required certifications check | 1. Create food supplier vendor<br/>2. Try to approve without Halal/Food Safety cert | Warning: Required certifications missing |
-| IT-CERT-005 | Edit expired certification | 1. View expired certification<br/>2. Update expiry date to future | Status changes to "Active" |
-| IT-ADDR-001 | Add duplicate primary address | 1. Add address as primary<br/>2. Try to add another primary address | Existing primary auto-deselected |
-| IT-ADDR-002 | Address limit reached | 1. Add 10 addresses<br/>2. Try to add 11th address | Error: Limit exceeded |
-| IT-ADDR-003 | Delete primary address | 1. Have 2 addresses, one primary<br/>2. Delete primary address | Error: Set another as primary first |
-| IT-ADDR-004 | Country-specific validation (ID) | 1. Select Indonesia<br/>2. Leave district empty<br/>3. Try to save | Error: Kecamatan required |
-| IT-ADDR-005 | Country-specific postal code (TH) | 1. Select Thailand<br/>2. Enter 6-digit postal code<br/>3. Try to save | Error: Invalid format |
-| IT-ADDR-006 | Set primary address | 1. Have 3 addresses, none primary<br/>2. Set one as primary | Selected becomes primary, others unchanged |
-| IT-ADDR-007 | Address with Thai characters | 1. Select Thailand<br/>2. Enter address with Thai characters<br/>3. Save | Success |
+| IT-VEN-001 | Create vendor with duplicate code | 1. Create vendor "VEN-001"<br>2. Try create another "VEN-001" | Error on step 2 |
+| IT-VEN-002 | Submit without primary contact | 1. Create vendor<br>2. Submit without contacts | Error: Primary contact required |
+| IT-VEN-003 | Block vendor with active PO | 1. Create vendor<br>2. Create PO<br>3. Try to block | Warning: Active PO exists |
+| IT-VEN-004 | Approve own submission | 1. User A creates vendor<br>2. User A tries to approve | Error: Self-approval |
+| IT-VEN-005 | Upload invalid file type | 1. Select .exe file<br>2. Try to upload | Error: Invalid file type |
+| IT-CERT-001 | Add duplicate certification type | 1. Add Halal certification<br>2. Try to add another Halal certification | Error: Duplicate type |
+| IT-CERT-002 | Certification limit reached | 1. Add 20 certifications<br>2. Try to add 21st certification | Error: Limit exceeded |
+| IT-CERT-003 | Status auto-calculation | 1. Add certification with expiry in 15 days<br>2. View certification list | Status shows "Expiring Soon" |
+| IT-CERT-004 | Required certifications check | 1. Create food supplier vendor<br>2. Try to approve without Halal/Food Safety cert | Warning: Required certifications missing |
+| IT-CERT-005 | Edit expired certification | 1. View expired certification<br>2. Update expiry date to future | Status changes to "Active" |
+| IT-ADDR-001 | Add duplicate primary address | 1. Add address as primary<br>2. Try to add another primary address | Existing primary auto-deselected |
+| IT-ADDR-002 | Address limit reached | 1. Add 10 addresses<br>2. Try to add 11th address | Error: Limit exceeded |
+| IT-ADDR-003 | Delete primary address | 1. Have 2 addresses, one primary<br>2. Delete primary address | Error: Set another as primary first |
+| IT-ADDR-004 | Country-specific validation (ID) | 1. Select Indonesia<br>2. Leave district empty<br>3. Try to save | Error: Kecamatan required |
+| IT-ADDR-005 | Country-specific postal code (TH) | 1. Select Thailand<br>2. Enter 6-digit postal code<br>3. Try to save | Error: Invalid format |
+| IT-ADDR-006 | Set primary address | 1. Have 3 addresses, none primary<br>2. Set one as primary | Selected becomes primary, others unchanged |
+| IT-ADDR-007 | Address with Thai characters | 1. Select Thailand<br>2. Enter address with Thai characters<br>3. Save | Success |
 
 ---
 

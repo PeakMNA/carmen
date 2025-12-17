@@ -1,7 +1,14 @@
 /**
  * Inventory Mock Data
- * 
+ *
  * Centralized mock data for inventory items, stock levels, counts, and adjustments.
+ *
+ * Transaction Code Format: PREFIX-YYMM-NNNN
+ * - PREFIX: Document type identifier (TXN = Transaction, PO = Purchase Order, REQ = Requisition)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: TXN-2410-001 = Transaction #001 from October 2024
  */
 
 import {
@@ -159,7 +166,7 @@ export const mockStockBalances: StockBalance[] = [
 export const mockInventoryTransactions: InventoryTransaction[] = [
   {
     id: "txn-001",
-    transactionId: "TXN-2024-001",
+    transactionId: "TXN-2410-001",
     itemId: "item-001",
     locationId: "dry-store",
     transactionType: TransactionType.RECEIVE,
@@ -168,14 +175,14 @@ export const mockInventoryTransactions: InventoryTransaction[] = [
     totalCost: { amount: 1350.00, currency: 'USD' },
     balanceAfter: 45,
     transactionDate: new Date('2024-08-15'),
-    referenceNo: "PO-2024-125",
+    referenceNo: "PO-2410-125",
     referenceType: "Purchase Order",
     userId: "user-warehouse-001",
     notes: "Received from ABC Suppliers"
   },
   {
     id: "txn-002",
-    transactionId: "TXN-2024-002",
+    transactionId: "TXN-2410-002",
     itemId: "item-001",
     locationId: "dry-store",
     transactionType: TransactionType.ISSUE,
@@ -184,7 +191,7 @@ export const mockInventoryTransactions: InventoryTransaction[] = [
     totalCost: { amount: -222.50, currency: 'USD' },
     balanceAfter: 40,
     transactionDate: new Date('2024-08-16'),
-    referenceNo: "REQ-2024-089",
+    referenceNo: "REQ-2410-089",
     referenceType: "Kitchen Requisition",
     userId: "user-chef-001",
     notes: "Issued to Main Kitchen"

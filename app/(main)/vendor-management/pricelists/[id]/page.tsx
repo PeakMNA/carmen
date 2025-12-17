@@ -37,7 +37,7 @@ import Link from 'next/link'
 // Mock data for pricelist details
 const mockPricelistDetail = {
   id: 'pl-001',
-  pricelistNumber: 'PL-2024-001',
+  pricelistNumber: 'PL-2410-001',
   vendorName: 'Fresh Foods Co.',
   vendorId: 'vendor-001',
   name: 'Q2 2024 Standard Pricing',

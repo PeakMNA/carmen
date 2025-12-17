@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-13 | Carmen ERP Documentation Team | Initial version |
 
 ---
@@ -561,7 +562,7 @@ This document describes the use cases for the Department and Cost Center Managem
    - Entry Date: 2025-11-13
    - Description: Kitchen food supplies purchase
    - Document Type: Invoice
-   - Document Number: INV-FOOD-2025-1234
+   - Document Number: INV-FOOD-2501-1234
 4. User adds debit line:
    - GL Account: 5100 - Cost of Goods Sold
    - Department: KITCHEN - Kitchen Operations
@@ -1476,7 +1477,7 @@ This document describes the use cases for the Department and Cost Center Managem
      "eventId": "evt-45678",
      "eventType": "PurchaseRequestApproved",
      "timestamp": "2025-11-13T14:00:00Z",
-     "prNumber": "PR-2025-00789",
+     "prNumber": "PR-2501-00789",
      "requestorId": "USR-JOHN-SMITH",
      "department": "KITCHEN",
      "description": "Fresh produce for weekend events",
@@ -1534,14 +1535,14 @@ This document describes the use cases for the Department and Cost Center Managem
 9. Finance Manager approves variance
 10. System creates encumbrance (commitment) entry:
     ```
-    Encumbrance Entry: PR-2025-00789
+    Encumbrance Entry: PR-2501-00789
     Date: 2025-11-13
     Description: Encumbrance for approved PR
 
     Debit: 5100 - COGS (Encumbrance)        $2,500.00
       Department: KITCHEN
       Cost Center: CC-KITCHEN-001
-      Document: PR-2025-00789
+      Document: PR-2501-00789
 
     Credit: 5900 - Commitments               $2,500.00
       Description: Outstanding purchase commitment

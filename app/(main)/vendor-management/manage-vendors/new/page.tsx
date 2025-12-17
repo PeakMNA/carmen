@@ -1434,7 +1434,7 @@ export default function NewVendorPage() {
                 <Label htmlFor="certNumber">Certificate Number</Label>
                 <Input
                   id="certNumber"
-                  placeholder="e.g., CERT-2024-12345"
+                  placeholder="e.g., CERT-2410-12345"
                   value={certificationForm.certificateNumber}
                   onChange={(e) => handleCertificationFormChange('certificateNumber', e.target.value)}
                 />

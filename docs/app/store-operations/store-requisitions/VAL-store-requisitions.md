@@ -3,8 +3,8 @@
 **Module**: Store Operations
 **Sub-Module**: Store Requisitions
 **Document Type**: Validations (VAL)
-**Version**: 1.0.0
-**Last Updated**: 2025-11-12
+**Version**: 1.3.0
+**Last Updated**: 2025-12-13
 **Status**: Active
 
 ## Document History
@@ -13,6 +13,8 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
+| 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code - verified status values and item approval statuses match implementation |
+| 1.3.0 | 2025-12-13 | Documentation Team | Added validation for "Requested By" field, "Request From" terminology, Location Type handling, inline add item pattern |
 ---
 
 ## 1. Overview
@@ -68,11 +70,11 @@ Data Stored
 **Database Column**: `tb_store_requisition.sr_no`
 **Data Type**: VARCHAR / string
 
-**Validation Rule**: Required field with specific format pattern: `SR-YYYY-NNNN`
+**Validation Rule**: Required field with specific format pattern: `SR-YYMM-NNNN`
 
 **Format Requirements**:
 - Prefix: "SR-" (uppercase, required)
-- Year: 4-digit current year (YYYY)
+- Year-Month: 2-digit year + 2-digit month (YYMM)
 - Separator: Single hyphen (-)
 - Sequence: 4-digit zero-padded number (0001-9999)
 - Pattern: `^SR-\d{4}-\d{4}$`
@@ -83,15 +85,15 @@ Data Stored
 - **Database**: UNIQUE constraint on sr_no column. Index: sr_no_u
 
 **Error Code**: VAL-SR-001
-**Error Message**: "Store Requisition number must be in format SR-YYYY-NNNN"
+**Error Message**: "Store Requisition number must be in format SR-YYMM-NNNN"
 **User Action**: System auto-generates. User cannot manually edit.
 
 **Test Cases**:
-- ✅ Valid: "SR-2025-0001"
-- ✅ Valid: "SR-2025-9999"
-- ❌ Invalid: "SR-25-001" (2-digit year)
-- ❌ Invalid: "SR-2025-1" (not zero-padded)
-- ❌ Invalid: "sr-2025-0001" (lowercase prefix)
+- ✅ Valid: "SR-2501-0001"
+- ✅ Valid: "SR-2412-9999"
+- ❌ Invalid: "SR-25-001" (missing month)
+- ❌ Invalid: "SR-2501-1" (not zero-padded)
+- ❌ Invalid: "sr-2501-0001" (lowercase prefix)
 
 ---
 
@@ -212,30 +214,64 @@ Data Stored
 
 ---
 
-### VAL-SR-006: From Location - Required & Valid Location
+### VAL-SR-006: Request From Location - Required & Valid Location
 
 **Field**: `from_location_id`, `from_location_name`
 **Database Column**: `tb_store_requisition.from_location_id`
 **Data Type**: UUID / string
+**UI Label**: "Request From"
 
 **Validation Rule**: Required field. Must reference valid location from tb_location table.
 
-**Business Justification**: Identifies the requesting department/location. Required for inventory allocation and access control.
+**Business Justification**: Identifies the source location (store/warehouse) from which items are being requisitioned. Required for inventory allocation, Location Type determination, and access control.
 
 **Implementation Requirements**:
-- **Client-Side**: Location dropdown filtered by user access. Auto-populate name when ID selected.
-- **Server-Side**: Verify location exists and user has access. Populate both ID and name.
+- **Client-Side**: Dropdown labeled "Request From", filtered by user access. Auto-populate name when ID selected. Trigger Location Type lookup on selection.
+- **Server-Side**: Verify location exists and user has access. Populate both ID and name. Determine Location Type.
 - **Database**: Foreign key relationship to tb_location table.
 
 **Error Code**: VAL-SR-006
-**Error Message**: "From location is required"
-**User Action**: User must select a valid location they have access to.
+**Error Message**: "Request From location is required"
+**User Action**: User must select a valid source location from the "Request From" dropdown.
 
 **Test Cases**:
 - ✅ Valid: Valid location UUID user has access to
 - ❌ Invalid: null
 - ❌ Invalid: Non-existent location UUID
 - ❌ Invalid: Location UUID user doesn't have access to
+
+---
+
+### VAL-SR-006A: Location Type - Automatic Determination
+
+**Field**: `location_type`
+**Related Field**: `from_location_id`
+**Data Type**: enum / string
+
+**Validation Rule**: Location Type must be one of: INVENTORY, DIRECT, CONSIGNMENT. Automatically determined based on selected "Request From" location.
+
+**Business Justification**: Location Type affects costing method application. INVENTORY locations use FIFO costing, DIRECT locations are already expensed, CONSIGNMENT locations track vendor-owned stock.
+
+**Implementation Requirements**:
+- **Client-Side**: Display Location Type Badge automatically after "Request From" selection. Read-only display.
+- **Server-Side**: Call `getLocationTypeByLocationId(from_location_id)` to determine type. Validate type is valid enum.
+- **Database**: Location Type stored on tb_location table, not on requisition.
+
+**Allowed Values**:
+- `INVENTORY` - Standard inventory locations using FIFO costing
+- `DIRECT` - Direct expense locations (already costed)
+- `CONSIGNMENT` - Vendor-owned stock locations
+
+**Error Code**: VAL-SR-006A
+**Error Message**: "Unable to determine location type for selected location"
+**User Action**: Contact administrator if location type cannot be determined.
+
+**Test Cases**:
+- ✅ Valid: Main Store → INVENTORY
+- ✅ Valid: Kitchen Store → INVENTORY
+- ✅ Valid: Direct Expense Location → DIRECT
+- ✅ Valid: Consignment Area → CONSIGNMENT
+- ❌ Invalid: Location with undefined type
 
 ---
 
@@ -271,26 +307,30 @@ Data Stored
 
 ---
 
-### VAL-SR-008: Requestor - Required & Valid User
+### VAL-SR-008: Requested By - Required & Auto-Populated
 
 **Field**: `requestor_id`, `requestor_name`
 **Database Column**: `tb_store_requisition.requestor_id`
 **Data Type**: UUID / string
+**UI Label**: "Requested By"
 
-**Validation Rule**: Required field. Must reference valid user.
+**Validation Rule**: Required field. Must reference valid user. Auto-populated from current user.
+
+**Business Justification**: Identifies who created the requisition. Used for tracking, notifications, and audit trail.
 
 **Implementation Requirements**:
-- **Client-Side**: Auto-populate from current logged-in user. Read-only field.
-- **Server-Side**: Verify user exists. Populate both ID and name from session.
+- **Client-Side**: "Requested By" field displays current user's name (from `useSimpleUser()` hook). Read-only display, not editable by user.
+- **Server-Side**: Verify user exists. Populate both ID and name from session. Reject if user context unavailable.
 - **Database**: No foreign key (user table external).
 
 **Error Code**: VAL-SR-008
-**Error Message**: "Requestor information is missing"
-**User Action**: System error. User should refresh and try again.
+**Error Message**: "Requested By information is missing"
+**User Action**: System error - user session may have expired. User should refresh and try again.
 
 **Test Cases**:
-- ✅ Valid: Current logged-in user UUID
-- ❌ Invalid: null
+- ✅ Valid: Current logged-in user UUID auto-populated
+- ✅ Valid: User name displayed correctly in "Requested By" field
+- ❌ Invalid: null (session expired)
 - ❌ Invalid: Non-existent user UUID
 
 ---
@@ -353,23 +393,43 @@ Data Stored
 **Validation Rule**: Required field. Must reference valid product.
 
 **Implementation Requirements**:
-- **Client-Side**: Product search/dropdown. Auto-populate name and unit when ID selected.
+- **Client-Side (Inline Add Pattern)**:
+  - User clicks "Add Item" button to activate inline add row (`isAddingItem=true`)
+  - Popover with Command component opens for searchable product selection
+  - User types in CommandInput to filter products in real-time
+  - User selects product from CommandList (CommandItem)
+  - System auto-populates product name and unit when ID selected
+  - Product selection updates `newItemProductId` state
 - **Server-Side**: Verify product exists and is active. Populate both ID and name.
 - **Database**: Foreign key relationship to product table.
 
+**UI Component Pattern**:
+```typescript
+// State for inline add item
+const [newItemProductId, setNewItemProductId] = useState("")
+const [productSearchOpen, setProductSearchOpen] = useState(false)
+
+// Validation: Product must be selected before Add button is clicked
+if (!newItemProductId) {
+  // Display inline validation error
+}
+```
+
 **Error Code**: VAL-SR-020
 **Error Message**: "Product is required for each line item"
-**User Action**: User must select a valid product for each line item.
+**User Action**: User must select a valid product from the inline Popover + Command search.
 
 **Test Cases**:
-- ✅ Valid: Valid active product UUID
-- ❌ Invalid: null
+- ✅ Valid: Valid active product UUID selected from CommandList
+- ✅ Valid: Product search returns matching results
+- ❌ Invalid: null (Add clicked without product selection)
 - ❌ Invalid: Inactive product UUID
 - ❌ Invalid: Non-existent product UUID
+- ❌ Invalid: Empty search with no selection
 
 ---
 
-### VAL-SR-021: Line Item - Requested Quantity
+### VAL-SR-021: Line Item - Requested Quantity (Inline)
 
 **Field**: `requested_qty`
 **Database Column**: `tb_store_requisition_detail.requested_qty`
@@ -378,9 +438,24 @@ Data Stored
 **Validation Rule**: Required. Must be positive number > 0. Max 5 decimal places.
 
 **Implementation Requirements**:
-- **Client-Side**: Number input with min=0.00001, step based on product UOM. Show decimal places based on product.
+- **Client-Side (Inline Add Pattern)**:
+  - Inline quantity input field in add row (`newItemQty` state)
+  - Number input with min=0.00001, step based on product UOM
+  - Show decimal places based on product requirements
+  - Validate inline before "Add" button click
 - **Server-Side**: Verify qty > 0 and decimals <= 5. Round to 5 decimals if needed.
 - **Database**: DECIMAL(20,5) column type.
+
+**UI Component Pattern**:
+```typescript
+// State for inline quantity
+const [newItemQty, setNewItemQty] = useState(1) // Default to 1
+
+// Inline validation
+if (newItemQty <= 0) {
+  // Display inline error: "Quantity must be greater than 0"
+}
+```
 
 **Error Code**: VAL-SR-021
 **Error Message**:
@@ -1160,7 +1235,7 @@ import { z } from 'zod';
 export const RequisitionHeaderSchema = z.object({
   id: z.string().uuid().optional(),
   sr_no: z.string().regex(/^SR-\d{4}-\d{4}$/, {
-    message: "Store Requisition number must be in format SR-YYYY-NNNN"
+    message: "Store Requisition number must be in format SR-YYMM-NNNN"
   }),
   sr_date: z.date({
     required_error: "SR Date is required",
@@ -1196,7 +1271,7 @@ export const RequisitionHeaderSchema = z.object({
   (data) => data.expected_date > data.sr_date,
   {
     message: "Expected date must be after SR date",
-    path: ["expected_date"]
+    path: ['expected_date']
   }
 );
 
@@ -1219,7 +1294,7 @@ export const LineItemSchema = z.object({
         const decimalPlaces = val.toString().split('.')[1]?.length || 0;
         return decimalPlaces <= 5;
       },
-      { message: "Requested quantity cannot exceed 5 decimal places" }
+      { message: 'Requested quantity cannot exceed 5 decimal places' }
     ),
   approved_qty: z.number()
     .min(0, "Approved quantity cannot be negative")
@@ -1228,7 +1303,7 @@ export const LineItemSchema = z.object({
         const decimalPlaces = val.toString().split('.')[1]?.length || 0;
         return decimalPlaces <= 5;
       },
-      { message: "Approved quantity cannot exceed 5 decimal places" }
+      { message: 'Approved quantity cannot exceed 5 decimal places' }
     )
     .optional()
     .nullable(),
@@ -1239,7 +1314,7 @@ export const LineItemSchema = z.object({
         const decimalPlaces = val.toString().split('.')[1]?.length || 0;
         return decimalPlaces <= 5;
       },
-      { message: "Issued quantity cannot exceed 5 decimal places" }
+      { message: 'Issued quantity cannot exceed 5 decimal places' }
     )
     .optional()
     .nullable(),
@@ -1260,7 +1335,7 @@ export const LineItemSchema = z.object({
   },
   {
     message: "Approved quantity cannot exceed requested quantity",
-    path: ["approved_qty"]
+    path: ['approved_qty']
   }
 ).refine(
   (data) => {
@@ -1272,7 +1347,7 @@ export const LineItemSchema = z.object({
   },
   {
     message: "Issued quantity cannot exceed approved quantity",
-    path: ["issued_qty"]
+    path: ['issued_qty']
   }
 ).refine(
   (data) => {
@@ -1283,7 +1358,7 @@ export const LineItemSchema = z.object({
   },
   {
     message: "Rejection reason is required when rejecting line item",
-    path: ["reject_message"]
+    path: ['reject_message']
   }
 );
 
@@ -1365,7 +1440,7 @@ export const UpdateRequisitionSchema = z.object({
   },
   {
     message: "Duplicate products are not allowed",
-    path: ["line_items"]
+    path: ['line_items']
   }
 );
 
@@ -1402,7 +1477,7 @@ export const ApproveRequisitionSchema = z.object({
     reject_message: z.string()
       .min(10, "Rejection reason must be at least 10 characters")
       .optional()
-  })).min(1, "At least one line item action required")
+  })).min(1, 'At least one line item action required')
 }).refine(
   (data) => {
     return data.line_items.every(item => {
@@ -1414,7 +1489,7 @@ export const ApproveRequisitionSchema = z.object({
   },
   {
     message: "Rejection reason required for rejected items",
-    path: ["line_items"]
+    path: ['line_items']
   }
 );
 
@@ -1436,10 +1511,10 @@ export const IssueItemsSchema = z.object({
           const decimalPlaces = val.toString().split('.')[1]?.length || 0;
           return decimalPlaces <= 5;
         },
-        { message: "Issue quantity cannot exceed 5 decimal places" }
+        { message: 'Issue quantity cannot exceed 5 decimal places' }
       ),
     inventory_transaction_id: z.string().uuid().optional()
-  })).min(1, "At least one line item to issue required")
+  })).min(1, 'At least one line item to issue required')
 });
 
 export type IssueItemsInput = z.infer<typeof IssueItemsSchema>;
@@ -1471,7 +1546,7 @@ export const SearchRequisitionSchema = z.object({
   },
   {
     message: "SR Date To must be after or equal to SR Date From",
-    path: ["sr_date_to"]
+    path: ['sr_date_to']
   }
 ).refine(
   (data) => {
@@ -1482,7 +1557,7 @@ export const SearchRequisitionSchema = z.object({
   },
   {
     message: "Expected Date To must be after or equal to Expected Date From",
-    path: ["expected_date_to"]
+    path: ['expected_date_to']
   }
 );
 
@@ -1515,7 +1590,7 @@ export type SearchRequisitionInput = z.infer<typeof SearchRequisitionSchema>;
 
 | Code | Message | Context |
 |------|---------|---------|
-| VAL-SR-001 | Store Requisition number must be in format SR-YYYY-NNNN | Auto-generated, user shouldn't see |
+| VAL-SR-001 | Store Requisition number must be in format SR-YYMM-NNNN | Auto-generated, user shouldn't see |
 | VAL-SR-002 | SR Date is required | User must select date |
 | VAL-SR-003 | Expected date must be after SR date | User must adjust dates |
 | VAL-SR-004 | Description must be at least 10 characters / Description cannot exceed 500 characters | User must adjust length |

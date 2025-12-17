@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-01-23 | System | Initial version based on UC v2.0, TS v2.0, VAL v2.0 |
 
 ---
@@ -534,7 +535,7 @@ Would you like to:
 ```
 ✅ Your pricelist has been submitted successfully
 
-Reference Number: PL-2024-001234
+Reference Number: PL-2401-001234
 Submitted: DD MMM YYYY HH:MM
 
 Your pricing submission is now under review by our procurement team. You will receive an email notification once it has been reviewed.
@@ -919,7 +920,7 @@ For the best experience, please use a modern browser like Chrome, Firefox, Safar
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PL-2024-001234 | System-generated reference number format |
+| PL-2401-001234 | System-generated reference number format |
 | MOQ, FOC | Industry standard abbreviations |
 | Currency codes (USD, EUR) | ISO 4217 standard codes |
 | DD MMM YYYY | Date format pattern |

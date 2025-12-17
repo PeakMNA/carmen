@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge"
 
 const orders = [
   {
-    id: "ORD-2024-001",
+    id: "ORD-2410-001",
     supplier: "Global Foods Inc.",
     items: 12,
     total: 2450.00,
@@ -14,7 +14,7 @@ const orders = [
     delivery: "2024-03-25",
   },
   {
-    id: "ORD-2024-002",
+    id: "ORD-2410-002",
     supplier: "Fresh Produce Co.",
     items: 8,
     total: 1850.75,
@@ -22,7 +22,7 @@ const orders = [
     delivery: "2024-03-23",
   },
   {
-    id: "ORD-2024-003",
+    id: "ORD-2410-003",
     supplier: "Premium Meats Ltd.",
     items: 15,
     total: 3200.50,
@@ -30,7 +30,7 @@ const orders = [
     delivery: "2024-03-28",
   },
   {
-    id: "ORD-2024-004",
+    id: "ORD-2410-004",
     supplier: "Beverage Distributors",
     items: 6,
     total: 980.25,
@@ -38,7 +38,7 @@ const orders = [
     delivery: "2024-03-26",
   },
   {
-    id: "ORD-2024-005",
+    id: "ORD-2410-005",
     supplier: "Kitchen Supplies Co.",
     items: 20,
     total: 4500.00,

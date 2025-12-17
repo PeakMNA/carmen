@@ -32,8 +32,8 @@
  * @example
  * // Passing spot check item
  * <ValidationItem
- *   id="SC-2024-042"
- *   label="SC-2024-042"
+ *   id="SC-2410-042"
+ *   label="SC-2410-042"
  *   sublabel="Kitchen Storage"
  *   status="completed"
  *   isValid={true}
@@ -43,13 +43,13 @@
  * @example
  * // Failing physical count item with link
  * <ValidationItem
- *   id="PC-2024-017"
- *   label="PC-2024-017"
+ *   id="PC-2410-017"
+ *   label="PC-2410-017"
  *   sublabel="Cold Storage"
  *   status="in-progress"
  *   isValid={false}
  *   message="Count must be finalized before period close"
- *   href="/inventory-management/physical-count-management/PC-2024-017"
+ *   href="/inventory-management/physical-count-management/PC-2410-017"
  * />
  *
  * ============================================================================
@@ -79,14 +79,14 @@ interface ValidationItemProps {
   /**
    * Unique identifier for the item.
    * Used for React keys and linking to source documents.
-   * @example 'SC-2024-042', 'PC-2024-017'
+   * @example 'SC-2410-042', 'PC-2410-017'
    */
   id: string
 
   /**
    * Primary display label for the item.
    * Typically the document number or count number.
-   * @example 'SC-2024-042', 'PC-2024-017'
+   * @example 'SC-2410-042', 'PC-2410-017'
    */
   label: string
 
@@ -121,7 +121,7 @@ interface ValidationItemProps {
    * Optional URL to navigate to the source document.
    * When provided, displays an external link icon button.
    * Allows users to quickly access and resolve failing items.
-   * @example '/inventory-management/physical-count-management/PC-2024-017'
+   * @example '/inventory-management/physical-count-management/PC-2410-017'
    */
   href?: string
 
@@ -162,7 +162,7 @@ interface ValidationItemProps {
  * // Compact variant for dense lists
  * <ValidationItem
  *   id="SC-001"
- *   label="SC-2024-042"
+ *   label="SC-2410-042"
  *   sublabel="Kitchen"
  *   status="completed"
  *   isValid={true}
@@ -346,7 +346,7 @@ interface TransactionValidationItemProps {
    * Sample document ID for quick navigation to pending items.
    * Helps users identify which document needs attention.
    * Only provided when there are pending documents.
-   * @example 'TRF-2024-0089'
+   * @example 'TRF-2410-0089'
    */
   sampleDocumentId?: string
 }
@@ -387,7 +387,7 @@ interface TransactionValidationItemProps {
  *   totalCount={8}
  *   pendingCount={2}
  *   isValid={false}
- *   sampleDocumentId="TRF-2024-0089"
+ *   sampleDocumentId="TRF-2410-0089"
  * />
  */
 export function TransactionValidationItem({

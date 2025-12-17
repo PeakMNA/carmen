@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Total Tasks**: 91
 **Estimated Effort**: 39 Story Points / 10 weeks
@@ -321,7 +322,7 @@
   const createPriceListSchema = z.object({
     effective_start_date: z.date().refine(
       (date) => date >= new Date(),
-      { message: "Effective start date cannot be in the past" }
+      { message: 'Effective start date cannot be in the past' }
     ),
     effective_end_date: z.date().nullable().optional().refine(
       (date, ctx) => {
@@ -329,7 +330,7 @@
         const startDate = ctx.parent.effective_start_date;
         return date >= startDate;
       },
-      { message: "Effective end date must be on or after start date" }
+      { message: 'Effective end date must be on or after start date' }
     ),
     currency_code: z.string().length(3).toUpperCase(),
     status: z.enum(['active', 'inactive', 'draft']),

@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version |
 
 ---
@@ -120,7 +121,7 @@ Purchase requests must be approved before they can be converted to purchase orde
 ### Column Content Formats
 | Column | Display Format | Example |
 |--------|----------------|---------|
-| PR Number | PR-YYYY-NNNNNN (clickable link) | PR-2024-000123 |
+| PR Number | PR-YYMM-NNNN (clickable link) | PR-2401-0123 |
 | Requestor | First Name Last Name | John Smith |
 | Department | Full department name | Food & Beverage |
 | Date | DD MMM YYYY | 15 Jan 2024 |
@@ -231,7 +232,7 @@ Are you sure you want to delete this purchase request? This action cannot be und
 ```
 
 **Details Display**:
-- PR Number: {PR-YYYY-NNNNNN}
+- PR Number: {PR-YYMM-NNNN}
 - Date: {DD MMM YYYY}
 - Total Amount: {$X,XXX.XX}
 
@@ -338,7 +339,7 @@ Are you sure you want to delete this purchase request? This action cannot be und
 ### Link Text
 | Link | Text | Destination |
 |------|------|-------------|
-| PR number | PR-2024-000123 | PR detail page |
+| PR number | PR-2401-0123 | PR detail page |
 | Breadcrumb | Procurement | Procurement module home |
 
 ### Placeholder Text Patterns
@@ -401,7 +402,7 @@ Are you sure you want to delete this purchase request? This action cannot be und
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PR-2024-000123 | System-generated reference format |
+| PR-2401-0123 | System-generated reference format |
 | USD, EUR, etc. | ISO currency codes |
 | Date formats (DD MMM YYYY) | Standardized format |
 

@@ -9,7 +9,7 @@ interface PurchaseOrderWithItems extends PurchaseOrder {
 export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
   {
     id: "PO-002",
-    orderNumber: "PO-2023-002",
+    orderNumber: "PO-2310-002",
     vendorId: "2",
     vendorName: "Office Supplies Inc.",
     orderDate: new Date("2023-06-05"),
@@ -57,7 +57,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 35.00, currency: "EUR" },
         deliveryDate: new Date("2023-06-20"),
         status: "pending",
-        sourceRequestId: "PR-2024-0045",
+        sourceRequestId: "PR-2410-0045",
         sourceRequestItemId: "pri-045-001"
       },
       {
@@ -79,7 +79,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 8.93, currency: "EUR" },
         deliveryDate: new Date("2023-06-20"),
         status: "pending",
-        sourceRequestId: "PR-2024-0045",
+        sourceRequestId: "PR-2410-0045",
         sourceRequestItemId: "pri-045-002"
       },
       {
@@ -101,14 +101,14 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 12.25, currency: "EUR" },
         deliveryDate: new Date("2023-06-20"),
         status: "pending",
-        sourceRequestId: "PR-2024-0046",
+        sourceRequestId: "PR-2410-0046",
         sourceRequestItemId: "pri-046-001"
       }
     ]
   },
   {
     id: "PO-003",
-    orderNumber: "PO-2023-003",
+    orderNumber: "PO-2310-003",
     vendorId: "3",
     vendorName: "Tech Innovations Inc.",
     orderDate: new Date("2023-06-10"),
@@ -156,7 +156,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 615.13, currency: "EUR" },
         deliveryDate: new Date("2023-07-01"),
         status: "pending",
-        sourceRequestId: "PR-2024-0050",
+        sourceRequestId: "PR-2410-0050",
         sourceRequestItemId: "pri-050-001"
       },
       {
@@ -178,7 +178,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 227.50, currency: "EUR" },
         deliveryDate: new Date("2023-07-01"),
         status: "pending",
-        sourceRequestId: "PR-2024-0050",
+        sourceRequestId: "PR-2410-0050",
         sourceRequestItemId: "pri-050-002"
       },
       {
@@ -200,14 +200,14 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 63.00, currency: "EUR" },
         deliveryDate: new Date("2023-07-01"),
         status: "pending",
-        sourceRequestId: "PR-2024-0050",
+        sourceRequestId: "PR-2410-0050",
         sourceRequestItemId: "pri-050-003"
       }
     ]
   },
   {
     id: "PO-004",
-    orderNumber: "PO-2023-004",
+    orderNumber: "PO-2310-004",
     vendorId: "4",
     vendorName: "Fresh Produce Co.",
     orderDate: new Date("2023-06-15"),
@@ -254,7 +254,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 0, currency: "EUR" },
         deliveryDate: new Date("2023-06-17"),
         status: "pending",
-        sourceRequestId: "PR-2024-0055",
+        sourceRequestId: "PR-2410-0055",
         sourceRequestItemId: "pri-055-001"
       },
       {
@@ -276,7 +276,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 0, currency: "EUR" },
         deliveryDate: new Date("2023-06-17"),
         status: "pending",
-        sourceRequestId: "PR-2024-0055",
+        sourceRequestId: "PR-2410-0055",
         sourceRequestItemId: "pri-055-002"
       },
       {
@@ -298,7 +298,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 0, currency: "EUR" },
         deliveryDate: new Date("2023-06-17"),
         status: "pending",
-        sourceRequestId: "PR-2024-0056",
+        sourceRequestId: "PR-2410-0056",
         sourceRequestItemId: "pri-056-001"
       },
       {
@@ -320,14 +320,14 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 0, currency: "EUR" },
         deliveryDate: new Date("2023-06-17"),
         status: "pending",
-        sourceRequestId: "PR-2024-0056",
+        sourceRequestId: "PR-2410-0056",
         sourceRequestItemId: "pri-056-002"
       }
     ]
   },
   {
     id: "PO-005",
-    orderNumber: "PO-2023-005",
+    orderNumber: "PO-2310-005",
     vendorId: "5",
     vendorName: "Industrial Supplies Ltd.",
     orderDate: new Date("2023-06-20"),
@@ -374,7 +374,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 85.00, currency: "EUR" },
         deliveryDate: new Date("2023-07-20"),
         status: "pending",
-        sourceRequestId: "PR-2024-0060",
+        sourceRequestId: "PR-2410-0060",
         sourceRequestItemId: "pri-060-001"
       },
       {
@@ -396,7 +396,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 90.00, currency: "EUR" },
         deliveryDate: new Date("2023-07-20"),
         status: "pending",
-        sourceRequestId: "PR-2024-0060",
+        sourceRequestId: "PR-2410-0060",
         sourceRequestItemId: "pri-060-002"
       },
       {
@@ -418,14 +418,14 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 52.25, currency: "EUR" },
         deliveryDate: new Date("2023-07-20"),
         status: "pending",
-        sourceRequestId: "PR-2024-0061",
+        sourceRequestId: "PR-2410-0061",
         sourceRequestItemId: "pri-061-001"
       }
     ]
   },
   {
     id: "PO-006",
-    orderNumber: "PO-2023-006",
+    orderNumber: "PO-2310-006",
     vendorId: "6",
     vendorName: "Global Logistics Co.",
     orderDate: new Date("2023-06-25"),
@@ -472,7 +472,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 900.00, currency: "EUR" },
         deliveryDate: new Date("2023-07-25"),
         status: "pending",
-        sourceRequestId: "PR-2024-0065",
+        sourceRequestId: "PR-2410-0065",
         sourceRequestItemId: "pri-065-001"
       },
       {
@@ -494,14 +494,14 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 1100.00, currency: "EUR" },
         deliveryDate: new Date("2023-07-25"),
         status: "pending",
-        sourceRequestId: "PR-2024-0065",
+        sourceRequestId: "PR-2410-0065",
         sourceRequestItemId: "pri-065-002"
       }
     ]
   },
   {
     id: "PO-007",
-    orderNumber: "PO-2023-007",
+    orderNumber: "PO-2310-007",
     vendorId: "7",
     vendorName: "Green Energy Solutions",
     orderDate: new Date("2023-06-30"),
@@ -549,7 +549,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 2137.50, currency: "EUR" },
         deliveryDate: new Date("2023-08-15"),
         status: "pending",
-        sourceRequestId: "PR-2024-0070",
+        sourceRequestId: "PR-2410-0070",
         sourceRequestItemId: "pri-070-001"
       },
       {
@@ -571,7 +571,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 1400.00, currency: "EUR" },
         deliveryDate: new Date("2023-08-15"),
         status: "pending",
-        sourceRequestId: "PR-2024-0070",
+        sourceRequestId: "PR-2410-0070",
         sourceRequestItemId: "pri-070-002"
       },
       {
@@ -593,14 +593,14 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 850.00, currency: "EUR" },
         deliveryDate: new Date("2023-08-15"),
         status: "pending",
-        sourceRequestId: "PR-2024-0070",
+        sourceRequestId: "PR-2410-0070",
         sourceRequestItemId: "pri-070-003"
       }
     ]
   },
   {
     id: "PO-008",
-    orderNumber: "PO-2023-008",
+    orderNumber: "PO-2310-008",
     vendorId: "8",
     vendorName: "Local Thai Suppliers Ltd.",
     orderDate: new Date("2023-07-05"),
@@ -647,7 +647,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 630.00, currency: "THB" },
         deliveryDate: new Date("2023-07-15"),
         status: "pending",
-        sourceRequestId: "PR-2024-0075",
+        sourceRequestId: "PR-2410-0075",
         sourceRequestItemId: "pri-075-001"
       },
       {
@@ -669,7 +669,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 142.80, currency: "THB" },
         deliveryDate: new Date("2023-07-15"),
         status: "pending",
-        sourceRequestId: "PR-2024-0075",
+        sourceRequestId: "PR-2410-0075",
         sourceRequestItemId: "pri-075-002"
       },
       {
@@ -691,7 +691,7 @@ export const Mock_purchaseOrders: PurchaseOrderWithItems[] = [
         taxAmount: { amount: 315.00, currency: "THB" },
         deliveryDate: new Date("2023-07-15"),
         status: "pending",
-        sourceRequestId: "PR-2024-0076",
+        sourceRequestId: "PR-2410-0076",
         sourceRequestItemId: "pri-076-001"
       }
     ]

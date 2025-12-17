@@ -494,44 +494,44 @@ This section maps all pages, tabs, and dialogs in the Wastage Reporting sub-modu
 
 ```mermaid
 graph TD
-    A["Wastage Reporting Module"] --> B["List Page"]
-    A --> C["Record Wastage Page"]
-    A --> D["Detail Page"]
-    A --> E["Approval Queue Page"]
-    A --> F["Analytics Dashboard"]
+    A['Wastage Reporting Module'] --> B['List Page']
+    A --> C['Record Wastage Page']
+    A --> D['Detail Page']
+    A --> E['Approval Queue Page']
+    A --> F['Analytics Dashboard']
 
-    B --> B1["Tab: All Wastage"]
-    B --> B2["Tab: Pending Approval"]
-    B --> B3["Tab: Approved"]
-    B --> B4["Tab: Rejected"]
+    B --> B1['Tab: All Wastage']
+    B --> B2['Tab: Pending Approval']
+    B --> B3['Tab: Approved']
+    B --> B4['Tab: Rejected']
 
-    D --> D1["Tab: Overview"]
-    D --> D2["Tab: Photos"]
-    D --> D3["Tab: Approval History"]
-    D --> D4["Tab: Related Transactions"]
+    D --> D1['Tab: Overview']
+    D --> D2['Tab: Photos']
+    D --> D3['Tab: Approval History']
+    D --> D4['Tab: Related Transactions']
 
-    E --> E1["Tab: Pending My Approval"]
-    E --> E2["Tab: Approved by Me"]
-    E --> E3["Tab: All Approvals"]
+    E --> E1['Tab: Pending My Approval']
+    E --> E2['Tab: Approved by Me']
+    E --> E3['Tab: All Approvals']
 
-    F --> F1["Tab: Trends"]
-    F --> F2["Tab: By Category"]
-    F --> F3["Tab: By Product"]
-    F --> F4["Tab: Anomalies"]
+    F --> F1['Tab: Trends']
+    F --> F2['Tab: By Category']
+    F --> F3['Tab: By Product']
+    F --> F4['Tab: Anomalies']
 
-    B --> BD1["Dialog: Export"]
-    B --> BD2["Dialog: Filters"]
-    B --> BD3["Dialog: Batch Record"]
+    B --> BD1['Dialog: Export']
+    B --> BD2['Dialog: Filters']
+    B --> BD3['Dialog: Batch Record']
 
-    C --> CD1["Dialog: Photo Capture"]
-    C --> CD2["Dialog: Cancel Confirm"]
+    C --> CD1['Dialog: Photo Capture']
+    C --> CD2['Dialog: Cancel Confirm']
 
-    D --> DD1["Dialog: Delete Confirm"]
-    D --> DD2["Dialog: Edit"]
+    D --> DD1['Dialog: Delete Confirm']
+    D --> DD2['Dialog: Edit']
 
-    E --> ED1["Dialog: Approve Confirm"]
-    E --> ED2["Dialog: Reject Confirm"]
-    E --> ED3["Dialog: Partial Approval"]
+    E --> ED1['Dialog: Approve Confirm']
+    E --> ED2['Dialog: Reject Confirm']
+    E --> ED3['Dialog: Partial Approval']
 ```
 
 ### Pages
@@ -613,7 +613,7 @@ graph TD
 **Purpose**: Comprehensive view of single wastage transaction with all details and related information
 
 **Sections**:
-- **Header**: Wastage number (WST-2025-0112-0023), status badge (Pending/Approved/Rejected), action menu dropdown (Edit, Delete, Approve, Print)
+- **Header**: Wastage number (WST-2501-0112-0023), status badge (Pending/Approved/Rejected), action menu dropdown (Edit, Delete, Approve, Print)
 - **Summary Card**: Key information at-a-glance
   - Product name and code
   - Quantity and value
@@ -651,8 +651,8 @@ graph TD
 
 **Dialogs Accessible From This Page**:
 - **Delete Confirmation**: "Permanently delete this wastage transaction? This cannot be undone." with reason field required
-- **Approve Confirmation**: "Approve wastage WST-2025-0112-0023 ($31.25)? Inventory will be adjusted immediately." with optional approval comments
-- **Reject Confirmation**: "Reject wastage WST-2025-0112-0023? Submitter will be notified." with mandatory rejection reason (min 30 characters)
+- **Approve Confirmation**: "Approve wastage WST-2501-0112-0023 ($31.25)? Inventory will be adjusted immediately." with optional approval comments
+- **Reject Confirmation**: "Reject wastage WST-2501-0112-0023? Submitter will be notified." with mandatory rejection reason (min 30 characters)
 - **Partial Approval Dialog**: Adjust approved quantity, enter reduction reason, calculate approved value
 - **Print Preview**: Formatted print view with company logo, transaction details, photos
 
@@ -795,7 +795,7 @@ graph TD
 - **Trigger**: "Delete" action on List Page or Detail Page
 - **Purpose**: Confirm wastage deletion with impact warning
 - **Content**:
-  - Warning message: "Permanently delete wastage WST-2025-0112-0023?"
+  - Warning message: "Permanently delete wastage WST-2501-0112-0023?"
   - Impact summary: "This action cannot be undone. Audit trail will be retained."
   - Delete reason text area (optional)
   - Checkbox: "I understand this transaction will be permanently deleted"
@@ -2102,7 +2102,7 @@ npm run db:generate
 
 **Log Levels**:
 - **DEBUG**: Detailed execution information (development only, not logged in production)
-- **INFO**: Successful operations with context (e.g., "Wastage WST-2025-0112-0023 created by user123")
+- **INFO**: Successful operations with context (e.g., "Wastage WST-2501-0112-0023 created by user123")
 - **WARNING**: Recoverable errors or unusual conditions (e.g., "Photo upload retried 3 times")
 - **ERROR**: Failed operations with error details (e.g., "Database query timeout during wastage creation")
 
@@ -2113,7 +2113,7 @@ Every log entry includes:
 - Message (human-readable description)
 - User ID (if applicable)
 - Session ID (if applicable)
-- Entity type and ID (e.g., "wastage", "WST-2025-0112-0023")
+- Entity type and ID (e.g., "wastage", "WST-2501-0112-0023")
 - Operation (create, update, delete, approve, reject)
 - Duration (for performance tracking)
 - Error stack trace (for errors)
@@ -2132,7 +2132,7 @@ Every log entry includes:
   "operation": "create",
   "duration": 245,
   "context": {
-    "wastageNumber": "WST-2025-0112-0023",
+    "wastageNumber": "WST-2501-0112-0023",
     "totalValue": 31.25,
     "category": "preparation_error",
     "location": "Restaurant A"

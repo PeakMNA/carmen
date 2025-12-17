@@ -79,22 +79,6 @@ export interface InventoryLocationConfig {
 }
 
 /**
- * Location Address
- */
-export interface LocationAddress {
-  addressLine1: string
-  addressLine2?: string
-  city: string
-  state?: string
-  postalCode: string
-  country: string
-  coordinates?: {
-    latitude: number
-    longitude: number
-  }
-}
-
-/**
  * Time range for operating hours
  */
 export interface TimeRange {
@@ -131,14 +115,6 @@ export interface InventoryLocation {
   status: LocationStatus
   physicalCountEnabled: boolean
   inventoryConfig: InventoryLocationConfig
-
-  address?: LocationAddress
-
-  // Organizational links
-  departmentId?: string
-  departmentName?: string
-  costCenterId?: string
-  costCenterName?: string
 
   // For consignment locations
   consignmentVendorId?: string
@@ -266,39 +242,42 @@ export interface ProductLocationAssignment {
 }
 
 /**
- * Delivery Point - Delivery address configuration for a location
+ * Delivery Point - Centralized delivery address definition
+ *
+ * Represents a physical location where vendors can deliver goods.
+ * Referenced by inventory locations via deliveryPointId for procurement.
+ *
+ * @see docs/app/system-administration/delivery-points/BR-delivery-points.md
+ *
+ * BR-DP: Simplified to name and status only per business requirements.
+ * Previously had complex fields (address, contacts, logistics) - now simplified.
+ *
+ * Business Rules:
+ * - BR-003: Only active delivery points appear in location assignment dropdowns
+ *
+ * @property {string} id - Unique identifier (UUID)
+ * @property {string} name - Display name (required, unique)
+ * @property {boolean} isActive - Whether available for selection in lookups
+ * @property {Date} createdAt - Record creation timestamp
+ * @property {string} createdBy - User who created the record
+ * @property {Date} [updatedAt] - Last update timestamp
+ * @property {string} [updatedBy] - User who last updated the record
  */
 export interface DeliveryPoint {
+  /** Unique identifier (UUID) */
   id: string
-  locationId: string
-
+  /** Display name - required, used in location dropdowns */
   name: string
-  code?: string
-  description?: string
-
-  address: LocationAddress
-
-  contactName?: string
-  contactPhone?: string
-  contactEmail?: string
-
-  deliveryInstructions?: string
-  accessInstructions?: string
-
-  operatingHours?: OperatingHours
-
-  // Logistics info
-  maxVehicleSize?: 'small_van' | 'large_van' | 'truck' | 'semi_trailer'
-  hasDockLeveler?: boolean
-  hasForklift?: boolean
-
-  isPrimary: boolean
+  /** Active status - inactive points excluded from lookups (BR-003) */
   isActive: boolean
-
-  // Audit fields
+  // ====== AUDIT FIELDS ======
+  /** Record creation timestamp */
   createdAt: Date
+  /** User who created the record */
   createdBy: string
+  /** Last update timestamp */
   updatedAt?: Date
+  /** User who last updated the record */
   updatedBy?: string
 }
 
@@ -390,10 +369,7 @@ export interface LocationFormData {
   type: InventoryLocationType
   physicalCountEnabled: boolean
   status: LocationStatus
-  departmentId?: string
-  costCenterId?: string
   consignmentVendorId?: string
-  address?: LocationAddress
 }
 
 /**
@@ -422,19 +398,18 @@ export interface ShelfFormData {
 }
 
 /**
- * Delivery point form data
+ * Delivery Point Form Data - Create/Edit form fields
+ *
+ * Used by FR-DP-002 (Create) and FR-DP-003 (Edit) dialogs.
+ * BR-DP: Simplified to name and status only per business requirements.
+ *
+ * @property {string} name - Required, display name for the delivery point
+ * @property {boolean} isActive - Default: true (Active)
  */
 export interface DeliveryPointFormData {
+  /** Required - display name for the delivery point */
   name: string
-  code?: string
-  description?: string
-  address: LocationAddress
-  contactName?: string
-  contactPhone?: string
-  contactEmail?: string
-  deliveryInstructions?: string
-  accessInstructions?: string
-  isPrimary: boolean
+  /** Default: true (FR-DP-002) */
   isActive: boolean
 }
 
@@ -448,7 +423,6 @@ export interface LocationFilters {
   type: InventoryLocationType | 'all'
   status: LocationStatus | 'all'
   physicalCountEnabled: boolean | 'all'
-  departmentId?: string
 }
 
 // ====== SUMMARY TYPES ======
@@ -466,5 +440,4 @@ export interface InventoryLocationSummary {
   totalProducts: number
   totalUsers: number
   totalShelves: number
-  departmentName?: string
 }

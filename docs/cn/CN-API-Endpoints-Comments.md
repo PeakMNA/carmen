@@ -97,7 +97,7 @@ GET /api/credit-notes/:creditNoteId/comments
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/comments?type=general&visibility=internal
+GET /api/credit-notes/CN-2401-0001/comments?type=general&visibility=internal
 ```
 
 ### Get Comment by ID
@@ -120,7 +120,7 @@ Comment
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/comments/CMT-001
+GET /api/credit-notes/CN-2401-0001/comments/CMT-001
 ```
 
 ### Add Comment
@@ -157,7 +157,7 @@ Comment
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/comments
+POST /api/credit-notes/CN-2401-0001/comments
 {
   "content": "Verified the physical damage on the laptop. The screen is cracked and the chassis is dented.",
   "type": "general",
@@ -209,7 +209,7 @@ Comment
 
 **Example Request:**
 ```json
-PUT /api/credit-notes/CN-2024-001/comments/CMT-001
+PUT /api/credit-notes/CN-2401-0001/comments/CMT-001
 {
   "content": "Updated: Verified the physical damage on the laptop. The screen is cracked, the chassis is dented, and the keyboard is not functioning properly.",
   "addAttachments": [
@@ -246,7 +246,7 @@ DELETE /api/credit-notes/:creditNoteId/comments/:commentId
 
 **Example:**
 ```
-DELETE /api/credit-notes/CN-2024-001/comments/CMT-001
+DELETE /api/credit-notes/CN-2401-0001/comments/CMT-001
 ```
 
 ## Error Responses
@@ -259,7 +259,7 @@ DELETE /api/credit-notes/CN-2024-001/comments/CMT-001
   "error": "NotFoundError",
   "message": "Comment not found",
   "details": {
-    "creditNoteId": "CN-2024-001",
+    "creditNoteId": "CN-2401-0001",
     "commentId": "CMT-999"
   }
 }

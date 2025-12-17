@@ -298,9 +298,10 @@ export const mockDepartments: Department[] = [
     code: 'ADMIN',
     description: 'Oversees general administrative functions, policy implementation, and inter-departmental coordination',
     status: 'active',
-    manager: 'user-manager-001', // General Manager
+    managers: ['user-manager-001', 'user-finance-001'], // General Manager & Finance Director
     costCenter: 'CC-001',
-    assignedUsers: ['user-manager-001', 'user-staff-001', 'user-staff-002']
+    assignedUsers: ['user-manager-001', 'user-staff-001', 'user-staff-002'],
+    assignedLocations: ['loc-001', 'loc-006'] // Main Hotel, Corporate Office
   },
   {
     id: 'dept-002',
@@ -308,9 +309,10 @@ export const mockDepartments: Department[] = [
     code: 'PROC',
     description: 'Manages vendor relationships, purchase requests, orders, and inventory procurement processes',
     status: 'active',
-    manager: 'user-purchasing-001', // Procurement Manager
+    managers: ['user-purchasing-001', 'user-manager-001'], // Procurement Manager & General Manager
     costCenter: 'CC-002',
-    assignedUsers: ['user-purchasing-001', 'user-purchasing-002', 'user-staff-003']
+    assignedUsers: ['user-purchasing-001', 'user-purchasing-002', 'user-staff-003'],
+    assignedLocations: ['loc-001', 'loc-004', 'loc-006'] // Main Hotel, Main Warehouse, Corporate Office
   },
   {
     id: 'dept-003',
@@ -318,9 +320,10 @@ export const mockDepartments: Department[] = [
     code: 'KITCHEN',
     description: 'Manages all kitchen activities, recipe development, food preparation, and culinary standards',
     status: 'active',
-    manager: 'user-chef-001', // Executive Chef
+    managers: ['user-chef-001'], // Executive Chef
     costCenter: 'CC-003',
-    assignedUsers: ['user-chef-001', 'user-staff-004', 'user-staff-005', 'user-counter-001']
+    assignedUsers: ['user-chef-001', 'user-staff-004', 'user-staff-005', 'user-counter-001'],
+    assignedLocations: ['loc-002', 'loc-003', 'loc-005'] // Main Restaurant, Central Kitchen, Branch Restaurant
   },
   {
     id: 'dept-004',
@@ -328,9 +331,10 @@ export const mockDepartments: Department[] = [
     code: 'WAREHOUSE',
     description: 'Manages inventory storage, stock movements, and warehouse operations',
     status: 'active',
-    manager: 'user-manager-002', // Warehouse Manager
+    managers: ['user-manager-002'], // Warehouse Manager
     costCenter: 'CC-004',
-    assignedUsers: ['user-manager-002', 'user-staff-006', 'user-staff-007']
+    assignedUsers: ['user-manager-002', 'user-staff-006', 'user-staff-007'],
+    assignedLocations: ['loc-004'] // Main Warehouse
   },
   {
     id: 'dept-005',
@@ -338,9 +342,10 @@ export const mockDepartments: Department[] = [
     code: 'FIN',
     description: 'Handles financial planning, accounting, budgeting, and financial reporting',
     status: 'active',
-    manager: 'user-finance-001', // Finance Director
+    managers: ['user-finance-001', 'user-manager-001'], // Finance Director & General Manager
     costCenter: 'CC-005',
-    assignedUsers: ['user-finance-001', 'user-finance-002', 'user-staff-008']
+    assignedUsers: ['user-finance-001', 'user-finance-002', 'user-staff-008'],
+    assignedLocations: ['loc-006'] // Corporate Office
   },
   {
     id: 'dept-006',
@@ -348,9 +353,10 @@ export const mockDepartments: Department[] = [
     code: 'F&B',
     description: 'Manages restaurant operations, customer service, and food and beverage service delivery',
     status: 'active',
-    manager: 'user-manager-003', // Department Manager
+    managers: ['user-manager-003'], // Department Manager
     costCenter: 'CC-006',
-    assignedUsers: ['user-manager-003', 'user-staff-009', 'user-counter-002']
+    assignedUsers: ['user-manager-003', 'user-staff-009', 'user-counter-002'],
+    assignedLocations: ['loc-002', 'loc-005'] // Main Restaurant, Branch Restaurant
   },
   {
     id: 'dept-007',
@@ -358,9 +364,10 @@ export const mockDepartments: Department[] = [
     code: 'HK',
     description: 'Maintains cleanliness and hygiene standards across all facilities',
     status: 'inactive',
-    manager: 'user-manager-004', // Department Manager
+    managers: ['user-manager-004'], // Department Manager
     costCenter: 'CC-007',
-    assignedUsers: ['user-manager-004', 'user-staff-010']
+    assignedUsers: ['user-manager-004', 'user-staff-010'],
+    assignedLocations: ['loc-001'] // Main Hotel
   },
   {
     id: 'dept-008',
@@ -368,9 +375,10 @@ export const mockDepartments: Department[] = [
     code: 'MAINT',
     description: 'Handles facility maintenance, repairs, and equipment upkeep',
     status: 'active',
-    manager: 'user-manager-005', // Department Manager
+    managers: ['user-manager-005'], // Department Manager
     costCenter: 'CC-008',
-    assignedUsers: ['user-manager-005', 'user-staff-011', 'user-staff-012']
+    assignedUsers: ['user-manager-005', 'user-staff-011', 'user-staff-012'],
+    assignedLocations: ['loc-001', 'loc-004'] // Main Hotel, Main Warehouse
   }
 ];
 

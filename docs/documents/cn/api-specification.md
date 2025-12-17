@@ -81,7 +81,7 @@ GET /api/v1/credit-notes
   "data": [
     {
       "id": "cn_001",
-      "ref_number": "CN-2025-001",
+      "ref_number": "CN-2501-0001",
       "vendor": {
         "id": "vendor_001",
         "name": "ACME Corporation",
@@ -121,7 +121,7 @@ GET /api/v1/credit-notes/{id}
 {
   "data": {
     "id": "cn_001",
-    "ref_number": "CN-2025-001",
+    "ref_number": "CN-2501-0001",
     "vendor": {
       "id": "vendor_001",
       "name": "ACME Corporation",
@@ -148,12 +148,12 @@ GET /api/v1/credit-notes/{id}
         "unit_price": 25.50,
         "total_amount": 255.00,
         "reason_code": "quality_defect",
-        "lot_number": "LOT-2025-001",
+        "lot_number": "LOT-2501-0001",
         "expiry_date": "2025-12-31T00:00:00Z",
-        "grn_reference": "GRN-2025-001"
+        "grn_reference": "GRN-2501-0001"
       }
     ],
-    "related_grns": ["GRN-2025-001", "GRN-2025-002"],
+    "related_grns": ["GRN-2501-0001", "GRN-2501-0002"],
     "financial_summary": {
       "subtotal": 1200.00,
       "tax_amount": 50.50,
@@ -192,12 +192,12 @@ POST /api/v1/credit-notes
       "quantity": 10,
       "unit_price": 25.50,
       "reason_code": "quality_defect",
-      "lot_number": "LOT-2025-001",
-      "grn_reference": "GRN-2025-001",
+      "lot_number": "LOT-2501-0001",
+      "grn_reference": "GRN-2501-0001",
       "notes": "Visible damage on packaging"
     }
   ],
-  "related_grn_ids": ["GRN-2025-001"]
+  "related_grn_ids": ["GRN-2501-0001"]
 }
 ```
 
@@ -206,7 +206,7 @@ POST /api/v1/credit-notes
 {
   "data": {
     "id": "cn_002",
-    "ref_number": "CN-2025-002",
+    "ref_number": "CN-2501-0002",
     "status": "draft",
     "total_amount": 255.00,
     "created_at": "2025-01-15T15:30:00Z"
@@ -241,7 +241,7 @@ PUT /api/v1/credit-notes/{id}
 {
   "data": {
     "id": "cn_001",
-    "ref_number": "CN-2025-001",
+    "ref_number": "CN-2501-0001",
     "status": "draft",
     "total_amount": 204.00,
     "updated_at": "2025-01-15T16:45:00Z"
@@ -379,9 +379,9 @@ GET /api/v1/credit-notes/{id}/items
       "total_amount": 255.00,
       "reason_code": "quality_defect",
       "reason_description": "Quality defect identified",
-      "lot_number": "LOT-2025-001",
+      "lot_number": "LOT-2501-0001",
       "expiry_date": "2025-12-31T00:00:00Z",
-      "grn_reference": "GRN-2025-001",
+      "grn_reference": "GRN-2501-0001",
       "notes": "Visible damage on packaging"
     }
   ]
@@ -400,7 +400,7 @@ POST /api/v1/credit-notes/{id}/items
   "quantity": 5,
   "unit_price": 12.75,
   "reason_code": "pricing_error",
-  "lot_number": "LOT-2025-002",
+  "lot_number": "LOT-2501-0002",
   "notes": "Incorrect pricing applied"
 }
 ```
@@ -479,7 +479,7 @@ GET /api/v1/vendors/{vendor_id}/grns
   "data": [
     {
       "id": "grn_001",
-      "ref_number": "GRN-2025-001",
+      "ref_number": "GRN-2501-0001",
       "date": "2025-01-10T00:00:00Z",
       "total_amount": 2500.00,
       "currency": "MYR",
@@ -753,7 +753,7 @@ GET /api/v1/exports/{export_id}
     "code": "insufficient_grn_quantity",
     "message": "Credit quantity exceeds available GRN quantity",
     "details": {
-      "grn_id": "GRN-2025-001",
+      "grn_id": "GRN-2501-0001",
       "product_id": "prod_001",
       "available_quantity": 50,
       "requested_quantity": 75
@@ -813,7 +813,7 @@ X-RateLimit-Window: 3600
   "timestamp": "2025-01-16T09:00:00Z",
   "data": {
     "credit_note_id": "cn_001",
-    "ref_number": "CN-2025-001",
+    "ref_number": "CN-2501-0001",
     "vendor_id": "vendor_001",
     "total_amount": 1250.50,
     "currency": "MYR",

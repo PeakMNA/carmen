@@ -52,7 +52,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 - Inventory level monitoring and alerting
 - Par level and reorder point configuration
 - Automatic replenishment recommendations
-- Manual and automatic replenishment request creation
+- Manual and automatic transfer request creation
 - Inter-location stock transfer workflows
 - Consumption pattern analysis
 - Integration with inventory management
@@ -179,14 +179,14 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 **Responsibilities**:
 - Set and maintain par levels for location's items
 - Review replenishment recommendations daily
-- Create replenishment requests for needed items
+- Create transfer requests for needed items
 - Receive and confirm stock transfers
 - Monitor stock levels and consumption patterns
 
 **Permissions**:
 - View inventory levels for assigned location
 - Configure par levels for location items
-- Create replenishment requests
+- Create transfer requests
 - Approve/reject replenishment recommendations
 - View consumption history and reports
 - Receive stock transfers
@@ -200,7 +200,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 ### 3.2 Warehouse Manager (William)
 
 **Responsibilities**:
-- Review and approve replenishment requests from locations
+- Review and approve transfer requests from locations
 - Allocate inventory from central warehouse to locations
 - Plan and schedule stock transfer deliveries
 - Monitor central warehouse stock levels
@@ -208,7 +208,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 
 **Permissions**:
 - View all locations' inventory levels and requests
-- Approve/reject replenishment requests
+- Approve/reject transfer requests
 - Create and execute stock transfers
 - View warehouse inventory and availability
 - Generate replenishment reports
@@ -225,19 +225,19 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 **Responsibilities**:
 - Approve par level changes for department items
 - Review consumption patterns and trends
-- Approve high-value replenishment requests
+- Approve high-value transfer requests
 - Set replenishment policies for department
 
 **Permissions**:
 - View department-wide inventory levels
 - Approve par level configurations
-- Approve replenishment requests above threshold
+- Approve transfer requests above threshold
 - View department consumption analytics
 - Configure department replenishment rules
 
 **Business Rules**:
 - Approval required for par level changes > 20% of previous level
-- Must approve replenishment requests > $5,000 value
+- Must approve transfer requests > $5,000 value
 - Can override automated recommendations with justification
 - Review and approve monthly consumption reports
 
@@ -250,7 +250,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 - Review replenishment trends for better forecasting
 
 **Permissions**:
-- View all replenishment requests and patterns
+- View all transfer requests and patterns
 - Access consumption analytics across locations
 - Create purchase requests for warehouse
 - View replenishment forecasts
@@ -349,7 +349,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 
 ---
 
-### 4.3 Replenishment Request Creation
+### 4.3 Transfer Request Creation
 
 **Trigger**: System recommendation, manual store manager request, or scheduled review
 
@@ -367,7 +367,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
    - Modify quantity (requires reason if >20% change)
    - Defer to later date
    - Reject with reason
-4. For accepted items, system creates replenishment request
+4. For accepted items, system creates transfer request
 5. Request submitted for warehouse approval
 
 **Method B: Manual Request**:
@@ -382,7 +382,7 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 6. Request submitted for approval
 
 **Request Contents**:
-- Request Number (auto-generated: REP-YYYY-NNNN)
+- Request Number (auto-generated: REP-YYMM-NNNN)
 - From Location (requesting location)
 - To Location (destination = requesting location)
 - Request Date
@@ -405,9 +405,9 @@ The Stock Replenishment module provides automated and intelligent inventory repl
 
 ---
 
-### 4.4 Replenishment Request Approval
+### 4.4 Transfer Request Approval
 
-**Trigger**: New replenishment request submitted
+**Trigger**: New transfer request submitted
 
 **Process Flow**:
 1. **Warehouse Manager Review**:
@@ -693,7 +693,7 @@ Replenishment Quantity = Par Level - (Current Stock + Pending Transfers)
 2. Items below minimum level (critical)
 3. Items below reorder point (standard)
 4. Items approaching reorder point (proactive)
-5. Scheduled replenishment requests
+5. Scheduled transfer requests
 
 **Tiebreaker**: Within same priority, first-come-first-served.
 
@@ -852,6 +852,74 @@ Replenishment Quantity = Par Level - (Current Stock + Pending Transfers)
 
 ---
 
+### BR-SREP-014: Location Type Business Rules
+
+Stock replenishment behavior varies based on the **location type** of source and destination locations. Only certain location types support PAR level management and automatic replenishment.
+
+#### Location Type Definitions
+
+| Location Type | Code | Purpose | Examples |
+|---------------|------|---------|----------|
+| **INVENTORY** | INV | Standard tracked warehouse locations | Main Warehouse, Central Kitchen Store |
+| **DIRECT** | DIR | Direct expense locations (no stock balance) | Restaurant Bar Direct, Kitchen Direct |
+| **CONSIGNMENT** | CON | Vendor-owned inventory locations | Beverage Consignment, Linen Consignment |
+
+#### BR-SREP-014.1: Location Type Eligibility
+
+**INVENTORY Locations (INV)**:
+- ✅ Full PAR level configuration
+- ✅ Automatic reorder point calculation
+- ✅ Replenishment recommendations generated
+- ✅ Internal transfers from warehouse sources
+- ✅ Stock level monitoring and alerts
+
+**DIRECT Locations (DIR)**:
+- ❌ No PAR levels (no stock balance to monitor)
+- ❌ No replenishment recommendations
+- ❌ Not available as replenishment destination
+- ❌ Cannot be source or destination for transfers
+- ⚠️ Excluded from stock level dashboards
+
+**CONSIGNMENT Locations (CON)**:
+- ✅ Full PAR level configuration
+- ✅ Automatic reorder point calculation
+- ✅ Replenishment recommendations (routed to vendor)
+- ✅ External replenishment from vendor
+- ✅ Stock level monitoring with vendor ownership indicator
+
+#### BR-SREP-014.2: Location Type Feature Matrix
+
+| Feature | INVENTORY | DIRECT | CONSIGNMENT |
+|---------|-----------|--------|-------------|
+| **PAR Level Config** | ✅ Full | ❌ None | ✅ Full |
+| **Auto-Recommendations** | ✅ Yes | ❌ N/A | ✅ Yes (to vendor) |
+| **Replenishment Source** | Internal warehouse | N/A | External vendor |
+| **Reorder Trigger** | Below PAR % | N/A | Below PAR % |
+| **Transfer Destination** | ✅ Allowed | ❌ Blocked | ✅ Allowed (vendor) |
+| **Stock Level Dashboard** | ✅ Displayed | ❌ Excluded | ✅ Displayed |
+| **Critical Alerts** | ✅ Generated | ❌ None | ✅ Generated |
+| **Consumption Analytics** | ✅ Full | ❌ Limited | ✅ Full |
+
+#### BR-SREP-014.3: Location Type Validation Rules
+
+1. **Destination Location Validation**:
+   - System must exclude DIRECT locations from destination selection dropdown
+   - Warning if user attempts to select DIRECT location via API
+   - CONSIGNMENT destinations trigger vendor notification workflow
+
+2. **Source Location Validation**:
+   - INVENTORY sources: Standard internal transfer workflow
+   - DIRECT sources: Not permitted (no stock to transfer)
+   - CONSIGNMENT sources: Vendor approval required for inter-location transfer
+
+3. **UI Behavior**:
+   - Location type badge displayed in location selection
+   - DIRECT locations filtered out of replenishment destination list
+   - Consignment locations show vendor information in selection
+   - Dashboard excludes DIRECT locations from stock level charts
+
+---
+
 ## 6. Functional Requirements
 
 ### FR-SREP-001: Replenishment Dashboard
@@ -918,9 +986,9 @@ Replenishment Quantity = Par Level - (Current Stock + Pending Transfers)
 
 ---
 
-### FR-SREP-003: Replenishment Request Creation
+### FR-SREP-003: Transfer Request Creation
 
-**Requirement**: Enable users to create replenishment requests manually or from recommendations.
+**Requirement**: Enable users to create transfer requests manually or from recommendations.
 
 **Input Fields**:
 - Requesting location (auto-filled from user context)
@@ -952,7 +1020,7 @@ Replenishment Quantity = Par Level - (Current Stock + Pending Transfers)
 
 ### FR-SREP-004: Request Approval Interface
 
-**Requirement**: Allow Warehouse Managers to review and approve replenishment requests.
+**Requirement**: Allow Warehouse Managers to review and approve transfer requests.
 
 **Features**:
 - Queue of pending requests sorted by priority and date
@@ -1081,7 +1149,7 @@ Replenishment Quantity = Par Level - (Current Stock + Pending Transfers)
    - Trigger: Item below minimum level
    - Recipients: Store Manager, Department Manager
    - Frequency: Immediate, then daily until resolved
-   - Action: Create replenishment request
+   - Action: Create transfer request
 
 2. **Reorder Point Reached**:
    - Trigger: Item at or below reorder point
@@ -1200,7 +1268,7 @@ Replenishment Quantity = Par Level - (Current Stock + Pending Transfers)
 **Data Flow**:
 ```
 Inventory System → Stock Levels → Replenishment Monitoring → Alerts
-Replenishment Request → Approval → Transfer → Inventory Transactions → Inventory System
+Transfer Request → Approval → Transfer → Inventory Transactions → Inventory System
 ```
 
 ---
@@ -1259,7 +1327,7 @@ Replenishment Request → Approval → Transfer → Inventory Transactions → I
 **Requirements**:
 - Support 100+ locations
 - Handle 10,000+ SKUs per location
-- Process 1000+ replenishment requests per day
+- Process 1000+ transfer requests per day
 - Store 2+ years of consumption history
 - Handle 10,000+ inventory transactions per day
 
@@ -1308,7 +1376,7 @@ Replenishment Request → Approval → Transfer → Inventory Transactions → I
 
 **Targets (6 months post-launch)**:
 - 90% of locations have par levels configured
-- 80% of replenishment requests created from system recommendations
+- 80% of transfer requests created from system recommendations
 - 95% of Store Managers use system daily
 - 85% user satisfaction score
 - <5% emergency request rate (down from 25%)
@@ -1351,11 +1419,11 @@ The following Next.js server actions must be implemented to support the replenis
 - `generateReplenishmentRecommendations(locationId)` - Create recommendations
 - `getActiveAlerts(locationId)` - Retrieve current alerts
 
-**Replenishment Requests**:
-- `createReplenishmentRequest(items, requiredDate, priority)` - Create request
-- `submitReplenishmentRequest(requestId)` - Submit for approval
-- `approveReplenishmentRequest(requestId, approvals, comments)` - Approve/reject
-- `getReplenishmentRequests(status, locationId)` - Query requests
+**Transfer Requests**:
+- `createTransferRequest(items, requiredDate, priority)` - Create request
+- `submitTransferRequest(requestId)` - Submit for approval
+- `approveTransferRequest(requestId, approvals, comments)` - Approve/reject
+- `getTransferRequests(status, locationId)` - Query requests
 
 **Stock Transfers**:
 - `createStockTransfer(requestId)` - Generate transfer from approved request
@@ -1570,7 +1638,7 @@ interface ApprovalRule {
 
 **Safety Stock**: Buffer stock to protect against demand variability and supply delays
 
-**Lead Time**: Time from initiating replenishment request to receiving stock
+**Lead Time**: Time from initiating transfer request to receiving stock
 
 **Days of Supply**: Number of days current stock will last at average consumption rate
 

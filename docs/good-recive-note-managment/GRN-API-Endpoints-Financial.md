@@ -49,10 +49,10 @@ GET /api/grns/{id}/journal-entries
   "journalEntries": [
     {
       "id": "123e4567-e89b-12d3-a456-426614174013",
-      "journalNumber": "JV-2024-0001",
+      "journalNumber": "JV-2401-0001",
       "status": "POSTED",
       "postingDate": "2024-03-15T17:30:00Z",
-      "description": "GRN-2024-0001 - Inventory Receipt",
+      "description": "GRN-2401-0001 - Inventory Receipt",
       "currencyCode": "USD",
       "exchangeRate": 1,
       "totalDebit": 1040.00,

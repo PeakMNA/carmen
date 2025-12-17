@@ -55,7 +55,7 @@ This document provides a comprehensive visual documentation of the Store Operati
 
 ## 3. Store Requisition Detail Page
 
-**Base URL:** `/store-operations/store-requisitions/SR-2024-001`
+**Base URL:** `/store-operations/store-requisitions/SR-2401-0001`
 
 ### 3.1 Items Tab
 
@@ -91,7 +91,7 @@ This document provides a comprehensive visual documentation of the Store Operati
 
 **File:** `stock-replenishment-dashboard.png` (154K)
 **URL:** `/store-operations/stock-replenishment`
-**Description:** Dashboard for managing stock replenishment requests and monitoring inventory levels.
+**Description:** Dashboard for managing stock transfer requests and monitoring inventory levels.
 
 ![Stock Replenishment Dashboard](stock-replenishment-dashboard.png)
 

@@ -67,6 +67,7 @@ This document defines the use cases for the lot-based costing system with automa
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ---
@@ -211,7 +212,7 @@ This document defines the use cases for the lot-based costing system with automa
    - Uses adjustment date for date component
 6. **System** creates inventory transaction record:
    - `transaction_type` = `adjustment`
-   - `transaction_id` = Adjustment reference number (e.g., "ADJ-2025-001234")
+   - `transaction_id` = Adjustment reference number (e.g., "ADJ-2501-001234")
    - `transaction_date` = Adjustment date
 7. **System** creates cost layer record:
    - `lot_no` = Generated lot number
@@ -817,7 +818,7 @@ ORDER BY itd.transaction_date ASC, cl.lot_index ASC
 
 **Main Success Scenario**:
 
-1. **User** opens issue document (e.g., Store Requisition SR-2025-001)
+1. **User** opens issue document (e.g., Store Requisition SR-2501-0001)
 2. **User** adds products to issue:
    - Product: Flour (All Purpose)
    - Quantity: 25 kg
@@ -845,7 +846,7 @@ GROUP BY product_id, location_id
    - Lot `MK-251106-0008`: 10 kg @ $4.95/kg
 8. **System** creates inventory transaction:
    - `transaction_type` = `issue`
-   - `transaction_id` = "SR-2025-001"
+   - `transaction_id` = "SR-2501-0001"
    - `transaction_date` = 2025-11-07
 9. **System** creates cost layer records:
 
@@ -979,7 +980,7 @@ GROUP BY product_id, location_id
    - Allocate 5 kg from this lot
 6. **System** creates inventory transaction:
    - `transaction_type` = `adjustment`
-   - `transaction_id` = "ADJ-2025-001235"
+   - `transaction_id` = "ADJ-2501-001235"
    - `transaction_date` = 2025-11-07
 7. **System** creates cost layer record:
    - `lot_no` = NULL (this is a consumption)
@@ -1075,7 +1076,7 @@ GROUP BY product_id, location_id
 **Main Success Scenario**:
 
 1. **Storekeeper** creates transfer order:
-   - Transfer No: TRF-2025-001
+   - Transfer No: TRF-2501-0001
    - From: Main Kitchen (MK)
    - To: Pastry Venue (PV)
    - Product: Butter (Unsalted)
@@ -1092,7 +1093,7 @@ GROUP BY product_id, location_id
 
    **Transaction:**
    - `transaction_type` = `transfer_out`
-   - `transaction_id` = "TRF-2025-001"
+   - `transaction_id` = "TRF-2501-0001"
    - `transaction_date` = 2025-11-07
 
    **Cost Layer Records:**
@@ -1112,7 +1113,7 @@ GROUP BY product_id, location_id
 
    **Transaction:**
    - `transaction_type` = `transfer_in`
-   - `transaction_id` = "TRF-2025-001" (same reference)
+   - `transaction_id` = "TRF-2501-0001" (same reference)
    - `transaction_date` = 2025-11-07
 
    **Cost Layer Record:**

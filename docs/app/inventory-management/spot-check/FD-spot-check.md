@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version |
 | 2.0.0 | 2025-12-06 | System | Updated to reflect actual implementation |
 | 2.1.0 | 2025-12-09 | System | Updated to 2-step wizard, added active/completed page flows |
@@ -37,49 +38,49 @@ This document provides visual representations of workflows, data flows, and syst
 
 ```mermaid
 flowchart TD
-    Start([User Initiates<br/>Spot Check]) --> Dashboard{Start From<br/>Dashboard?}
+    Start([User Initiates<br>Spot Check]) --> Dashboard{Start From<br>Dashboard?}
 
-    Dashboard -->|Yes| QuickAction[Click Quick Action<br/>New Spot Check]
-    Dashboard -->|No| ListPage[Navigate to<br/>List Page]
-    ListPage --> CreateBtn[Click New<br/>Spot Check Button]
+    Dashboard -->|Yes| QuickAction[Click Quick Action<br>New Spot Check]
+    Dashboard -->|No| ListPage[Navigate to<br>List Page]
+    ListPage --> CreateBtn[Click New<br>Spot Check Button]
     QuickAction --> Wizard
     CreateBtn --> Wizard
 
     subgraph Wizard [2-Step Creation Wizard]
-        Step1[Step 1: Location<br/>Selection] --> Step2[Step 2: Method<br/>& Items]
+        Step1[Step 1: Location<br>Selection] --> Step2[Step 2: Method<br>& Items]
     end
 
-    Wizard --> Created[Spot Check Created<br/>Status: pending]
-    Created --> StartCheck{User Starts<br/>Check?}
+    Wizard --> Created[Spot Check Created<br>Status: pending]
+    Created --> StartCheck{User Starts<br>Check?}
 
-    StartCheck -->|Yes| InProgress[Status: in-progress<br/>Record Start Time]
+    StartCheck -->|Yes| InProgress[Status: in-progress<br>Record Start Time]
     StartCheck -->|No| Pending[Remains Pending]
 
-    InProgress --> CountItems[Navigate to<br/>Counting Interface]
+    InProgress --> CountItems[Navigate to<br>Counting Interface]
 
     subgraph Counting [Item Counting]
-        SingleMode[Single Item Mode] --> EnterQty[Enter Counted<br/>Quantity]
+        SingleMode[Single Item Mode] --> EnterQty[Enter Counted<br>Quantity]
         ListMode[List Mode] --> EnterQty
-        EnterQty --> SetCondition[Select Condition<br/>Good/Damaged/Expired/Missing]
-        SetCondition --> AddNotes[Add Notes<br/>Optional]
+        EnterQty --> SetCondition[Select Condition<br>Good/Damaged/Expired/Missing]
+        SetCondition --> AddNotes[Add Notes<br>Optional]
         AddNotes --> NextItem{More Items?}
         NextItem -->|Yes| EnterQty
-        NextItem -->|No| AllCounted[All Items<br/>Counted]
+        NextItem -->|No| AllCounted[All Items<br>Counted]
     end
 
     CountItems --> Counting
-    Counting --> CompleteCheck{Complete<br/>Check?}
+    Counting --> CompleteCheck{Complete<br>Check?}
 
-    CompleteCheck -->|Pause| OnHold[Status: on-hold<br/>Progress Saved]
+    CompleteCheck -->|Pause| OnHold[Status: on-hold<br>Progress Saved]
     OnHold --> Resume[Resume Later]
     Resume --> InProgress
 
-    CompleteCheck -->|Complete| Completed[Status: completed<br/>Record End Time]
+    CompleteCheck -->|Complete| Completed[Status: completed<br>Record End Time]
 
-    Created -.->|Cancel| Cancelled[Status: cancelled<br/>Data Preserved]
+    Created -.->|Cancel| Cancelled[Status: cancelled<br>Data Preserved]
     InProgress -.->|Cancel| Cancelled
 
-    Completed --> End([Spot Check<br/>Complete])
+    Completed --> End([Spot Check<br>Complete])
     Cancelled --> CancelEnd([Cancelled])
 
     style Start fill:#e1f5e1
@@ -98,17 +99,17 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph Step1 [Step 1: Location Selection]
-        S1A[Select Location] --> S1B[Select Department<br/>Optional]
+        S1A[Select Location] --> S1B[Select Department<br>Optional]
         S1B --> S1C[Assign Staff]
         S1C --> S1D[Set Schedule Date]
     end
 
     subgraph Step2 [Step 2: Method & Items]
         S2A{Selection Method}
-        S2A --> S2B[Random:<br/>System selects random items]
-        S2A --> S2C[High-Value:<br/>Highest value items]
-        S2A --> S2D[Manual:<br/>User selects items]
-        S2B --> S2E[Select Item Count<br/>10 / 20 / 50]
+        S2A --> S2B[Random:<br>System selects random items]
+        S2A --> S2C[High-Value:<br>Highest value items]
+        S2A --> S2D[Manual:<br>User selects items]
+        S2B --> S2E[Select Item Count<br>10 / 20 / 50]
         S2C --> S2E
         S2D --> S2F[Search & Select Items]
         S2E --> S2G[Preview Items]
@@ -123,13 +124,13 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Start([Start]) --> Step1[Step 1:<br/>Location]
-    Step1 -->|Next| Validate1{Location<br/>Selected?}
+    Start([Start]) --> Step1[Step 1:<br>Location]
+    Step1 -->|Next| Validate1{Location<br>Selected?}
     Validate1 -->|No| Error1[Show Error]
     Error1 --> Step1
-    Validate1 -->|Yes| Step2[Step 2:<br/>Method & Items]
+    Validate1 -->|Yes| Step2[Step 2:<br>Method & Items]
     Step2 -->|Back| Step1
-    Step2 -->|Submit| Validate2{Valid<br/>Selection?}
+    Step2 -->|Submit| Validate2{Valid<br>Selection?}
     Validate2 -->|No| Error2[Show Error]
     Error2 --> Step2
     Validate2 -->|Yes| Create([Create Check])
@@ -239,20 +240,20 @@ stateDiagram-v2
 ```mermaid
 flowchart TD
     Start([Start Counting]) --> LoadItem[Load Current Item]
-    LoadItem --> Display[Display Item Details<br/>Code, Name, Location, System Qty]
+    LoadItem --> Display[Display Item Details<br>Code, Name, Location, System Qty]
 
-    Display --> EnterQty{Enter<br/>Quantity}
+    Display --> EnterQty{Enter<br>Quantity}
     EnterQty --> UseButtons[Use +/- Buttons]
     EnterQty --> TypeValue[Type Value Directly]
 
     UseButtons --> CalcVariance
     TypeValue --> CalcVariance
 
-    CalcVariance[Calculate Variance<br/>Preview] --> ShowVariance{Variance?}
+    CalcVariance[Calculate Variance<br>Preview] --> ShowVariance{Variance?}
 
-    ShowVariance -->|0%| GreenIndicator[Show Green<br/>Match]
-    ShowVariance -->|Small| YellowIndicator[Show Yellow<br/>Minor Variance]
-    ShowVariance -->|Large| RedIndicator[Show Red<br/>Significant Variance]
+    ShowVariance -->|0%| GreenIndicator[Show Green<br>Match]
+    ShowVariance -->|Small| YellowIndicator[Show Yellow<br>Minor Variance]
+    ShowVariance -->|Large| RedIndicator[Show Red<br>Significant Variance]
 
     GreenIndicator --> SetCondition
     YellowIndicator --> SetCondition
@@ -269,7 +270,7 @@ flowchart TD
     Expired --> Notes
     Missing --> Notes
 
-    Notes[Add Notes<br/>Optional] --> Navigate{Action?}
+    Notes[Add Notes<br>Optional] --> Navigate{Action?}
 
     Navigate -->|Previous| PrevItem[Go to Previous Item]
     Navigate -->|Next| NextItem[Go to Next Item]
@@ -302,11 +303,11 @@ flowchart TD
 ```mermaid
 flowchart TD
     subgraph Main [Main Pages]
-        Dashboard["/spot-check/dashboard"]
-        List["/spot-check"]
-        New["/spot-check/new"]
-        Active["/spot-check/active"]
-        Completed["/spot-check/completed"]
+        Dashboard['/spot-check/dashboard']
+        List['/spot-check']
+        New['/spot-check/new']
+        Active['/spot-check/active']
+        Completed['/spot-check/completed']
         Detail["/spot-check/[id]"]
         Count["/spot-check/[id]/count"]
     end
@@ -358,7 +359,7 @@ flowchart TD
     subgraph User [User Interface]
         UI1[Dashboard]
         UI2[List Page]
-        UI3[Creation Wizard<br/>2-Step]
+        UI3[Creation Wizard<br>2-Step]
         UI4[Detail Page]
         UI5[Counting Interface]
         UI6[Active Page]
@@ -366,14 +367,14 @@ flowchart TD
     end
 
     subgraph State [State Management]
-        LocalState[Component State<br/>useState/useMemo]
-        FormState[Form State<br/>React Hook Form]
-        ZustandStore[Zustand Store<br/>useCountStore]
+        LocalState[Component State<br>useState/useMemo]
+        FormState[Form State<br>React Hook Form]
+        ZustandStore[Zustand Store<br>useCountStore]
     end
 
     subgraph MockData [Mock Data Layer]
         MockChecks[mockSpotChecks]
-        Helpers[Helper Functions<br/>getById, getByStatus, etc.]
+        Helpers[Helper Functions<br>getById, getByStatus, etc.]
     end
 
     subgraph Types [Type System]
@@ -405,7 +406,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Open Active Page]) --> LoadState[Load from Zustand Store<br/>useCountStore]
+    Start([Open Active Page]) --> LoadState[Load from Zustand Store<br>useCountStore]
     LoadState --> GetActive[Get activeCounts]
 
     GetActive --> FilterTabs{Filter Tab}
@@ -419,20 +420,20 @@ flowchart TD
     InProgress --> Display
     Paused --> Display
 
-    Display --> CheckOverdue{Check<br/>Overdue?}
-    CheckOverdue -->|Yes| ShowOverdue[Show Overdue<br/>Indicator]
+    Display --> CheckOverdue{Check<br>Overdue?}
+    CheckOverdue -->|Yes| ShowOverdue[Show Overdue<br>Indicator]
     CheckOverdue -->|No| ShowNormal[Normal Display]
 
     ShowOverdue --> UserAction
     ShowNormal --> UserAction
 
     UserAction{User Action}
-    UserAction -->|Start| StartCount[Start Count<br/>Navigate to /count]
-    UserAction -->|Continue| ContinueCount[Continue Count<br/>Navigate to /count]
-    UserAction -->|View| ViewDetail[View Details<br/>Navigate to /[id]]
+    UserAction -->|Start| StartCount[Start Count<br>Navigate to /count]
+    UserAction -->|Continue| ContinueCount[Continue Count<br>Navigate to /count]
+    UserAction -->|View| ViewDetail[View Details<br>Navigate to /[id]]
 
-    StartCount --> UpdateStore[Update Zustand Store<br/>status: in-progress]
-    ContinueCount --> Navigate[Navigate to<br/>Counting Interface]
+    StartCount --> UpdateStore[Update Zustand Store<br>status: in-progress]
+    ContinueCount --> Navigate[Navigate to<br>Counting Interface]
     ViewDetail --> Navigate
     UpdateStore --> Navigate
 ```
@@ -470,7 +471,7 @@ flowchart TD
     ShowStats --> Stats
     Stats --> DisplayList[Display Filtered List]
 
-    DisplayList --> ColorCode{Accuracy<br/>Color Code}
+    DisplayList --> ColorCode{Accuracy<br>Color Code}
     ColorCode -->|>95%| Green[Green Badge]
     ColorCode -->|90-95%| Yellow[Yellow Badge]
     ColorCode -->|<90%| Red[Red Badge]
@@ -480,7 +481,7 @@ flowchart TD
     Red --> UserClick
 
     UserClick{User Clicks Row}
-    UserClick --> ViewDetail[Navigate to<br/>Detail Page]
+    UserClick --> ViewDetail[Navigate to<br>Detail Page]
 ```
 
 ---
@@ -491,22 +492,22 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Input[User Enters<br/>Counted Quantity] --> Calc[Calculate]
+    Input[User Enters<br>Counted Quantity] --> Calc[Calculate]
 
     subgraph Calc [Calculation]
         SystemQty[System Quantity] --> Subtract
         CountedQty[Counted Quantity] --> Subtract
         Subtract[Variance = Counted - System] --> Percent
-        Percent[Variance % = <br/>Variance / System × 100]
+        Percent[Variance % = <br>Variance / System × 100]
     end
 
-    Calc --> Evaluate{Evaluate<br/>Threshold}
+    Calc --> Evaluate{Evaluate<br>Threshold}
 
-    Evaluate -->|0%| Match[Match<br/>Green]
-    Evaluate -->|< 5%| Minor[Minor<br/>Yellow]
-    Evaluate -->|≥ 5%| Significant[Significant<br/>Red]
+    Evaluate -->|0%| Match[Match<br>Green]
+    Evaluate -->|< 5%| Minor[Minor<br>Yellow]
+    Evaluate -->|≥ 5%| Significant[Significant<br>Red]
 
-    Match --> Display[Update UI<br/>Display Variance]
+    Match --> Display[Update UI<br>Display Variance]
     Minor --> Display
     Significant --> Display
 ```

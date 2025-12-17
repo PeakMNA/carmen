@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Document Status**: Active
 
@@ -39,19 +40,19 @@ const ValidationLayers = {
   client: {
     layer: "Client-Side (Browser)",
     purpose: "Immediate user feedback",
-    tools: ["Zod", "React Hook Form"],
+    tools: ['Zod', 'React Hook Form'],
     timing: "Real-time on field change"
   },
   server: {
     layer: "Server-Side (API/Actions)",
     purpose: "Security and data integrity",
-    tools: ["Zod", "Custom validators"],
+    tools: ['Zod', 'Custom validators'],
     timing: "On form submission"
   },
   database: {
     layer: "Database Constraints",
     purpose: "Data integrity at storage level",
-    tools: ["PostgreSQL", "Prisma"],
+    tools: ['PostgreSQL', 'Prisma'],
     timing: "On database write"
   }
 }
@@ -103,7 +104,7 @@ const workflowNameValidation = {
     },
     {
       rule: "reserved_words",
-      value: ["system", "admin", "default", "test"],
+      value: ["system", 'admin', 'default', 'test'],
       message: "This workflow name is reserved and cannot be used"
     }
   ]
@@ -115,7 +116,7 @@ const workflowNameSchema = z.string()
   .max(100, "Workflow name must not exceed 100 characters")
   .regex(/^[a-zA-Z0-9\s\-_]+$/, "Invalid characters in workflow name")
   .refine(
-    (name) => !["system", "admin", "default", "test"].includes(name.toLowerCase()),
+    (name) => !["system", 'admin', 'default', 'test'].includes(name.toLowerCase()),
     "This workflow name is reserved"
   )
 ```
@@ -134,7 +135,7 @@ const workflowTypeValidation = {
     },
     {
       rule: "enum_value",
-      values: ["purchase_request_workflow", "store_requisition_workflow"],
+      values: ['purchase_request_workflow', 'store_requisition_workflow'],
       message: "Invalid workflow type"
     },
     {
@@ -147,8 +148,8 @@ const workflowTypeValidation = {
 
 // Zod Schema
 const workflowTypeSchema = z.enum(
-  ["purchase_request_workflow", "store_requisition_workflow"],
-  { errorMap: () => ({ message: "Invalid workflow type" }) }
+  ['purchase_request_workflow', 'store_requisition_workflow'],
+  { errorMap: () => ({ message: 'Invalid workflow type' }) }
 )
 ```
 
@@ -328,7 +329,7 @@ const stageSLAValidation = {
     {
       rule: "unit_enum",
       field: "unit",
-      values: ["hours", "days"],
+      values: ['hours', 'days'],
       message: "SLA unit must be either 'hours' or 'days'"
     },
     {
@@ -348,12 +349,12 @@ const stageSLASchema = z.object({
     .positive("SLA value must be positive")
     .min(1, "SLA value must be at least 1")
     .max(365, "SLA value must not exceed 365"),
-  unit: z.enum(["hours", "days"], {
+  unit: z.enum(['hours', 'days'], {
     errorMap: () => ({ message: "SLA unit must be 'hours' or 'days'" })
   })
 }).refine(
   (sla) => sla.unit !== "hours" || sla.value <= 720,
-  { message: "SLA hours cannot exceed 720 (30 days)" }
+  { message: 'SLA hours cannot exceed 720 (30 days)' }
 )
 ```
 
@@ -371,7 +372,7 @@ const stageRoleTypeValidation = {
     },
     {
       rule: "enum_value",
-      values: ["requester", "purchaser", "approver", "reviewer"],
+      values: ["requester", 'purchaser', 'approver', 'reviewer'],
       message: "Invalid role type"
     }
   ]
@@ -379,8 +380,8 @@ const stageRoleTypeValidation = {
 
 // Zod Schema
 const stageRoleTypeSchema = z.enum(
-  ["requester", "purchaser", "approver", "reviewer"],
-  { errorMap: () => ({ message: "Invalid stage role type" }) }
+  ['requester', 'purchaser', 'approver', 'reviewer'],
+  { errorMap: () => ({ message: 'Invalid stage role type' }) }
 )
 ```
 
@@ -403,19 +404,19 @@ const stageActionsValidation = {
     },
     {
       rule: "valid_actions",
-      values: ["Submit", "Approve", "Reject", "Send Back", "Forward", "Cancel"],
+      values: ["Submit", "Approve", "Reject", 'Send Back', 'Forward', 'Cancel'],
       message: "Invalid action type"
     },
     {
       rule: "first_stage_submit",
       condition: "stage_order = 1",
-      required_actions: ["Submit"],
+      required_actions: ['Submit'],
       message: "First stage must have 'Submit' action"
     },
     {
       rule: "final_stage_approve",
       condition: "stage_order = max(stage_order)",
-      required_actions: ["Approve", "Reject"],
+      required_actions: ['Approve', 'Reject'],
       message: "Final stage must have 'Approve' and 'Reject' actions"
     }
   ]
@@ -423,7 +424,7 @@ const stageActionsValidation = {
 
 // Zod Schema
 const stageActionsSchema = z.array(
-  z.enum(["Submit", "Approve", "Reject", "Send Back", "Forward", "Cancel"])
+  z.enum(["Submit", "Approve", "Reject", 'Send Back', 'Forward', 'Cancel'])
 ).min(1, "At least one action must be configured")
 ```
 
@@ -437,7 +438,7 @@ const stageHideFieldsValidation = {
   rules: [
     {
       rule: "boolean_fields",
-      fields: ["pricePerUnit", "totalPrice"],
+      fields: ['pricePerUnit', 'totalPrice'],
       message: "Hide fields must be boolean values"
     },
     {
@@ -584,7 +585,7 @@ const routingRuleConditionValidation = {
     },
     {
       rule: "valid_field",
-      values: ["totalAmount", "itemCount", "department", "priority", "requestor"],
+      values: ["totalAmount", "itemCount", 'department', 'priority', 'requestor'],
       message: "Invalid condition field"
     },
     {
@@ -594,7 +595,7 @@ const routingRuleConditionValidation = {
     },
     {
       rule: "valid_operator",
-      values: ["eq", "lt", "gt", "lte", "gte"],
+      values: ["eq", "lt", 'gt', 'lte', 'gte'],
       message: "Invalid condition operator"
     },
     {
@@ -612,8 +613,8 @@ const routingRuleConditionValidation = {
 
 // Zod Schema
 const routingRuleConditionSchema = z.object({
-  field: z.enum(["totalAmount", "itemCount", "department", "priority", "requestor"]),
-  operator: z.enum(["eq", "lt", "gt", "lte", "gte"]),
+  field: z.enum(["totalAmount", "itemCount", 'department', 'priority', 'requestor']),
+  operator: z.enum(["eq", "lt", 'gt', 'lte', 'gte']),
   value: z.union([z.string(), z.number()])
 })
 ```
@@ -633,7 +634,7 @@ const routingRuleActionValidation = {
     },
     {
       rule: "valid_type",
-      values: ["SKIP_STAGE", "NEXT_STAGE"],
+      values: ['SKIP_STAGE', 'NEXT_STAGE'],
       message: "Invalid action type"
     },
     {
@@ -663,7 +664,7 @@ const routingRuleActionValidation = {
 
 // Zod Schema
 const routingRuleActionSchema = z.object({
-  type: z.enum(["SKIP_STAGE", "NEXT_STAGE"]),
+  type: z.enum(['SKIP_STAGE', 'NEXT_STAGE']),
   parameters: z.object({
     targetStage: z.string().min(1, "Target stage is required")
   })
@@ -686,7 +687,7 @@ const notificationEventTriggerValidation = {
     },
     {
       rule: "enum_value",
-      values: ["onSubmit", "onApprove", "onReject", "onSendBack", "onSLA"],
+      values: ["onSubmit", "onApprove", 'onReject', 'onSendBack', 'onSLA'],
       message: "Invalid event trigger"
     }
   ]
@@ -694,8 +695,8 @@ const notificationEventTriggerValidation = {
 
 // Zod Schema
 const notificationEventTriggerSchema = z.enum(
-  ["onSubmit", "onApprove", "onReject", "onSendBack", "onSLA"],
-  { errorMap: () => ({ message: "Invalid event trigger" }) }
+  ['onSubmit', 'onApprove', 'onReject', 'onSendBack', 'onSLA'],
+  { errorMap: () => ({ message: 'Invalid event trigger' }) }
 )
 ```
 
@@ -713,7 +714,7 @@ const notificationRecipientsValidation = {
     },
     {
       rule: "valid_recipient_type",
-      values: ["requester", "approver", "all_approvers", "next_approver", "specific_users"],
+      values: ["requester", "approver", 'all_approvers', 'next_approver', 'specific_users'],
       message: "Invalid recipient type"
     },
     {
@@ -728,7 +729,7 @@ const notificationRecipientsValidation = {
 // Zod Schema
 const notificationRecipientsSchema = z.array(
   z.object({
-    type: z.enum(["requester", "approver", "all_approvers", "next_approver", "specific_users"]),
+    type: z.enum(["requester", "approver", 'all_approvers', 'next_approver', 'specific_users']),
     userIds: z.array(z.string().uuid()).optional()
   })
 ).min(1, "At least one recipient must be specified")
@@ -748,7 +749,7 @@ const notificationChannelsValidation = {
     },
     {
       rule: "valid_channel",
-      values: ["Email", "System"],
+      values: ['Email', 'System'],
       message: "Invalid notification channel"
     }
   ]
@@ -756,7 +757,7 @@ const notificationChannelsValidation = {
 
 // Zod Schema
 const notificationChannelsSchema = z.array(
-  z.enum(["Email", "System"])
+  z.enum(['Email', 'System'])
 ).min(1, "At least one notification channel must be selected")
 ```
 
@@ -793,7 +794,7 @@ const notificationTemplateValidation = {
     {
       rule: "valid_variables",
       pattern: /\{\{([a-zA-Z0-9_]+)\}\}/g,
-      allowed: ["requestNumber", "requesterName", "approverName", "stageName", "documentType", "totalAmount", "departmentName"],
+      allowed: ["requestNumber", "requesterName", "approverName", "stageName", 'documentType', 'totalAmount', 'departmentName'],
       message: "Invalid variable in template"
     }
   ]
@@ -884,14 +885,14 @@ function validateMinimumStages(workflow: Workflow): ValidationResult {
   if (stageCount < 2) {
     return {
       valid: false,
-      errors: [{ field: "stages", message: "Workflow must have at least 2 stages" }]
+      errors: [{ field: 'stages', message: 'Workflow must have at least 2 stages' }]
     }
   }
 
   if (stageCount > 20) {
     return {
       valid: false,
-      errors: [{ field: "stages", message: "Workflow cannot have more than 20 stages" }]
+      errors: [{ field: 'stages', message: 'Workflow cannot have more than 20 stages' }]
     }
   }
 
@@ -1053,7 +1054,7 @@ const notificationCompletenessValidation = {
   rules: [
     {
       rule: "all_events_configured",
-      events: ["onSubmit", "onApprove", "onReject"],
+      events: ['onSubmit', 'onApprove', 'onReject'],
       message: "Critical events (onSubmit, onApprove, onReject) must have notification configurations"
     },
     {
@@ -1071,7 +1072,7 @@ function validateNotificationCompleteness(
   const errors: ValidationError[] = []
 
   // Check critical events
-  const criticalEvents = ["onSubmit", "onApprove", "onReject"]
+  const criticalEvents = ['onSubmit', 'onApprove', 'onReject']
   const configuredEvents = new Set(notifications.map(n => n.eventTrigger))
 
   criticalEvents.forEach(event => {
@@ -1085,11 +1086,11 @@ function validateNotificationCompleteness(
 
   // Validate template variables
   const availableVariables = {
-    onSubmit: ["requestNumber", "requesterName", "stageName", "documentType"],
-    onApprove: ["requestNumber", "approverName", "stageName", "documentType"],
-    onReject: ["requestNumber", "approverName", "stageName", "documentType", "rejectReason"],
-    onSendBack: ["requestNumber", "approverName", "stageName", "documentType", "sendBackReason"],
-    onSLA: ["requestNumber", "stageName", "slaHours", "currentHours"]
+    onSubmit: ["requestNumber", 'requesterName', 'stageName', 'documentType'],
+    onApprove: ["requestNumber", 'approverName', 'stageName', 'documentType'],
+    onReject: ["requestNumber", "approverName", 'stageName', 'documentType', 'rejectReason'],
+    onSendBack: ["requestNumber", "approverName", 'stageName', 'documentType', 'sendBackReason'],
+    onSLA: ["requestNumber", 'stageName', 'slaHours', 'currentHours']
   }
 
   notifications.forEach((notification, index) => {
@@ -1404,7 +1405,7 @@ function validateWorkflowActivation(workflow: Workflow): ValidationResult {
 
   // Check critical notifications
   const notifications = workflow.data?.notifications || []
-  const criticalEvents = ["onSubmit", "onApprove", "onReject"]
+  const criticalEvents = ['onSubmit', 'onApprove', 'onReject']
   const configuredEvents = new Set(notifications.map(n => n.eventTrigger))
 
   criticalEvents.forEach(event => {
@@ -1916,10 +1917,10 @@ const StageSchema = z.object({
       .positive("SLA value must be positive")
       .min(1)
       .max(365),
-    unit: z.enum(["hours", "days"])
+    unit: z.enum(['hours', 'days'])
   }).refine(
     (sla) => sla.unit !== "hours" || sla.value <= 720,
-    { message: "SLA hours cannot exceed 720 (30 days)" }
+    { message: 'SLA hours cannot exceed 720 (30 days)' }
   ),
   roleType: RoleTypeSchema,
   availableActions: z.array(ActionTypeSchema)
@@ -1949,7 +1950,7 @@ const RoutingRuleSchema = z.object({
     .optional(),
   triggerStage: z.string().min(1, "Trigger stage is required"),
   condition: z.object({
-    field: z.enum(["totalAmount", "itemCount", "department", "priority", "requestor"]),
+    field: z.enum(["totalAmount", "itemCount", 'department', 'priority', 'requestor']),
     operator: OperatorTypeSchema,
     value: z.union([z.string(), z.number()])
   }),
@@ -1967,7 +1968,7 @@ const NotificationSchema = z.object({
   eventTrigger: NotificationEventTriggerSchema,
   recipients: z.array(
     z.object({
-      type: z.enum(["requester", "approver", "all_approvers", "next_approver", "specific_users"]),
+      type: z.enum(["requester", "approver", 'all_approvers', 'next_approver', 'specific_users']),
       userIds: z.array(z.string().uuid()).optional()
     })
   ).min(1, "At least one recipient must be specified"),

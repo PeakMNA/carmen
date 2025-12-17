@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-01-23 | System | Initial version based on UC-VPP-011, UC-VPP-012 |
 
 ---
@@ -55,7 +56,7 @@ ABC Kitchen Supplies - Pricelist Submission  ✅ Approved
 ### Submission Metadata
 **Format**:
 ```
-Reference: PL-2024-001234 • Submitted: 21 Jan 2024, 14:23 • Quality Score: 88/100 ⭐⭐⭐⭐
+Reference: PL-2401-001234 • Submitted: 21 Jan 2024, 14:23 • Quality Score: 88/100 ⭐⭐⭐⭐
 ```
 
 ---
@@ -97,10 +98,10 @@ Reference: PL-2024-001234 • Submitted: 21 Jan 2024, 14:23 • Quality Score: 8
 │          contact@abckitchen.com • +1 234-567-8900           │
 │                                                              │
 │ Campaign: Q1 2024 Kitchen Equipment Pricing                 │
-│          CAM-2024-001234 • 20 products                      │
+│          CAM-2401-001234 • 20 products                      │
 │                                                              │
 │ Submission:                                                  │
-│ • Reference: PL-2024-001234                                 │
+│ • Reference: PL-2401-001234                                 │
 │ • Submitted: 21 Jan 2024, 14:23 (2 days ago)                │
 │ • Response Time: 6 days (Expected: 8 days) 🟢              │
 │ • Method: Online Entry                                       │
@@ -538,7 +539,7 @@ Recommendations:
 │ Version History                                              │
 │                                                              │
 │ Version 3 (Current) - Final Submission ✅ Approved          │
-│ 21 Jan 2024, 14:23 • Reference: PL-2024-001234             │
+│ 21 Jan 2024, 14:23 • Reference: PL-2401-001234             │
 │ Changes from Version 2:                                      │
 │ • Updated pricing for 5 products                            │
 │ • Added FOC offer for 2 products                            │
@@ -847,7 +848,7 @@ Timeline of Changes
 **Submission Summary**:
 ```
 Vendor: ABC Kitchen Supplies
-Reference: PL-2024-001234
+Reference: PL-2401-001234
 Quality Score: 88/100 ⭐⭐⭐⭐
 Products: 20/20 (100% complete)
 ```

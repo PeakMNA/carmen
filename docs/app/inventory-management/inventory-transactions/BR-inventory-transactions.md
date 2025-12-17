@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-02 | Inventory Management Team | Initial version |
 
 
@@ -405,9 +406,9 @@ The system must support batch creation of transactions from templates or import 
 **Rationale**: Ensures traceability and prevents duplicate transactions.
 
 **Examples**:
-- GRN: `GRN-2025-001234`
-- ISSUE: `ISS-2025-005678`
-- TRANSFER: `TRF-2025-009012`
+- GRN: `GRN-2501-0001234`
+- ISSUE: `ISS-2501-005678`
+- TRANSFER: `TRF-2501-009012`
 
 **Enforcement**: Database unique constraint + application sequence generator
 

@@ -558,7 +558,7 @@ ItemsTab
 #### Screen Reader Support
 ```jsx
 // Proper labeling
-<Button aria-label="Delete purchase request #PR-2024-001">
+<Button aria-label="Delete purchase request #PR-2401-0001">
   <Trash2 className="w-4 h-4" />
 </Button>
 

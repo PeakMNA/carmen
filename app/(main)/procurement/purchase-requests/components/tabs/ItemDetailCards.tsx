@@ -4,12 +4,25 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { format } from 'date-fns';
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon, Edit, Trash2, Copy, Archive, MoreHorizontal } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { mockCurrencies } from "@/lib/mock-data";
+
+// Get base currency from mock data
+const baseCurrency = mockCurrencies.find(c => c.isBaseCurrency)?.code || 'USD';
+
+// Generate currency options from mock data
+const defaultCurrencyOptions = mockCurrencies
+  .filter(c => c.isActive)
+  .map(c => ({
+    value: c.code,
+    label: `${c.code} - ${c.name}${c.isBaseCurrency ? ' (Base)' : ''}`
+  }));
 
 interface InventoryDeliveryCardProps {
   onHand: number;
@@ -764,6 +777,9 @@ interface ConsolidatedItemDetailsCardProps extends VendorPricingCardProps, Inven
   vendorOptions?: Array<{ value: string; label: string }>;
   currencyOptions?: Array<{ value: string; label: string }>;
   taxTypeOptions?: Array<{ value: string; label: string; rate?: number }>;
+  // Comment props
+  comment?: string;
+  onCommentChange?: (comment: string) => void;
 }
 
 export const ConsolidatedItemDetailsCard: React.FC<ConsolidatedItemDetailsCardProps> = ({
@@ -841,20 +857,16 @@ export const ConsolidatedItemDetailsCard: React.FC<ConsolidatedItemDetailsCardPr
   onTaxRateChange,
   onTaxAmountChange,
   vendorOptions = [],
-  currencyOptions = [
-    { value: 'USD', label: 'USD - US Dollar' },
-    { value: 'EUR', label: 'EUR - Euro' },
-    { value: 'GBP', label: 'GBP - British Pound' },
-    { value: 'THB', label: 'THB - Thai Baht' },
-    { value: 'JPY', label: 'JPY - Japanese Yen' },
-    { value: 'CNY', label: 'CNY - Chinese Yuan' },
-  ],
+  currencyOptions = defaultCurrencyOptions,
   taxTypeOptions = [
     { value: 'VAT', label: 'VAT (7%)', rate: 0.07 },
     { value: 'GST', label: 'GST (10%)', rate: 0.10 },
     { value: 'SST', label: 'SST (6%)', rate: 0.06 },
     { value: 'None', label: 'No Tax (0%)', rate: 0 },
   ],
+  // Comment props
+  comment,
+  onCommentChange,
 }) => {
   const [collapsedSections, setCollapsedSections] = React.useState<Set<string>>(new Set());
 
@@ -892,6 +904,38 @@ export const ConsolidatedItemDetailsCard: React.FC<ConsolidatedItemDetailsCardPr
   return (
     <Card className="w-full bg-white shadow-sm rounded-lg border-0">
       <CardContent className="pt-4 pb-4 px-4 space-y-4">
+        {/* Currency Selection - Always Visible */}
+        <div className="flex items-center gap-4 pb-3 border-b border-gray-200">
+          <div className="flex items-center gap-2">
+            <Label className="text-xs text-gray-500 whitespace-nowrap">Currency</Label>
+            {onCurrencyChange ? (
+              <Select value={currency || baseCurrency} onValueChange={onCurrencyChange}>
+                <SelectTrigger className="h-8 w-40 text-xs">
+                  <SelectValue placeholder="Select currency" />
+                </SelectTrigger>
+                <SelectContent>
+                  {currencyOptions.map((option) => (
+                    <SelectItem key={option.value} value={option.value}>
+                      {option.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span className="text-sm font-medium text-gray-900">
+                {currency || baseCurrency}
+                {currency === baseCurrency && <span className="text-xs text-gray-500 ml-1">(Base)</span>}
+              </span>
+            )}
+          </div>
+          {showCurrencyConversion && baseCurrency && currency !== baseCurrency && (
+            <div className="flex items-center gap-2 text-xs text-green-700">
+              <span>Exchange Rate: {currencyRate}</span>
+              <span>→ {baseCurrency}</span>
+            </div>
+          )}
+        </div>
+
         {/* Action Buttons Section */}
         {showActions && (
           <div className="flex items-center justify-end gap-2 pb-3 border-b border-gray-200">
@@ -1576,6 +1620,45 @@ export const ConsolidatedItemDetailsCard: React.FC<ConsolidatedItemDetailsCardPr
                     )}
                   </div>
                 </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Comment Section */}
+        {(comment !== undefined || onCommentChange) && (
+          <div className="space-y-2">
+            <div className="pb-2 border-b border-gray-200">
+              <h4 className="text-sm font-semibold text-gray-800 flex items-center gap-2">
+                <button
+                  onClick={() => toggleSection('comment')}
+                  className="flex items-center gap-1 hover:text-blue-600 transition-colors"
+                >
+                  <span className="text-xs">
+                    {collapsedSections.has('comment') ? '▶' : '▼'}
+                  </span>
+                  Comment
+                </button>
+              </h4>
+            </div>
+
+            {!collapsedSections.has('comment') && (
+              <div className="pl-3 border-l-2 border-amber-100">
+                {onCommentChange ? (
+                  <Textarea
+                    value={comment || ""}
+                    onChange={(e) => onCommentChange(e.target.value)}
+                    placeholder="Add a comment..."
+                    className="min-h-[60px] text-xs resize-none bg-white"
+                    rows={2}
+                  />
+                ) : (
+                  <div className="bg-gray-50 p-2 rounded border border-gray-200 min-h-[32px]">
+                    <p className="text-xs text-gray-700 leading-tight whitespace-pre-wrap">
+                      {comment || "No comment"}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

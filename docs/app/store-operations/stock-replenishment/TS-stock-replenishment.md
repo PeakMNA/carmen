@@ -22,7 +22,7 @@
 
 **Implemented Pages**:
 - Dashboard (`/store-operations/stock-replenishment`) - Critical alerts, analytics, trends
-- New Request (`/store-operations/stock-replenishment/new`) - Create replenishment requests
+- New Request (`/store-operations/stock-replenishment/new`) - Create transfer requests
 - Requests List (`/store-operations/stock-replenishment/requests`) - View/filter requests
 - Request Detail (`/store-operations/stock-replenishment/requests/[id]`) - Approval workflow
 - Stock Levels (`/store-operations/stock-replenishment/stock-levels`) - Par level monitoring
@@ -219,7 +219,7 @@ enum enum_approval_status {
 
 ### 2.3 Table: tb_replenishment_request
 
-**Purpose**: Header table for replenishment requests from locations to warehouse.
+**Purpose**: Header table for transfer requests from locations to warehouse.
 
 ```prisma
 model tb_replenishment_request {
@@ -306,7 +306,7 @@ enum enum_request_status {
 ```
 
 **Key Fields**:
-- `request_no`: Format REP-YYYY-NNNN
+- `request_no`: Format REP-YYMM-NNNN
 - `priority`: Emergency, high, standard, or low
 - `status`: Request lifecycle status
 - `workflow_history`: JSON tracking approval stages
@@ -314,7 +314,7 @@ enum enum_request_status {
 
 ### 2.4 Table: tb_replenishment_request_detail
 
-**Purpose**: Line items for replenishment requests.
+**Purpose**: Line items for transfer requests.
 
 ```prisma
 model tb_replenishment_request_detail {
@@ -808,7 +808,7 @@ export async function applyParLevelRecommendations(
 }
 ```
 
-### 3.2 Replenishment Request Actions
+### 3.2 Transfer Request Actions
 
 **File**: `app/(main)/store-operations/stock-replenishment/requests/actions.ts`
 
@@ -821,43 +821,46 @@ import { auth } from '@/lib/auth';
 import { revalidatePath } from 'next/cache';
 
 // Zod Schemas
-const ReplenishmentRequestItemSchema = z.object({
+const TransferRequestItemSchema = z.object({
   product_id: z.string().uuid(),
   requested_qty: z.number().positive(),
   current_stock_level: z.number().optional(),
   par_level: z.number().optional()
 });
 
-const CreateReplenishmentRequestSchema = z.object({
+const CreateTransferRequestSchema = z.object({
   from_location_id: z.string().uuid(),
   to_location_id: z.string().uuid(),
   required_by_date: z.string().or(z.date()),
   priority: z.enum(['emergency', 'high', 'standard', 'low']).default('standard'),
   reason: z.string().optional(),
-  items: z.array(ReplenishmentRequestItemSchema).min(1).max(100)
+  items: z.array(TransferRequestItemSchema).min(1).max(100)
 });
 
 /**
  * Generate unique request number
  */
 async function generateRequestNumber(): Promise<string> {
-  const year = new Date().getFullYear();
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const yearMonth = `${year}${month}`;
   const count = await prisma.tb_replenishment_request.count({
     where: {
       request_no: {
-        startsWith: `REP-${year}-`
+        startsWith: `REP-${yearMonth}-`
       }
     }
   });
   const sequence = (count + 1).toString().padStart(4, '0');
-  return `REP-${year}-${sequence}`;
+  return `REP-${yearMonth}-${sequence}`;
 }
 
 /**
- * Create replenishment request
+ * Create transfer request
  */
-export async function createReplenishmentRequest(
-  data: z.infer<typeof CreateReplenishmentRequestSchema>
+export async function createTransferRequest(
+  data: z.infer<typeof CreateTransferRequestSchema>
 ) {
   try {
     // 1. Authentication
@@ -867,7 +870,7 @@ export async function createReplenishmentRequest(
     }
 
     // 2. Validate input
-    const validated = CreateReplenishmentRequestSchema.parse(data);
+    const validated = CreateTransferRequestSchema.parse(data);
 
     // 3. Get location names
     const [fromLocation, toLocation] = await Promise.all([
@@ -983,14 +986,14 @@ export async function createReplenishmentRequest(
     if (error instanceof z.ZodError) {
       return { success: false, error: 'Validation failed', details: error.errors };
     }
-    return { success: false, error: 'Failed to create replenishment request' };
+    return { success: false, error: 'Failed to create transfer request' };
   }
 }
 
 /**
- * Approve replenishment request
+ * Approve transfer request
  */
-export async function approveReplenishmentRequest(
+export async function approveTransferRequest(
   requestId: string,
   lineItemApprovals: Array<{
     id: string;
@@ -1108,14 +1111,17 @@ async function createStockTransferFromRequest(requestId: string, userId: string)
   }
 
   // Generate transfer number
-  const year = new Date().getFullYear();
+  const now = new Date();
+  const year = now.getFullYear().toString().slice(-2);
+  const month = (now.getMonth() + 1).toString().padStart(2, '0');
+  const yearMonth = `${year}${month}`;
   const count = await prisma.tb_stock_transfer.count({
     where: {
-      transfer_no: { startsWith: `TRF-${year}-` }
+      transfer_no: { startsWith: `TRF-${yearMonth}-` }
     }
   });
   const sequence = (count + 1).toString().padStart(4, '0');
-  const transferNo = `TRF-${year}-${sequence}`;
+  const transferNo = `TRF-${yearMonth}-${sequence}`;
 
   // Create transfer
   const transfer = await prisma.tb_stock_transfer.create({
@@ -1172,7 +1178,7 @@ export default async function ReplenishmentDashboard() {
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Stock Replenishment</h1>
           <p className="text-muted-foreground">
-            Monitor stock levels and manage replenishment requests
+            Monitor stock levels and manage transfer requests
           </p>
         </div>
         <Button>
@@ -1535,7 +1541,7 @@ async function getCurrentStockLevel(locationId: string, productId: string): Prom
 
 **Implementation**:
 ```typescript
-async function determineWorkflow(request: ReplenishmentRequest) {
+async function determineWorkflow(request: TransferRequest) {
   // Find matching workflow
   const workflow = await prisma.tb_workflow.findFirst({
     where: {
@@ -1910,15 +1916,15 @@ try {
 **Test Server Actions**:
 ```typescript
 // __tests__/replenishment/actions.test.ts
-describe('createReplenishmentRequest', () => {
+describe('createTransferRequest', () => {
   it('should create request with valid data', async () => {
-    const result = await createReplenishmentRequest(validData);
+    const result = await createTransferRequest(validData);
     expect(result.success).toBe(true);
     expect(result.data).toHaveProperty('request_no');
   });
 
   it('should reject invalid data', async () => {
-    const result = await createReplenishmentRequest(invalidData);
+    const result = await createTransferRequest(invalidData);
     expect(result.success).toBe(false);
     expect(result.error).toBe('Validation failed');
   });
@@ -1949,38 +1955,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/store-operations/stock-replenishment)"]
-    CreatePage["Create Page<br/>(/store-operations/stock-replenishment/new)"]
-    DetailPage["Detail Page<br/>(/store-operations/stock-replenishment/[id])"]
-    EditPage["Edit Page<br/>(/store-operations/stock-replenishment/[id]/edit)"]
+    ListPage['List Page<br>(/store-operations/stock-replenishment)']
+    CreatePage['Create Page<br>(/store-operations/stock-replenishment/new)']
+    DetailPage["Detail Page<br>(/store-operations/stock-replenishment/[id])"]
+    EditPage["Edit Page<br>(/store-operations/stock-replenishment/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage
@@ -2000,7 +2006,7 @@ graph TD
 #### 1. List Page
 **Route**: `/store-operations/stock-replenishment`
 **File**: `page.tsx`
-**Purpose**: Display paginated list of all replenishment requests
+**Purpose**: Display paginated list of all transfer requests
 
 **Sections**:
 - Header: Title, breadcrumbs, primary actions
@@ -2010,7 +2016,7 @@ graph TD
 - Pagination: Page size selector, page navigation
 
 **Tabs**:
-- **All Items**: Complete list of all replenishment requests
+- **All Items**: Complete list of all transfer requests
 - **Active**: Filter active items only
 - **Archived**: View archived items
 
@@ -2023,10 +2029,10 @@ graph TD
 #### 2. Detail Page
 **Route**: `/store-operations/stock-replenishment/[id]`
 **File**: `[id]/page.tsx`
-**Purpose**: Display comprehensive replenishment request details
+**Purpose**: Display comprehensive transfer request details
 
 **Sections**:
-- Header: Breadcrumbs, replenishment request title, action buttons
+- Header: Breadcrumbs, transfer request title, action buttons
 - Info Cards: Multiple cards showing different aspects
 - Related Data: Associated records and relationships
 
@@ -2038,12 +2044,12 @@ graph TD
 **Dialogues**:
 - **Edit**: Navigate to edit form
 - **Delete Confirm**: Confirmation before deletion
-- **Status Change**: Change replenishment request status with reason
+- **Status Change**: Change transfer request status with reason
 
 #### 3. Create Page
 **Route**: `/store-operations/stock-replenishment/new`
 **File**: `new/page.tsx`
-**Purpose**: Create new replenishment request
+**Purpose**: Create new transfer request
 
 **Sections**:
 - Form Header: Title, Save/Cancel actions
@@ -2057,7 +2063,7 @@ graph TD
 #### 4. Edit Page
 **Route**: `/store-operations/stock-replenishment/[id]/edit`
 **File**: `[id]/edit/page.tsx`
-**Purpose**: Modify existing replenishment request
+**Purpose**: Modify existing transfer request
 
 **Sections**:
 - Form Header: Title, Save/Cancel/Delete actions

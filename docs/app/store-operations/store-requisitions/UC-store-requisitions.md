@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.0.0
-- **Last Updated**: 2025-11-12
-- **Status**: Active - For Implementation
+- **Version**: 1.3.0
+- **Last Updated**: 2025-12-13
+- **Status**: Active - Implementation Complete
 
 ## Related Documents
 - [Business Requirements](./BR-store-requisitions.md) - Business rules, functional requirements, and backend specifications
@@ -23,6 +23,8 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
+| 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code implementation - verified component references and workflow |
+| 1.3.0 | 2025-12-13 | Documentation Team | Updated UC-SR-001/002 for new creation page, inline add item pattern, "Requested By" field, "Request From" terminology |
 ---
 
 ## 1. Introduction
@@ -161,17 +163,21 @@ This document covers all use cases for internal material requisitions from hotel
 1. User navigates to Store Operations > Store Requisitions
 2. System displays requisitions list page (StoreRequisitionListComponent)
 3. User clicks "New Requisition" button
-4. System displays requisition creation form
-5. System auto-generates requisition number (SR-YYYY-NNNN format)
-6. System pre-fills requisition date with current date
-7. User enters requisition information:
+4. System navigates to dedicated creation page (`/store-operations/store-requisitions/new`)
+5. System displays requisition creation form with header information panel
+6. System auto-generates requisition number (SR-YYMM-NNNN format)
+7. System pre-fills requisition date with current date
+8. System auto-populates "Requested By" field with current user's name (read-only display)
+9. User enters requisition information:
    - Expected delivery date (date picker)
    - Description/purpose
-   - Selects source location (from_location dropdown)
-8. System validates required fields
-9. System saves requisition as draft
-10. System displays success message
-11. System enables item addition section
+   - Selects source location from "Request From" dropdown (from_location)
+   - Location Type automatically determined (INVENTORY, DIRECT, CONSIGNMENT)
+   - Optionally assigns Job Code or Project
+10. System validates required fields
+11. System saves requisition as draft
+12. System displays success message
+13. System enables inline item addition section
 
 **Alternate Flow 1A**: Quick Create from Template
 - After step 3, user selects "Create from Template"
@@ -206,11 +212,11 @@ This document covers all use cases for internal material requisitions from hotel
 - Requisition appears in user's draft list
 
 **Business Rules Applied**:
-- BR-SR-001: Requisition number format SR-YYYY-NNNN
+- BR-SR-001: Requisition number format SR-YYMM-NNNN
 - BR-SR-002: Initial status is Draft
 - BR-SR-006: Department and location authorization
 
-**UI Components**: StoreRequisitionListComponent, Create form modal
+**UI Components**: StoreRequisitionListComponent, NewStoreRequisitionPage (`/store-operations/store-requisitions/new`)
 
 ---
 
@@ -224,28 +230,35 @@ This document covers all use cases for internal material requisitions from hotel
 - Product master data is available
 
 **Main Flow**:
-1. User is on requisition edit page (from UC-SR-001)
+1. User is on requisition creation/edit page (from UC-SR-001)
 2. User clicks "Add Item" button in items section
-3. System displays item selection dialog
-4. User searches for product (by name, code, or barcode)
-5. System displays matching products with:
+3. System activates inline add item row at bottom of items table
+4. System displays searchable product selector using Popover with Command component:
+   - Search input with placeholder "Search products..."
+   - CommandList displaying matching products
+   - Each CommandItem shows product name and code
+5. User types search term in Command input
+6. System filters products in real-time (by name, code, or barcode)
+7. System displays matching products with:
    - Product name and code
    - Current stock at source location
    - Unit of measure
    - Last purchase price
-6. User selects product from results
-7. User enters requested quantity
-8. User selects destination location (to_location)
-9. User optionally enters item description/notes
-10. System validates:
+8. User selects product from CommandList
+9. System populates product details in inline row
+10. User enters requested quantity in inline quantity input field
+11. User optionally selects destination location (to_location) if different from default
+12. System validates inline:
     - Quantity > 0
     - Destination location belongs to user's department
-11. System displays current inventory availability:
+13. System displays current inventory availability:
     - Stock on hand at source location
     - Stock on order
     - Stock status indicator (Sufficient/Low/Out of Stock)
-12. System adds item to requisition line items table
-13. System displays updated item list with:
+14. User clicks "Add" button to confirm item addition
+15. System adds item to requisition line items table
+16. System clears inline add row and resets state
+17. System displays updated item list with:
     - Item description
     - Unit
     - Requested quantity
@@ -272,10 +285,11 @@ This document covers all use cases for internal material requisitions from hotel
 - Flow continues to step 12
 
 **Alternate Flow 2C**: Edit Existing Line Item
-- After step 13, user clicks Edit icon on line item
-- System displays edit dialog with current values
-- User modifies quantity or destination location
-- System re-validates (steps 10-11)
+- After step 17, user clicks Edit icon on line item
+- System converts line item row to inline edit mode
+- User modifies quantity or destination location inline
+- System re-validates (steps 12-13)
+- User clicks Save/Update button
 - System updates line item
 - System refreshes items table
 
@@ -288,16 +302,30 @@ This document covers all use cases for internal material requisitions from hotel
 - User can retry search or cancel
 - Use case resumes at step 4
 
+**Alternate Flow 2D**: Cancel Inline Add
+- At any point during steps 3-14, user clicks Cancel button
+- System clears inline add row
+- System resets add item state (isAddingItem = false)
+- Existing items remain unchanged
+- Use case ends
+
+**Exception Flow 2E**: Product Not Selected Before Add
+- At step 14, if user clicks Add without selecting a product
+- System displays validation error on product field
+- System keeps inline add row active
+- User must select a product or cancel
+- Use case resumes at step 4
+
 **Exception Flow 2F**: Duplicate Item Addition
-- At step 12, if same product already exists in requisition
+- At step 15, if same product already exists in requisition
 - System displays confirmation: "This item already exists. Add as separate line?"
 - If user confirms, system adds as new line with separate sequence
 - If user cancels, system returns to step 3
 - Use case continues
 
 **Exception Flow 2G**: Invalid Quantity
-- At step 10, if quantity validation fails (≤ 0 or non-numeric)
-- System displays error: "Quantity must be greater than zero"
+- At step 12, if quantity validation fails (≤ 0 or non-numeric)
+- System displays inline error: "Quantity must be greater than zero"
 - System highlights quantity field
 - User corrects quantity
 - Use case resumes at step 10
@@ -314,7 +342,7 @@ This document covers all use cases for internal material requisitions from hotel
 - BR-SR-005: Inventory availability display
 - BR-SR-006: Destination location authorization
 
-**UI Components**: Item addition dialog, product search autocomplete, inventory info display
+**UI Components**: Inline add item row, Popover with Command component for product search, inline quantity input, inventory info display
 
 ---
 
@@ -491,7 +519,7 @@ This document covers all use cases for internal material requisitions from hotel
    - All items have valid destination locations
    - No duplicate items (same product, same destination)
 5. System displays confirmation dialog:
-   - "Submit SR-2025-0123 for approval?"
+   - "Submit SR-2501-0123 for approval?"
    - Summary: X items, Total estimated value
    - Warning: "You cannot edit after submission"
 6. User confirms submission
@@ -591,7 +619,7 @@ This document covers all use cases for internal material requisitions from hotel
    - OR all locations (if Storekeeper/Purchasing Manager)
 3. System displays pending approvals count badge on tab
 4. User views list with columns:
-   - Requisition number (SR-YYYY-NNNN)
+   - Requisition number (SR-YYMM-NNNN)
    - Date
    - Requestor name
    - Department
@@ -699,7 +727,7 @@ This document covers all use cases for internal material requisitions from hotel
 5. User checks budget/consumption against department allocation
 6. User clicks "Approve" button in workflow component
 7. System displays approval confirmation dialog:
-   - "Approve SR-2025-0123?"
+   - "Approve SR-2501-0123?"
    - Current stage: [Stage Name]
    - Next stage: [Next Stage Name] or "Complete"
 8. User optionally enters approval comments
@@ -1050,7 +1078,7 @@ This document covers all use cases for internal material requisitions from hotel
    - Budget concerns
 3. User clicks "Request Review" button in workflow component
 4. System displays review request dialog:
-   - "Request changes to SR-2025-0123?"
+   - "Request changes to SR-2501-0123?"
    - Text area for review comments (mandatory, min 20 characters)
    - Option to mark specific items for review
 5. User enters detailed review comments:
@@ -1071,7 +1099,7 @@ This document covers all use cases for internal material requisitions from hotel
    - For marked items, sets last_action = reviewed
    - Records item-specific comments in review_message field
 9. System sends notification to requestor:
-   - Email: "SR-2025-0123 requires your attention"
+   - Email: "SR-2501-0123 requires your attention"
    - In-app notification with review comments
    - Direct link to requisition
 10. System updates requisition display:
@@ -1151,7 +1179,7 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
 1. User reviews requisition and determines it should be rejected
 2. User clicks "Reject" button in workflow component
 3. System displays rejection confirmation dialog:
-   - "Reject SR-2025-0123?"
+   - "Reject SR-2501-0123?"
    - Mandatory rejection reason field (min 50 characters)
    - Warning: "Rejection ends this approval workflow"
 4. User enters detailed rejection reason:
@@ -1297,13 +1325,13 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
       - Requisition remains in_progress
       - Tracks remaining quantities
 15. System generates issuance document:
-    - Document number (SI-YYYY-NNNN)
+    - Document number (SI-YYMM-NNNN)
     - List of issued items with quantities
     - Source and destination locations
     - Issued by (storekeeper)
     - Received by (requestor signature field)
 16. System sends notifications:
-    - Email to requestor: "Items issued for SR-2025-0123"
+    - Email to requestor: "Items issued for SR-2501-0123"
     - Notification to department manager
     - Includes issuance document link
 17. System updates requisition display:

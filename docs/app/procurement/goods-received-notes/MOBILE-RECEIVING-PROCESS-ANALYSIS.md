@@ -502,11 +502,11 @@ export function NetworkStatus() {
 **Bottom Navigation Bar**:
 ```typescript
 const routes = [
-  { href: "/dashboard", label: "Dashboard", icon: <Home /> },
-  { href: "/receiving", label: "Receiving", icon: <Package /> },
-  { href: "/pr-approval", label: "PR Approval", icon: <ClipboardCheck /> },
-  { href: "/stock-take", label: "Stock Take", icon: <BarChart2 /> },
-  { href: "/spot-check", label: "Spot Check", icon: <MagnifyingGlassIcon /> },
+  { href: '/dashboard', label: 'Dashboard', icon: <Home /> },
+  { href: '/receiving', label: 'Receiving', icon: <Package /> },
+  { href: '/pr-approval', label: 'PR Approval', icon: <ClipboardCheck /> },
+  { href: '/stock-take', label: 'Stock Take', icon: <BarChart2 /> },
+  { href: '/spot-check', label: 'Spot Check', icon: <MagnifyingGlassIcon /> },
 ];
 ```
 
@@ -872,7 +872,7 @@ const renderScanError = () => {
         <div>
           <p className="font-medium text-red-900">PO Not Found</p>
           <p className="text-sm text-red-700">
-            {scanResult.error || "The entered PO number doesn't match any purchase order."}
+            {scanResult.error || 'The entered PO number doesn't match any purchase order.'}
           </p>
         </div>
       </div>

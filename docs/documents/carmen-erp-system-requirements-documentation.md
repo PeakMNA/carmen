@@ -161,7 +161,7 @@ Basic procurement interface with mock purchase request data and list views.
 export const mockPRListData: PurchaseRequest[] = [
   {
     id: 'pr-2024-001',
-    refNumber: 'PR-2024-001',
+    refNumber: 'PR-2401-0001',
     description: 'Kitchen Equipment and Food Supplies for Grand Ballroom Event',
     requestor: { name: 'Chef Maria Rodriguez', department: 'Food & Beverage' },
     status: DocumentStatus.Completed,

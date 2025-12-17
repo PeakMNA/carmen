@@ -235,7 +235,7 @@ GET /inventory/adjustments?fields=id,date,status,type,location
 ```json
 {
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "date": "2024-03-27T10:00:00Z",
     "type": "IN",
     "status": "Draft",
@@ -261,7 +261,7 @@ GET /inventory/adjustments?fields=id,date,status,type,location
 {
   "data": [
     {
-      "id": "ADJ-2024-001",
+      "id": "ADJ-2401-0001",
       "date": "2024-03-27T10:00:00Z",
       "type": "IN",
       "status": "Draft",
@@ -274,7 +274,7 @@ GET /inventory/adjustments?fields=id,date,status,type,location
       }
     },
     {
-      "id": "ADJ-2024-002",
+      "id": "ADJ-2401-0002",
       "date": "2024-03-26T14:30:00Z",
       "type": "OUT",
       "status": "Posted",
@@ -303,7 +303,7 @@ GET /inventory/adjustments?fields=id,date,status,type,location
   "success": true,
   "message": "Adjustment successfully posted",
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "status": "Posted",
     "postedBy": "john.doe",
     "postedAt": "2024-03-27T11:15:00Z"

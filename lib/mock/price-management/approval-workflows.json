@@ -81,7 +81,7 @@
       "priority": "medium",
       "status": "pending",
       "details": {
-        "prId": "PR-2024-001",
+        "prId": "PR-2410-001",
         "productName": "Office Paper A4",
         "originalPrice": 125.00,
         "overridePrice": 135.00,
@@ -120,7 +120,7 @@
       "priority": "high",
       "status": "pending",
       "details": {
-        "prId": "PR-2024-007",
+        "prId": "PR-2410-007",
         "productName": "Industrial Equipment",
         "assignedPrice": 2500.00,
         "assignedVendor": "Heavy Machinery Corp",

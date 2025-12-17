@@ -1,3 +1,14 @@
+/**
+ * Goods Receive Note Table Component
+ *
+ * Transaction Code Format: GRN-YYMM-NNNN
+ * - GRN: Goods Received Note prefix
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: GRN-2410-001 = Goods Received Note #001 from October 2024
+ */
+
 'use client'
 
 import {
@@ -11,9 +22,10 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
+// Mock data with transaction codes using format: GRN-YYMM-NNNN
 const mockGRNData = [
   {
-    grnReference: "GRN-2024-001",
+    grnReference: "GRN-2410-001",
     date: "2024-03-15",
     location: "Main Warehouse",
     receiver: "John Doe",
@@ -22,7 +34,7 @@ const mockGRNData = [
     units: "pcs",
   },
   {
-    grnReference: "GRN-2024-002",
+    grnReference: "GRN-2410-002",
     date: "2024-03-16",
     location: "IT Department",
     receiver: "Jane Smith",
@@ -31,7 +43,7 @@ const mockGRNData = [
     units: "boxes",
   },
   {
-    grnReference: "GRN-2024-003",
+    grnReference: "GRN-2410-003",
     date: "2024-03-17",
     location: "Branch Office",
     receiver: "Bob Johnson",

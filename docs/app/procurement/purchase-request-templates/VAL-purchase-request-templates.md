@@ -102,7 +102,7 @@ departmentId: z.string()
 ```
 requestType: z.enum(
   ['goods', 'services', 'capital'],
-  { errorMap: () => ({ message: "Invalid request type" }) }
+  { errorMap: () => ({ message: 'Invalid request type' }) }
 )
 ```
 
@@ -125,7 +125,7 @@ requestType: z.enum(
 ```
 status: z.enum(
   ['draft', 'active', 'inactive'],
-  { errorMap: () => ({ message: "Invalid status" }) }
+  { errorMap: () => ({ message: 'Invalid status' }) }
 )
 ```
 
@@ -153,7 +153,7 @@ status: z.enum(
 ```
 currency: z.enum(
   ['THB', 'USD', 'EUR', 'GBP'],
-  { errorMap: () => ({ message: "Invalid currency" }) }
+  { errorMap: () => ({ message: 'Invalid currency' }) }
 ).default('THB')
 ```
 
@@ -378,7 +378,7 @@ department: z.string()
 ```
 taxCode: z.enum(
   ['VAT7', 'VAT0', 'EXEMPT'],
-  { errorMap: () => ({ message: "Invalid tax code" }) }
+  { errorMap: () => ({ message: 'Invalid tax code' }) }
 )
 ```
 

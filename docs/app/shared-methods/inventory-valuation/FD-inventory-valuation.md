@@ -77,50 +77,50 @@ User navigates to System Administration > Inventory Settings and selects "Change
 
 ```mermaid
 flowchart TD
-    Start([User navigates to<br/>Inventory Settings]) --> LoadCurrent[Load Current Configuration]
-    LoadCurrent --> Display[Display Current Method:<br/>FIFO or Periodic Average]
+    Start([User navigates to<br>Inventory Settings]) --> LoadCurrent[Load Current Configuration]
+    LoadCurrent --> Display[Display Current Method:<br>FIFO or Periodic Average]
 
-    Display --> UserSelect{User selects<br/>new method?}
+    Display --> UserSelect{User selects<br>new method?}
     UserSelect -->|No change| Cancel1([No action taken])
-    UserSelect -->|Yes| CheckSame{New method =<br/>Current method?}
+    UserSelect -->|Yes| CheckSame{New method =<br>Current method?}
 
-    CheckSame -->|Yes| ShowInfo[Show info message:<br/>'Method unchanged']
+    CheckSame -->|Yes| ShowInfo[Show info message:<br>'Method unchanged']
     ShowInfo --> Cancel1
 
     CheckSame -->|No| ShowImpact[Show Impact Analysis]
-    ShowImpact --> ImpactContent[Display:<br/>- Affected modules<br/>- Historical data policy<br/>- Performance impact<br/>- Audit requirements]
+    ShowImpact --> ImpactContent[Display:<br>- Affected modules<br>- Historical data policy<br>- Performance impact<br>- Audit requirements]
 
     ImpactContent --> RequireJustify[Require Justification Field]
-    RequireJustify --> UserFills{User provides<br/>justification?}
+    RequireJustify --> UserFills{User provides<br>justification?}
 
     UserFills -->|No| Cancel2([User cancels])
     UserFills -->|Yes| ShowConfirm[Show Confirmation Dialog]
 
-    ShowConfirm --> ConfirmContent["Display:<br/>- Old method → New method<br/>- Justification text<br/>- Warning: Cannot be undone<br/>- Require explicit confirmation"]
+    ShowConfirm --> ConfirmContent['Display:<br>- Old method → New method<br>- Justification text<br>- Warning: Cannot be undone<br>- Require explicit confirmation']
 
     ConfirmContent --> UserConfirm{User confirms?}
     UserConfirm -->|No| Cancel2
-    UserConfirm -->|Yes| ValidateAuth{User has<br/>permission?}
+    UserConfirm -->|Yes| ValidateAuth{User has<br>permission?}
 
-    ValidateAuth -->|No| ShowError1[Show error:<br/>'Insufficient permissions']
+    ValidateAuth -->|No| ShowError1[Show error:<br>'Insufficient permissions']
     ShowError1 --> End1([End: Denied])
 
-    ValidateAuth -->|Yes| CreateAudit[Create Audit Entry<br/>BEFORE change]
-    CreateAudit --> AuditData["Log:<br/>- Event: COSTING_METHOD_CHANGED<br/>- Old value<br/>- New value<br/>- Justification<br/>- User ID<br/>- Timestamp<br/>- IP address<br/>- Session ID"]
+    ValidateAuth -->|Yes| CreateAudit[Create Audit Entry<br>BEFORE change]
+    CreateAudit --> AuditData['Log:<br>- Event: COSTING_METHOD_CHANGED<br>- Old value<br>- New value<br>- Justification<br>- User ID<br>- Timestamp<br>- IP address<br>- Session ID']
 
-    AuditData --> UpdateDB[(Update inventory_settings<br/>table in database)]
-    UpdateDB --> SaveSuccess{Save<br/>successful?}
+    AuditData --> UpdateDB[(Update inventory_settings<br>table in database)]
+    UpdateDB --> SaveSuccess{Save<br>successful?}
 
-    SaveSuccess -->|No| ShowError2[Show error:<br/>'Database update failed']
+    SaveSuccess -->|No| ShowError2[Show error:<br>'Database update failed']
     ShowError2 --> End2([End: Failed])
 
     SaveSuccess -->|Yes| InvalidateCache[Invalidate Settings Cache]
     InvalidateCache --> NotifyStakeholders[Send Notifications]
 
-    NotifyStakeholders --> NotifyContent["Email to:<br/>- Finance managers<br/>- Operations managers<br/>- System administrators<br/><br/>Content:<br/>- What changed<br/>- Who made change<br/>- When it was changed<br/>- Justification"]
+    NotifyStakeholders --> NotifyContent['Email to:<br>- Finance managers<br>- Operations managers<br>- System administrators<br><br>Content:<br>- What changed<br>- Who made change<br>- When it was changed<br>- Justification']
 
-    NotifyContent --> ShowSuccess[Show success message:<br/>'Costing method updated']
-    ShowSuccess --> RefreshUI[Refresh UI to show<br/>new configuration]
+    NotifyContent --> ShowSuccess[Show success message:<br>'Costing method updated']
+    ShowSuccess --> RefreshUI[Refresh UI to show<br>new configuration]
     RefreshUI --> End3([End: Success])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -191,9 +191,9 @@ Module calls `calculateInventoryValuation(itemId, quantity, date)` when costing 
 
 ```mermaid
 flowchart TD
-    Start([Module requests<br/>valuation]) --> Receive["Receive parameters:<br/>- itemId<br/>- quantity<br/>- date"]
+    Start([Module requests<br>valuation]) --> Receive['Receive parameters:<br>- itemId<br>- quantity<br>- date']
 
-    Receive --> ValidateInput{Validate<br/>inputs?}
+    Receive --> ValidateInput{Validate<br>inputs?}
     ValidateInput -->|itemId empty| E1[Error: Item ID required]
     ValidateInput -->|quantity ≤ 0| E2[Error: Quantity must be > 0]
     ValidateInput -->|quantity not finite| E3[Error: Invalid quantity]
@@ -201,39 +201,39 @@ flowchart TD
     E2 --> End1
     E3 --> End1
 
-    ValidateInput -->|Valid| CheckMethod{Get costing<br/>method from<br/>settings}
-    CheckMethod -->|AVG| OtherFlow[Route to Periodic<br/>Average flow]
-    CheckMethod -->|FIFO| GetLayers["Query FIFO layers:<br/><br/>SELECT * FROM fifo_layers<br/>WHERE item_id = ?<br/>  AND remaining_quantity > 0<br/>ORDER BY lot_number ASC<br/>(Natural chronological sort)"]
+    ValidateInput -->|Valid| CheckMethod{Get costing<br>method from<br>settings}
+    CheckMethod -->|AVG| OtherFlow[Route to Periodic<br>Average flow]
+    CheckMethod -->|FIFO| GetLayers['Query FIFO layers:<br><br>SELECT * FROM fifo_layers<br>WHERE item_id = ?<br>  AND remaining_quantity > 0<br>ORDER BY lot_number ASC<br>(Natural chronological sort)']
 
-    GetLayers --> CheckLayersExist{Layers<br/>found?}
-    CheckLayersExist -->|No| E4[Error: No FIFO layers<br/>available for item]
+    GetLayers --> CheckLayersExist{Layers<br>found?}
+    CheckLayersExist -->|No| E4[Error: No FIFO layers<br>available for item]
     E4 --> End1
 
-    CheckLayersExist -->|Yes| InitConsumption[Initialize consumption:<br/>- layersConsumed = []<br/>- remainingQty = quantity<br/>- totalCost = 0]
+    CheckLayersExist -->|Yes| InitConsumption[Initialize consumption:<br>- layersConsumed = []<br>- remainingQty = quantity<br>- totalCost = 0]
 
-    InitConsumption --> LoopLayers{For each layer<br/>while remainingQty > 0}
+    InitConsumption --> LoopLayers{For each layer<br>while remainingQty > 0}
 
-    LoopLayers -->|No more layers| CheckSufficient{totalConsumed<br/>>= quantity?}
+    LoopLayers -->|No more layers| CheckSufficient{totalConsumed<br>>= quantity?}
 
-    CheckSufficient -->|No| E5["Error: Insufficient layers<br/>Required: {quantity}<br/>Available: {totalConsumed}"]
+    CheckSufficient -->|No| E5['Error: Insufficient layers<br>Required: {quantity}<br>Available: {totalConsumed}']
     E5 --> End1
 
-    CheckSufficient -->|Yes| CalculateTotals[Calculate totals:<br/>totalValue = Σ(layer.totalCost)<br/>unitCost = totalValue / quantity]
+    CheckSufficient -->|Yes| CalculateTotals[Calculate totals:<br>totalValue = Σ(layer.totalCost)<br>unitCost = totalValue / quantity]
 
-    LoopLayers -->|Next layer| CalcConsume["Calculate consumption:<br/>quantityToConsume =<br/>  MIN(layer.remainingQuantity,<br/>      remainingQty)"]
+    LoopLayers -->|Next layer| CalcConsume['Calculate consumption:<br>quantityToConsume =<br>  MIN(layer.remainingQuantity,<br>      remainingQty)']
 
-    CalcConsume --> CreateRecord["Create consumption record:<br/>- layerId<br/>- lotNumber<br/>- quantityConsumed<br/>- unitCost (from layer)<br/>- totalCost = qty × unitCost<br/>- receiptDate"]
+    CalcConsume --> CreateRecord['Create consumption record:<br>- layerId<br>- lotNumber<br>- quantityConsumed<br>- unitCost (from layer)<br>- totalCost = qty × unitCost<br>- receiptDate']
 
-    CreateRecord --> AddToList[Add record to<br/>layersConsumed array]
-    AddToList --> UpdateRemaining["Update remainingQty:<br/>remainingQty -= quantityToConsume"]
+    CreateRecord --> AddToList[Add record to<br>layersConsumed array]
+    AddToList --> UpdateRemaining['Update remainingQty:<br>remainingQty -= quantityToConsume']
     UpdateRemaining --> LoopLayers
 
-    CalculateTotals --> RoundValues["Round values:<br/>- unitCost to 5 decimals (DECIMAL 20,5)<br/>- totalValue to 2 decimals"]
+    CalculateTotals --> RoundValues['Round values:<br>- unitCost to 5 decimals (DECIMAL 20,5)<br>- totalValue to 2 decimals']
 
-    RoundValues --> BuildResult["Build ValuationResult:<br/>- itemId<br/>- quantity<br/>- unitCost<br/>- totalValue<br/>- method: 'FIFO'<br/>- layersConsumed<br/>- calculatedAt: now()"]
+    RoundValues --> BuildResult['Build ValuationResult:<br>- itemId<br>- quantity<br>- unitCost<br>- totalValue<br>- method: 'FIFO'<br>- layersConsumed<br>- calculatedAt: now()']
 
-    BuildResult --> LogEvent[Log calculation event<br/>to audit log]
-    LogEvent --> ReturnResult[Return ValuationResult<br/>to calling module]
+    BuildResult --> LogEvent[Log calculation event<br>to audit log]
+    LogEvent --> ReturnResult[Return ValuationResult<br>to calling module]
     ReturnResult --> End2([End: Success])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -319,49 +319,49 @@ Module calls `calculateInventoryValuation(itemId, quantity, date)` when costing 
 
 ```mermaid
 flowchart TD
-    Start([Module requests<br/>valuation]) --> Receive["Receive parameters:<br/>- itemId<br/>- quantity<br/>- date"]
+    Start([Module requests<br>valuation]) --> Receive['Receive parameters:<br>- itemId<br>- quantity<br>- date']
 
-    Receive --> ValidateInput{Validate<br/>inputs?}
+    Receive --> ValidateInput{Validate<br>inputs?}
     ValidateInput -->|Invalid| E1[Error: Validation failed]
     E1 --> End1([Throw error])
 
-    ValidateInput -->|Valid| CheckMethod{Get costing<br/>method}
+    ValidateInput -->|Valid| CheckMethod{Get costing<br>method}
     CheckMethod -->|FIFO| OtherFlow[Route to FIFO flow]
-    CheckMethod -->|AVG| NormalizePeriod["Normalize period:<br/>periodStart =<br/>  new Date(date.year,<br/>           date.month, 1)"]
+    CheckMethod -->|AVG| NormalizePeriod['Normalize period:<br>periodStart =<br>  new Date(date.year,<br>           date.month, 1)']
 
-    NormalizePeriod --> TryCache{Check cache<br/>for period}
+    NormalizePeriod --> TryCache{Check cache<br>for period}
 
-    TryCache -->|Hit| GetCached["Retrieve from cache:<br/><br/>SELECT average_cost<br/>FROM period_cost_cache<br/>WHERE item_id = ?<br/>  AND period = ?<br/>  AND calculated_at > (now - 1 hour)"]
+    TryCache -->|Hit| GetCached['Retrieve from cache:<br><br>SELECT average_cost<br>FROM period_cost_cache<br>WHERE item_id = ?<br>  AND period = ?<br>  AND calculated_at > (now - 1 hour)']
 
-    GetCached --> UseCached[Use cached<br/>average cost]
+    GetCached --> UseCached[Use cached<br>average cost]
 
-    TryCache -->|Miss| CalculateFresh["Calculate fresh:<br/><br/>Get all receipts for period"]
+    TryCache -->|Miss| CalculateFresh['Calculate fresh:<br><br>Get all receipts for period']
 
-    CalculateFresh --> QueryReceipts["Query receipts:<br/><br/>SELECT<br/>  SUM(quantity) as totalQty,<br/>  SUM(total_cost) as totalCost,<br/>  COUNT(*) as receiptCount<br/>FROM goods_received_notes<br/>WHERE item_id = ?<br/>  AND receipt_date >= ?<br/>  AND receipt_date < ?<br/>  AND status = 'posted'"]
+    CalculateFresh --> QueryReceipts['Query receipts:<br><br>SELECT<br>  SUM(quantity) as totalQty,<br>  SUM(total_cost) as totalCost,<br>  COUNT(*) as receiptCount<br>FROM goods_received_notes<br>WHERE item_id = ?<br>  AND receipt_date >= ?<br>  AND receipt_date < ?<br>  AND status = 'posted'']
 
-    QueryReceipts --> CheckReceipts{Receipts<br/>found?}
+    QueryReceipts --> CheckReceipts{Receipts<br>found?}
 
     CheckReceipts -->|No| NoReceipts[No receipts in period]
-    NoReceipts --> TryFallback[Trigger fallback<br/>strategy]
+    NoReceipts --> TryFallback[Trigger fallback<br>strategy]
 
-    CheckReceipts -->|Yes| CalcAverage["Calculate average:<br/>averageCost =<br/>  totalCost / totalQty"]
+    CheckReceipts -->|Yes| CalcAverage['Calculate average:<br>averageCost =<br>  totalCost / totalQty']
 
-    CalcAverage --> SaveCache["Save to cache:<br/><br/>INSERT INTO period_cost_cache<br/>(item_id, period,<br/> average_cost, total_quantity,<br/> total_cost, receipt_count,<br/> calculated_at, created_by)<br/>VALUES (...)"]
+    CalcAverage --> SaveCache['Save to cache:<br><br>INSERT INTO period_cost_cache<br>(item_id, period,<br> average_cost, total_quantity,<br> total_cost, receipt_count,<br> calculated_at, created_by)<br>VALUES (...)']
 
     SaveCache --> UseCached
 
-    UseCached --> Calculate["Calculate totals:<br/>totalValue = quantity × averageCost<br/>unitCost = averageCost"]
+    UseCached --> Calculate['Calculate totals:<br>totalValue = quantity × averageCost<br>unitCost = averageCost']
 
-    Calculate --> RoundValues["Round values:<br/>- unitCost to 5 decimals (DECIMAL 20,5)<br/>- averageCost to 5 decimals (DECIMAL 20,5)<br/>- totalValue to 2 decimals"]
+    Calculate --> RoundValues['Round values:<br>- unitCost to 5 decimals (DECIMAL 20,5)<br>- averageCost to 5 decimals (DECIMAL 20,5)<br>- totalValue to 2 decimals']
 
-    RoundValues --> BuildResult["Build ValuationResult:<br/>- itemId<br/>- quantity<br/>- unitCost<br/>- totalValue<br/>- method: 'AVG' // enum_calculation_method.AVG<br/>- period<br/>- averageCost<br/>- calculatedAt: now()"]
+    RoundValues --> BuildResult['Build ValuationResult:<br>- itemId<br>- quantity<br>- unitCost<br>- totalValue<br>- method: 'AVG' // enum_calculation_method.AVG<br>- period<br>- averageCost<br>- calculatedAt: now()']
 
     BuildResult --> LogEvent[Log calculation event]
     LogEvent --> ReturnResult[Return ValuationResult]
     ReturnResult --> End2([End: Success])
 
-    TryFallback --> FallbackTree[Execute Fallback<br/>Decision Tree]
-    FallbackTree --> FallbackSuccess{Fallback<br/>succeeded?}
+    TryFallback --> FallbackTree[Execute Fallback<br>Decision Tree]
+    FallbackTree --> FallbackSuccess{Fallback<br>succeeded?}
     FallbackSuccess -->|Yes| UseFallback[Use fallback cost]
     FallbackSuccess -->|No| E2[Error: Cannot determine cost]
     E2 --> End1
@@ -446,38 +446,38 @@ GRN status changes to 'posted' in the procurement module
 
 ```mermaid
 flowchart TD
-    Start([GRN posted in<br/>Procurement Module]) --> ExtractData["Extract GRN data:<br/>- itemId<br/>- receiptDate<br/>- quantity<br/>- totalCost"]
+    Start([GRN posted in<br>Procurement Module]) --> ExtractData['Extract GRN data:<br>- itemId<br>- receiptDate<br>- quantity<br>- totalCost']
 
-    ExtractData --> PublishEvent["Publish event:<br/><br/>Event Type: 'GRN_POSTED'<br/>Payload: {<br/>  grnId,<br/>  itemId,<br/>  receiptDate,<br/>  quantity,<br/>  totalCost<br/>}"]
+    ExtractData --> PublishEvent['Publish event:<br><br>Event Type: 'GRN_POSTED'<br>Payload: {<br>  grnId,<br>  itemId,<br>  receiptDate,<br>  quantity,<br>  totalCost<br>}']
 
-    PublishEvent --> EventQueue[Event Queue/<br/>Message Bus]
+    PublishEvent --> EventQueue[Event Queue/<br>Message Bus]
 
-    EventQueue --> Subscribe[Periodic Average Service<br/>subscribes to GRN_POSTED]
+    EventQueue --> Subscribe[Periodic Average Service<br>subscribes to GRN_POSTED]
 
     Subscribe --> ReceiveEvent[Receive event payload]
 
-    ReceiveEvent --> NormalizePeriod["Normalize period:<br/>period =<br/>  new Date(receiptDate.year,<br/>           receiptDate.month, 1)"]
+    ReceiveEvent --> NormalizePeriod['Normalize period:<br>period =<br>  new Date(receiptDate.year,<br>           receiptDate.month, 1)']
 
-    NormalizePeriod --> FindCache["Find cached entries:<br/><br/>SELECT id FROM period_cost_cache<br/>WHERE item_id = ?<br/>  AND period = ?"]
+    NormalizePeriod --> FindCache['Find cached entries:<br><br>SELECT id FROM period_cost_cache<br>WHERE item_id = ?<br>  AND period = ?']
 
-    FindCache --> CheckExists{Cache entries<br/>exist?}
+    FindCache --> CheckExists{Cache entries<br>exist?}
 
     CheckExists -->|No| LogNoAction[Log: No cache to invalidate]
     LogNoAction --> End1([End: No action needed])
 
-    CheckExists -->|Yes| DeleteCache["Delete cache entries:<br/><br/>DELETE FROM period_cost_cache<br/>WHERE item_id = ?<br/>  AND period = ?"]
+    CheckExists -->|Yes| DeleteCache['Delete cache entries:<br><br>DELETE FROM period_cost_cache<br>WHERE item_id = ?<br>  AND period = ?']
 
-    DeleteCache --> LogInvalidation["Log invalidation:<br/><br/>INSERT INTO valuation_audit_log<br/>(event_type, item_id, period,<br/> reason, triggered_by)<br/>VALUES<br/>('CACHE_INVALIDATED',<br/> itemId, period,<br/> 'GRN posted', grnId)"]
+    DeleteCache --> LogInvalidation['Log invalidation:<br><br>INSERT INTO valuation_audit_log<br>(event_type, item_id, period,<br> reason, triggered_by)<br>VALUES<br>('CACHE_INVALIDATED',<br> itemId, period,<br> 'GRN posted', grnId)']
 
-    LogInvalidation --> UpdateMetrics[Update cache<br/>invalidation metrics]
+    LogInvalidation --> UpdateMetrics[Update cache<br>invalidation metrics]
 
-    UpdateMetrics --> CheckAutoRecalc{Auto-recalc<br/>enabled?}
+    UpdateMetrics --> CheckAutoRecalc{Auto-recalc<br>enabled?}
 
     CheckAutoRecalc -->|No| End2([End: Cache invalidated])
 
-    CheckAutoRecalc -->|Yes| TriggerRecalc[Trigger background<br/>recalculation job]
+    CheckAutoRecalc -->|Yes| TriggerRecalc[Trigger background<br>recalculation job]
 
-    TriggerRecalc --> QueueJob["Queue job:<br/><br/>Job Type: 'RECALC_PERIOD_COST'<br/>Params: {<br/>  itemId,<br/>  period<br/>}"]
+    TriggerRecalc --> QueueJob['Queue job:<br><br>Job Type: 'RECALC_PERIOD_COST'<br>Params: {<br>  itemId,<br>  period<br>}']
 
     QueueJob --> End3([End: Recalc queued])
 
@@ -566,48 +566,48 @@ Periodic Average calculation cannot find receipts in the requested period
 
 ```mermaid
 graph TD
-    Start{Primary calculation<br/>failed:<br/>No receipts in period} --> Strategy1[Strategy 1:<br/>Previous Month Cost]
+    Start{Primary calculation<br>failed:<br>No receipts in period} --> Strategy1[Strategy 1:<br>Previous Month Cost]
 
-    Strategy1 --> Query1["Query cache:<br/><br/>SELECT average_cost<br/>FROM period_cost_cache<br/>WHERE item_id = ?<br/>  AND period = (current_month - 1)<br/>  AND calculated_at > (now - 24 hours)"]
+    Strategy1 --> Query1['Query cache:<br><br>SELECT average_cost<br>FROM period_cost_cache<br>WHERE item_id = ?<br>  AND period = (current_month - 1)<br>  AND calculated_at > (now - 24 hours)']
 
-    Query1 --> Check1{Previous month<br/>cost found?}
+    Query1 --> Check1{Previous month<br>cost found?}
 
-    Check1 -->|Yes| Use1["Use previous month cost<br/><br/>Log warning:<br/>'Using previous month cost<br/> for {itemId} in {period}'"]
-    Use1 --> Success([Return cost with<br/>fallback flag])
+    Check1 -->|Yes| Use1['Use previous month cost<br><br>Log warning:<br>'Using previous month cost<br> for {itemId} in {period}'']
+    Use1 --> Success([Return cost with<br>fallback flag])
 
-    Check1 -->|No| Strategy2[Strategy 2:<br/>Standard Cost]
+    Check1 -->|No| Strategy2[Strategy 2:<br>Standard Cost]
 
-    Strategy2 --> Query2["Query standard cost:<br/><br/>SELECT standard_cost<br/>FROM inventory_items<br/>WHERE id = ?<br/>  AND standard_cost IS NOT NULL<br/>  AND standard_cost > 0"]
+    Strategy2 --> Query2['Query standard cost:<br><br>SELECT standard_cost<br>FROM inventory_items<br>WHERE id = ?<br>  AND standard_cost IS NOT NULL<br>  AND standard_cost > 0']
 
-    Query2 --> Check2{Standard cost<br/>configured?}
+    Query2 --> Check2{Standard cost<br>configured?}
 
-    Check2 -->|Yes| Use2["Use standard cost<br/><br/>Log warning:<br/>'Using standard cost<br/> for {itemId} in {period}'"]
+    Check2 -->|Yes| Use2['Use standard cost<br><br>Log warning:<br>'Using standard cost<br> for {itemId} in {period}'']
     Use2 --> Success
 
-    Check2 -->|No| Strategy3[Strategy 3:<br/>Latest Purchase Price]
+    Check2 -->|No| Strategy3[Strategy 3:<br>Latest Purchase Price]
 
-    Strategy3 --> Query3["Query latest purchase:<br/><br/>SELECT unit_cost<br/>FROM goods_received_notes<br/>WHERE item_id = ?<br/>  AND status = 'posted'<br/>  AND transaction_date <= ?<br/>ORDER BY transaction_date DESC<br/>LIMIT 1"]
+    Strategy3 --> Query3['Query latest purchase:<br><br>SELECT unit_cost<br>FROM goods_received_notes<br>WHERE item_id = ?<br>  AND status = 'posted'<br>  AND transaction_date <= ?<br>ORDER BY transaction_date DESC<br>LIMIT 1']
 
-    Query3 --> Check3{Latest purchase<br/>found?}
+    Query3 --> Check3{Latest purchase<br>found?}
 
-    Check3 -->|Yes| Use3["Use latest purchase price<br/><br/>Log warning:<br/>'Using latest purchase price<br/> for {itemId} in {period}'"]
+    Check3 -->|Yes| Use3['Use latest purchase price<br><br>Log warning:<br>'Using latest purchase price<br> for {itemId} in {period}'']
     Use3 --> Success
 
-    Check3 -->|No| Strategy4[Strategy 4:<br/>Moving Average<br/>(Last 3 months)]
+    Check3 -->|No| Strategy4[Strategy 4:<br>Moving Average<br>(Last 3 months)]
 
-    Strategy4 --> Query4["Calculate moving average:<br/><br/>SELECT AVG(average_cost)<br/>FROM period_cost_cache<br/>WHERE item_id = ?<br/>  AND period >= (current_month - 3)<br/>  AND period < current_month"]
+    Strategy4 --> Query4['Calculate moving average:<br><br>SELECT AVG(average_cost)<br>FROM period_cost_cache<br>WHERE item_id = ?<br>  AND period >= (current_month - 3)<br>  AND period < current_month']
 
-    Query4 --> Check4{Moving average<br/>calculated?}
+    Query4 --> Check4{Moving average<br>calculated?}
 
-    Check4 -->|Yes| Use4["Use moving average<br/><br/>Log warning:<br/>'Using 3-month moving average<br/> for {itemId} in {period}'"]
+    Check4 -->|Yes| Use4['Use moving average<br><br>Log warning:<br>'Using 3-month moving average<br> for {itemId} in {period}'']
     Use4 --> Success
 
-    Check4 -->|No| AllFailed[All fallback<br/>strategies failed]
+    Check4 -->|No| AllFailed[All fallback<br>strategies failed]
 
-    AllFailed --> BuildError["Build comprehensive error:<br/><br/>Error: Cannot determine cost<br/>Item: {itemId}<br/>Period: {period}<br/>Reason: No receipts found<br/>Fallbacks tried:<br/>  1. Previous month - not found<br/>  2. Standard cost - not configured<br/>  3. Latest purchase - none found<br/>  4. Moving average - insufficient data<br/><br/>Suggestion: Check GRN posting<br/>           or configure standard cost"]
+    AllFailed --> BuildError['Build comprehensive error:<br><br>Error: Cannot determine cost<br>Item: {itemId}<br>Period: {period}<br>Reason: No receipts found<br>Fallbacks tried:<br>  1. Previous month - not found<br>  2. Standard cost - not configured<br>  3. Latest purchase - none found<br>  4. Moving average - insufficient data<br><br>Suggestion: Check GRN posting<br>           or configure standard cost']
 
-    BuildError --> LogError[Log error with<br/>full context]
-    LogError --> AlertAdmin[Send alert to<br/>system administrators]
+    BuildError --> LogError[Log error with<br>full context]
+    LogError --> AlertAdmin[Send alert to<br>system administrators]
     AlertAdmin --> Fail([Throw error])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -689,17 +689,17 @@ Significant event occurs (costing method change, cache invalidation, calculation
 
 ```mermaid
 flowchart TD
-    Start([Significant event<br/>occurs]) --> Identify{Event<br/>type?}
+    Start([Significant event<br>occurs]) --> Identify{Event<br>type?}
 
-    Identify -->|Config Change| BuildConfigEvent["Build audit entry:<br/><br/>Event: COSTING_METHOD_CHANGED<br/>Data:<br/>- oldValue<br/>- newValue<br/>- reason<br/>- userId<br/>- timestamp<br/>- ipAddress<br/>- sessionId<br/>- browser"]
+    Identify -->|Config Change| BuildConfigEvent['Build audit entry:<br><br>Event: COSTING_METHOD_CHANGED<br>Data:<br>- oldValue<br>- newValue<br>- reason<br>- userId<br>- timestamp<br>- ipAddress<br>- sessionId<br>- browser']
 
-    Identify -->|Cache Invalidation| BuildCacheEvent["Build audit entry:<br/><br/>Event: CACHE_INVALIDATED<br/>Data:<br/>- itemId<br/>- period<br/>- reason<br/>- triggeredBy (GRN ID)<br/>- timestamp"]
+    Identify -->|Cache Invalidation| BuildCacheEvent['Build audit entry:<br><br>Event: CACHE_INVALIDATED<br>Data:<br>- itemId<br>- period<br>- reason<br>- triggeredBy (GRN ID)<br>- timestamp']
 
-    Identify -->|Calculation Error| BuildErrorEvent["Build audit entry:<br/><br/>Event: CALCULATION_FAILED<br/>Data:<br/>- itemId<br/>- quantity<br/>- date<br/>- errorMessage<br/>- errorCode<br/>- timestamp"]
+    Identify -->|Calculation Error| BuildErrorEvent['Build audit entry:<br><br>Event: CALCULATION_FAILED<br>Data:<br>- itemId<br>- quantity<br>- date<br>- errorMessage<br>- errorCode<br>- timestamp']
 
-    Identify -->|Fallback Used| BuildFallbackEvent["Build audit entry:<br/><br/>Event: FALLBACK_STRATEGY_USED<br/>Data:<br/>- itemId<br/>- period<br/>- strategy<br/>- cost<br/>- reason<br/>- timestamp"]
+    Identify -->|Fallback Used| BuildFallbackEvent['Build audit entry:<br><br>Event: FALLBACK_STRATEGY_USED<br>Data:<br>- itemId<br>- period<br>- strategy<br>- cost<br>- reason<br>- timestamp']
 
-    BuildConfigEvent --> ValidateEntry{Validate<br/>audit entry?}
+    BuildConfigEvent --> ValidateEntry{Validate<br>audit entry?}
     BuildCacheEvent --> ValidateEntry
     BuildErrorEvent --> ValidateEntry
     BuildFallbackEvent --> ValidateEntry
@@ -707,28 +707,28 @@ flowchart TD
     ValidateEntry -->|Missing required fields| E1[Error: Invalid audit entry]
     E1 --> End1([Log error, skip audit])
 
-    ValidateEntry -->|Valid| GenerateID[Generate unique<br/>audit entry ID]
+    ValidateEntry -->|Valid| GenerateID[Generate unique<br>audit entry ID]
 
-    GenerateID --> InsertDB["Insert into database:<br/><br/>INSERT INTO valuation_audit_log<br/>(id, event_type, event_data,<br/> user_id, timestamp, ip_address,<br/> session_id, browser)<br/>VALUES (...)"]
+    GenerateID --> InsertDB['Insert into database:<br><br>INSERT INTO valuation_audit_log<br>(id, event_type, event_data,<br> user_id, timestamp, ip_address,<br> session_id, browser)<br>VALUES (...)']
 
-    InsertDB --> CheckSuccess{Insert<br/>successful?}
+    InsertDB --> CheckSuccess{Insert<br>successful?}
 
     CheckSuccess -->|No| E2[Error: Database insert failed]
-    E2 --> RetryLogic{Retry<br/>count < 3?}
+    E2 --> RetryLogic{Retry<br>count < 3?}
     RetryLogic -->|Yes| Wait[Wait 1 second]
     Wait --> InsertDB
     RetryLogic -->|No| E3[All retries failed]
-    E3 --> FallbackLog[Log to file system<br/>as backup]
+    E3 --> FallbackLog[Log to file system<br>as backup]
     FallbackLog --> AlertAdmin[Alert administrators]
     AlertAdmin --> End1
 
-    CheckSuccess -->|Yes| UpdateMetrics[Update audit<br/>metrics counters]
+    CheckSuccess -->|Yes| UpdateMetrics[Update audit<br>metrics counters]
 
-    UpdateMetrics --> CheckNotify{Notification<br/>required?}
+    UpdateMetrics --> CheckNotify{Notification<br>required?}
 
     CheckNotify -->|No| End2([End: Audit logged])
 
-    CheckNotify -->|Yes| SendNotification["Send notifications:<br/><br/>- Email to stakeholders<br/>- Slack/Teams message<br/>- SMS for critical events"]
+    CheckNotify -->|Yes| SendNotification['Send notifications:<br><br>- Email to stakeholders<br>- Slack/Teams message<br>- SMS for critical events']
 
     SendNotification --> End2
 
@@ -830,64 +830,64 @@ Scheduled to run on 1st day of each month at 2:00 AM (configurable)
 
 ```mermaid
 flowchart TD
-    Start([Scheduled trigger:<br/>1st of month at 2:00 AM]) --> InitJob[Initialize job<br/>execution context]
+    Start([Scheduled trigger:<br>1st of month at 2:00 AM]) --> InitJob[Initialize job<br>execution context]
 
-    InitJob --> DeterminePeriod["Determine period:<br/>period = previous month<br/>(e.g., if today is 2025-02-01,<br/> calculate for 2025-01-01)"]
+    InitJob --> DeterminePeriod['Determine period:<br>period = previous month<br>(e.g., if today is 2025-02-01,<br> calculate for 2025-01-01)']
 
-    DeterminePeriod --> GetActiveItems["Get all active items:<br/><br/>SELECT DISTINCT item_id<br/>FROM goods_received_notes<br/>WHERE receipt_date >= period_start<br/>  AND receipt_date < period_end<br/>  AND status = 'posted'"]
+    DeterminePeriod --> GetActiveItems['Get all active items:<br><br>SELECT DISTINCT item_id<br>FROM goods_received_notes<br>WHERE receipt_date >= period_start<br>  AND receipt_date < period_end<br>  AND status = 'posted'']
 
-    GetActiveItems --> CheckItems{Items<br/>found?}
+    GetActiveItems --> CheckItems{Items<br>found?}
 
-    CheckItems -->|No| LogNoItems[Log: No active items<br/>for period]
+    CheckItems -->|No| LogNoItems[Log: No active items<br>for period]
     LogNoItems --> End1([End: No work needed])
 
-    CheckItems -->|Yes| InitCounters[Initialize counters:<br/>- totalItems<br/>- processedItems<br/>- successCount<br/>- errorCount]
+    CheckItems -->|Yes| InitCounters[Initialize counters:<br>- totalItems<br>- processedItems<br>- successCount<br>- errorCount]
 
-    InitCounters --> LoopItems{For each<br/>item}
+    InitCounters --> LoopItems{For each<br>item}
 
     LoopItems -->|No more items| FinalReport[Generate summary report]
 
-    LoopItems -->|Next item| CheckExisting["Check if cache exists:<br/><br/>SELECT id FROM period_cost_cache<br/>WHERE item_id = ?<br/>  AND period = ?"]
+    LoopItems -->|Next item| CheckExisting['Check if cache exists:<br><br>SELECT id FROM period_cost_cache<br>WHERE item_id = ?<br>  AND period = ?']
 
-    CheckExisting --> CacheExists{Cache<br/>exists?}
+    CheckExisting --> CacheExists{Cache<br>exists?}
 
-    CacheExists -->|Yes| LogSkip[Log: Cache already exists,<br/>skipping]
+    CacheExists -->|Yes| LogSkip[Log: Cache already exists,<br>skipping]
     LogSkip --> IncrementProcessed1[processedItems++]
     IncrementProcessed1 --> LoopItems
 
-    CacheExists -->|No| QueryReceipts["Query receipts:<br/><br/>SELECT<br/>  SUM(quantity) as totalQty,<br/>  SUM(total_cost) as totalCost,<br/>  COUNT(*) as receiptCount<br/>FROM goods_received_notes<br/>WHERE item_id = ?<br/>  AND receipt_date >= ?<br/>  AND receipt_date < ?<br/>  AND status = 'posted'"]
+    CacheExists -->|No| QueryReceipts['Query receipts:<br><br>SELECT<br>  SUM(quantity) as totalQty,<br>  SUM(total_cost) as totalCost,<br>  COUNT(*) as receiptCount<br>FROM goods_received_notes<br>WHERE item_id = ?<br>  AND receipt_date >= ?<br>  AND receipt_date < ?<br>  AND status = 'posted'']
 
-    QueryReceipts --> ValidateData{Data<br/>valid?}
+    QueryReceipts --> ValidateData{Data<br>valid?}
 
-    ValidateData -->|No| LogError1[Log error:<br/>Invalid receipt data]
+    ValidateData -->|No| LogError1[Log error:<br>Invalid receipt data]
     LogError1 --> IncrementError1[errorCount++]
     IncrementError1 --> LoopItems
 
-    ValidateData -->|Yes| Calculate["Calculate average:<br/>averageCost = totalCost / totalQty"]
+    ValidateData -->|Yes| Calculate['Calculate average:<br>averageCost = totalCost / totalQty']
 
-    Calculate --> InsertCache["Insert cache:<br/><br/>INSERT INTO period_cost_cache<br/>(id, item_id, period,<br/> average_cost, total_quantity,<br/> total_cost, receipt_count,<br/> calculated_at, created_by)<br/>VALUES (...)"]
+    Calculate --> InsertCache['Insert cache:<br><br>INSERT INTO period_cost_cache<br>(id, item_id, period,<br> average_cost, total_quantity,<br> total_cost, receipt_count,<br> calculated_at, created_by)<br>VALUES (...)']
 
-    InsertCache --> InsertSuccess{Insert<br/>successful?}
+    InsertCache --> InsertSuccess{Insert<br>successful?}
 
-    InsertSuccess -->|No| LogError2[Log error:<br/>Cache insert failed]
+    InsertSuccess -->|No| LogError2[Log error:<br>Cache insert failed]
     LogError2 --> IncrementError2[errorCount++]
     IncrementError2 --> LoopItems
 
     InsertSuccess -->|Yes| LogSuccess[Log success]
     LogSuccess --> IncrementSuccess[successCount++]
     IncrementSuccess --> IncrementProcessed2[processedItems++]
-    IncrementProcessed2 --> UpdateProgress["Update progress:<br/>(processedItems / totalItems)"]
+    IncrementProcessed2 --> UpdateProgress['Update progress:<br>(processedItems / totalItems)']
     UpdateProgress --> LoopItems
 
-    FinalReport --> BuildReport["Build summary:<br/><br/>Job: Monthly Pre-calculation<br/>Period: {period}<br/>Total Items: {totalItems}<br/>Successful: {successCount}<br/>Errors: {errorCount}<br/>Duration: {duration}<br/>Completion: {completion_percentage}"]
+    FinalReport --> BuildReport['Build summary:<br><br>Job: Monthly Pre-calculation<br>Period: {period}<br>Total Items: {totalItems}<br>Successful: {successCount}<br>Errors: {errorCount}<br>Duration: {duration}<br>Completion: {completion_percentage}']
 
     BuildReport --> LogReport[Log summary report]
-    LogReport --> SendReport["Send report:<br/><br/>Email to:<br/>- System administrators<br/>- Finance managers<br/><br/>Attach error details if any"]
+    LogReport --> SendReport['Send report:<br><br>Email to:<br>- System administrators<br>- Finance managers<br><br>Attach error details if any']
 
-    SendReport --> UpdateMetrics[Update job metrics<br/>in monitoring system]
-    UpdateMetrics --> CheckErrors{Errors<br/>occurred?}
+    SendReport --> UpdateMetrics[Update job metrics<br>in monitoring system]
+    UpdateMetrics --> CheckErrors{Errors<br>occurred?}
 
-    CheckErrors -->|Yes| AlertAdmin[Send alert with<br/>error details]
+    CheckErrors -->|Yes| AlertAdmin[Send alert with<br>error details]
     AlertAdmin --> End2([End: Completed with errors])
 
     CheckErrors -->|No| End3([End: Completed successfully])
@@ -967,55 +967,55 @@ Module calls `InventoryValuationService.calculateInventoryValuation(itemId, quan
 
 ```mermaid
 flowchart TD
-    Start([Module calls<br/>calculateInventoryValuation]) --> Receive["Receive request:<br/>- itemId<br/>- quantity<br/>- date"]
+    Start([Module calls<br>calculateInventoryValuation]) --> Receive['Receive request:<br>- itemId<br>- quantity<br>- date']
 
-    Receive --> ValidateInput["Validate inputs:<br/>- itemId not empty<br/>- quantity > 0<br/>- quantity finite<br/>- date valid"]
+    Receive --> ValidateInput['Validate inputs:<br>- itemId not empty<br>- quantity > 0<br>- quantity finite<br>- date valid']
 
-    ValidateInput --> InputValid{Validation<br/>passed?}
-    InputValid -->|No| E1["Throw ValidationError:<br/>'Invalid input parameters'"]
+    ValidateInput --> InputValid{Validation<br>passed?}
+    InputValid -->|No| E1['Throw ValidationError:<br>'Invalid input parameters'']
     E1 --> End1([Return error])
 
-    InputValid -->|Yes| GetMethod["Get costing method:<br/><br/>settingsService<br/>  .getDefaultCostingMethod()"]
+    InputValid -->|Yes| GetMethod['Get costing method:<br><br>settingsService<br>  .getDefaultCostingMethod()']
 
-    GetMethod --> MethodRetrieved{Method<br/>retrieved?}
-    MethodRetrieved -->|No| E2["Throw ConfigError:<br/>'Costing method not configured'"]
+    GetMethod --> MethodRetrieved{Method<br>retrieved?}
+    MethodRetrieved -->|No| E2['Throw ConfigError:<br>'Costing method not configured'']
     E2 --> End1
 
-    MethodRetrieved -->|Yes| RouteMethod{Which<br/>method?}
+    MethodRetrieved -->|Yes| RouteMethod{Which<br>method?}
 
-    RouteMethod -->|FIFO| CallFIFO["Call FIFO calculation:<br/><br/>calculateFIFOCost(<br/>  itemId,<br/>  quantity,<br/>  date<br/>)"]
+    RouteMethod -->|FIFO| CallFIFO['Call FIFO calculation:<br><br>calculateFIFOCost(<br>  itemId,<br>  quantity,<br>  date<br>)']
 
-    RouteMethod -->|PERIODIC_AVERAGE| CallPeriodic["Call Periodic Average:<br/><br/>calculatePeriodicAverageCost(<br/>  itemId,<br/>  quantity,<br/>  date<br/>)"]
+    RouteMethod -->|PERIODIC_AVERAGE| CallPeriodic['Call Periodic Average:<br><br>calculatePeriodicAverageCost(<br>  itemId,<br>  quantity,<br>  date<br>)']
 
-    CallFIFO --> FIFOSuccess{Calculation<br/>successful?}
-    CallPeriodic --> PeriodicSuccess{Calculation<br/>successful?}
+    CallFIFO --> FIFOSuccess{Calculation<br>successful?}
+    CallPeriodic --> PeriodicSuccess{Calculation<br>successful?}
 
     FIFOSuccess -->|No| E3[FIFO error thrown]
     E3 --> End1
 
-    FIFOSuccess -->|Yes| BuildFIFOResult["Build ValuationResult:<br/>- method: 'FIFO'<br/>- layersConsumed<br/>- unitCost<br/>- totalValue<br/>- calculatedAt"]
+    FIFOSuccess -->|Yes| BuildFIFOResult['Build ValuationResult:<br>- method: 'FIFO'<br>- layersConsumed<br>- unitCost<br>- totalValue<br>- calculatedAt']
 
-    PeriodicSuccess -->|No| TryFallback{Fallback<br/>enabled?}
+    PeriodicSuccess -->|No| TryFallback{Fallback<br>enabled?}
     TryFallback -->|No| E4[Periodic error thrown]
     E4 --> End1
 
-    TryFallback -->|Yes| ExecuteFallback[Execute fallback<br/>strategy]
-    ExecuteFallback --> FallbackSuccess{Fallback<br/>succeeded?}
+    TryFallback -->|Yes| ExecuteFallback[Execute fallback<br>strategy]
+    ExecuteFallback --> FallbackSuccess{Fallback<br>succeeded?}
 
-    FallbackSuccess -->|No| E5["Throw CostingError:<br/>'Cannot determine cost'"]
+    FallbackSuccess -->|No| E5['Throw CostingError:<br>'Cannot determine cost'']
     E5 --> End1
 
-    FallbackSuccess -->|Yes| BuildFallbackResult["Build ValuationResult:<br/>- method: 'AVG' // enum_calculation_method.AVG<br/>- fallbackUsed: true<br/>- fallbackStrategy<br/>- warning<br/>- unitCost<br/>- totalValue"]
+    FallbackSuccess -->|Yes| BuildFallbackResult['Build ValuationResult:<br>- method: 'AVG' // enum_calculation_method.AVG<br>- fallbackUsed: true<br>- fallbackStrategy<br>- warning<br>- unitCost<br>- totalValue']
 
-    PeriodicSuccess -->|Yes| BuildPeriodicResult["Build ValuationResult:<br/>- method: 'AVG' // enum_calculation_method.AVG<br/>- period<br/>- averageCost<br/>- unitCost<br/>- totalValue"]
+    PeriodicSuccess -->|Yes| BuildPeriodicResult['Build ValuationResult:<br>- method: 'AVG' // enum_calculation_method.AVG<br>- period<br>- averageCost<br>- unitCost<br>- totalValue']
 
     BuildFIFOResult --> LogCalculation
     BuildPeriodicResult --> LogCalculation
     BuildFallbackResult --> LogCalculation
 
-    LogCalculation["Log calculation:<br/><br/>INSERT INTO valuation_audit_log<br/>(event_type, item_id, quantity,<br/> date, method, unit_cost,<br/> total_value, calculation_time)<br/>VALUES (...)"]
+    LogCalculation['Log calculation:<br><br>INSERT INTO valuation_audit_log<br>(event_type, item_id, quantity,<br> date, method, unit_cost,<br> total_value, calculation_time)<br>VALUES (...)']
 
-    LogCalculation --> ReturnResult[Return ValuationResult<br/>to calling module]
+    LogCalculation --> ReturnResult[Return ValuationResult<br>to calling module]
     ReturnResult --> End2([End: Success])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1112,53 +1112,53 @@ User posts a credit note with returned items
 
 ```mermaid
 flowchart TD
-    Start([User posts<br/>Credit Note]) --> ExtractItems[Extract returned items<br/>from credit note]
+    Start([User posts<br>Credit Note]) --> ExtractItems[Extract returned items<br>from credit note]
 
-    ExtractItems --> InitTotal[Initialize:<br/>totalCreditAmount = 0]
+    ExtractItems --> InitTotal[Initialize:<br>totalCreditAmount = 0]
 
-    InitTotal --> LoopItems{For each<br/>returned item}
+    InitTotal --> LoopItems{For each<br>returned item}
 
-    LoopItems -->|No more items| CalculateTax[Calculate tax on<br/>credit amount]
+    LoopItems -->|No more items| CalculateTax[Calculate tax on<br>credit amount]
 
-    LoopItems -->|Next item| PrepareRequest["Prepare valuation request:<br/>- itemId = item.product_id<br/>- quantity = item.return_quantity<br/>- date = creditNote.return_date"]
+    LoopItems -->|Next item| PrepareRequest['Prepare valuation request:<br>- itemId = item.product_id<br>- quantity = item.return_quantity<br>- date = creditNote.return_date']
 
-    PrepareRequest --> CallValuation["Call Inventory Valuation:<br/><br/>result = await<br/>  inventoryValuationService<br/>    .calculateInventoryValuation(<br/>      itemId,<br/>      quantity,<br/>      date<br/>    )"]
+    PrepareRequest --> CallValuation['Call Inventory Valuation:<br><br>result = await<br>  inventoryValuationService<br>    .calculateInventoryValuation(<br>      itemId,<br>      quantity,<br>      date<br>    )']
 
-    CallValuation --> ValuationSuccess{Valuation<br/>successful?}
+    CallValuation --> ValuationSuccess{Valuation<br>successful?}
 
     ValuationSuccess -->|No| HandleError[Handle valuation error]
-    HandleError --> ShowError["Show user error:<br/>'Cannot calculate return cost<br/> for {item.name}'<br/><br/>Options:<br/>- Skip item<br/>- Enter manual cost<br/>- Cancel credit note"]
+    HandleError --> ShowError['Show user error:<br>'Cannot calculate return cost<br> for {item.name}'<br><br>Options:<br>- Skip item<br>- Enter manual cost<br>- Cancel credit note']
 
-    ShowError --> UserChoice{User<br/>choice?}
+    ShowError --> UserChoice{User<br>choice?}
     UserChoice -->|Skip| LoopItems
-    UserChoice -->|Manual| GetManual[User enters<br/>manual unit cost]
-    GetManual --> UseManual[Use manual cost<br/>for this item]
+    UserChoice -->|Manual| GetManual[User enters<br>manual unit cost]
+    GetManual --> UseManual[Use manual cost<br>for this item]
     UseManual --> UpdateItem
     UserChoice -->|Cancel| End1([Credit note cancelled])
 
-    ValuationSuccess -->|Yes| ExtractCost["Extract cost:<br/>unitCost = result.unitCost<br/>totalValue = result.totalValue<br/>method = result.method"]
+    ValuationSuccess -->|Yes| ExtractCost['Extract cost:<br>unitCost = result.unitCost<br>totalValue = result.totalValue<br>method = result.method']
 
-    ExtractCost --> UpdateItem["Update credit note item:<br/>- unit_cost = unitCost<br/>- total_cost = totalValue<br/>- costing_method = method<br/>- layers_consumed (if FIFO)<br/>- cost_calculated_at = now()"]
+    ExtractCost --> UpdateItem['Update credit note item:<br>- unit_cost = unitCost<br>- total_cost = totalValue<br>- costing_method = method<br>- layers_consumed (if FIFO)<br>- cost_calculated_at = now()']
 
-    UpdateItem --> AddToTotal["Add to total:<br/>totalCreditAmount += totalValue"]
+    UpdateItem --> AddToTotal['Add to total:<br>totalCreditAmount += totalValue']
 
-    AddToTotal --> LogItem["Log item valuation:<br/>- item_id<br/>- quantity<br/>- unit_cost<br/>- method used"]
+    AddToTotal --> LogItem['Log item valuation:<br>- item_id<br>- quantity<br>- unit_cost<br>- method used']
 
     LogItem --> LoopItems
 
-    CalculateTax --> SaveCreditNote["Save credit note:<br/>- total_credit_amount<br/>- tax_amount<br/>- grand_total<br/>- status = 'posted'"]
+    CalculateTax --> SaveCreditNote['Save credit note:<br>- total_credit_amount<br>- tax_amount<br>- grand_total<br>- status = 'posted'']
 
-    SaveCreditNote --> UpdateInventory[Update inventory:<br/>Add returned qty<br/>back to stock]
+    SaveCreditNote --> UpdateInventory[Update inventory:<br>Add returned qty<br>back to stock]
 
-    UpdateInventory --> UpdateFIFO{Costing method<br/>= FIFO?}
+    UpdateInventory --> UpdateFIFO{Costing method<br>= FIFO?}
 
-    UpdateFIFO -->|Yes| CreateFIFOLayers["Create FIFO layers:<br/>For each returned item,<br/>create new layer with<br/>return cost"]
+    UpdateFIFO -->|Yes| CreateFIFOLayers['Create FIFO layers:<br>For each returned item,<br>create new layer with<br>return cost']
 
     CreateFIFOLayers --> InvalidateCache1
 
-    UpdateFIFO -->|No| InvalidateCache1["Invalidate cache:<br/>For PERIODIC_AVERAGE,<br/>trigger cache invalidation<br/>for return period"]
+    UpdateFIFO -->|No| InvalidateCache1['Invalidate cache:<br>For PERIODIC_AVERAGE,<br>trigger cache invalidation<br>for return period']
 
-    InvalidateCache1 --> SendNotifications["Send notifications:<br/>- Customer: Credit note issued<br/>- Finance: New credit note<br/>- Inventory: Stock updated"]
+    InvalidateCache1 --> SendNotifications['Send notifications:<br>- Customer: Credit note issued<br>- Finance: New credit note<br>- Inventory: Stock updated']
 
     SendNotifications --> End2([End: Credit note posted])
 
@@ -1211,57 +1211,57 @@ User posts a stock adjustment (increase or decrease)
 
 ```mermaid
 flowchart TD
-    Start([User posts<br/>Stock Adjustment]) --> ExtractType{Adjustment<br/>type?}
+    Start([User posts<br>Stock Adjustment]) --> ExtractType{Adjustment<br>type?}
 
     ExtractType -->|Increase| IncreaseFlow[Increase Adjustment Flow]
     ExtractType -->|Decrease| DecreaseFlow[Decrease Adjustment Flow]
 
     DecreaseFlow --> ExtractItems[Extract adjustment items]
-    ExtractItems --> LoopItems{For each<br/>adjustment item}
+    ExtractItems --> LoopItems{For each<br>adjustment item}
 
     LoopItems -->|No more items| SaveAdjustment
 
-    LoopItems -->|Next item| PrepareRequest["Prepare valuation request:<br/>- itemId = item.product_id<br/>- quantity = item.quantity<br/>- date = adjustment.adjustment_date"]
+    LoopItems -->|Next item| PrepareRequest['Prepare valuation request:<br>- itemId = item.product_id<br>- quantity = item.quantity<br>- date = adjustment.adjustment_date']
 
-    PrepareRequest --> CallValuation["Call Inventory Valuation:<br/><br/>result =<br/>  inventoryValuationService<br/>    .calculateInventoryValuation(<br/>      itemId,<br/>      quantity,<br/>      date<br/>    )"]
+    PrepareRequest --> CallValuation['Call Inventory Valuation:<br><br>result =<br>  inventoryValuationService<br>    .calculateInventoryValuation(<br>      itemId,<br>      quantity,<br>      date<br>    )']
 
-    CallValuation --> ValuationSuccess{Valuation<br/>successful?}
+    CallValuation --> ValuationSuccess{Valuation<br>successful?}
 
-    ValuationSuccess -->|No| HandleError[Show error with<br/>fallback options]
-    HandleError --> UserChoice{User<br/>choice?}
+    ValuationSuccess -->|No| HandleError[Show error with<br>fallback options]
+    HandleError --> UserChoice{User<br>choice?}
     UserChoice -->|Cancel| End1([Adjustment cancelled])
-    UserChoice -->|Manual| GetManual[User enters<br/>manual cost]
+    UserChoice -->|Manual| GetManual[User enters<br>manual cost]
     GetManual --> UseManual[Use manual cost]
     UseManual --> UpdateItem
 
-    ValuationSuccess -->|Yes| ExtractCost["Extract cost:<br/>unitCost = result.unitCost<br/>totalValue = result.totalValue"]
+    ValuationSuccess -->|Yes| ExtractCost['Extract cost:<br>unitCost = result.unitCost<br>totalValue = result.totalValue']
 
-    ExtractCost --> UpdateItem["Update adjustment item:<br/>- unit_cost = unitCost<br/>- total_cost = totalValue<br/>- costing_method = method"]
+    ExtractCost --> UpdateItem['Update adjustment item:<br>- unit_cost = unitCost<br>- total_cost = totalValue<br>- costing_method = method']
 
     UpdateItem --> LoopItems
 
-    IncreaseFlow --> RequireManual["For stock increases,<br/>require manual cost entry<br/>(new stock acquisition)"]
+    IncreaseFlow --> RequireManual['For stock increases,<br>require manual cost entry<br>(new stock acquisition)']
 
-    RequireManual --> UserEntersCost[User enters unit cost<br/>for new stock]
+    RequireManual --> UserEntersCost[User enters unit cost<br>for new stock]
     UserEntersCost --> SaveAdjustment
 
-    SaveAdjustment["Save stock adjustment:<br/>- total_cost<br/>- status = 'posted'"]
+    SaveAdjustment['Save stock adjustment:<br>- total_cost<br>- status = 'posted'']
 
-    SaveAdjustment --> UpdateInventory[Update inventory<br/>stock levels]
+    SaveAdjustment --> UpdateInventory[Update inventory<br>stock levels]
 
-    UpdateInventory --> UpdateFIFO{Costing method<br/>= FIFO?}
+    UpdateInventory --> UpdateFIFO{Costing method<br>= FIFO?}
 
-    UpdateFIFO -->|Yes & Increase| CreateLayers[Create new FIFO layers<br/>for increased stock]
+    UpdateFIFO -->|Yes & Increase| CreateLayers[Create new FIFO layers<br>for increased stock]
     CreateLayers --> InvalidateCache
 
-    UpdateFIFO -->|Yes & Decrease| ConsumeLayers[Consume FIFO layers<br/>for decreased stock]
+    UpdateFIFO -->|Yes & Decrease| ConsumeLayers[Consume FIFO layers<br>for decreased stock]
     ConsumeLayers --> InvalidateCache
 
-    UpdateFIFO -->|No| InvalidateCache["Invalidate period cache<br/>for adjustment period"]
+    UpdateFIFO -->|No| InvalidateCache['Invalidate period cache<br>for adjustment period']
 
-    InvalidateCache --> PostToGL["Post to General Ledger:<br/>- Inventory account<br/>- Adjustment account<br/>- Amount: total_cost"]
+    InvalidateCache --> PostToGL['Post to General Ledger:<br>- Inventory account<br>- Adjustment account<br>- Amount: total_cost']
 
-    PostToGL --> SendNotifications["Send notifications:<br/>- Operations: Stock adjusted<br/>- Finance: GL impact<br/>- Warehouse: Stock change"]
+    PostToGL --> SendNotifications['Send notifications:<br>- Operations: Stock adjusted<br>- Finance: GL impact<br>- Warehouse: Stock change']
 
     SendNotifications --> End2([End: Adjustment posted])
 
@@ -1418,7 +1418,7 @@ PeriodCostCache entry
 stateDiagram-v2
     [*] --> NotCached: No cache entry exists
 
-    NotCached --> Calculating: Valuation request<br/>with cache miss
+    NotCached --> Calculating: Valuation request<br>with cache miss
     NotCached --> PreCalculating: Monthly pre-calc job
 
     Calculating --> CalculationFailed: Receipt query fails
@@ -1427,14 +1427,14 @@ stateDiagram-v2
     Calculating --> Fresh: Cache created
     PreCalculating --> Fresh: Cache created
 
-    Fresh --> Stale: TTL expired<br/>(> 1 hour old)
-    Fresh --> Invalidated: GRN posted for<br/>item in period
+    Fresh --> Stale: TTL expired<br>(> 1 hour old)
+    Fresh --> Invalidated: GRN posted for<br>item in period
     Fresh --> Accessed: Cache hit
 
     Accessed --> Fresh: Still within TTL
     Accessed --> Stale: TTL expired
 
-    Stale --> Recalculating: New valuation<br/>request
+    Stale --> Recalculating: New valuation<br>request
     Stale --> Deleted: Cleanup job
 
     Recalculating --> Fresh: Recalc successful

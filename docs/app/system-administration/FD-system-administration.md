@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-13 | Documentation Team | Initial version |
 
 ---
@@ -67,7 +68,7 @@ flowchart TD
 
     Workflows --> Operations([Operational Phase])
     Operations --> Request[User Requests Access]
-    Request --> Cache{Check<br/>Cache?}
+    Request --> Cache{Check<br>Cache?}
 
     Cache -->|Hit| CacheResult[Return Cached Decision]
     CacheResult --> Grant{PERMIT?}
@@ -83,10 +84,10 @@ flowchart TD
     Grant -->|Yes| Execute[Execute Action]
     Grant -->|No| Deny[Deny Access]
 
-    Execute --> Workflow{Requires<br/>Workflow?}
+    Execute --> Workflow{Requires<br>Workflow?}
     Workflow -->|Yes| Route[Route to Workflow]
     Route --> Stages[Process Approval Stages]
-    Stages --> Approve{All<br/>Approved?}
+    Stages --> Approve{All<br>Approved?}
     Approve -->|Yes| Complete[Complete Action]
     Approve -->|No| Reject([End: Rejected])
 
@@ -96,7 +97,7 @@ flowchart TD
 
     Audit --> Monitoring([Monitoring Phase])
     Monitoring --> Metrics[Collect Performance Metrics]
-    Metrics --> Alerts{Performance<br/>Issues?}
+    Metrics --> Alerts{Performance<br>Issues?}
     Alerts -->|Yes| Notify[/Notify IT Manager/]
     Alerts -->|No| Dashboard[Update Dashboards]
 
@@ -149,7 +150,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([IT Manager Opens Policy Form]) --> Template{Use<br/>Template?}
+    Start([IT Manager Opens Policy Form]) --> Template{Use<br>Template?}
 
     Template -->|Yes| SelectTemplate[Select Policy Template]
     SelectTemplate --> LoadTemplate[Load Template Data]
@@ -157,7 +158,7 @@ flowchart TD
 
     Template -->|No| BasicInfo[Enter Basic Info]
     BasicInfo --> Name[Policy Name & Description]
-    Name --> Effect{Policy<br/>Effect?}
+    Name --> Effect{Policy<br>Effect?}
     Effect -->|PERMIT| EffectSet1[Set Effect = PERMIT]
     Effect -->|DENY| EffectSet2[Set Effect = DENY]
 
@@ -174,13 +175,13 @@ flowchart TD
     EnvCriteria --> Rules[Define Rules]
     Rules --> AddRule[Add Rule Condition]
     AddRule --> RuleLogic[Enter Rule Logic]
-    RuleLogic --> MoreRules{More<br/>Rules?}
+    RuleLogic --> MoreRules{More<br>Rules?}
     MoreRules -->|Yes| AddRule
-    MoreRules -->|No| Obligations{Add<br/>Obligations?}
+    MoreRules -->|No| Obligations{Add<br>Obligations?}
 
     Obligations -->|Yes| DefineOblig[Define Obligations]
     DefineOblig --> ObligType[Select Type: Log/Notify/Validate]
-    ObligType --> Advice{Add<br/>Advice?}
+    ObligType --> Advice{Add<br>Advice?}
 
     Obligations -->|No| Advice
     Advice -->|Yes| DefineAdvice[Define Advice Messages]
@@ -197,19 +198,19 @@ flowchart TD
 
     Test --> CreateScenarios[Create Test Cases]
     CreateScenarios --> RunTests[Execute Tests]
-    RunTests --> Results{All Tests<br/>Pass?}
+    RunTests --> Results{All Tests<br>Pass?}
     Results -->|No| Analyze[Analyze Failures]
     Analyze --> Fix[Modify Policy Rules]
     Fix --> Save
 
     Results -->|Yes| Review[Request Review]
-    Review --> Reviewer{Reviewer<br/>Approves?}
+    Review --> Reviewer{Reviewer<br>Approves?}
     Reviewer -->|No| Comments[Provide Feedback]
     Comments --> Fix
 
     Reviewer -->|Yes| Activate[Activate Policy]
     Activate --> CheckConflicts[Check for Conflicts]
-    CheckConflicts --> Conflicts{Conflicts<br/>Found?}
+    CheckConflicts --> Conflicts{Conflicts<br>Found?}
 
     Conflicts -->|Yes| Resolve[Resolve or Adjust Priority]
     Resolve --> CheckConflicts
@@ -263,9 +264,9 @@ flowchart TD
     Action --> Environment[Extract Environment Attributes]
 
     Environment --> HashKey[Generate Context Hash]
-    HashKey --> CheckCache{Check<br/>Cache?}
+    HashKey --> CheckCache{Check<br>Cache?}
 
-    CheckCache -->|Hit| ValidTTL{TTL<br/>Valid?}
+    CheckCache -->|Hit| ValidTTL{TTL<br>Valid?}
     ValidTTL -->|Yes| HitCount[Increment Hit Count]
     HitCount --> CachedDecision[Return Cached Decision]
     CachedDecision --> Metrics1[Record Hit Metric]
@@ -276,34 +277,34 @@ flowchart TD
 
     CheckCache -->|Miss| Evaluate[Query Applicable Policies]
     Evaluate --> OrderPolicies[Order by Priority ASC]
-    OrderPolicies --> FilterActive{Has Active<br/>Policies?}
+    OrderPolicies --> FilterActive{Has Active<br>Policies?}
 
     FilterActive -->|No| NotApplicable[Decision: NOT_APPLICABLE]
     NotApplicable --> LogNA[Log Access Request]
     LogNA --> ReturnNA([Return: NOT_APPLICABLE])
 
-    FilterActive -->|Yes| Loop{More Policies<br/>to Evaluate?}
+    FilterActive -->|Yes| Loop{More Policies<br>to Evaluate?}
     Loop -->|No| ApplyCombining[Apply Combining Algorithm]
     Loop -->|Yes| NextPolicy[Get Next Policy]
 
-    NextPolicy --> ValidDates{Valid<br/>Date Range?}
+    NextPolicy --> ValidDates{Valid<br>Date Range?}
     ValidDates -->|No| Loop
     ValidDates -->|Yes| MatchTarget[Evaluate Target Match]
 
-    MatchTarget --> SubjectMatch{Subject<br/>Match?}
+    MatchTarget --> SubjectMatch{Subject<br>Match?}
     SubjectMatch -->|No| Loop
-    SubjectMatch -->|Yes| ResourceMatch{Resource<br/>Match?}
+    SubjectMatch -->|Yes| ResourceMatch{Resource<br>Match?}
     ResourceMatch -->|No| Loop
-    ResourceMatch -->|Yes| ActionMatch{Action<br/>Match?}
+    ResourceMatch -->|Yes| ActionMatch{Action<br>Match?}
     ActionMatch -->|No| Loop
-    ActionMatch -->|Yes| EnvMatch{Environment<br/>Match?}
+    ActionMatch -->|Yes| EnvMatch{Environment<br>Match?}
     EnvMatch -->|No| Loop
 
     EnvMatch -->|Yes| EvalRules[Evaluate Policy Rules]
-    EvalRules --> RuleLoop{More<br/>Rules?}
+    EvalRules --> RuleLoop{More<br>Rules?}
     RuleLoop -->|Yes| NextRule[Get Next Rule]
     NextRule --> RuleCondition[Evaluate Condition]
-    RuleCondition --> RuleResult{Condition<br/>True?}
+    RuleCondition --> RuleResult{Condition<br>True?}
     RuleResult -->|No| RuleLoop
     RuleResult -->|Yes| RuleEffect[Get Rule Effect]
     RuleEffect --> StoreResult[Add to Results]
@@ -312,21 +313,21 @@ flowchart TD
     RuleLoop -->|No| PolicyResult[Determine Policy Result]
     PolicyResult --> Loop
 
-    ApplyCombining --> Algorithm{Algorithm<br/>Type?}
-    Algorithm -->|DENY_OVERRIDES| CheckDeny{Any<br/>DENY?}
+    ApplyCombining --> Algorithm{Algorithm<br>Type?}
+    Algorithm -->|DENY_OVERRIDES| CheckDeny{Any<br>DENY?}
     CheckDeny -->|Yes| FinalDeny[Decision: DENY]
-    CheckDeny -->|No| CheckPermit{Any<br/>PERMIT?}
+    CheckDeny -->|No| CheckPermit{Any<br>PERMIT?}
     CheckPermit -->|Yes| FinalPermit[Decision: PERMIT]
     CheckPermit -->|No| FinalNA[Decision: NOT_APPLICABLE]
 
-    Algorithm -->|PERMIT_OVERRIDES| CheckPermit2{Any<br/>PERMIT?}
+    Algorithm -->|PERMIT_OVERRIDES| CheckPermit2{Any<br>PERMIT?}
     CheckPermit2 -->|Yes| FinalPermit
-    CheckPermit2 -->|No| CheckDeny2{Any<br/>DENY?}
+    CheckPermit2 -->|No| CheckDeny2{Any<br>DENY?}
     CheckDeny2 -->|Yes| FinalDeny
     CheckDeny2 -->|No| FinalNA
 
     Algorithm -->|FIRST_APPLICABLE| FirstResult[Use First Match]
-    FirstResult --> FirstType{First<br/>Type?}
+    FirstResult --> FirstType{First<br>Type?}
     FirstType -->|PERMIT| FinalPermit
     FirstType -->|DENY| FinalDeny
     FirstType -->|NOT_APPLICABLE| FinalNA
@@ -378,11 +379,11 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([IT Manager Opens Role Form]) --> BasicInfo[Enter Role Name & Display Name]
-    BasicInfo --> Parent{Select<br/>Parent Role?}
+    BasicInfo --> Parent{Select<br>Parent Role?}
 
     Parent -->|Yes| SelectParent[Choose Parent from Hierarchy]
     SelectParent --> CalculateLevel[Calculate Level = Parent.level + 1]
-    CalculateLevel --> CheckDepth{Level ><br/>10?}
+    CalculateLevel --> CheckDepth{Level ><br>10?}
     CheckDepth -->|Yes| ErrorDepth[/Error: Max Depth Exceeded/]
     ErrorDepth --> Parent
     CheckDepth -->|No| BuildPath[Build Path = Parent.path + /name]
@@ -398,19 +399,19 @@ flowchart TD
     ApprovalLimit --> Locations[Assign Locations]
     Locations --> Shifts[Define Work Shifts]
 
-    Shifts --> Permissions{Inherit<br/>Permissions?}
+    Shifts --> Permissions{Inherit<br>Permissions?}
     Permissions -->|Yes| LoadParent[Load Parent Permissions]
     LoadParent --> BasePerms[Base Permissions Loaded]
-    BasePerms --> Override{Override<br/>Any?}
+    BasePerms --> Override{Override<br>Any?}
     Override -->|Yes| ModifyPerms[Modify Specific Permissions]
-    Override -->|No| AddNew{Add New<br/>Permissions?}
+    Override -->|No| AddNew{Add New<br>Permissions?}
 
     Permissions -->|No| AddNew
     AddNew -->|Yes| DefinePerms[Define Base Permissions]
     DefinePerms --> ResourceType[Select Resource Type]
     ResourceType --> Actions[Select Actions]
     Actions --> Conditions[Add Conditions]
-    Conditions --> MorePerms{More<br/>Permissions?}
+    Conditions --> MorePerms{More<br>Permissions?}
     MorePerms -->|Yes| DefinePerms
     MorePerms -->|No| Constraints
 
@@ -418,13 +419,13 @@ flowchart TD
     AddNew -->|No| Constraints
 
     Constraints[Define Time & Location Constraints]
-    Constraints --> TimeRestrict{Time<br/>Restrictions?}
+    Constraints --> TimeRestrict{Time<br>Restrictions?}
     TimeRestrict -->|Yes| TimeRange[Define Business Hours]
-    TimeRestrict -->|No| LocRestrict{Location<br/>Restrictions?}
+    TimeRestrict -->|No| LocRestrict{Location<br>Restrictions?}
     TimeRange --> LocRestrict
 
     LocRestrict -->|Yes| AllowedLocs[Define Allowed Locations]
-    LocRestrict -->|No| SystemRole{System<br/>Role?}
+    LocRestrict -->|No| SystemRole{System<br>Role?}
     AllowedLocs --> SystemRole
 
     SystemRole -->|Yes| ProtectRole[Set isSystemRole = true]
@@ -441,12 +442,12 @@ flowchart TD
     Valid -->|No| Errors[/Display Validation Errors/]
     Errors --> BasicInfo
 
-    Valid -->|Yes| Circular{Check<br/>Circular Ref?}
+    Valid -->|Yes| Circular{Check<br>Circular Ref?}
     Circular -->|Found| ErrorCircular[/Error: Circular Reference/]
     ErrorCircular --> Parent
 
     Circular -->|None| Save[Save Role]
-    Save --> UpdateChildren{Has<br/>Children?}
+    Save --> UpdateChildren{Has<br>Children?}
     UpdateChildren -->|Yes| PropagateChanges[Propagate Inheritance Changes]
     PropagateChanges --> InvalidateCache[Invalidate Permission Cache]
     UpdateChildren -->|No| InvalidateCache
@@ -482,15 +483,15 @@ flowchart TD
 flowchart TD
     Start([Manager Opens Assignment Form]) --> SelectUser[Select User]
     SelectUser --> SelectRole[Select Role to Assign]
-    SelectRole --> CheckExisting{User Already<br/>Has Role?}
+    SelectRole --> CheckExisting{User Already<br>Has Role?}
 
     CheckExisting -->|Yes| Duplicate[/Warning: Duplicate Assignment/]
-    Duplicate --> Continue1{Continue<br/>Anyway?}
+    Duplicate --> Continue1{Continue<br>Anyway?}
     Continue1 -->|No| SelectRole
     Continue1 -->|Yes| Primary
 
-    CheckExisting -->|No| Primary{Set as<br/>Primary Role?}
-    Primary -->|Yes| CheckCurrent{User Has<br/>Primary?}
+    CheckExisting -->|No| Primary{Set as<br>Primary Role?}
+    Primary -->|Yes| CheckCurrent{User Has<br>Primary?}
     CheckCurrent -->|Yes| Confirm[/Confirm Change Primary Role?/]
     Confirm --> Confirmed{Confirmed?}
     Confirmed -->|No| Primary
@@ -502,50 +503,50 @@ flowchart TD
     SetPrimary --> Scope
     SetSecondary --> Scope[Define Assignment Scope]
 
-    Scope --> Departments{Scope to<br/>Departments?}
+    Scope --> Departments{Scope to<br>Departments?}
     Departments -->|Yes| SelectDepts[Select Departments]
-    SelectDepts --> ValidDepts{Valid for<br/>Role?}
+    SelectDepts --> ValidDepts{Valid for<br>Role?}
     ValidDepts -->|No| ErrorDept[/Error: Invalid Department/]
     ErrorDept --> SelectDepts
     ValidDepts -->|Yes| ScopeLocs
 
-    Departments -->|No| ScopeLocs{Scope to<br/>Locations?}
+    Departments -->|No| ScopeLocs{Scope to<br>Locations?}
     ScopeLocs -->|Yes| SelectLocs[Select Locations]
-    SelectLocs --> ValidLocs{Valid for<br/>Role?}
+    SelectLocs --> ValidLocs{Valid for<br>Role?}
     ValidLocs -->|No| ErrorLoc[/Error: Invalid Location/]
     ErrorLoc --> SelectLocs
     ValidLocs -->|Yes| ScopeRes
 
-    ScopeLocs -->|No| ScopeRes{Scope to<br/>Resources?}
+    ScopeLocs -->|No| ScopeRes{Scope to<br>Resources?}
     ScopeRes -->|Yes| SelectRes[Select Resource Types]
     SelectRes --> Constraints
     ScopeRes -->|No| Constraints
 
     Constraints[Define Constraints]
-    Constraints --> Effective{Set<br/>Effective Dates?}
+    Constraints --> Effective{Set<br>Effective Dates?}
     Effective -->|Yes| StartDate[Set effectiveFrom]
     StartDate --> EndDate[Set effectiveTo]
     EndDate --> WorkShifts
-    Effective -->|No| WorkShifts{Restrict<br/>Work Shifts?}
+    Effective -->|No| WorkShifts{Restrict<br>Work Shifts?}
 
     WorkShifts -->|Yes| SelectShifts[Select Allowed Shifts]
     SelectShifts --> CustomApproval
-    WorkShifts -->|No| CustomApproval{Custom<br/>Approval Limit?}
+    WorkShifts -->|No| CustomApproval{Custom<br>Approval Limit?}
 
     CustomApproval -->|Yes| ApprovalAmount[Set maxApprovalValue]
-    ApprovalAmount --> CheckLimit{Within Role<br/>Limit?}
+    ApprovalAmount --> CheckLimit{Within Role<br>Limit?}
     CheckLimit -->|No| ErrorLimit[/Error: Exceeds Role Limit/]
     ErrorLimit --> ApprovalAmount
     CheckLimit -->|Yes| Training
 
-    CustomApproval -->|No| Training{Required<br/>Training?}
+    CustomApproval -->|No| Training{Required<br>Training?}
     Training -->|Yes| SelectTraining[Specify Training Requirements]
-    SelectTraining --> Certifications{Required<br/>Certifications?}
+    SelectTraining --> Certifications{Required<br>Certifications?}
 
     Training -->|No| Certifications
     Certifications -->|Yes| SelectCerts[Specify Certifications]
     SelectCerts --> Delegation
-    Certifications -->|No| Delegation{Delegated<br/>Authorities?}
+    Certifications -->|No| Delegation{Delegated<br>Authorities?}
 
     Delegation -->|Yes| DefineDelegation[Define Delegation Rules]
     DefineDelegation --> Validate
@@ -556,7 +557,7 @@ flowchart TD
     Errors --> Scope
 
     Valid -->|Yes| Save[Save Assignment]
-    Save --> UpdatePrimary{Changed<br/>Primary?}
+    Save --> UpdatePrimary{Changed<br>Primary?}
     UpdatePrimary -->|Yes| UnsetOldPrimary[Unset Old Primary]
     UnsetOldPrimary --> InvalidateCache[Invalidate User's Permission Cache]
 
@@ -605,7 +606,7 @@ flowchart TD
 
     Location --> Query[Query Workflow Engine]
     Query --> LookupWorkflow[(Lookup workflow_configs)]
-    LookupWorkflow --> Found{Workflow<br/>Found?}
+    LookupWorkflow --> Found{Workflow<br>Found?}
 
     Found -->|No| ErrorNoWorkflow[/Error: No Workflow Configured/]
     ErrorNoWorkflow --> Notify1[/Notify IT Manager/]
@@ -613,24 +614,24 @@ flowchart TD
 
     Found -->|Yes| LoadStages[Load Workflow Stages]
     LoadStages --> InitStage[Set Current Stage = 1]
-    InitStage --> StageLoop{More<br/>Stages?}
+    InitStage --> StageLoop{More<br>Stages?}
 
     StageLoop -->|No| AllComplete[All Stages Complete]
     AllComplete --> FinalStatus[Set Status = Approved]
     FinalStatus --> Success([End: Approved])
 
     StageLoop -->|Yes| CurrentStage[Get Current Stage Config]
-    CurrentStage --> CheckRouting{Has Routing<br/>Rules?}
+    CurrentStage --> CheckRouting{Has Routing<br>Rules?}
 
     CheckRouting -->|Yes| EvalRouting[Evaluate Routing Conditions]
-    EvalRouting --> RoutingLoop{More<br/>Rules?}
+    EvalRouting --> RoutingLoop{More<br>Rules?}
     RoutingLoop -->|Yes| NextRule[Get Next Rule]
     NextRule --> Field[Get Field Value]
     Field --> Operator[Apply Operator]
     Operator --> Compare[Compare with Rule Value]
-    Compare --> Match{Condition<br/>Met?}
+    Compare --> Match{Condition<br>Met?}
     Match -->|No| RoutingLoop
-    Match -->|Yes| Action{Routing<br/>Action?}
+    Match -->|Yes| Action{Routing<br>Action?}
 
     Action -->|SKIP_STAGE| SkipStage[Skip to Next Stage]
     SkipStage --> AdvanceStage[Stage = Stage + 1]
@@ -648,23 +649,23 @@ flowchart TD
     RoutingComplete --> FindApprovers[Find Eligible Approvers]
     FindApprovers --> StageAssignments[(Query abac_workflow_stage_assignments)]
     StageAssignments --> FilterUsers[Filter by Stage & Role]
-    FilterUsers --> FilterDept{Department<br/>Match?}
+    FilterUsers --> FilterDept{Department<br>Match?}
     FilterDept -->|No| NextUser
-    FilterDept -->|Yes| FilterLoc{Location<br/>Match?}
+    FilterDept -->|Yes| FilterLoc{Location<br>Match?}
     FilterLoc -->|No| NextUser
-    FilterLoc -->|Yes| FilterLimit{Approval Limit<br/>Sufficient?}
+    FilterLoc -->|Yes| FilterLimit{Approval Limit<br>Sufficient?}
     FilterLimit -->|No| NextUser
     FilterLimit -->|Yes| Eligible[Add to Eligible List]
 
-    Eligible --> NextUser{More<br/>Users?}
+    Eligible --> NextUser{More<br>Users?}
     NextUser -->|Yes| FilterUsers
-    NextUser -->|No| CountEligible{Count<br/>Eligible?}
+    NextUser -->|No| CountEligible{Count<br>Eligible?}
 
     CountEligible -->|0| ErrorNoApprover[/Error: No Eligible Approver/]
     ErrorNoApprover --> Escalate[Escalate to Manager]
     Escalate --> End2([End: Escalated])
 
-    CountEligible -->|1+| Assignment{Assignment<br/>Type?}
+    CountEligible -->|1+| Assignment{Assignment<br>Type?}
     Assignment -->|Round Robin| RoundRobin[Assign to Next in Rotation]
     Assignment -->|Load Balance| LoadBalance[Assign to User with Fewest Pending]
     Assignment -->|All| AssignAll[Assign to All Eligible]
@@ -674,12 +675,12 @@ flowchart TD
     AssignAll --> Assigned[Approver(s) Assigned]
 
     Assigned --> StartSLA[Start SLA Timer]
-    StartSLA --> HideFields{Hide<br/>Sensitive Fields?}
+    StartSLA --> HideFields{Hide<br>Sensitive Fields?}
     HideFields -->|Yes| Mask[Mask Price Fields]
     HideFields -->|No| SendNotif
     Mask --> SendNotif[/Send Notification/]
 
-    SendNotif --> NotifType{Notification<br/>Channel?}
+    SendNotif --> NotifType{Notification<br>Channel?}
     NotifType -->|Email| SendEmail[Send Email Notification]
     NotifType -->|System| SendSystem[Create System Notification]
     NotifType -->|Both| SendBoth[Send Both Notifications]
@@ -689,12 +690,12 @@ flowchart TD
     SendBoth --> WaitApproval[Status: Pending Approval]
 
     WaitApproval --> MonitorSLA[Monitor SLA]
-    MonitorSLA --> SLAExpired{SLA<br/>Expired?}
+    MonitorSLA --> SLAExpired{SLA<br>Expired?}
     SLAExpired -->|Yes| SLANotif[/Send SLA Alert/]
     SLANotif --> Escalate2[Escalate to Next Level]
     Escalate2 --> WaitApproval
 
-    SLAExpired -->|No| CheckAction{Approver<br/>Action?}
+    SLAExpired -->|No| CheckAction{Approver<br>Action?}
     CheckAction -->|Waiting| WaitApproval
 
     CheckAction -->|Approve| RecordApproval[Record Approval]
@@ -746,18 +747,18 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Cache Operation]) --> Operation{Operation<br/>Type?}
+    Start([Cache Operation]) --> Operation{Operation<br>Type?}
 
     Operation -->|READ| ReadOp[Cache Read Request]
     ReadOp --> GenerateHash[Generate Context Hash]
     GenerateHash --> Query[(Query Cache by Hash)]
-    Query --> Found{Cache<br/>Entry Found?}
+    Query --> Found{Cache<br>Entry Found?}
 
     Found -->|No| Miss[Cache Miss]
     Miss --> RecordMiss[Record Miss Metric]
     RecordMiss --> ReturnNull([Return: NULL])
 
-    Found -->|Yes| CheckTTL{TTL<br/>Valid?}
+    Found -->|Yes| CheckTTL{TTL<br>Valid?}
     CheckTTL -->|No| Expired[Entry Expired]
     Expired --> DeleteExpired[Delete Expired Entry]
     DeleteExpired --> RecordExpiry[Record Expiry Metric]
@@ -772,7 +773,7 @@ flowchart TD
     Operation -->|WRITE| WriteOp[Cache Write Request]
     WriteOp --> GenHash2[Generate Context Hash]
     GenHash2 --> CalcExpiry[Calculate Expiry = Now + TTL]
-    CalcExpiry --> CheckSize{Cache<br/>Size < Max?}
+    CalcExpiry --> CheckSize{Cache<br>Size < Max?}
 
     CheckSize -->|No| Evict[Evict LRU Entries]
     Evict --> SortByAccess[Sort by lastAccessed ASC]
@@ -787,7 +788,7 @@ flowchart TD
     RecordWrite --> Success1([Write Complete])
 
     Operation -->|INVALIDATE| InvalidOp[Cache Invalidation]
-    InvalidOp --> Reason{Invalidation<br/>Reason?}
+    InvalidOp --> Reason{Invalidation<br>Reason?}
 
     Reason -->|Policy Change| QueryPolicy[Query Affected Entries]
     QueryPolicy --> PolicyEntries[(Find Entries with Policy ID)]
@@ -816,7 +817,7 @@ flowchart TD
     Publish4 --> Success2
 
     Operation -->|MAINTENANCE| MaintOp[Cache Maintenance]
-    MaintOp --> Task{Maintenance<br/>Task?}
+    MaintOp --> Task{Maintenance<br>Task?}
 
     Task -->|Cleanup Expired| QueryExpired[(Find Expired Entries)]
     QueryExpired --> DeleteExpiredBatch[Delete Expired Batch]
@@ -830,9 +831,9 @@ flowchart TD
     RecordStats --> Success3
 
     Task -->|Optimize| AnalyzePatterns[Analyze Access Patterns]
-    AnalyzePatterns --> AdjustTTL{Adjust<br/>TTL?}
+    AnalyzePatterns --> AdjustTTL{Adjust<br>TTL?}
     AdjustTTL -->|Yes| UpdateTTL[Update TTL Configuration]
-    AdjustTTL -->|No| AdjustSize{Adjust<br/>Size?}
+    AdjustTTL -->|No| AdjustSize{Adjust<br>Size?}
     UpdateTTL --> AdjustSize
     AdjustSize -->|Yes| UpdateSize[Update Max Size]
     AdjustSize -->|No| Success3
@@ -872,28 +873,28 @@ flowchart TD
 ```mermaid
 flowchart LR
     ITMgr([IT Manager]) -->|Manage Policies & Roles| SYSADMIN
-    SYSADMIN{System<br/>Administration<br/>Module}
+    SYSADMIN{System<br>Administration<br>Module}
     SYSADMIN -->|Policy Status| ITMgr
 
-    DeptMgr([Department<br/>Manager]) -->|Assign User Roles| SYSADMIN
+    DeptMgr([Department<br>Manager]) -->|Assign User Roles| SYSADMIN
     SYSADMIN -->|Assignment Confirmation| DeptMgr
 
-    Users([Application<br/>Users]) -->|Access Requests| SYSADMIN
+    Users([Application<br>Users]) -->|Access Requests| SYSADMIN
     SYSADMIN -->|PERMIT/DENY Decisions| Users
 
-    SYSADMIN <-->|Query/Update| DB[(Permission<br/>Database)]
+    SYSADMIN <-->|Query/Update| DB[(Permission<br>Database)]
 
-    Procurement([Procurement<br/>Module]) -->|Approval Requests| SYSADMIN
+    Procurement([Procurement<br>Module]) -->|Approval Requests| SYSADMIN
     SYSADMIN -->|Workflow Routing| Procurement
 
-    Inventory([Inventory<br/>Module]) -->|Access Checks| SYSADMIN
+    Inventory([Inventory<br>Module]) -->|Access Checks| SYSADMIN
     SYSADMIN -->|Permission Decisions| Inventory
 
-    Finance([Finance<br/>Module]) -->|Authority Checks| SYSADMIN
+    Finance([Finance<br>Module]) -->|Authority Checks| SYSADMIN
     SYSADMIN -->|Approval Limits| Finance
 
-    SYSADMIN -->|Audit Events| AuditLog[(Audit<br/>Log)]
-    SYSADMIN -->|Performance Metrics| Monitoring([Monitoring<br/>System])
+    SYSADMIN -->|Audit Events| AuditLog[(Audit<br>Log)]
+    SYSADMIN -->|Performance Metrics| Monitoring([Monitoring<br>System])
 
     style ITMgr fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style DeptMgr fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1037,7 +1038,7 @@ sequenceDiagram
     participant Metrics as Metrics Service
 
     App->>ABAC: checkAccess(userId, resource, action)
-    Note over ABAC: Context: Chef approves PR<br/>Amount: $2,500
+    Note over ABAC: Context: Chef approves PR<br>Amount: $2,500
 
     ABAC->>ABAC: Generate context hash
     Note over ABAC: Hash: SHA256(chef-john-pr-approve-2500)
@@ -1054,7 +1055,7 @@ sequenceDiagram
     Note over Metrics: Hit rate: 85%
 
     ABAC->>Audit: logAccessRequest(decision)
-    Note over Audit: Log: PERMIT (cached)<br/>Eval time: 8ms
+    Note over Audit: Log: PERMIT (cached)<br>Eval time: 8ms
 
     ABAC-->>App: Decision: PERMIT
     Note over App: Proceed with approval
@@ -1083,7 +1084,7 @@ sequenceDiagram
     participant Metrics as Metrics Service
 
     App->>ABAC: checkAccess(userId, resource, action)
-    Note over ABAC: Context: Sous Chef approves PR<br/>Amount: $7,000
+    Note over ABAC: Context: Sous Chef approves PR<br>Amount: $7,000
 
     ABAC->>ABAC: Generate context hash
     ABAC->>Cache: get(contextHash)
@@ -1094,15 +1095,15 @@ sequenceDiagram
 
     ABAC->>Engine: evaluatePolicies(request)
     Engine->>DB: Query applicable policies
-    Note over DB: Filter: active=true<br/>ORDER BY priority ASC
+    Note over DB: Filter: active=true<br>ORDER BY priority ASC
     DB-->>Engine: Policy list (3 policies)
 
     Engine->>Engine: Evaluate Policy 1
-    Note over Engine: Priority: 100<br/>Target: ✓ Match<br/>Rules: ✓ Pass
+    Note over Engine: Priority: 100<br>Target: ✓ Match<br>Rules: ✓ Pass
     Engine->>Engine: Result: PERMIT
 
     Engine->>Engine: Evaluate Policy 2
-    Note over Engine: Priority: 200<br/>Target: ✓ Match<br/>Rules: ✗ Fail
+    Note over Engine: Priority: 200<br>Target: ✓ Match<br>Rules: ✗ Fail
     Engine->>Engine: Result: DENY
 
     Engine->>Engine: Apply DENY_OVERRIDES
@@ -1113,7 +1114,7 @@ sequenceDiagram
     Note over Cache: TTL: 15 minutes
 
     ABAC->>Audit: logAccessRequest(decision)
-    Note over Audit: Log: DENY<br/>Policies: 2 matched<br/>Eval time: 145ms
+    Note over Audit: Log: DENY<br>Policies: 2 matched<br>Eval time: 145ms
 
     ABAC->>Metrics: recordEvaluation(145ms)
     Note over Metrics: Avg eval time: 152ms
@@ -1151,11 +1152,11 @@ sequenceDiagram
 
     Mgr->>UI: Select user & role
     Mgr->>UI: Define scope & constraints
-    Note over UI: Scope: Kitchen dept<br/>Constraint: Morning shift<br/>Approval limit: $3,000
+    Note over UI: Scope: Kitchen dept<br>Constraint: Morning shift<br>Approval limit: $3,000
 
     Mgr->>UI: Click "Assign Role"
     UI->>UI: Client validation
-    Note over UI: Check: One primary role<br/>Check: Approval limit valid
+    Note over UI: Check: One primary role<br>Check: Approval limit valid
 
     UI->>SA: assignUserRole(assignmentData)
     SA->>SA: Server validation
@@ -1163,7 +1164,7 @@ sequenceDiagram
     DB-->>SA: No duplicates
 
     SA->>DB: Check role constraints
-    Note over DB: Verify: Department valid<br/>Verify: Approval limit ≤ role limit
+    Note over DB: Verify: Department valid<br>Verify: Approval limit ≤ role limit
     DB-->>SA: Constraints valid
 
     SA->>DB: BEGIN TRANSACTION
@@ -1179,14 +1180,14 @@ sequenceDiagram
     DB-->>SA: Success
 
     SA->>Cache: invalidateUserCache(userId)
-    Note over Cache: Delete all cache entries<br/>for this user
+    Note over Cache: Delete all cache entries<br>for this user
     Cache-->>SA: Invalidated (23 entries)
 
     SA->>Queue: Publish RoleAssigned event
-    Note over Queue: Event: {userId, roleId,<br/>isPrimary, scope}
+    Note over Queue: Event: {userId, roleId,<br>isPrimary, scope}
 
     SA->>User: Send notification email
-    Note over User: Email: You've been assigned<br/>Kitchen Manager role
+    Note over User: Email: You've been assigned<br>Kitchen Manager role
 
     SA-->>UI: Success response
     UI->>UI: Show success message
@@ -1450,7 +1451,7 @@ flowchart LR
 
         CheckAmount[Check: Amount Within Authority?]
         CompareLimit[Compare to User Approval Limit]
-        LimitOK{Within<br/>Limit?}
+        LimitOK{Within<br>Limit?}
     end
 
     subgraph Approval Required

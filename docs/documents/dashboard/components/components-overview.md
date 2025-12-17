@@ -291,7 +291,7 @@ Displays recent system activities in a sortable, actionable table format.
    - Quality Check
 
 2. **Document** - Document reference
-   - Primary: Document number (e.g., PR-2024-001)
+   - Primary: Document number (e.g., PR-2401-0001)
    - Secondary: Internal ID
 
 3. **Target** - Associated entity

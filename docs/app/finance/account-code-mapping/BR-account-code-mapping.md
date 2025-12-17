@@ -147,6 +147,7 @@ Accounts:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ### FR-ACM-003: Multi-Dimensional Accounting
@@ -291,7 +292,7 @@ Dimension 6: Customer Segment
 **Journal Entry Structure**:
 ```typescript
 interface JournalEntry {
-  journal_entry_id: string            // JE-2025-000123
+  journal_entry_id: string            // JE-2501-000123
   posting_date: Date                  // Date entry posted to GL
   transaction_date: Date              // Original transaction date
   source_module: string               // procurement, inventory, sales
@@ -331,9 +332,9 @@ interface JournalEntryLine {
 
 **Journal Entry Example - GRN Posting**:
 ```
-JE-2025-000123
+JE-2501-000123
 Date: 2025-11-12
-Source: GRN-2025-00456 (Goods Received Note)
+Source: GRN-2501-00456 (Goods Received Note)
 Description: Receipt of vegetables from Fresh Farm Suppliers
 
 Line 1:

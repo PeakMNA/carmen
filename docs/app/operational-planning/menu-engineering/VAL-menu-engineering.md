@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.1 | 2025-01-05 | System | Added implementation status section |
 | 1.0 | 2024-01-15 | System | Initial creation with comprehensive validation schemas and test cases |
 
@@ -147,7 +148,7 @@ export const menuEngineeringSettingsSchema = z.object({
     },
     {
       message: "Total cost percentages (food + labor + overhead) seem unusually high",
-      path: ["defaultOverheadPercentage"]
+      path: ['defaultOverheadPercentage']
     }
   )
 
@@ -371,7 +372,7 @@ export const priceOptimizationSchema = z.object({
     },
     {
       message: "Proposed price cannot be below food cost (break-even)",
-      path: ["proposedPrice"]
+      path: ['proposedPrice']
     }
   )
   .refine(
@@ -384,7 +385,7 @@ export const priceOptimizationSchema = z.object({
     },
     {
       message: "Percentage adjustment must be between -100% and 1000%",
-      path: ["adjustmentValue"]
+      path: ['adjustmentValue']
     }
   )
   .refine(
@@ -397,7 +398,7 @@ export const priceOptimizationSchema = z.object({
     },
     {
       message: "Target margin must be between 1% and 99%",
-      path: ["adjustmentValue"]
+      path: ['adjustmentValue']
     }
   )
 
@@ -536,7 +537,7 @@ export const menuOptimizationExperimentSchema = z.object({
     },
     {
       message: "End date must be after start date",
-      path: ["endDate"]
+      path: ['endDate']
     }
   )
   .refine(
@@ -547,7 +548,7 @@ export const menuOptimizationExperimentSchema = z.object({
     },
     {
       message: "Variant traffic percentages must sum to 100%",
-      path: ["variants"]
+      path: ['variants']
     }
   )
   .refine(
@@ -558,7 +559,7 @@ export const menuOptimizationExperimentSchema = z.object({
     },
     {
       message: "Exactly one control variant is required",
-      path: ["variants"]
+      path: ['variants']
     }
   )
   .refine(
@@ -571,7 +572,7 @@ export const menuOptimizationExperimentSchema = z.object({
     },
     {
       message: "Duration days does not match date range",
-      path: ["durationDays"]
+      path: ['durationDays']
     }
   )
 
@@ -651,7 +652,7 @@ export const salesForecastSchema = z.object({
     },
     {
       message: "Forecast end date must be after start date",
-      path: ["forecastPeriodEnd"]
+      path: ['forecastPeriodEnd']
     }
   )
   .refine(
@@ -664,7 +665,7 @@ export const salesForecastSchema = z.object({
     },
     {
       message: "Moving average window is required for moving average method",
-      path: ["movingAverageWindow"]
+      path: ['movingAverageWindow']
     }
   )
   .refine(
@@ -677,7 +678,7 @@ export const salesForecastSchema = z.object({
     },
     {
       message: "Alpha parameter is required for exponential smoothing method",
-      path: ["exponentialSmoothingAlpha"]
+      path: ['exponentialSmoothingAlpha']
     }
   )
   .refine(
@@ -690,7 +691,7 @@ export const salesForecastSchema = z.object({
     },
     {
       message: "Forecast period cannot exceed 90 days",
-      path: ["forecastPeriodEnd"]
+      path: ['forecastPeriodEnd']
     }
   )
 
@@ -804,7 +805,7 @@ export const bulkUpdateSchema = z.object({
     },
     {
       message: "Price adjustment type and value are required for price updates",
-      path: ["priceAdjustmentValue"]
+      path: ['priceAdjustmentValue']
     }
   )
   .refine(
@@ -817,7 +818,7 @@ export const bulkUpdateSchema = z.object({
     },
     {
       message: "New category is required for category updates",
-      path: ["newCategoryId"]
+      path: ['newCategoryId']
     }
   )
   .refine(
@@ -830,7 +831,7 @@ export const bulkUpdateSchema = z.object({
     },
     {
       message: "New status is required for status updates",
-      path: ["newStatus"]
+      path: ['newStatus']
     }
   )
   .refine(
@@ -843,7 +844,7 @@ export const bulkUpdateSchema = z.object({
     },
     {
       message: "Season dates are required when setting status to seasonal",
-      path: ["seasonEndDate"]
+      path: ['seasonEndDate']
     }
   )
   .refine(
@@ -856,7 +857,7 @@ export const bulkUpdateSchema = z.object({
     },
     {
       message: "Tag operation and tags are required for tag updates",
-      path: ["tags"]
+      path: ['tags']
     }
   )
   .refine(
@@ -871,7 +872,7 @@ export const bulkUpdateSchema = z.object({
     },
     {
       message: "At least one cost parameter must be provided",
-      path: ["newOverheadPercentage"]
+      path: ['newOverheadPercentage']
     }
   )
 

@@ -115,7 +115,7 @@ interface UpdatedEnhancedItemsTabProps {
 const mockEnhancedItems: EnhancedPRItem[] = [
   {
     id: "item-001",
-    requestId: "PR-2024-001",
+    requestId: "PR-2410-001",
     itemName: "Office Supplies - A4 Paper",
     description: "High quality A4 paper for office use",
     requestedQuantity: 50,
@@ -176,7 +176,7 @@ const mockEnhancedItems: EnhancedPRItem[] = [
     discountRate: 0,
     taxRate: 7,
     vendor: "ABC Supplies Inc.",
-    pricelistNumber: "PL-2024-001",
+    pricelistNumber: "PL-2410-001",
     itemCategory: "Office Supplies",
     itemSubcategory: "Paper Products",
     inventoryInfo: {
@@ -195,7 +195,7 @@ const mockEnhancedItems: EnhancedPRItem[] = [
   },
   {
     id: "item-002",
-    requestId: "PR-2024-002",
+    requestId: "PR-2410-002",
     itemName: "Computer Equipment - Wireless Mouse",
     description: "Ergonomic wireless mouse with USB receiver",
     requestedQuantity: 10,
@@ -264,7 +264,7 @@ const mockEnhancedItems: EnhancedPRItem[] = [
     discountRate: 0,
     taxRate: 7,
     vendor: "Tech Solutions Ltd.",
-    pricelistNumber: "PL-2024-002",
+    pricelistNumber: "PL-2410-002",
     itemCategory: "Computer Equipment",
     itemSubcategory: "Peripherals",
     inventoryInfo: {

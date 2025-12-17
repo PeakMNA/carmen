@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author Name} | Initial version |
 
 ---
@@ -729,7 +730,7 @@ The total amount exceeds your department's budget limit
 ($5,000). Please reduce the order amount or request
 budget approval.
 
-Error Reference: PR-ERR-2024-001234
+Error Reference: PR-ERR-2401-001234
 [Reduce Amount] [Request Approval] [Contact Support]
 ```
 

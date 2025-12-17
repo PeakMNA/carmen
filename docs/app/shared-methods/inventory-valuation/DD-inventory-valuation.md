@@ -74,7 +74,7 @@ This data definition describes the data structures required for the centralized 
 3. **tb_inventory_transaction_closing_balance → Lot Tracking**: One-to-Many relationship
    - Business meaning: Each lot has multiple balance snapshots (FIFO layers)
    - Prisma reference: `tb_inventory_transaction_closing_balance` with `lot_no` and `lot_index`
-   - Example: LOT-2025-001 has multiple balance entries showing consumption over time
+   - Example: LOT-2501-0001 has multiple balance entries showing consumption over time
 
 4. **tb_inventory_transaction_detail → tb_location**: Many-to-One relationship
    - Business meaning: Transactions occur at specific locations
@@ -200,7 +200,7 @@ model tb_inventory_transaction_closing_balance {
 **Primary Identification**:
 - **ID Field**: `id` (UUID, auto-generated)
 - **Business Key**: Combination of `lot_no` + `lot_index`
-- **Display Name**: `lot_no` (e.g., "LOT-2025-001")
+- **Display Name**: `lot_no` (e.g., "LOT-2501-0001")
 
 **Core Business Fields**:
 
@@ -213,7 +213,7 @@ model tb_inventory_transaction_closing_balance {
 - **lot_no**: VARCHAR
   - Required: Optional (nullable)
   - Purpose: Identifies the inventory lot/batch
-  - Example: `LOT-2025-001`, `BATCH-20250115-A`
+  - Example: `LOT-2501-0001`, `BATCH-20250115-A`
   - Business rule: Combined with lot_index forms unique identifier
 
 - **lot_index**: INTEGER
@@ -275,7 +275,7 @@ model tb_inventory_transaction_closing_balance {
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | gen_random_uuid() | Primary key | 550e8400-... | Unique, Non-null |
 | inventory_transaction_detail_id | UUID | Yes | - | FK to transaction detail | 660e9500-... | Foreign Key |
-| lot_no | VARCHAR | No | NULL | Lot/batch identifier | LOT-2025-001 | Part of unique key |
+| lot_no | VARCHAR | No | NULL | Lot/batch identifier | LOT-2501-0001 | Part of unique key |
 | lot_index | INTEGER | Yes | 1 | Sequential lot index | 1, 2, 3 | Part of unique key |
 | location_id | UUID | No | NULL | FK to location | AA0e4900-... | Foreign Key |
 | product_id | UUID | No | NULL | FK to product | BB0e5900-... | Foreign Key |
@@ -364,13 +364,13 @@ model tb_inventory_transaction_detail {
 - **from_lot_no**: VARCHAR
   - Required: Optional (nullable)
   - Purpose: Source lot number (for transfers/consumption)
-  - Example: `LOT-2025-001`
+  - Example: `LOT-2501-0001`
   - Use case: FIFO layer consumption tracking
 
 - **current_lot_no**: VARCHAR
   - Required: Optional (nullable)
   - Purpose: Current/destination lot number
-  - Example: `LOT-2025-002`
+  - Example: `LOT-2501-0002`
   - Use case: Receipt lot assignment, transfer destination
 
 - **location_id**: UUID
@@ -417,8 +417,8 @@ model tb_inventory_transaction_detail {
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | gen_random_uuid() | Primary key | 550e8400-... | Unique, Non-null |
 | inventory_transaction_id | UUID | Yes | - | FK to transaction | AA0e4900-... | Foreign Key |
-| from_lot_no | VARCHAR | No | NULL | Source lot number | LOT-2025-001 | - |
-| current_lot_no | VARCHAR | No | NULL | Current lot number | LOT-2025-002 | - |
+| from_lot_no | VARCHAR | No | NULL | Source lot number | LOT-2501-0001 | - |
+| current_lot_no | VARCHAR | No | NULL | Current lot number | LOT-2501-0002 | - |
 | location_id | UUID | No | NULL | FK to location | CC0e6900-... | Foreign Key |
 | product_id | UUID | Yes | - | FK to product | DD0e7900-... | Foreign Key |
 | qty | DECIMAL(20,5) | No | NULL | Transaction quantity | 25.00000 | - |

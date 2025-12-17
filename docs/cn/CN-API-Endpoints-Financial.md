@@ -157,7 +157,7 @@ GET /api/credit-notes/:creditNoteId/journal-entries
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/journal-entries?status=Posted
+GET /api/credit-notes/CN-2401-0001/journal-entries?status=Posted
 ```
 
 ### Get Tax Entries
@@ -193,7 +193,7 @@ GET /api/credit-notes/:creditNoteId/tax-entries
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/tax-entries
+GET /api/credit-notes/CN-2401-0001/tax-entries
 ```
 
 ### Get Financial Summary
@@ -215,7 +215,7 @@ FinancialSummary
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001/financial-summary
+GET /api/credit-notes/CN-2401-0001/financial-summary
 ```
 
 ### Process Financial Posting
@@ -263,7 +263,7 @@ POST /api/credit-notes/:creditNoteId/post-financial
 
 **Example Request:**
 ```json
-POST /api/credit-notes/CN-2024-001/post-financial
+POST /api/credit-notes/CN-2401-0001/post-financial
 {
   "postingDate": "2024-03-27T00:00:00Z",
   "description": "Credit note posting for damaged laptop return",
@@ -281,7 +281,7 @@ POST /api/credit-notes/CN-2024-001/post-financial
   "error": "NotFoundError",
   "message": "Credit note not found",
   "details": {
-    "id": "CN-2024-999"
+    "id": "CN-2401-0999"
   }
 }
 
@@ -290,7 +290,7 @@ POST /api/credit-notes/CN-2024-001/post-financial
   "error": "StatusConflictError",
   "message": "Cannot post financial entries for credit note in current status",
   "details": {
-    "id": "CN-2024-001",
+    "id": "CN-2401-0001",
     "currentStatus": "Draft",
     "requiredStatus": ["Completed"]
   }

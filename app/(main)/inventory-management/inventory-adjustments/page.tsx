@@ -27,8 +27,8 @@
  *    - Journal Entries: Posted adjustments create accounting entries
  *
  * FEATURES:
- * - View all adjustment records with filtering and sorting
- * - Create new adjustment (Stock IN or Stock OUT)
+ * - Consolidated view of all adjustments with filtering and sorting
+ * - Stock-in and Stock-out create actions in header
  * - View adjustment details and items
  * - Edit draft adjustments
  * - Post or void adjustments
@@ -55,6 +55,7 @@ import { Card, CardContent } from "@/components/ui/card"
  * InventoryAdjustmentsPage - Main Dashboard
  *
  * Displays the list of all inventory adjustments with:
+ * - Stock-in and Stock-out create actions in header
  * - Search and filter capabilities
  * - Sort by date, type, status, location
  * - Quick actions (view, edit, delete for drafts)
@@ -64,13 +65,28 @@ export default function InventoryAdjustmentsPage() {
 
   return (
     <div className="flex flex-col gap-4 p-4">
-      <div className="flex justify-between items-center">
+      {/* Header with title and create actions */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-semibold">Inventory Adjustments</h1>
-        <Button onClick={() => router.push("/inventory-management/inventory-adjustments/new")}>
-          <PlusIcon className="w-4 h-4 mr-2" />
-          New Adjustment
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            onClick={() => router.push("/inventory-management/inventory-adjustments/new?type=in")}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Stock-in
+          </Button>
+          <Button
+            variant="destructive"
+            onClick={() => router.push("/inventory-management/inventory-adjustments/new?type=out")}
+          >
+            <PlusIcon className="w-4 h-4 mr-2" />
+            Stock-out
+          </Button>
+        </div>
       </div>
+
+      {/* Adjustment List */}
       <Card>
         <CardContent className="pt-6">
           <InventoryAdjustmentList />

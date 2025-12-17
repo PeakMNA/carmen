@@ -1,6 +1,18 @@
+/**
+ * Price Lists API Route
+ *
+ * Transaction Code Format: PREFIX-YYMM-NNNN
+ * - PREFIX: Document type (CNT = Contract, PL = Pricelist, etc.)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: CNT-2410-001 = Contract #001 from October 2024
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 
 // Mock data - in a real implementation, this would come from a database
+// Transaction codes use format: CNT-YYMM-NNNN (e.g., CNT-2410-001 = Contract #001, October 2024)
 const mockPriceLists = [
   {
     id: 'pl-001',
@@ -24,7 +36,7 @@ const mockPriceLists = [
     tags: ['seasonal', 'bulk-discount', 'organic'],
     priceRange: { min: 0.50, max: 89.99 },
     geographicScope: ['North America', 'Canada'],
-    contractReference: 'CNT-2024-001',
+    contractReference: 'CNT-2410-001',
     renewalDate: '2024-04-01T00:00:00Z',
     discountTiers: [
       { minQuantity: 100, discountPercentage: 5 },
@@ -96,7 +108,7 @@ const mockPriceLists = [
     tags: ['annual', 'equipment', 'warranty'],
     priceRange: { min: 125.00, max: 15000.00 },
     geographicScope: ['North America'],
-    contractReference: 'CNT-2024-003',
+    contractReference: 'CNT-2410-003',
     renewalDate: '2025-01-01T00:00:00Z',
     discountTiers: [
       { minQuantity: 1, discountPercentage: 0 },
@@ -169,7 +181,7 @@ const mockPriceLists = [
     tags: ['premium', 'sustainable', 'traceable'],
     priceRange: { min: 4.50, max: 85.00 },
     geographicScope: ['North America', 'International'],
-    contractReference: 'CNT-2024-005',
+    contractReference: 'CNT-2410-005',
     renewalDate: '2024-05-01T00:00:00Z',
     discountTiers: [
       { minQuantity: 25, discountPercentage: 3 },

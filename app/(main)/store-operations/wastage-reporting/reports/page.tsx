@@ -49,9 +49,10 @@ import {
 } from 'lucide-react'
 
 // Mock data for all wastage reports
+// Transaction Code Format: WR-YYMM-NNNN (e.g., WR-2410-0089 = Wastage Report #0089, October 2024)
 const allWastageReports = [
   {
-    id: 'WR-2024-0089',
+    id: 'WR-2410-0089', // Wastage Report #0089, October 2024
     date: '2024-01-15',
     location: 'Main Kitchen',
     itemCode: 'BEV-001',
@@ -69,7 +70,7 @@ const allWastageReports = [
     attachments: 2,
   },
   {
-    id: 'WR-2024-0088',
+    id: 'WR-2410-0088',
     date: '2024-01-15',
     location: 'Pool Bar',
     itemCode: 'LIQ-003',
@@ -87,7 +88,7 @@ const allWastageReports = [
     attachments: 1,
   },
   {
-    id: 'WR-2024-0087',
+    id: 'WR-2410-0087',
     date: '2024-01-14',
     location: 'Rooftop Restaurant',
     itemCode: 'MTT-001',
@@ -105,7 +106,7 @@ const allWastageReports = [
     attachments: 3,
   },
   {
-    id: 'WR-2024-0086',
+    id: 'WR-2410-0086',
     date: '2024-01-14',
     location: 'Lobby Café',
     itemCode: 'BAK-002',
@@ -123,7 +124,7 @@ const allWastageReports = [
     attachments: 2,
   },
   {
-    id: 'WR-2024-0085',
+    id: 'WR-2410-0085',
     date: '2024-01-13',
     location: 'Main Kitchen',
     itemCode: 'VEG-005',
@@ -141,7 +142,7 @@ const allWastageReports = [
     attachments: 1,
   },
   {
-    id: 'WR-2024-0084',
+    id: 'WR-2410-0084',
     date: '2024-01-12',
     location: 'Banquet Hall',
     itemCode: 'WNE-002',
@@ -160,7 +161,7 @@ const allWastageReports = [
     rejectionReason: 'Insufficient evidence of accidental damage',
   },
   {
-    id: 'WR-2024-0083',
+    id: 'WR-2410-0083',
     date: '2024-01-12',
     location: 'Pool Bar',
     itemCode: 'FRT-003',
@@ -178,7 +179,7 @@ const allWastageReports = [
     attachments: 0,
   },
   {
-    id: 'WR-2024-0082',
+    id: 'WR-2410-0082',
     date: '2024-01-11',
     location: 'Main Kitchen',
     itemCode: 'DRY-004',
@@ -196,7 +197,7 @@ const allWastageReports = [
     attachments: 3,
   },
   {
-    id: 'WR-2024-0081',
+    id: 'WR-2410-0081',
     date: '2024-01-10',
     location: 'Rooftop Restaurant',
     itemCode: 'SEA-002',
@@ -214,7 +215,7 @@ const allWastageReports = [
     attachments: 1,
   },
   {
-    id: 'WR-2024-0080',
+    id: 'WR-2410-0080',
     date: '2024-01-10',
     location: 'Lobby Café',
     itemCode: 'DRY-006',

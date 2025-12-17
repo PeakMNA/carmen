@@ -259,7 +259,7 @@ Imports inventory data for initial setup or adjustments.
     "processed": 45,
     "updated": 42,
     "failed": 3,
-    "adjustmentId": "ADJ-2023-001",
+    "adjustmentId": "ADJ-2301-0001",
     "errors": [
       {
         "row": 4,

@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|------------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version from TS specification |
 
 ---
@@ -133,7 +134,7 @@ Manage purchase request templates for recurring orders. Templates save time by p
 ### Column Content Formats
 | Column | Display Format | Example |
 |--------|----------------|---------|
-| Template Name | Template name<br/>(Description) | Weekly Market List<br/>(Fresh produce and vegetables) |
+| Template Name | Template name<br>(Description) | Weekly Market List<br>(Fresh produce and vegetables) |
 | Type | Badge with icon | Market List, Standard Order, Asset |
 | Items | Number + "items" | 12 items |
 | Estimated Total | $X,XXX.XX or CURRENCY X,XXX.XX | $1,234.56 |
@@ -366,9 +367,9 @@ Average per Month: 6 uses
 
 **Usage Timeline** (reverse chronological):
 ```
-15 Jan 2024, 14:30 • Maria Santos created PR-2024-000123
-12 Jan 2024, 09:15 • David Miller created PR-2024-000115
-08 Jan 2024, 11:20 • Maria Santos created PR-2024-000098
+15 Jan 2024, 14:30 • Maria Santos created PR-2401-0123
+12 Jan 2024, 09:15 • David Miller created PR-2401-0115
+08 Jan 2024, 11:20 • Maria Santos created PR-2401-0098
 ...
 ```
 

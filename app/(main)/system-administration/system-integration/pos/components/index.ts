@@ -1,0 +1,5 @@
+export { POSDashboard } from './pos-dashboard'
+export { POSMappingTab } from './pos-mapping-tab'
+export { POSTransactionsTab } from './pos-transactions-tab'
+export { POSConfigTab } from './pos-config-tab'
+export { POSReportsTab } from './pos-reports-tab'

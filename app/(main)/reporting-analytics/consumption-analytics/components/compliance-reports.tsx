@@ -241,7 +241,7 @@ export default function ComplianceReports() {
     {
       id: 'tr001',
       item: 'Premium Wagyu Beef',
-      batch_number: 'WG-2024-001',
+      batch_number: 'WG-2410-001',
       source: 'Australian Premium Meats',
       received_date: '2024-01-10',
       expiry_date: '2024-01-17',

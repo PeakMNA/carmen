@@ -50,8 +50,6 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  ChevronDown,
-  ChevronRight,
   Edit,
   Eye,
   FileDown,
@@ -95,7 +93,6 @@ interface CategoryFormData extends Omit<Partial<RecipeCategory>, 'id'> {
 
 interface FilterState {
   status: string[]
-  hasParent: boolean | null
   minRecipes: number | null
   maxRecipes: number | null
   minMargin: number | null
@@ -133,7 +130,6 @@ const FILTER_OPERATORS = [
 export function EnhancedCategoryList() {
   const [categories] = useState<RecipeCategory[]>(mockCategories)
   const [searchTerm, setSearchTerm] = useState("")
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
@@ -143,7 +139,6 @@ export function EnhancedCategoryList() {
   const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
     status: [],
-    hasParent: null,
     minRecipes: null,
     maxRecipes: null,
     minMargin: null,
@@ -155,8 +150,6 @@ export function EnhancedCategoryList() {
     name: "",
     code: "",
     description: "",
-    parentId: undefined,
-    level: 1,
     isActive: true,
     status: "active",
     defaultCostSettings: {
@@ -171,18 +164,6 @@ export function EnhancedCategoryList() {
   })
   const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-
-  const toggleExpand = (categoryId: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(categoryId)) {
-        newSet.delete(categoryId)
-      } else {
-        newSet.add(categoryId)
-      }
-      return newSet
-    })
-  }
 
   const handleEdit = (category: CategoryFormData) => {
     setSelectedCategory(category)
@@ -217,8 +198,6 @@ export function EnhancedCategoryList() {
       name: "",
       code: "",
       description: "",
-      parentId: undefined,
-      level: 1,
       isActive: true,
       status: "active",
       defaultCostSettings: {
@@ -236,20 +215,18 @@ export function EnhancedCategoryList() {
 
   const handleSave = async () => {
     console.log("Saving category:", formData)
-    
+
     if (isEditDialogOpen) {
       setIsEditDialogOpen(false)
     } else {
       setIsCreateDialogOpen(false)
     }
-    
+
     setFormData({
       id: "",
       name: "",
       code: "",
       description: "",
-      parentId: undefined,
-      level: 1,
       isActive: true,
       status: "active",
       defaultCostSettings: {
@@ -312,8 +289,6 @@ export function EnhancedCategoryList() {
     if (quickFilters.length > 0) {
       if (quickFilters.includes('noRecipes') && (category.recipeCount ?? 0) > 0) return false
       if (quickFilters.includes('hasRecipes') && (category.recipeCount ?? 0) === 0) return false
-      if (quickFilters.includes('topLevel') && category.parentId !== null && category.parentId !== undefined) return false
-      if (quickFilters.includes('subLevel') && (category.parentId === null || category.parentId === undefined)) return false
     }
 
     return filterConditions.every((condition) => {
@@ -349,17 +324,7 @@ export function EnhancedCategoryList() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIds = filteredCategories.reduce((acc: string[], category) => {
-        acc.push(category.id)
-        const getAllChildIds = (parentId: string): string[] => {
-          const children = categories.filter(c => c.parentId === parentId)
-          return children.reduce((childAcc: string[], child) => {
-            return [...childAcc, child.id, ...getAllChildIds(child.id)]
-          }, [])
-        }
-        return [...acc, ...getAllChildIds(category.id)]
-      }, [])
-      setSelectedCategories(allIds)
+      setSelectedCategories(filteredCategories.map(category => category.id))
     } else {
       setSelectedCategories([])
     }
@@ -373,16 +338,10 @@ export function EnhancedCategoryList() {
     }
   }
 
-  const renderCategoryRow = (category: CategoryFormData, depth = 0): JSX.Element[] => {
-    const isExpanded = expandedCategories.has(category.id)
-    const childCategories = categories.filter(c => c.parentId === category.id)
-    const hasChildren = childCategories.length > 0
-
-    const result = [
-      <TableRow 
-        key={category.id} 
-        role="treeitem" 
-        aria-expanded={hasChildren ? isExpanded : undefined}
+  const renderCategoryRow = (category: CategoryFormData): JSX.Element => {
+    return (
+      <TableRow
+        key={category.id}
         className="hover:bg-muted/30 transition-colors"
       >
         <TableCell className="py-2">
@@ -391,32 +350,7 @@ export function EnhancedCategoryList() {
             onCheckedChange={(checked) => handleSelect(category.id, checked as boolean)}
           />
         </TableCell>
-        <TableCell className="font-medium py-2 text-xs">
-          <div className="flex items-center min-w-0">
-            {hasChildren && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="mr-1 p-1 h-6 w-6 flex-shrink-0"
-                onClick={() => toggleExpand(category.id)}
-                aria-label={isExpanded ? `Collapse ${category.name}` : `Expand ${category.name}`}
-              >
-                {isExpanded ? (
-                  <ChevronDown className="h-3 w-3" />
-                ) : (
-                  <ChevronRight className="h-3 w-3" />
-                )}
-              </Button>
-            )}
-            <span 
-              className="truncate text-xs" 
-              style={{ marginLeft: `${depth * 20}px` }} 
-              title={category.name}
-            >
-              {category.name}
-            </span>
-          </div>
-        </TableCell>
+        <TableCell className="font-medium py-2 text-xs">{category.name}</TableCell>
         <TableCell className="font-mono text-xs py-2">{category.code}</TableCell>
         <TableCell className="hidden md:table-cell text-xs text-muted-foreground max-w-xs py-2">
           <div className="truncate" title={category.description}>
@@ -424,7 +358,7 @@ export function EnhancedCategoryList() {
           </div>
         </TableCell>
         <TableCell className="py-2">
-          <Badge 
+          <Badge
             variant={category.status === "active" ? "default" : "secondary"}
             className={`text-xs px-2 py-0.5 ${category.status === "active" ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}`}
           >
@@ -439,9 +373,9 @@ export function EnhancedCategoryList() {
         <TableCell className="py-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button 
-                variant="ghost" 
-                size="sm" 
+              <Button
+                variant="ghost"
+                size="sm"
                 className="h-6 w-6 p-0"
                 aria-label={`Actions for ${category.name}`}
               >
@@ -466,21 +400,10 @@ export function EnhancedCategoryList() {
           </DropdownMenu>
         </TableCell>
       </TableRow>
-    ]
-
-    if (isExpanded) {
-      childCategories.forEach(child => {
-        result.push(...renderCategoryRow(child, depth + 1))
-      })
-    }
-
-    return result
+    )
   }
 
   const renderCategoryCard = (category: CategoryFormData): JSX.Element => {
-    const childCategories = categories.filter(c => c.parentId === category.id)
-    const hasChildren = childCategories.length > 0
-
     return (
       <Card key={category.id} className="hover:shadow-md transition-shadow">
         <CardHeader className="pb-3">
@@ -501,7 +424,7 @@ export function EnhancedCategoryList() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Badge 
+              <Badge
                 variant={category.status === "active" ? "default" : "secondary"}
                 className={category.status === "active" ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
               >
@@ -509,9 +432,9 @@ export function EnhancedCategoryList() {
               </Badge>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     className="h-8 w-8 p-0"
                     aria-label={`Actions for ${category.name}`}
                   >
@@ -537,13 +460,13 @@ export function EnhancedCategoryList() {
             </div>
           </div>
         </CardHeader>
-        
+
         <CardContent className="pt-0">
           <div className="space-y-3">
             <div className="text-sm text-muted-foreground line-clamp-2">
               {category.description || "No description available"}
             </div>
-            
+
             <div className="grid grid-cols-2 gap-4 text-sm">
               <div>
                 <div className="font-medium text-foreground">Recipes</div>
@@ -562,22 +485,13 @@ export function EnhancedCategoryList() {
                 <div className="font-mono text-muted-foreground">{(category.averageMargin ?? 0).toFixed(1)}%</div>
               </div>
             </div>
-
-            {hasChildren && (
-              <div className="pt-2 border-t">
-                <div className="text-xs text-muted-foreground">
-                  {childCategories.length} subcategories
-                </div>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
     )
   }
 
-  const rootCategories = categories.filter(category => !category.parentId)
-  const filteredCategories = rootCategories
+  const filteredCategories = categories
     .filter(category =>
       (category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
        category.code?.toLowerCase().includes(searchTerm.toLowerCase())) &&
@@ -667,24 +581,6 @@ export function EnhancedCategoryList() {
               aria-pressed={quickFilters.includes('hasRecipes')}
             >
               Has Recipes
-            </Button>
-            <Button
-              variant={quickFilters.includes('topLevel') ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 px-2 text-xs"
-              onClick={() => handleQuickFilter('topLevel')}
-              aria-pressed={quickFilters.includes('topLevel')}
-            >
-              Top Level
-            </Button>
-            <Button
-              variant={quickFilters.includes('subLevel') ? 'default' : 'outline'}
-              size="sm"
-              className="h-8 px-2 text-xs"
-              onClick={() => handleQuickFilter('subLevel')}
-              aria-pressed={quickFilters.includes('subLevel')}
-            >
-              Sub Level
             </Button>
 
             <Popover open={isAdvancedFilterOpen} onOpenChange={setIsAdvancedFilterOpen}>
@@ -880,7 +776,7 @@ export function EnhancedCategoryList() {
 
       {/* Enhanced Categories Display */}
       {viewMode === 'list' ? (
-        <div className="border rounded-lg overflow-hidden" role="tree" aria-label="Recipe categories table">
+        <div className="border rounded-lg overflow-hidden" aria-label="Recipe categories table">
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
@@ -909,7 +805,7 @@ export function EnhancedCategoryList() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredCategories.flatMap(category => renderCategoryRow(category))}
+                {filteredCategories.map(category => renderCategoryRow(category))}
               </TableBody>
             </Table>
           </div>
@@ -1011,29 +907,17 @@ export function EnhancedCategoryList() {
                     {selectedCategory.description || "No description provided"}
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Parent Category
-                    </Label>
-                    <div className="text-base text-foreground">
-                      {selectedCategory.parentId ? 
-                        categories.find(c => c.id === selectedCategory.parentId)?.name || "Unknown"
-                        : "None (top-level category)"}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Status
-                    </Label>
-                    <div className="flex items-center gap-2">
-                      <Badge 
-                        variant={selectedCategory.status === "active" ? "default" : "secondary"}
-                        className={selectedCategory.status === "active" ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
-                      >
-                        {selectedCategory.status}
-                      </Badge>
-                    </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Status
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Badge
+                      variant={selectedCategory.status === "active" ? "default" : "secondary"}
+                      className={selectedCategory.status === "active" ? "bg-green-100 text-green-800 hover:bg-green-100" : ""}
+                    >
+                      {selectedCategory.status}
+                    </Badge>
                   </div>
                 </div>
               </div>
@@ -1148,22 +1032,12 @@ export function EnhancedCategoryList() {
                 <h3 className="text-lg font-semibold text-foreground border-b border-border pb-2">
                   Additional Information
                 </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Last Updated
-                    </Label>
-                    <div className="text-base text-foreground">
-                      {selectedCategory.lastUpdated ?? 'N/A'}
-                    </div>
-                  </div>
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-muted-foreground">
-                      Category Level
-                    </Label>
-                    <div className="text-base text-foreground">
-                      Level {selectedCategory.level}
-                    </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-muted-foreground">
+                    Last Updated
+                  </Label>
+                  <div className="text-base text-foreground">
+                    {selectedCategory.lastUpdated ?? 'N/A'}
                   </div>
                 </div>
               </div>
@@ -1247,45 +1121,22 @@ export function EnhancedCategoryList() {
                   className="min-h-[80px] text-sm"
                 />
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="parent" className="text-sm font-medium text-foreground">
-                    Parent Category
-                  </Label>
-                  <Select
-                    value={formData.parentId || "none"}
-                    onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? undefined : value })}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select parent category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">No parent (top-level)</SelectItem>
-                      {categories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="status" className="text-sm font-medium text-foreground">
-                    Status
-                  </Label>
-                  <Select
-                    value={formData.status}
-                    onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="active">Active</SelectItem>
-                      <SelectItem value="inactive">Inactive</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label htmlFor="status" className="text-sm font-medium text-foreground">
+                  Status
+                </Label>
+                <Select
+                  value={formData.status}
+                  onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
+                >
+                  <SelectTrigger className="h-9">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
 

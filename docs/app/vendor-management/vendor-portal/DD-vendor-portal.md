@@ -17,6 +17,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2025-11-15 | System | Initial version |
 | 2.0 | 2025-01-23 | Product Team | Complete rewrite - TypeScript vs Prisma schema comparison |
 | 2.1.0 | 2025-11-26 | System | Removed approval workflow references; Updated status to draft → submitted; Aligned with BR v2.1.0 |
@@ -318,7 +319,7 @@ model tb_request_for_pricing {
 ```typescript
 interface VendorPricelist {
   id: string
-  pricelistNumber: string           // Display-friendly (e.g., "PL-2025-001")
+  pricelistNumber: string           // Display-friendly (e.g., "PL-2501-0001")
   name?: string
   description?: string
   vendorId: string
@@ -759,8 +760,8 @@ For critical business operations, consider adding explicit columns for:
   "companyRegistration": "REG123456",
   "taxId": "TAX-987654",
   "website": "https://vendor.example.com",
-  "certifications": ["ISO9001", "HACCP", "Organic"],
-  "languages": ["en", "es", "fr"]
+  "certifications": ['ISO9001', 'HACCP', 'Organic'],
+  "languages": ['en', 'es', 'fr']
 }
 ```
 
@@ -808,8 +809,8 @@ For critical business operations, consider adding explicit columns for:
   "description": "Quarterly price collection for kitchen equipment",
   "status": "active",
   "campaignType": "recurring",
-  "selectedVendors": ["vendor-001", "vendor-002", "vendor-003"],
-  "selectedCategories": ["Kitchen Equipment", "Appliances"],
+  "selectedVendors": ['vendor-001', 'vendor-002', 'vendor-003'],
+  "selectedCategories": ['Kitchen Equipment', 'Appliances'],
   "recurringPattern": {
     "frequency": "quarterly",
     "interval": 1,
@@ -817,7 +818,7 @@ For critical business operations, consider adding explicit columns for:
   },
   "settings": {
     "portalAccessDuration": 30,
-    "allowedSubmissionMethods": ["manual", "upload"],
+    "allowedSubmissionMethods": ['manual', 'upload'],
     "autoReminders": true,
     "reminderSchedule": {
       "enabled": true,
@@ -909,7 +910,7 @@ For critical business operations, consider adding explicit columns for:
   },
   "qualityScore": 92.3,
   "validationErrors": [],
-  "certifications": ["UL", "NSF"],
+  "certifications": ['UL', 'NSF'],
   "isPreferred": true
 }
 ```
@@ -918,9 +919,9 @@ For critical business operations, consider adding explicit columns for:
 ```json
 {
   "productSelection": {
-    "categories": ["Kitchen Equipment"],
-    "subcategories": ["Cooking", "Refrigeration"],
-    "itemGroups": ["Commercial Grade"],
+    "categories": ['Kitchen Equipment'],
+    "subcategories": ['Cooking', 'Refrigeration'],
+    "itemGroups": ['Commercial Grade'],
     "specificItems": [],
     "productInstances": [
       {
@@ -937,7 +938,7 @@ For critical business operations, consider adding explicit columns for:
       "name": "Warranty Period",
       "type": "select",
       "required": true,
-      "options": ["1 year", "2 years", "3 years"],
+      "options": ['1 year', '2 years', '3 years'],
       "defaultValue": "2 years"
     }
   ],
@@ -945,7 +946,7 @@ For critical business operations, consider adding explicit columns for:
   "validityPeriod": 90,
   "allowMultiMOQ": true,
   "requireLeadTime": true,
-  "supportedCurrencies": ["USD", "EUR", "GBP"],
+  "supportedCurrencies": ['USD', 'EUR', 'GBP'],
   "maxItemsPerSubmission": 100,
   "notificationSettings": {
     "sendReminders": true,

@@ -538,7 +538,7 @@ Users must be able to create a new purchase request by filling out a form with r
 **Field**: `ref_number`
 **Data Type**: VARCHAR(50) / string
 
-**Validation Rule**: Reference number must follow the format PR-YYYY-NNNN where YYYY is the year and NNNN is a 4-digit sequential number.
+**Validation Rule**: Reference number must follow the format PR-YYMM-NNNN where YY is 2-digit year and MM is month and NNNN is a 4-digit sequential number.
 
 **Rationale**: Provides unique identification with year-based organization.
 
@@ -548,10 +548,10 @@ Users must be able to create a new purchase request by filling out a form with r
 - **Database**: UNIQUE constraint on ref_number column
 
 **Error Code**: VAL-PR-001
-**Error Message**: "Invalid reference number format. Must be PR-YYYY-NNNN"
+**Error Message**: "Invalid reference number format. Must be PR-YYMM-NNNN"
 
 **Test Cases**:
-- ✅ Valid: PR-2025-0001
+- ✅ Valid: PR-2501-0001
 - ❌ Invalid: PR-25-001 (year must be 4 digits)
 ```
 

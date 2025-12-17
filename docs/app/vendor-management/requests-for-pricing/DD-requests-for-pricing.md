@@ -398,8 +398,8 @@ Update: On each vendor submission
   "description": "Quarterly pricing collection for kitchen supplies",
   "status": "active",
   "campaignType": "recurring",
-  "selectedVendors": ["vendor-001", "vendor-002", "vendor-003"],
-  "selectedCategories": ["Kitchen Equipment", "Utensils"],
+  "selectedVendors": ['vendor-001', 'vendor-002', 'vendor-003'],
+  "selectedCategories": ['Kitchen Equipment', 'Utensils'],
   "scheduledStart": "2025-01-01T00:00:00Z",
   "scheduledEnd": "2025-01-15T23:59:59Z",
   "recurringPattern": {
@@ -421,7 +421,7 @@ Update: On each vendor submission
   },
   "settings": {
     "portalAccessDuration": 30,
-    "allowedSubmissionMethods": ["manual", "upload"],
+    "allowedSubmissionMethods": ['manual', 'upload'],
     "requireApproval": false,
     "autoReminders": true,
     "reminderSchedule": {
@@ -430,7 +430,7 @@ Update: On each vendor submission
       "escalation": {
         "enabled": true,
         "overdueThreshold": 3,
-        "recipients": ["manager@example.com"]
+        "recipients": ['manager@example.com']
       }
     },
     "priority": "medium"

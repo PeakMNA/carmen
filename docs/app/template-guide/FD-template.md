@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | {YYYY-MM-DD} | {Author} | Initial version |
 
 ---
@@ -60,7 +61,7 @@ flowchart TD
     Error --> Input
 
     Validate -->|Yes| Process[Process data]
-    Process --> Check{Additional<br/>approval needed?}
+    Process --> Check{Additional<br>approval needed?}
 
     Check -->|Yes| Approval[Send for approval]
     Approval --> Wait[Wait for approval]
@@ -127,7 +128,7 @@ flowchart LR
     end
 
     subgraph Approval Workflow
-        G --> H{Amount<br/>Threshold}
+        G --> H{Amount<br>Threshold}
         H -->|< $5K| I[Manager Approval]
         H -->|> $5K| J[Manager + Finance]
         I --> K[Approved]
@@ -171,7 +172,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    User([User]) -->|Creates Request| System{"{Sub-Module}<br/>System"}
+    User([User]) -->|Creates Request| System{"{Sub-Module}<br>System"}
     System -->|Notification| User
 
     System <-->|Query/Update| DB[(Database)]
@@ -179,7 +180,7 @@ flowchart LR
     System -->|Send for Approval| Approver([Approver])
     Approver -->|Decision| System
 
-    System <-->|Integration| External[External<br/>System]
+    System <-->|Integration| External[External<br>System]
 
     style User fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style System fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
@@ -202,13 +203,13 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "{Sub-Module} System"
-        P1[1.0<br/>Capture Input]
-        P2[2.0<br/>Validate Data]
-        P3[3.0<br/>Process Business Logic]
-        P4[4.0<br/>Manage Approval]
-        P5[5.0<br/>Store Data]
-        P6[6.0<br/>Send Notifications]
+    subgraph '{Sub-Module} System'
+        P1[1.0<br>Capture Input]
+        P2[2.0<br>Validate Data]
+        P3[3.0<br>Process Business Logic]
+        P4[4.0<br>Manage Approval]
+        P5[5.0<br>Store Data]
+        P6[6.0<br>Send Notifications]
 
         DS1[(D1: {Entity} Table)]
         DS2[(D2: Audit Log)]
@@ -261,11 +262,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Input[/User Input/] --> V1[2.1<br/>Validate Format]
-    V1 -->|Valid| V2[2.2<br/>Check Business Rules]
+    Input[/User Input/] --> V1[2.1<br>Validate Format]
+    V1 -->|Valid| V2[2.2<br>Check Business Rules]
     V1 -->|Invalid| E1[/Format Error/]
 
-    V2 -->|Pass| V3[2.3<br/>Verify References]
+    V2 -->|Pass| V3[2.3<br>Verify References]
     V2 -->|Fail| E2[/Business Rule Error/]
 
     V3 <-->|Lookup| DB1[(Reference Data)]
@@ -356,7 +357,7 @@ sequenceDiagram
     API->>Auth: Get access token
     Auth-->>API: Return token
 
-    API->>External: GET /api/resource<br/>(with token)
+    API->>External: GET /api/resource<br>(with token)
 
     alt Success
         External-->>API: 200 OK (data)
@@ -475,13 +476,13 @@ These are the conditions that must be met for state transitions to occur:
 
 ```mermaid
 flowchart TD
-    Start([Request Submitted]) --> ExtractParams[Extract Parameters:<br/>- type from template<br/>- total amount<br/>- department]
+    Start([Request Submitted]) --> ExtractParams[Extract Parameters:<br>- type from template<br>- total amount<br>- department]
     ExtractParams --> QueryEngine[Query Workflow Engine]
     QueryEngine --> LookupRules[(Lookup approval_rules table)]
-    LookupRules --> CheckRules{Workflow<br/>found?}
+    LookupRules --> CheckRules{Workflow<br>found?}
 
     CheckRules -->|No| WorkflowError[Error: No workflow configured]
-    CheckRules -->|Yes| DetermineType{Workflow<br/>Type?}
+    CheckRules -->|Yes| DetermineType{Workflow<br>Type?}
 
     DetermineType -->|Auto-Approve| AutoApprove[Mark as Approved]
     AutoApprove --> Complete([Approved])
@@ -523,24 +524,24 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Request Submitted]) --> Check1{Amount<br/>< {Threshold 1}?}
+    Start([Request Submitted]) --> Check1{Amount<br>< {Threshold 1}?}
 
     Check1 -->|Yes| Auto[Auto-Approve]
     Auto --> Complete([Approved])
 
-    Check1 -->|No| Check2{Amount<br/>< {Threshold 2}?}
+    Check1 -->|No| Check2{Amount<br>< {Threshold 2}?}
 
-    Check2 -->|Yes| L1[Level 1:<br/>Department Manager]
+    Check2 -->|Yes| L1[Level 1:<br>Department Manager]
     L1 --> D1{Decision}
     D1 -->|Approve| Complete
     D1 -->|Reject| Rejected([Rejected])
     D1 -->|Return| Start
 
-    Check2 -->|No| Check3{Amount<br/>< {Threshold 3}?}
+    Check2 -->|No| Check3{Amount<br>< {Threshold 3}?}
 
-    Check3 -->|Yes| L2A[Level 2A:<br/>Department Manager]
+    Check3 -->|Yes| L2A[Level 2A:<br>Department Manager]
     L2A --> D2A{Decision}
-    D2A -->|Approve| L2B[Level 2B:<br/>Finance Manager]
+    D2A -->|Approve| L2B[Level 2B:<br>Finance Manager]
     D2A -->|Reject| Rejected
     D2A -->|Return| Start
 
@@ -549,9 +550,9 @@ flowchart TD
     D2B -->|Reject| Rejected
     D2B -->|Return| L2A
 
-    Check3 -->|No| L3A[Level 3A:<br/>Department Manager]
-    L3A --> L3B[Level 3B:<br/>Finance Manager]
-    L3B --> L3C[Level 3C:<br/>CFO]
+    Check3 -->|No| L3A[Level 3A:<br>Department Manager]
+    L3A --> L3B[Level 3B:<br>Finance Manager]
+    L3B --> L3C[Level 3C:<br>CFO]
     L3C --> D3{Decision}
     D3 -->|Approve| Complete
     D3 -->|Reject| Rejected
@@ -597,7 +598,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph "Internal System"
+    subgraph 'Internal System'
         A[Event Trigger] --> B[Prepare Payload]
         B --> C[Authenticate]
         C --> D[Send Request]
@@ -610,7 +611,7 @@ flowchart TD
         H --> J[Alert & Log]
     end
 
-    subgraph "External System"
+    subgraph 'External System'
         K[Receive Request] --> L[Validate]
         L --> M[Process]
         M --> N[Return Response]
@@ -834,10 +835,10 @@ flowchart TD
     Classify -->|Business Rule| E3[Return Business Error]
     Classify -->|System| E4[Log & Alert]
 
-    E2 -->|Yes| Retry{Retry Count<br/>< Max?}
+    E2 -->|Yes| Retry{Retry Count<br>< Max?}
     E2 -->|No| E4
 
-    Retry -->|Yes| Wait[Wait with<br/>Backoff]
+    Retry -->|Yes| Wait[Wait with<br>Backoff]
     Retry -->|No| E4
 
     Wait --> Try

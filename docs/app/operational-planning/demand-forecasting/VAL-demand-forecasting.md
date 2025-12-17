@@ -20,6 +20,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-12-05 | Documentation Team | Initial version |
 
 ---
@@ -392,7 +393,7 @@ const TrendAnalysisRequestSchema = z.object({
 }).refine(
   (data) => !data.analysisStartDate || !data.analysisEndDate ||
             data.analysisStartDate < data.analysisEndDate,
-  { message: "Start date must be before end date" }
+  { message: 'Start date must be before end date' }
 );
 ```
 

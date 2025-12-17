@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-13 | Finance Product Team | Initial version |
 
 
@@ -140,7 +141,7 @@ Exchange Rate: USD to JPY (Forward Rate)
   Effective Date: 2025-01-13
   Effective Until: 2025-03-13 (90-day forward)
   Rate Source: Bank Forward Contract
-  Contract Number: FWD-2025-001234
+  Contract Number: FWD-2501-001234
   Status: Active, Approved
 ```
 
@@ -391,7 +392,7 @@ USD,GBP,0.788901,spot,2025-01-13,Bank Quote,QUOTE-12345,Daily rate from Citibank
 USD,JPY,149.234500,spot,2025-01-13,Bank Quote,QUOTE-12345,Daily rate from Citibank
 EUR,GBP,0.856234,spot,2025-01-13,ECB,OFFICIAL,Cross rate from ECB
 GBP,JPY,189.123456,spot,2025-01-13,Calculated,AUTO,Triangulated via USD
-USD,CAD,1.345678,forward,2025-01-13,Forward Contract,FWD-2025-001,90-day forward contract
+USD,CAD,1.345678,forward,2025-01-13,Forward Contract,FWD-2501-0001,90-day forward contract
 ```
 
 **Acceptance Criteria**:

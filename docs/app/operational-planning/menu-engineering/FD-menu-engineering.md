@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.1 | 2025-01-05 | System | Added implementation status section, verified Mermaid 8.8.2 compatibility |
 | 1.0 | 2024-01-15 | System | Initial creation with 10 comprehensive flow diagrams |
 
@@ -39,22 +40,22 @@ This flow diagram document illustrates the Menu Engineering module's workflows. 
 flowchart TD
     Start([User navigates to Menu Engineering]) --> InitPage[Initialize page]
     InitPage --> SetDefaultFilters[Set default filters]
-    SetDefaultFilters --> DefaultDate{Use default<br/>date range?}
+    SetDefaultFilters --> DefaultDate{Use default<br>date range?}
     DefaultDate -->|Yes| SetLast30Days[Set date range: Last 30 days]
     DefaultDate -->|No| LoadSavedFilters[Load saved filter preferences]
     SetLast30Days --> SetLocation
     LoadSavedFilters --> SetLocation[Set location filter if applicable]
 
-    SetLocation --> CheckCache{Check Redis<br/>cache}
+    SetLocation --> CheckCache{Check Redis<br>cache}
     CheckCache -->|Cache hit| LoadFromCache[Load cached dashboard data]
-    LoadFromCache --> ValidateCache{Cache valid<br/>and fresh?}
+    LoadFromCache --> ValidateCache{Cache valid<br>and fresh?}
     ValidateCache -->|Yes| DisplayData[Display dashboard data]
     ValidateCache -->|No| FetchFromDB
 
     CheckCache -->|Cache miss| FetchFromDB[Call getDashboardData action]
     FetchFromDB --> QuerySales[Query sales_transactions table]
     QuerySales --> FilterByPeriod[Filter by date range]
-    FilterByPeriod --> FilterByLocation{Location<br/>selected?}
+    FilterByPeriod --> FilterByLocation{Location<br>selected?}
     FilterByLocation -->|Yes| ApplyLocationFilter[Apply location filter]
     FilterByLocation -->|No| AllLocations[Include all locations]
     ApplyLocationFilter --> JoinData
@@ -134,7 +135,7 @@ flowchart TD
     UserAction -->|Refresh| InvalidateCache
 
     UserAction -->|No Action| IdleState[Idle state]
-    IdleState --> AutoRefresh{Auto-refresh<br/>interval?}
+    IdleState --> AutoRefresh{Auto-refresh<br>interval?}
     AutoRefresh -->|Every 5 min| InvalidateCache
     AutoRefresh -->|No| ListenChanges
 
@@ -151,11 +152,11 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Matrix Calculation Triggered]) --> FetchSalesData[Fetch sales data for period]
-    FetchSalesData --> ValidatePeriod{Valid date<br/>range?}
+    FetchSalesData --> ValidatePeriod{Valid date<br>range?}
     ValidatePeriod -->|No| ErrorInvalidPeriod[Error: Invalid date range]
     ErrorInvalidPeriod --> End([End - Error])
 
-    ValidatePeriod -->|Yes| CheckDataExists{Sales data<br/>exists?}
+    ValidatePeriod -->|Yes| CheckDataExists{Sales data<br>exists?}
     CheckDataExists -->|No| EmptyState[Return empty matrix state]
     EmptyState --> End
 
@@ -167,7 +168,7 @@ flowchart TD
     CountUnits --> SumRevenue[Sum total revenue]
     SumRevenue --> SumCost[Sum total cost]
     SumCost --> CalcVelocity[Velocity = Units / Days in period]
-    CalcVelocity --> NextItem1{More<br/>items?}
+    CalcVelocity --> NextItem1{More<br>items?}
     NextItem1 -->|Yes| CalcItemSales
     NextItem1 -->|No| CalcTotals[Calculate totals]
 
@@ -181,14 +182,14 @@ flowchart TD
     ActualMix --> ExpectedMix[Expected Mix% = 100 / Total Items]
     ExpectedMix --> MixVariance[Mix Variance = Actual - Expected]
     MixVariance --> PopularityIndex[Popularity Index = Actual / Expected]
-    PopularityIndex --> NextItem2{More<br/>items?}
+    PopularityIndex --> NextItem2{More<br>items?}
     NextItem2 -->|Yes| ForEachItem1
     NextItem2 -->|No| CalcProfitability[Calculate profitability metrics]
 
     CalcProfitability --> ForEachItem2[For each item]
     ForEachItem2 --> GetSellingPrice[Get current selling price]
     GetSellingPrice --> GetFoodCost[Get food cost from recipe]
-    GetFoodCost --> CheckFoodCost{Food cost<br/>available?}
+    GetFoodCost --> CheckFoodCost{Food cost<br>available?}
     CheckFoodCost -->|No| EstimateCost[Estimate cost from historical data]
     CheckFoodCost -->|Yes| CalcCM[CM = Selling Price - Food Cost]
     EstimateCost --> CalcCM
@@ -196,7 +197,7 @@ flowchart TD
     CalcCM --> CalcCMPercent[CM% = CM / Selling Price × 100]
     CalcCMPercent --> WeightedCM[Weighted CM = CM × Actual Mix% / 100]
     WeightedCM --> TotalContribution[Total Contribution = CM × Units]
-    TotalContribution --> NextItem3{More<br/>items?}
+    TotalContribution --> NextItem3{More<br>items?}
     NextItem3 -->|Yes| ForEachItem2
     NextItem3 -->|No| CalcAverages[Calculate averages]
 
@@ -205,9 +206,9 @@ flowchart TD
     PopularityThreshold --> ClassifyItems[Classify items into quadrants]
 
     ClassifyItems --> ForEachItem3[For each item]
-    ForEachItem3 --> CheckProfitability{CM ≥<br/>Avg CM?}
-    CheckProfitability -->|Yes| CheckPopularityHigh{Actual Mix% ≥<br/>Threshold?}
-    CheckPopularity -->|No| CheckPopularityLow{Actual Mix% ≥<br/>Threshold?}
+    ForEachItem3 --> CheckProfitability{CM ≥<br>Avg CM?}
+    CheckProfitability -->|Yes| CheckPopularityHigh{Actual Mix% ≥<br>Threshold?}
+    CheckPopularity -->|No| CheckPopularityLow{Actual Mix% ≥<br>Threshold?}
 
     CheckPopularityHigh -->|Yes| ClassifyStar[Classification = Star]
     CheckPopularityHigh -->|No| ClassifyPuzzle[Classification = Puzzle]
@@ -223,7 +224,7 @@ flowchart TD
     SetProperties --> SetColor[Set color code]
     SetColor --> SetIcon[Set icon]
     SetIcon --> SetQuadrant[Set quadrant coordinates]
-    SetQuadrant --> NextItem4{More<br/>items?}
+    SetQuadrant --> NextItem4{More<br>items?}
     NextItem4 -->|Yes| ForEachItem3
     NextItem4 -->|No| CalcQuadrantStats[Calculate quadrant statistics]
 
@@ -259,15 +260,15 @@ flowchart TD
     SetSize --> SetColorPoint[Color = Classification]
     SetColorPoint --> SetLabel[Label = Item name]
     SetLabel --> SetTooltip[Tooltip = Detailed metrics]
-    SetTooltip --> NextItem5{More<br/>items?}
+    SetTooltip --> NextItem5{More<br>items?}
     NextItem5 -->|Yes| ForEachItem4
     NextItem5 -->|No| SaveToDatabase[Save performance records]
 
-    SaveToDatabase --> CheckExisting{Record exists<br/>for period?}
+    SaveToDatabase --> CheckExisting{Record exists<br>for period?}
     CheckExisting -->|Yes| UpdateRecord[UPDATE existing record]
     CheckExisting -->|No| InsertRecord[INSERT new record]
     UpdateRecord --> SaveSuccess
-    InsertRecord --> SaveSuccess{Save<br/>success?}
+    InsertRecord --> SaveSuccess{Save<br>success?}
 
     SaveSuccess -->|No| LogError[Log database error]
     LogError --> ReturnData
@@ -293,7 +294,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Recommendation Engine Triggered]) --> TriggerType{Trigger<br/>type?}
+    Start([Recommendation Engine Triggered]) --> TriggerType{Trigger<br>type?}
     TriggerType -->|Scheduled| CheckSchedule[Check scheduled run time]
     TriggerType -->|Manual| UserInitiated[User clicked Generate]
     TriggerType -->|Automated| ItemUpdate[Item performance updated]
@@ -309,14 +310,14 @@ flowchart TD
     FilterActive --> LoadExisting[Load existing recommendations]
 
     LoadExisting --> AnalyzeItems[For each menu item]
-    AnalyzeItems --> GetClassification{Current<br/>classification?}
+    AnalyzeItems --> GetClassification{Current<br>classification?}
 
     GetClassification -->|Star| AnalyzeStar[Analyze Star item]
     GetClassification -->|Plowhorse| AnalyzePlowhorse[Analyze Plowhorse item]
     GetClassification -->|Puzzle| AnalyzePuzzle[Analyze Puzzle item]
     GetClassification -->|Dog| AnalyzeDog[Analyze Dog item]
 
-    AnalyzeStar --> CheckStarTrend{Performance<br/>trend?}
+    AnalyzeStar --> CheckStarTrend{Performance<br>trend?}
     CheckStarTrend -->|Declining| RecStarAlert[Alert: Star at risk]
     RecStarAlert --> RecStarMaintain[Recommend: Maintain prominence]
     RecStarMaintain --> Priority1[Priority: High]
@@ -327,7 +328,7 @@ flowchart TD
     RecStarPremium --> Priority2[Priority: Medium]
     Priority2 --> EstimateImpact1[Estimate revenue impact]
 
-    AnalyzePlowhorse --> CheckPlowTrend{Margin<br/>improvement?}
+    AnalyzePlowhorse --> CheckPlowTrend{Margin<br>improvement?}
     CheckPlowTrend -->|Possible| RecPlowPrice[Recommend: Test price increase]
     RecPlowPrice --> CalcPriceIncrease[Calculate optimal increase]
     CalcPriceIncrease --> SimulateImpact[Simulate demand impact]
@@ -341,7 +342,7 @@ flowchart TD
     RecPlowBundle --> Priority4[Priority: High]
     Priority4 --> EstimateImpact2[Estimate margin impact]
 
-    AnalyzePuzzle --> CheckPuzzleAge{Days in<br/>Puzzle?}
+    AnalyzePuzzle --> CheckPuzzleAge{Days in<br>Puzzle?}
     CheckPuzzleAge -->|<30 days| RecPuzzleMonitor[Recommend: Monitor performance]
     RecPuzzleMonitor --> Priority5[Priority: Low]
     Priority5 --> EstimateImpact3
@@ -359,7 +360,7 @@ flowchart TD
     RecPuzzleBundle2 --> Priority7[Priority: High]
     Priority7 --> EstimateImpact3[Estimate sales impact]
 
-    AnalyzeDog --> CheckDogAge{Days in<br/>Dog?}
+    AnalyzeDog --> CheckDogAge{Days in<br>Dog?}
     CheckDogAge -->|<30 days| RecDogWait[Recommend: Wait and observe]
     RecDogWait --> Priority8[Priority: Low]
     Priority8 --> EstimateImpact4
@@ -371,7 +372,7 @@ flowchart TD
     Priority9 --> EstimateImpact4
 
     CheckDogAge -->|>60 days| RecDogRemove[Recommend: Remove from menu]
-    RecDogRemove --> CheckExceptions{Exceptions<br/>apply?}
+    RecDogRemove --> CheckExceptions{Exceptions<br>apply?}
     CheckExceptions -->|Signature| MarkException[Mark exception: Signature item]
     CheckExceptions -->|Dietary| MarkException2[Mark exception: Dietary necessity]
     CheckExceptions -->|Seasonal| MarkException3[Mark exception: Seasonal item]
@@ -394,7 +395,7 @@ flowchart TD
     SetImplSteps --> SetExpectedOutcome[Set expected outcome]
     SetExpectedOutcome --> SetTimeline[Set timeline]
     SetTimeline --> SetEffortLevel[Set effort level]
-    SetEffortLevel --> NextItem{More<br/>items?}
+    SetEffortLevel --> NextItem{More<br>items?}
 
     NextItem -->|Yes| AnalyzeItems
     NextItem -->|No| RankRecommendations[Rank all recommendations]
@@ -415,7 +416,7 @@ flowchart TD
     SaveRecommendations --> BeginTransaction[Begin transaction]
     BeginTransaction --> ArchiveOld[Archive old recommendations]
     ArchiveOld --> InsertNew[INSERT new recommendations]
-    InsertNew --> CommitTrans{Commit<br/>success?}
+    InsertNew --> CommitTrans{Commit<br>success?}
 
     CommitTrans -->|No| Rollback[Rollback transaction]
     Rollback --> LogError[Log error]
@@ -479,14 +480,14 @@ flowchart TD
     MaxPrice --> RecommendedPrice[Recommended: Optimal with psychology]
 
     RecommendedPrice --> DisplaySlider[Display price adjustment slider]
-    DisplaySlider --> UserAdjust{User adjusts<br/>price}
+    DisplaySlider --> UserAdjust{User adjusts<br>price}
     UserAdjust -->|Move slider| NewPrice[Update proposed price]
     NewPrice --> RecalcMetrics[Recalculate projected metrics]
 
     RecalcMetrics --> ProjCM[Projected CM = New Price - Food Cost]
     ProjCM --> ProjCMPercent[Projected CM% = CM / New Price × 100]
     ProjCMPercent --> EstimateDemand[Estimate demand elasticity]
-    EstimateDemand --> CheckIncrease{Price<br/>increase?}
+    EstimateDemand --> CheckIncrease{Price<br>increase?}
 
     CheckIncrease -->|Yes| CalcElasticity[Apply demand elasticity]
     CalcElasticity --> ReduceVolume[Projected Volume = Current × 1 - Elasticity × Increase%]
@@ -504,27 +505,27 @@ flowchart TD
     DeltaVolume --> ShowVisualization[Show impact visualization]
     ShowVisualization --> BeforeAfter[Before/After comparison chart]
     BeforeAfter --> MatrixImpact[Matrix position change]
-    MatrixImpact --> ClassificationChange{Classification<br/>will change?}
+    MatrixImpact --> ClassificationChange{Classification<br>will change?}
     ClassificationChange -->|Yes| ShowClassChange[Highlight new classification]
     ClassificationChange -->|No| UserDecision
     ShowClassChange --> UserDecision{User decision}
 
     UserDecision -->|Adjust More| UserAdjust
     UserDecision -->|Cancel| End([End - Cancelled])
-    UserDecision -->|Apply| ValidatePrice{Price meets<br/>constraints?}
+    UserDecision -->|Apply| ValidatePrice{Price meets<br>constraints?}
 
     ValidatePrice -->|Below minimum| ErrorMinPrice[Error: Below break-even]
     ErrorMinPrice --> UserAdjust
     ValidatePrice -->|Above maximum| WarnMaxPrice[Warning: Above market ceiling]
-    WarnMaxPrice --> ConfirmOverride{User confirms<br/>override?}
+    WarnMaxPrice --> ConfirmOverride{User confirms<br>override?}
     ConfirmOverride -->|No| UserAdjust
     ConfirmOverride -->|Yes| CheckApproval
 
-    ValidatePrice -->|Valid| CheckApproval{Requires<br/>approval?}
+    ValidatePrice -->|Valid| CheckApproval{Requires<br>approval?}
     CheckApproval -->|Yes| DetermineApprover[Determine approver]
-    DetermineApprover --> CheckIncrease2{Increase<br/>>10%?}
+    DetermineApprover --> CheckIncrease2{Increase<br>>10%?}
     CheckIncrease2 -->|Yes| RequireManager[Require: Financial Manager]
-    CheckIncrease2 -->|No| CheckDecrease{Decrease<br/>>10%?}
+    CheckIncrease2 -->|No| CheckDecrease{Decrease<br>>10%?}
     CheckDecrease -->|Yes| RequireManager
     CheckDecrease -->|No| RequireDept[Require: Department Manager]
 
@@ -552,7 +553,7 @@ flowchart TD
     RecordChange --> InvalidatePerf[Invalidate performance cache]
     InvalidatePerf --> TriggerRecalc[Trigger matrix recalculation]
 
-    TriggerRecalc --> CommitTrans{Commit<br/>success?}
+    TriggerRecalc --> CommitTrans{Commit<br>success?}
     CommitTrans -->|No| Rollback[Rollback transaction]
     Rollback --> LogError[Log error]
     LogError --> ErrorDisplay[Display error toast]
@@ -561,7 +562,7 @@ flowchart TD
     CommitTrans -->|Yes| RevalidatePath[Revalidate menu paths]
     RevalidatePath --> NotifyPOS[Notify POS system]
     NotifyPOS --> SendPriceUpdate[Send price update via API]
-    SendPriceUpdate --> ConfirmPOS{POS confirms<br/>update?}
+    SendPriceUpdate --> ConfirmPOS{POS confirms<br>update?}
     ConfirmPOS -->|No| WarnPOSFail[Warning: POS update failed]
     WarnPOSFail --> LogPOSError[Log POS error]
     LogPOSError --> ManualSyncReq[Require manual POS sync]
@@ -603,7 +604,7 @@ flowchart TD
 
     UserAction -->|Add Competitor| OpenAddDialog[Open Add Competitor dialog]
     OpenAddDialog --> InitForm[Initialize form]
-    InitForm --> UserEnterBasic{User enters<br/>basic info}
+    InitForm --> UserEnterBasic{User enters<br>basic info}
     UserEnterBasic -->|Typing| ClientValidate[Client-side validation]
     ClientValidate --> ShowFeedback[Show validation feedback]
     ShowFeedback --> UserEnterBasic
@@ -618,13 +619,13 @@ flowchart TD
     ReturnError --> DisplayError[Display error toast]
     DisplayError --> UserEnterBasic
 
-    ServerValidate -->|Valid| CheckUniqueness{Check name<br/>uniqueness}
+    ServerValidate -->|Valid| CheckUniqueness{Check name<br>uniqueness}
     CheckUniqueness -->|Duplicate| DuplicateError[Return duplicate error]
     DuplicateError --> DisplayError
 
     CheckUniqueness -->|Unique| BeginTrans1[Begin transaction]
     BeginTrans1 --> InsertCompetitor[INSERT competitor record]
-    InsertCompetitor --> CommitTrans1{Commit<br/>success?}
+    InsertCompetitor --> CommitTrans1{Commit<br>success?}
     CommitTrans1 -->|No| Rollback1[Rollback]
     Rollback1 --> DBError1[Database error]
     DBError1 --> DisplayError
@@ -640,7 +641,7 @@ flowchart TD
     LoadItems --> OpenEditDialog[Open Edit dialog]
     OpenEditDialog --> PreFillForm[Pre-fill form]
 
-    PreFillForm --> UserModify{User modifies<br/>data}
+    PreFillForm --> UserModify{User modifies<br>data}
     UserModify -->|Change fields| ValidateReal[Real-time validation]
     ValidateReal --> UserModify
 
@@ -662,7 +663,7 @@ flowchart TD
     CheckChanges -->|Yes| BeginTrans2[Begin transaction]
     BeginTrans2 --> UpdateCompetitor[UPDATE competitor record]
     UpdateCompetitor --> UpdateTimestamp[SET updated_at]
-    UpdateTimestamp --> CommitTrans2{Commit<br/>success?}
+    UpdateTimestamp --> CommitTrans2{Commit<br>success?}
     CommitTrans2 -->|No| Rollback2[Rollback]
     Rollback2 --> DBError2[Database error]
     DBError2 --> DisplayError2
@@ -671,12 +672,12 @@ flowchart TD
     CloseDialog3 --> ShowSuccessEdit[Show success toast]
     ShowSuccessEdit --> RefreshList
 
-    UserAction -->|Delete Competitor| ConfirmDelete{Confirm<br/>deletion?}
+    UserAction -->|Delete Competitor| ConfirmDelete{Confirm<br>deletion?}
     ConfirmDelete -->|No| DisplayList
-    ConfirmDelete -->|Yes| CheckItemsExist{Has competitor<br/>items?}
+    ConfirmDelete -->|Yes| CheckItemsExist{Has competitor<br>items?}
     CheckItemsExist -->|Yes| WarnItems[Warning: Has X items]
     WarnItems --> ExplainCascade[Explain: Items will also be deleted]
-    ExplainCascade --> ConfirmCascade{Confirm<br/>cascade delete?}
+    ExplainCascade --> ConfirmCascade{Confirm<br>cascade delete?}
     ConfirmCascade -->|No| DisplayList
     ConfirmCascade -->|Yes| CallDeleteAction
 
@@ -684,7 +685,7 @@ flowchart TD
     CallDeleteAction --> BeginTrans3[Begin transaction]
     BeginTrans3 --> DeleteItems[DELETE competitor_items]
     DeleteItems --> SoftDeleteComp[SET deleted = true]
-    SoftDeleteComp --> CommitTrans3{Commit<br/>success?}
+    SoftDeleteComp --> CommitTrans3{Commit<br>success?}
     CommitTrans3 -->|No| Rollback3[Rollback]
     Rollback3 --> DBError3[Database error]
     DBError3 --> DisplayError3[Display error]
@@ -718,7 +719,7 @@ flowchart TD
     CallCreateItem --> BeginTrans4[Begin transaction]
     BeginTrans4 --> InsertItem[INSERT competitor_item]
     InsertItem --> UpdateCompTimestamp[UPDATE competitor.updated_at]
-    UpdateCompTimestamp --> CommitTrans4{Commit<br/>success?}
+    UpdateCompTimestamp --> CommitTrans4{Commit<br>success?}
     CommitTrans4 -->|No| Rollback4[Rollback]
     Rollback4 --> DBError4[Database error]
     DBError4 --> ShowItemErrors
@@ -735,7 +736,7 @@ flowchart TD
     ModifyItem --> UpdateItem[Update item]
     UpdateItem --> DisplayItemsList
 
-    ItemAction -->|Delete Item| ConfirmItemDelete{Confirm<br/>delete?}
+    ItemAction -->|Delete Item| ConfirmItemDelete{Confirm<br>delete?}
     ConfirmItemDelete -->|No| DisplayItemsList
     ConfirmItemDelete -->|Yes| DeleteItem[Delete item]
     DeleteItem --> DisplayItemsList
@@ -765,7 +766,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Lifecycle Tracking Triggered]) --> TriggerType{Trigger<br/>type?}
+    Start([Lifecycle Tracking Triggered]) --> TriggerType{Trigger<br>type?}
     TriggerType -->|New Item| NewItemCreated[New menu item created]
     TriggerType -->|Automated| ScheduledCheck[Nightly lifecycle check]
     TriggerType -->|Manual| UserReview[User reviews lifecycle]
@@ -783,21 +784,21 @@ flowchart TD
     UserReview --> FetchAllItems
     FetchAllItems --> FilterByStage[For each lifecycle stage]
 
-    FilterByStage --> IntroductionItems{Items in<br/>Introduction?}
-    IntroductionItems -->|Yes| CheckIntroTime{Days in<br/>Introduction?}
-    CheckIntroTime -->|<30 days| CheckIntroPerf{Meeting<br/>targets?}
+    FilterByStage --> IntroductionItems{Items in<br>Introduction?}
+    IntroductionItems -->|Yes| CheckIntroTime{Days in<br>Introduction?}
+    CheckIntroTime -->|<30 days| CheckIntroPerf{Meeting<br>targets?}
     CheckIntroPerf -->|Yes| OnTrack[Mark: On track]
     OnTrack --> NextItem1
     CheckIntroPerf -->|No| AtRisk[Mark: At risk]
     AtRisk --> CreateAlert[Create performance alert]
-    CreateAlert --> NextItem1{More<br/>items?}
+    CreateAlert --> NextItem1{More<br>items?}
 
     CheckIntroTime -->|30-60 days| EvaluateIntro[Evaluate introduction success]
     EvaluateIntro --> CalcIntroMetrics[Calculate metrics]
     CalcIntroMetrics --> AvgSales[Avg weekly sales]
     AvgSales --> MenuMixAchieved[Menu mix achieved]
     MenuMixAchieved --> CustomerFeedback[Customer feedback score]
-    CustomerFeedback --> CheckIntroSuccess{Successful<br/>introduction?}
+    CustomerFeedback --> CheckIntroSuccess{Successful<br>introduction?}
 
     CheckIntroSuccess -->|Yes| TransitionGrowth[Transition to Growth]
     TransitionGrowth --> SetGrowthStage[SET stage = growth]
@@ -807,23 +808,23 @@ flowchart TD
     GrowthSales --> GrowthMargin[Target: Maintain margin >60%]
     GrowthMargin --> NextItem1
 
-    CheckIntroSuccess -->|No| CheckIntroExtend{Days<br/><90?}
+    CheckIntroSuccess -->|No| CheckIntroExtend{Days<br><90?}
     CheckIntroExtend -->|Yes| ExtendIntro[Extend introduction period]
     ExtendIntro --> RecommendPromo[Recommend: Launch promotion]
     RecommendPromo --> NextItem1
     CheckIntroExtend -->|No| ConsiderRemoval[Recommend: Consider removal]
     ConsiderRemoval --> NextItem1
 
-    IntroductionItems -->|No| GrowthItems{Items in<br/>Growth?}
-    GrowthItems -->|Yes| CheckGrowthTrend{Sales<br/>trend?}
+    IntroductionItems -->|No| GrowthItems{Items in<br>Growth?}
+    GrowthItems -->|Yes| CheckGrowthTrend{Sales<br>trend?}
     CheckGrowthTrend -->|Growing| CalcGrowthRate[Calculate growth rate]
-    CalcGrowthRate --> CheckGrowthMoM{Month-over-month<br/>growth?}
+    CalcGrowthRate --> CheckGrowthMoM{Month-over-month<br>growth?}
     CheckGrowthMoM -->|>20%| StrongGrowth[Strong growth]
     StrongGrowth --> NextItem2
     CheckGrowthMoM -->|5-20%| ModerateGrowth[Moderate growth]
     ModerateGrowth --> NextItem2
     CheckGrowthMoM -->|<5%| SlowingGrowth[Growth slowing]
-    SlowingGrowth --> CheckGrowthTime{Days in<br/>Growth?}
+    SlowingGrowth --> CheckGrowthTime{Days in<br>Growth?}
 
     CheckGrowthTime -->|>180 days| TransitionMaturity[Transition to Maturity]
     TransitionMaturity --> SetMaturityStage[SET stage = maturity]
@@ -831,9 +832,9 @@ flowchart TD
     RecordTransition2 --> SetMaturityTargets[Set maturity targets]
     SetMaturityTargets --> MaturityStable[Target: Stable sales]
     MaturityStable --> MaturityMargin[Target: Maintain margins]
-    MaturityMargin --> NextItem2{More<br/>items?}
+    MaturityMargin --> NextItem2{More<br>items?}
 
-    CheckGrowthTime -->|<180 days| CheckGrowthActions{Actions<br/>needed?}
+    CheckGrowthTime -->|<180 days| CheckGrowthActions{Actions<br>needed?}
     CheckGrowthActions -->|Yes| SuggestGrowthActions[Suggest growth actions]
     SuggestGrowthActions --> IncreasePromo[Increase promotion]
     IncreasePromo --> NextItem2
@@ -844,20 +845,20 @@ flowchart TD
     InvestigateDecline --> RecommendRevival[Recommend revival actions]
     RecommendRevival --> NextItem2
 
-    GrowthItems -->|No| MaturityItems{Items in<br/>Maturity?}
-    MaturityItems -->|Yes| CheckMaturityPerf{Performance<br/>stable?}
+    GrowthItems -->|No| MaturityItems{Items in<br>Maturity?}
+    MaturityItems -->|Yes| CheckMaturityPerf{Performance<br>stable?}
     CheckMaturityPerf -->|Yes| CalculateMaturityMetrics[Calculate metrics]
     CalculateMaturityMetrics --> SalesVariance[Check sales variance]
     SalesVariance --> MarginVariance[Check margin variance]
-    MarginVariance --> CheckMaturityDuration{Days in<br/>Maturity?}
+    MarginVariance --> CheckMaturityDuration{Days in<br>Maturity?}
     CheckMaturityDuration -->|>365 days| ConsiderRefresh[Consider menu refresh]
     ConsiderRefresh --> NextItem3
     CheckMaturityDuration -->|<365 days| MaintainStatus[Maintain status]
-    MaintainStatus --> NextItem3{More<br/>items?}
+    MaintainStatus --> NextItem3{More<br>items?}
 
     CheckMaturityPerf -->|No| DetectDecline[Detect decline indicators]
-    DetectDecline --> CheckSalesDecline{Sales declining<br/>>10%?}
-    CheckSalesDecline -->|Yes| ConsecutiveDecline{Consecutive<br/>months?}
+    DetectDecline --> CheckSalesDecline{Sales declining<br>>10%?}
+    CheckSalesDecline -->|Yes| ConsecutiveDecline{Consecutive<br>months?}
     ConsecutiveDecline -->|Yes, ≥2| TransitionDecline[Transition to Decline]
     TransitionDecline --> SetDeclineStage[SET stage = decline]
     SetDeclineStage --> RecordTransition3[Record stage_changed_at]
@@ -869,8 +870,8 @@ flowchart TD
     MonitorClosely --> NextItem3
     CheckSalesDecline -->|No| NextItem3
 
-    MaturityItems -->|No| DeclineItems{Items in<br/>Decline?}
-    DeclineItems -->|Yes| CheckDeclineActions{Recovery<br/>attempted?}
+    MaturityItems -->|No| DeclineItems{Items in<br>Decline?}
+    DeclineItems -->|Yes| CheckDeclineActions{Recovery<br>attempted?}
     CheckDeclineActions -->|No| PlanRecovery[Plan recovery actions]
     PlanRecovery --> RecoveryRevise[Action: Revise recipe]
     RecoveryRevise --> RecoveryReposition[Action: Reposition]
@@ -878,26 +879,26 @@ flowchart TD
     RecoveryPromo --> RecoveryPrice[Action: Price adjustment]
     RecoveryPrice --> NextItem4
 
-    CheckDeclineActions -->|Yes| EvaluateRecovery{Recovery<br/>effective?}
+    CheckDeclineActions -->|Yes| EvaluateRecovery{Recovery<br>effective?}
     EvaluateRecovery -->|Yes| TransitionBack[Transition back to Maturity]
     TransitionBack --> SetMaturityAgain[SET stage = maturity]
     SetMaturityAgain --> RecordRecovery[Record recovery_at]
     RecordRecovery --> NextItem4
 
-    EvaluateRecovery -->|No| CheckDeclineDuration{Days in<br/>Decline?}
+    EvaluateRecovery -->|No| CheckDeclineDuration{Days in<br>Decline?}
     CheckDeclineDuration -->|>90 days| RecommendDiscontinue[Recommend discontinuation]
-    RecommendDiscontinue --> CheckDogStatus{Also a<br/>Dog?}
+    RecommendDiscontinue --> CheckDogStatus{Also a<br>Dog?}
     CheckDogStatus -->|Yes| HighPriorityRemoval[High priority for removal]
     HighPriorityRemoval --> NextItem4
     CheckDogStatus -->|No| MediumPriorityRemoval[Medium priority for removal]
-    MediumPriorityRemoval --> NextItem4{More<br/>items?}
+    MediumPriorityRemoval --> NextItem4{More<br>items?}
 
     CheckDeclineDuration -->|<90 days| ContinueMonitor[Continue monitoring]
     ContinueMonitor --> NextItem4
 
     DeclineItems -->|No| NextItem4
 
-    NextItem1 --> MoreItems1{More<br/>items?}
+    NextItem1 --> MoreItems1{More<br>items?}
     NextItem2 --> MoreItems1
     NextItem3 --> MoreItems1
     NextItem4 --> MoreItems1
@@ -908,7 +909,7 @@ flowchart TD
     BeginTransaction --> UpdateStages[UPDATE lifecycle stages]
     UpdateStages --> InsertTransitions[INSERT stage transitions]
     InsertTransitions --> UpdateAlerts[UPDATE alerts]
-    UpdateAlerts --> CommitTrans{Commit<br/>success?}
+    UpdateAlerts --> CommitTrans{Commit<br>success?}
 
     CommitTrans -->|No| Rollback[Rollback]
     Rollback --> LogError[Log error]
@@ -939,7 +940,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User creates A/B experiment]) --> SelectType{Experiment<br/>type?}
+    Start([User creates A/B experiment]) --> SelectType{Experiment<br>type?}
     SelectType -->|Price Test| PriceExperiment[Price optimization test]
     SelectType -->|Position Test| PositionExperiment[Menu position test]
     SelectType -->|Description Test| DescriptionExperiment[Description test]
@@ -970,7 +971,7 @@ flowchart TD
     MetricMix --> MetricConversion[Track: Conversion rate]
 
     MetricConversion --> SelectItems[Select menu items]
-    SelectItems --> ItemSelection{Selection<br/>method}
+    SelectItems --> ItemSelection{Selection<br>method}
     ItemSelection -->|Single Item| SelectOne[Select one item]
     ItemSelection -->|Multiple Items| SelectMultiple[Select multiple items]
     ItemSelection -->|Category| SelectCategory[Select entire category]
@@ -979,7 +980,7 @@ flowchart TD
     SelectMultiple --> CreateVariants
     SelectCategory --> CreateVariants[Create experiment variants]
 
-    CreateVariants --> VariantCount{Number of<br/>variants?}
+    CreateVariants --> VariantCount{Number of<br>variants?}
     VariantCount -->|2| ABTest[A/B Test 50/50 split]
     VariantCount -->|3| ABCTest[A/B/C Test 33/33/33 split]
     VariantCount -->|4| ABCDTest[A/B/C/D Test 25/25/25/25 split]
@@ -995,7 +996,7 @@ flowchart TD
     ControlPosition --> ControlDesc[Current description]
 
     ControlDesc --> DefineVariantB[Define Variant B]
-    DefineVariantB --> VarBType{Variant B<br/>change}
+    DefineVariantB --> VarBType{Variant B<br>change}
     VarBType -->|Price| VarBPrice[Set new price]
     VarBType -->|Position| VarBPosition[Set new position]
     VarBType -->|Description| VarBDescription[Set new description]
@@ -1006,28 +1007,28 @@ flowchart TD
     VarBDescription --> VarBName
     VarBBundle --> VarBName[Set variant name]
 
-    VarBName --> MoreVariants{More<br/>variants?}
+    VarBName --> MoreVariants{More<br>variants?}
     MoreVariants -->|Yes| DefineVariantC[Define Variant C]
     DefineVariantC --> VarCChanges[Set variant C changes]
-    VarCChanges --> DefineVariantD{Variant D<br/>needed?}
+    VarCChanges --> DefineVariantD{Variant D<br>needed?}
     DefineVariantD -->|Yes| VarDChanges[Set variant D changes]
     DefineVariantD -->|No| ConfigTraffic
     VarDChanges --> ConfigTraffic
 
     MoreVariants -->|No| ConfigTraffic[Configure traffic split]
-    ConfigTraffic --> DefaultSplit{Use default<br/>split?}
+    ConfigTraffic --> DefaultSplit{Use default<br>split?}
     DefaultSplit -->|Yes| EqualSplit[Equal traffic distribution]
     DefaultSplit -->|No| CustomSplit[Custom traffic percentages]
 
     EqualSplit --> ValidateSplit
     CustomSplit --> EnterPercent[Enter percentages for each]
-    EnterPercent --> CheckTotal{Total =<br/>100%?}
+    EnterPercent --> CheckTotal{Total =<br>100%?}
     CheckTotal -->|No| ErrorSplit[Error: Must total 100%]
     ErrorSplit --> EnterPercent
     CheckTotal -->|Yes| ValidateSplit[Validate traffic split]
 
     ValidateSplit --> SetDuration[Set experiment duration]
-    SetDuration --> SelectDays{Duration<br/>in days}
+    SetDuration --> SelectDays{Duration<br>in days}
     SelectDays -->|7| OneWeek[1 week minimum]
     SelectDays -->|14| TwoWeeks[2 weeks recommended]
     SelectDays -->|30| OneMonth[1 month for seasonality]
@@ -1041,7 +1042,7 @@ flowchart TD
     SetSignificance --> DefaultConf[Default: 95% confidence]
     DefaultConf --> MinSampleSize[Calculate minimum sample size]
     MinSampleSize --> EstimateSample[Based on current traffic]
-    EstimateSample --> CheckFeasible{Duration<br/>feasible?}
+    EstimateSample --> CheckFeasible{Duration<br>feasible?}
     CheckFeasible -->|No| WarnDuration[Warning: Insufficient traffic]
     WarnDuration --> SuggestLonger[Suggest longer duration]
     SuggestLonger --> UserAdjust{User adjusts?}
@@ -1050,7 +1051,7 @@ flowchart TD
 
     CheckFeasible -->|Yes| SetStartDate
     OverrideFeasibility --> SetStartDate[Set start date and time]
-    SetStartDate --> StartOptions{Start<br/>when?}
+    SetStartDate --> StartOptions{Start<br>when?}
     StartOptions -->|Immediately| StartNow[Start: Now]
     StartOptions -->|Scheduled| ScheduleStart[Schedule start date/time]
 
@@ -1058,7 +1059,7 @@ flowchart TD
     ScheduleStart --> SetEndDate[Calculate end date]
     SetEndDate --> AddDuration[End = Start + Duration days]
 
-    AddDuration --> SetLocations{Apply to<br/>locations?}
+    AddDuration --> SetLocations{Apply to<br>locations?}
     SetLocations -->|All| AllLocations[All locations]
     SetLocations -->|Specific| SelectLocations[Select specific locations]
 
@@ -1091,32 +1092,32 @@ flowchart TD
     BeginTransaction --> InsertExperiment[INSERT experiment record]
     InsertExperiment --> InsertVariants[INSERT variant records]
     InsertVariants --> InsertTrafficSplit[INSERT traffic_split config]
-    InsertTrafficSplit --> CheckStartNow{Start<br/>immediately?}
+    InsertTrafficSplit --> CheckStartNow{Start<br>immediately?}
 
     CheckStartNow -->|Yes| SetStatusActive[SET status = active]
     SetStatusActive --> RecordStartTime[Record started_at]
     RecordStartTime --> CommitTrans
 
     CheckStartNow -->|No| SetStatusScheduled[SET status = scheduled]
-    SetStatusScheduled --> CommitTrans{Commit<br/>success?}
+    SetStatusScheduled --> CommitTrans{Commit<br>success?}
 
     CommitTrans -->|No| Rollback[Rollback]
     Rollback --> LogError[Log error]
     LogError --> ErrorDisplay[Display error]
     ErrorDisplay --> End
 
-    CommitTrans -->|Yes| CheckActive{Status =<br/>active?}
+    CommitTrans -->|Yes| CheckActive{Status =<br>active?}
     CheckActive -->|Yes| ActivateVariants[Activate variants]
     CheckActive -->|No| ScheduleActivation[Schedule activation job]
 
     ActivateVariants --> ApplyChanges[Apply variant changes]
-    ApplyChanges --> UpdatePrices{Price<br/>changes?}
+    ApplyChanges --> UpdatePrices{Price<br>changes?}
     UpdatePrices -->|Yes| UpdatePricingTable[UPDATE menu_items prices]
     UpdatePrices -->|No| UpdatePositions
-    UpdatePricingTable --> UpdatePositions{Position<br/>changes?}
+    UpdatePricingTable --> UpdatePositions{Position<br>changes?}
     UpdatePositions -->|Yes| UpdateMenuPositions[UPDATE menu positions]
     UpdatePositions -->|No| UpdateDescriptions
-    UpdateMenuPositions --> UpdateDescriptions{Description<br/>changes?}
+    UpdateMenuPositions --> UpdateDescriptions{Description<br>changes?}
     UpdateDescriptions -->|Yes| UpdateMenuDescriptions[UPDATE descriptions]
     UpdateDescriptions -->|No| NotifyPOS
     UpdateMenuDescriptions --> NotifyPOS[Notify POS system]
@@ -1150,7 +1151,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Forecast Generation Triggered]) --> TriggerType{Trigger<br/>type?}
+    Start([Forecast Generation Triggered]) --> TriggerType{Trigger<br>type?}
     TriggerType -->|Scheduled| DailyForecast[Daily forecast at 3 AM]
     TriggerType -->|Manual| UserRequested[User requested forecast]
     TriggerType -->|Event| EventBased[Event-based trigger]
@@ -1159,7 +1160,7 @@ flowchart TD
     UserRequested --> SelectItems
     EventBased --> SelectItems[Select items to forecast]
 
-    SelectItems --> ItemScope{Forecast<br/>scope?}
+    SelectItems --> ItemScope{Forecast<br>scope?}
     ItemScope -->|All Active| AllItems[All active menu items]
     ItemScope -->|Category| CategoryItems[Items in selected category]
     ItemScope -->|Classification| ClassItems[Items by classification]
@@ -1170,7 +1171,7 @@ flowchart TD
     ClassItems --> SetTimeframe
     SpecificItems --> SetTimeframe[Set forecast timeframe]
 
-    SetTimeframe --> TimeOptions{Forecast<br/>period?}
+    SetTimeframe --> TimeOptions{Forecast<br>period?}
     TimeOptions -->|Next Week| NextWeek[7-day forecast]
     TimeOptions -->|Next Month| NextMonth[30-day forecast]
     TimeOptions -->|Next Quarter| NextQuarter[90-day forecast]
@@ -1195,24 +1196,24 @@ flowchart TD
     SetAlpha --> DefaultAlpha[Default: α = 0.3]
     DefaultAlpha --> FetchHistorical
 
-    SeasonalDecomp --> RequireHistory{Sufficient<br/>history?}
+    SeasonalDecomp --> RequireHistory{Sufficient<br>history?}
     RequireHistory -->|<1 year| WarnInsufficient[Warning: Insufficient data]
     WarnInsufficient --> FallbackMethod[Fallback to exponential smoothing]
     FallbackMethod --> FetchHistorical
     RequireHistory -->|≥1 year| FetchHistorical
 
     MachineLearning --> LoadMLModel[Load trained ML model]
-    LoadMLModel --> CheckModel{Model<br/>available?}
+    LoadMLModel --> CheckModel{Model<br>available?}
     CheckModel -->|No| TrainModel[Train new model]
     TrainModel --> FetchHistorical
     CheckModel -->|Yes| FetchHistorical[Fetch historical sales data]
 
     FetchHistorical --> TimeRange[Determine required history]
-    TimeRange --> MovingAvgHistory{Method =<br/>Moving Avg?}
+    TimeRange --> MovingAvgHistory{Method =<br>Moving Avg?}
     MovingAvgHistory -->|Yes| GetLastNDays[Get last N days window × 2]
-    MovingAvgHistory -->|No| ExponentialHistory{Method =<br/>Exponential?}
+    MovingAvgHistory -->|No| ExponentialHistory{Method =<br>Exponential?}
     ExponentialHistory -->|Yes| GetLast90Days[Get last 90 days]
-    ExponentialHistory -->|No| SeasonalHistory{Method =<br/>Seasonal?}
+    ExponentialHistory -->|No| SeasonalHistory{Method =<br>Seasonal?}
     SeasonalHistory -->|Yes| GetLastYear[Get last 365+ days]
     SeasonalHistory -->|No| GetLast180Days[Get last 180 days for ML]
 
@@ -1224,19 +1225,19 @@ flowchart TD
     QuerySales --> FilterByItem[Filter by selected items]
     FilterByItem --> GroupByDay[Group by date]
     GroupByDay --> CalcDailySales[Calculate daily unit sales]
-    CalcDailySales --> HandleMissing{Missing<br/>days?}
+    CalcDailySales --> HandleMissing{Missing<br>days?}
     HandleMissing -->|Yes| FillZeros[Fill missing days with 0]
     HandleMissing -->|No| CheckDataQuality
     FillZeros --> CheckDataQuality[Check data quality]
 
-    CheckDataQuality --> SufficientData{Sufficient<br/>data points?}
+    CheckDataQuality --> SufficientData{Sufficient<br>data points?}
     SufficientData -->|No| ErrorInsufficient[Error: Insufficient data]
     ErrorInsufficient --> End([End - Error])
 
     SufficientData -->|Yes| DetectOutliers[Detect outliers]
     DetectOutliers --> IQRMethod[Use IQR method]
     IQRMethod --> MarkOutliers[Mark outliers]
-    MarkOutliers --> UserChoice{Handle<br/>outliers?}
+    MarkOutliers --> UserChoice{Handle<br>outliers?}
     UserChoice -->|Remove| RemoveOutliers[Remove outliers]
     UserChoice -->|Keep| KeepOutliers[Keep all data]
     UserChoice -->|Adjust| AdjustOutliers[Adjust to threshold]
@@ -1250,7 +1251,7 @@ flowchart TD
     CalcMovingAvg --> ForEachDay1[For each forecast day]
     ForEachDay1 --> AvgLastN[Avg = SUM last N days / N]
     AvgLastN --> ForecastDay1[Forecast = Avg]
-    ForecastDay1 --> NextDay1{More<br/>days?}
+    ForecastDay1 --> NextDay1{More<br>days?}
     NextDay1 -->|Yes| ForEachDay1
     NextDay1 -->|No| CalculateConfidence
 
@@ -1259,7 +1260,7 @@ flowchart TD
     InitSmooth --> ForEachDay2[For each forecast day]
     ForEachDay2 --> SmoothFormula[Sₜ = α × Yₜ + 1 - α × Sₜ₋₁]
     SmoothFormula --> ForecastDay2[Forecast = Sₜ]
-    ForecastDay2 --> NextDay2{More<br/>days?}
+    ForecastDay2 --> NextDay2{More<br>days?}
     NextDay2 -->|Yes| ForEachDay2
     NextDay2 -->|No| CalculateConfidence
 
@@ -1272,7 +1273,7 @@ flowchart TD
     ForEachDay3 --> ApplyTrend[Apply trend]
     ApplyTrend --> ApplySeason[Apply seasonal factor]
     ApplySeason --> ForecastDay3[Forecast = Trend × Seasonal]
-    ForecastDay3 --> NextDay3{More<br/>days?}
+    ForecastDay3 --> NextDay3{More<br>days?}
     NextDay3 -->|Yes| ForEachDay3
     NextDay3 -->|No| CalculateConfidence
 
@@ -1294,10 +1295,10 @@ flowchart TD
     LowerBound --> UpperBound[Upper bound]
 
     UpperBound --> ValidateForecast[Validate forecasts]
-    ValidateForecast --> CheckNegative{Negative<br/>values?}
+    ValidateForecast --> CheckNegative{Negative<br>values?}
     CheckNegative -->|Yes| SetZero[Set to 0 minimum]
     CheckNegative -->|No| CheckRealistic
-    SetZero --> CheckRealistic{Values<br/>realistic?}
+    SetZero --> CheckRealistic{Values<br>realistic?}
     CheckRealistic -->|No| AdjustForecast[Apply business rules]
     AdjustForecast --> CapMaximum[Cap at historical maximum × 1.5]
     CapMaximum --> FloorMinimum[Floor at historical minimum × 0.5]
@@ -1311,7 +1312,7 @@ flowchart TD
     MarginCalc --> AddMenuMixForecast[Calculate menu mix forecast]
     AddMenuMixForecast --> MixCalc[Menu Mix = Units / Total Units]
 
-    MixCalc --> CheckAccuracy{Historical<br/>accuracy available?}
+    MixCalc --> CheckAccuracy{Historical<br>accuracy available?}
     CheckAccuracy -->|Yes| CalcMAPE[Calculate MAPE]
     CalcMAPE --> MAPEFormula[MAPE = AVG Actual - Forecast / Actual × 100]
     MAPEFormula --> StoreAccuracy[Store accuracy metrics]
@@ -1319,7 +1320,7 @@ flowchart TD
     CheckAccuracy -->|No| SaveForecast[Save forecast to database]
 
     SaveForecast --> BeginTransaction[Begin transaction]
-    BeginTransaction --> CheckExisting{Forecast exists<br/>for period?}
+    BeginTransaction --> CheckExisting{Forecast exists<br>for period?}
     CheckExisting -->|Yes| UpdateForecast[UPDATE existing forecast]
     CheckExisting -->|No| InsertForecast[INSERT new forecast]
 
@@ -1331,7 +1332,7 @@ flowchart TD
     MetaParams --> MetaGenerated[Generated at timestamp]
     MetaGenerated --> MetaAccuracy[Accuracy metrics]
 
-    MetaAccuracy --> CommitTrans{Commit<br/>success?}
+    MetaAccuracy --> CommitTrans{Commit<br>success?}
     CommitTrans -->|No| Rollback[Rollback]
     Rollback --> LogError[Log error]
     LogError --> End
@@ -1376,13 +1377,13 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User clicks Bulk Update]) --> SelectItems[Select items to update]
-    SelectItems --> SelectionMethod{Selection<br/>method?}
+    SelectItems --> SelectionMethod{Selection<br>method?}
 
     SelectionMethod -->|Manual| CheckboxSelect[Checkbox selection]
-    CheckboxSelect --> UserChecks{User checks<br/>items}
+    CheckboxSelect --> UserChecks{User checks<br>items}
     UserChecks --> CountSelected[Count selected items]
     CountSelected --> ShowCount[Show: X items selected]
-    ShowCount --> ConfirmSelection{Confirm<br/>selection?}
+    ShowCount --> ConfirmSelection{Confirm<br>selection?}
     ConfirmSelection -->|No| UserChecks
     ConfirmSelection -->|Yes| SelectUpdateType
 
@@ -1400,12 +1401,12 @@ flowchart TD
     ApplyStatusFilter --> ExecuteFilters[Execute filters]
     ExecuteFilters --> ShowFiltered[Show filtered items]
     ShowFiltered --> CountFiltered[Count: Y items]
-    CountFiltered --> ReviewFiltered{Review<br/>selection?}
+    CountFiltered --> ReviewFiltered{Review<br>selection?}
     ReviewFiltered -->|Adjust| SelectFilters
     ReviewFiltered -->|Confirm| SelectUpdateType
 
     SelectionMethod -->|Classification| ClassificationBased[By classification]
-    ClassificationBased --> SelectClass{Select<br/>classification}
+    ClassificationBased --> SelectClass{Select<br>classification}
     SelectClass -->|Stars| SelectStars[Select all Stars]
     SelectClass -->|Plowhorses| SelectPlowhorses[Select all Plowhorses]
     SelectClass -->|Puzzles| SelectPuzzles[Select all Puzzles]
@@ -1415,10 +1416,10 @@ flowchart TD
     SelectPuzzles --> SelectUpdateType
     SelectDogs --> SelectUpdateType
 
-    SelectUpdateType[Select update type] --> UpdateOptions{Update<br/>type?}
+    SelectUpdateType[Select update type] --> UpdateOptions{Update<br>type?}
 
     UpdateOptions -->|Price| BulkPrice[Bulk price adjustment]
-    BulkPrice --> PriceMethod{Adjustment<br/>method?}
+    BulkPrice --> PriceMethod{Adjustment<br>method?}
     PriceMethod -->|Percentage| PercentIncrease[Percentage increase/decrease]
     PercentIncrease --> EnterPercent[Enter percentage +/-]
     EnterPercent --> ShowPricePreview[Show preview]
@@ -1436,18 +1437,18 @@ flowchart TD
     CalcNewPrices --> PriceFormula[Price = Food Cost / Target%]
     PriceFormula --> ApplyPsychPricing[Apply psychological pricing]
     ApplyPsychPricing --> ShowMarginPreview[Show preview]
-    ShowMarginPreview --> ValidatePrice{Validate<br/>prices?}
+    ShowMarginPreview --> ValidatePrice{Validate<br>prices?}
 
     ValidatePrice -->|Invalid| ShowPriceErrors[Show validation errors]
     ShowPriceErrors --> PriceMethod
-    ValidatePrice -->|Valid| CheckApprovalPrice{Requires<br/>approval?}
+    ValidatePrice -->|Valid| CheckApprovalPrice{Requires<br>approval?}
     CheckApprovalPrice -->|Yes| RequestApprovalPrice[Request approval]
     RequestApprovalPrice --> PendingStatus
     CheckApprovalPrice -->|No| ApplyBulkUpdate
 
     UpdateOptions -->|Category| BulkCategory[Bulk category change]
     BulkCategory --> SelectNewCategory[Select new category]
-    SelectNewCategory --> ConfirmCategoryChange{Confirm<br/>change?}
+    SelectNewCategory --> ConfirmCategoryChange{Confirm<br>change?}
     ConfirmCategoryChange -->|No| End([End - Cancelled])
     ConfirmCategoryChange -->|Yes| ApplyBulkUpdate
 
@@ -1478,7 +1479,7 @@ flowchart TD
     SelectNewTags --> ApplyBulkUpdate
 
     UpdateOptions -->|Cost| BulkCostUpdate[Bulk cost parameters]
-    BulkCostUpdate --> CostParam{Cost<br/>parameter}
+    BulkCostUpdate --> CostParam{Cost<br>parameter}
     CostParam -->|Labor| UpdateLabor[Update labor percentage]
     UpdateLabor --> EnterLaborPercent[Enter new labor %]
     EnterLaborPercent --> ApplyBulkUpdate
@@ -1486,7 +1487,7 @@ flowchart TD
     UpdateOverhead --> EnterOverheadPercent[Enter new overhead %]
     EnterOverheadPercent --> ApplyBulkUpdate
 
-    ApplyBulkUpdate[Apply bulk update] --> ValidateBulk{Validate all<br/>changes?}
+    ApplyBulkUpdate[Apply bulk update] --> ValidateBulk{Validate all<br>changes?}
     ValidateBulk -->|Invalid| ShowBulkErrors[Show errors by item]
     ShowBulkErrors --> FixErrors{Fix errors}
     FixErrors -->|Yes| SelectUpdateType
@@ -1497,7 +1498,7 @@ flowchart TD
     SummaryItems --> SummaryType[Update type: Type]
     SummaryType --> SummaryChange[Changes: Description]
     SummaryChange --> SummaryImpact[Estimated impact]
-    SummaryImpact --> UserFinalConfirm{Final<br/>confirmation?}
+    SummaryImpact --> UserFinalConfirm{Final<br>confirmation?}
 
     UserFinalConfirm -->|No| End
     UserFinalConfirm -->|Yes| BeginTransaction[Begin transaction]
@@ -1513,34 +1514,34 @@ flowchart TD
     UpdateItem --> RecordChange[INSERT change history]
     RecordChange --> ItemSuccess{Success?}
     ItemSuccess -->|No| ItemError[Record error]
-    ItemError --> ContinueOrStop{Continue<br/>processing?}
+    ItemError --> ContinueOrStop{Continue<br>processing?}
     ContinueOrStop -->|No| Rollback[Rollback transaction]
     Rollback --> LogBulkError[Log batch error]
     LogBulkError --> End
     ContinueOrStop -->|Yes| NextItem
 
     ItemSuccess -->|Yes| IncrementSuccess[Increment success count]
-    IncrementSuccess --> NextItem{More<br/>items?}
+    IncrementSuccess --> NextItem{More<br>items?}
     NextItem -->|Yes| ItemLoop
     NextItem -->|No| RecalculateCosts[Recalculate costs if needed]
 
     RecalculateCosts --> InvalidateCaches[Invalidate caches]
     InvalidateCaches --> CachePerformance[Invalidate performance cache]
     CachePerformance --> CacheMatrix[Invalidate matrix cache]
-    CacheMatrix --> CommitTrans{Commit<br/>success?}
+    CacheMatrix --> CommitTrans{Commit<br>success?}
 
     CommitTrans -->|No| Rollback
     CommitTrans -->|Yes| UpdateBatchStatus[Update batch status: completed]
     UpdateBatchStatus --> NotifyPOS[Notify POS system]
     NotifyPOS --> SendBulkUpdate[Send bulk update API call]
-    SendBulkUpdate --> POSResponse{POS<br/>confirms?}
+    SendBulkUpdate --> POSResponse{POS<br>confirms?}
     POSResponse -->|No| WarnPOSSync[Warning: POS sync issue]
     WarnPOSSync --> LogPOSIssue[Log POS sync issue]
     LogPOSIssue --> ShowPartialSuccess
 
     POSResponse -->|Yes| ShowSuccessMsg[Show success message]
     ShowSuccessMsg --> SuccessCount[Updated X of Y items]
-    SuccessCount --> ShowPartialSuccess{All<br/>successful?}
+    SuccessCount --> ShowPartialSuccess{All<br>successful?}
     ShowPartialSuccess -->|No| ListErrors[List failed items]
     ListErrors --> OfferRetry[Offer retry option]
     OfferRetry --> EndPartial
@@ -1567,11 +1568,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Error Detected]) --> ErrorType{Error<br/>type?}
+    Start([Error Detected]) --> ErrorType{Error<br>type?}
 
     ErrorType -->|Network| NetworkError[Network error]
     NetworkError --> CheckConnectivity[Check connectivity]
-    CheckConnectivity --> Ping{Ping<br/>successful?}
+    CheckConnectivity --> Ping{Ping<br>successful?}
     Ping -->|No| OfflineMode[Enter offline mode]
     OfflineMode --> QueueOperations[Queue operations]
     QueueOperations --> ShowOfflineMsg[Show: Working offline]
@@ -1583,7 +1584,7 @@ flowchart TD
     OperationSuccess1 -->|Yes| ClearError1[Clear error state]
     ClearError1 --> End([End - Recovered])
     OperationSuccess1 -->|No| IncrementRetry1[Increment retry count]
-    IncrementRetry1 --> CheckRetryLimit1{Retry count<br/><3?}
+    IncrementRetry1 --> CheckRetryLimit1{Retry count<br><3?}
     CheckRetryLimit1 -->|Yes| ExponentialBackoff1[Exponential backoff]
     ExponentialBackoff1 --> RetryOperation
     CheckRetryLimit1 -->|No| ShowPermanentError1[Show: Permanent error]
@@ -1591,10 +1592,10 @@ flowchart TD
     LogError1 --> End
 
     ErrorType -->|Database| DatabaseError[Database error]
-    DatabaseError --> CheckDBType{DB error<br/>type?}
+    DatabaseError --> CheckDBType{DB error<br>type?}
     CheckDBType -->|Connection| DBConnection[Connection error]
     DBConnection --> CheckPool[Check connection pool]
-    CheckPool --> PoolExhausted{Pool<br/>exhausted?}
+    CheckPool --> PoolExhausted{Pool<br>exhausted?}
     PoolExhausted -->|Yes| WaitForConnection[Wait for available connection]
     WaitForConnection --> Timeout{Timeout?}
     Timeout -->|Yes| ShowDBError[Show: Database timeout]
@@ -1606,7 +1607,7 @@ flowchart TD
     DBSuccess -->|No| WaitForConnection
 
     PoolExhausted -->|No| CheckDBHealth[Check DB health]
-    CheckDBHealth --> DBHealthy{DB<br/>healthy?}
+    CheckDBHealth --> DBHealthy{DB<br>healthy?}
     DBHealthy -->|No| AlertDBA[Alert DBA]
     AlertDBA --> ShowMaintenanceMode[Show: Maintenance mode]
     ShowMaintenanceMode --> End
@@ -1614,15 +1615,15 @@ flowchart TD
 
     CheckDBType -->|Constraint| ConstraintViolation[Constraint violation]
     ConstraintViolation --> ParseConstraint[Parse constraint error]
-    ParseConstraint --> UniqueViolation{Unique<br/>violation?}
+    ParseConstraint --> UniqueViolation{Unique<br>violation?}
     UniqueViolation -->|Yes| ShowDuplicateError[Show: Duplicate entry]
     ShowDuplicateError --> SuggestFix[Suggest: Use different value]
     SuggestFix --> End
-    UniqueViolation -->|No| ForeignKeyViolation{Foreign key<br/>violation?}
+    UniqueViolation -->|No| ForeignKeyViolation{Foreign key<br>violation?}
     ForeignKeyViolation -->|Yes| ShowFKError[Show: Referenced record missing]
     ShowFKError --> SuggestCreate[Suggest: Create parent record first]
     SuggestCreate --> End
-    ForeignKeyViolation -->|No| CheckConstraint{Check<br/>constraint?}
+    ForeignKeyViolation -->|No| CheckConstraint{Check<br>constraint?}
     CheckConstraint -->|Yes| ShowCheckError[Show: Invalid value]
     ShowCheckError --> ExplainConstraint[Explain constraint rule]
     ExplainConstraint --> End
@@ -1636,7 +1637,7 @@ flowchart TD
     RetryTrans --> TransSuccess{Success?}
     TransSuccess -->|Yes| End
     TransSuccess -->|No| IncrementRetryDB[Increment retry count]
-    IncrementRetryDB --> CheckRetryLimitDB{Retry<br/><5?}
+    IncrementRetryDB --> CheckRetryLimitDB{Retry<br><5?}
     CheckRetryLimitDB -->|Yes| RollbackTrans
     CheckRetryLimitDB -->|No| ShowDeadlockError[Show: Transaction failed]
     ShowDeadlockError --> LogDBError
@@ -1650,22 +1651,22 @@ flowchart TD
     FocusFirst --> WaitUserFix[Wait for user correction]
     WaitUserFix --> UserFixesField[User fixes field]
     UserFixesField --> RevalidateField[Revalidate field]
-    RevalidateField --> FieldValid{Field<br/>valid?}
+    RevalidateField --> FieldValid{Field<br>valid?}
     FieldValid -->|No| ShowFieldError[Show field error]
     ShowFieldError --> WaitUserFix
     FieldValid -->|Yes| ClearFieldError[Clear field error]
-    ClearFieldError --> AllFieldsValid{All fields<br/>valid?}
+    ClearFieldError --> AllFieldsValid{All fields<br>valid?}
     AllFieldsValid -->|No| WaitUserFix
     AllFieldsValid -->|Yes| End
 
     ErrorType -->|POS Sync| POSSyncError[POS sync error]
-    POSSyncError --> CheckPOSConnection{POS<br/>reachable?}
+    POSSyncError --> CheckPOSConnection{POS<br>reachable?}
     CheckPOSConnection -->|No| QueuePOSUpdate[Queue POS update]
     QueuePOSUpdate --> ScheduleRetry[Schedule retry in 5 min]
     ScheduleRetry --> ShowPOSWarning[Show: POS will sync later]
     ShowPOSWarning --> EnableManualSync[Enable manual sync button]
     EnableManualSync --> End
-    CheckPOSConnection -->|Yes| CheckPOSError{POS error<br/>type?}
+    CheckPOSConnection -->|Yes| CheckPOSError{POS error<br>type?}
     CheckPOSError -->|Auth| POSAuthError[POS authentication failed]
     POSAuthError --> RefreshPOSToken[Refresh API token]
     RefreshPOSToken --> RetryPOS[Retry POS sync]
@@ -1682,7 +1683,7 @@ flowchart TD
     ManualIntervention --> End
 
     ErrorType -->|Cache| CacheError[Cache error]
-    CacheError --> CheckRedis{Redis<br/>available?}
+    CacheError --> CheckRedis{Redis<br>available?}
     CheckRedis -->|No| BypassCache[Bypass cache]
     BypassCache --> FetchFromDB[Fetch from database directly]
     FetchFromDB --> ShowCacheWarning[Show: Cache unavailable]
@@ -1692,31 +1693,31 @@ flowchart TD
     RefreshCache --> End
 
     ErrorType -->|Calculation| CalculationError[Calculation error]
-    CalculationError --> CheckDivideZero{Divide by<br/>zero?}
+    CalculationError --> CheckDivideZero{Divide by<br>zero?}
     CheckDivideZero -->|Yes| HandleZero[Handle zero case]
     HandleZero --> SetDefault[Set default value]
     SetDefault --> LogCalcError[Log calculation error]
     LogCalcError --> End
-    CheckDivideZero -->|No| CheckOverflow{Numeric<br/>overflow?}
+    CheckDivideZero -->|No| CheckOverflow{Numeric<br>overflow?}
     CheckOverflow -->|Yes| CapValue[Cap to maximum]
     CapValue --> ShowWarningCalc[Show: Value capped]
     ShowWarningCalc --> LogCalcError
-    CheckOverflow -->|No| CheckNaN{NaN<br/>detected?}
+    CheckOverflow -->|No| CheckNaN{NaN<br>detected?}
     CheckNaN -->|Yes| SetZero[Set to zero]
     SetZero --> LogCalcError
     CheckNaN -->|No| UnknownCalcError[Unknown calculation error]
     UnknownCalcError --> LogCalcError
 
     ErrorType -->|Permission| PermissionError[Permission denied]
-    PermissionError --> CheckAuth{User<br/>authenticated?}
+    PermissionError --> CheckAuth{User<br>authenticated?}
     CheckAuth -->|No| RedirectLogin[Redirect to login]
     RedirectLogin --> End
-    CheckAuth -->|Yes| CheckRole{Has required<br/>role?}
+    CheckAuth -->|Yes| CheckRole{Has required<br>role?}
     CheckRole -->|No| ShowPermissionError[Show: Insufficient permissions]
     ShowPermissionError --> SuggestContact[Suggest: Contact administrator]
     SuggestContact --> LogPermissionError[Log permission error]
     LogPermissionError --> End
-    CheckRole -->|Yes| CheckResourceAccess{Has resource<br/>access?}
+    CheckRole -->|Yes| CheckResourceAccess{Has resource<br>access?}
     CheckResourceAccess -->|No| ShowAccessError[Show: No access to resource]
     ShowAccessError --> LogPermissionError
     CheckResourceAccess -->|Yes| UnexpectedPermError[Unexpected permission error]

@@ -23,6 +23,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -36,7 +37,7 @@ flowchart TD
     Start([System Admin Clicks New User]) --> OpenForm[Open User Creation Form]
     OpenForm --> Tab1[Display Basic Information Tab]
 
-    Tab1 --> EnterBasic{Enter Basic Info:<br/>Name, Email, Bio}
+    Tab1 --> EnterBasic{Enter Basic Info:<br>Name, Email, Bio}
     EnterBasic -->|Invalid| ShowError1[Show Validation Errors]
     ShowError1 --> EnterBasic
     EnterBasic -->|Valid| Tab2[Navigate to Dept & Location Tab]
@@ -117,7 +118,7 @@ Modify existing user profile with full audit trail.
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Edit]) --> CheckPerm{Has user:update<br/>Permission?}
+    Start([User Clicks Edit]) --> CheckPerm{Has user:update<br>Permission?}
     CheckPerm -->|No| Denied[Display: Access Denied]
     Denied --> End1([Redirect to Dashboard])
 
@@ -203,25 +204,25 @@ Soft delete user with validation to prevent data integrity issues.
 flowchart TD
     Start([Admin Clicks Delete]) --> Confirm{Confirmation Dialog}
     Confirm -->|Cancel| End1([No Action])
-    Confirm -->|Confirm| CheckPerm{Has user:delete<br/>Permission?}
+    Confirm -->|Confirm| CheckPerm{Has user:delete<br>Permission?}
 
     CheckPerm -->|No| Denied[Display: Access Denied]
     Denied --> End2([Return to Previous View])
 
-    CheckPerm -->|Yes| CheckTransactions{User Has Active<br/>Transactions?}
-    CheckTransactions -->|Yes| ShowError[Display: Cannot Delete User<br/>with Active Transactions]
+    CheckPerm -->|Yes| CheckTransactions{User Has Active<br>Transactions?}
+    CheckTransactions -->|Yes| ShowError[Display: Cannot Delete User<br>with Active Transactions]
     ShowError --> SuggestDeactivate[Suggest: Deactivate Instead]
     SuggestDeactivate --> End3([Return to User View])
 
-    CheckTransactions -->|No| CheckWorkflows{User Has Pending<br/>Workflows/Approvals?}
-    CheckWorkflows -->|Yes| ShowWorkflowError[Display: Cannot Delete User<br/>with Pending Approvals]
+    CheckTransactions -->|No| CheckWorkflows{User Has Pending<br>Workflows/Approvals?}
+    CheckWorkflows -->|Yes| ShowWorkflowError[Display: Cannot Delete User<br>with Pending Approvals]
     ShowWorkflowError --> SuggestReassign[Suggest: Reassign Workflows First]
     SuggestReassign --> End4([Return to User View])
 
     CheckWorkflows -->|No| StartTxn[Begin Transaction]
-    StartTxn --> SoftDeleteProfile[Set deleted_at, deleted_by_id<br/>in tb_user_profile]
-    SoftDeleteProfile --> SoftDeleteDepts[Set deleted_at in<br/>tb_department_user records]
-    SoftDeleteDepts --> SoftDeleteLocs[Set deleted_at in<br/>tb_user_location records]
+    StartTxn --> SoftDeleteProfile[Set deleted_at, deleted_by_id<br>in tb_user_profile]
+    SoftDeleteProfile --> SoftDeleteDepts[Set deleted_at in<br>tb_department_user records]
+    SoftDeleteDepts --> SoftDeleteLocs[Set deleted_at in<br>tb_user_location records]
     SoftDeleteLocs --> RevokeRoles[Revoke All Role Assignments]
     RevokeRoles --> RevokeSessions[Revoke All Active Sessions]
     RevokeSessions --> LogDeletion[Log Deletion in Audit Trail]
@@ -566,7 +567,7 @@ flowchart TD
     ClickAdvanced --> ShowBuilder[Display Advanced Filter Builder]
     ShowBuilder --> AddCondition[Add Filter Condition]
     AddCondition --> SelectField[Select Field]
-    SelectField --> SelectOperator[Select Operator:<br/>equals, contains, >, <, etc.]
+    SelectField --> SelectOperator[Select Operator:<br>equals, contains, >, <, etc.]
     SelectOperator --> EnterValue[Enter Value]
     EnterValue --> MoreConditions{Add More Conditions?}
 
@@ -623,7 +624,7 @@ flowchart TD
     CreateInvite --> SetStatus[Status = Pending]
     SetStatus --> ComposeEmail[Compose Invitation Email]
 
-    ComposeEmail --> EmailContent[Include: Registration Link,<br/>Role Info, Company Info]
+    ComposeEmail --> EmailContent[Include: Registration Link,<br>Role Info, Company Info]
     EmailContent --> SendEmail[Send via Email Service]
     SendEmail --> EmailSuccess{Email Sent?}
 
@@ -637,9 +638,9 @@ flowchart TD
     LogInvite --> ShowSuccess[Show: Invitation Sent Successfully]
     ShowSuccess --> End3([Return to User List])
 
-    subgraph "Recipient Flow"
+    subgraph 'Recipient Flow'
         R1([User Receives Email]) --> R2[Click Registration Link]
-        R2 --> R3{Token Valid &<br/>Not Expired?}
+        R2 --> R3{Token Valid &<br>Not Expired?}
         R3 -->|No| R4[Show: Invalid or Expired Link]
         R3 -->|Yes| R5[Display Registration Form]
         R5 --> R6[Pre-fill Email & Role]
@@ -647,7 +648,7 @@ flowchart TD
         R7 --> R8[User Sets Password]
         R8 --> R9[Click Complete Registration]
         R9 --> R10[Create User Account]
-        R10 --> R11[Update Invitation Status:<br/>Accepted]
+        R10 --> R11[Update Invitation Status:<br>Accepted]
         R11 --> R12[Send Welcome Email]
         R12 --> R13([Redirect to Login])
     end
@@ -685,22 +686,22 @@ flowchart TD
 
     FetchUserRoles --> FetchPolicies[Fetch Policies for Roles]
     FetchPolicies --> BuildPermSet[Build Effective Permission Set]
-    BuildPermSet --> CheckAction{Action in<br/>Permission Set?}
+    BuildPermSet --> CheckAction{Action in<br>Permission Set?}
 
-    CheckAction -->|No| CheckSpecial{Has Special<br/>Permission?}
+    CheckAction -->|No| CheckSpecial{Has Special<br>Permission?}
     CheckSpecial -->|No| LogDenied[Log Access Denied]
     LogDenied --> ShowDenied[Display: Access Denied]
     ShowDenied --> End1([Redirect to Previous Page])
 
-    CheckSpecial -->|Yes| ValidateSpecial{Special Permission<br/>Still Valid?}
+    CheckSpecial -->|Yes| ValidateSpecial{Special Permission<br>Still Valid?}
     ValidateSpecial -->|Expired| LogDenied
     ValidateSpecial -->|Valid| CheckConstraints
 
-    CheckAction -->|Yes| CheckConstraints{Additional<br/>Constraints?}
-    CheckConstraints -->|Department Scope| ValidateDept{User in Same<br/>Department?}
-    CheckConstraints -->|Location Scope| ValidateLoc{User at Same<br/>Location?}
-    CheckConstraints -->|Approval Limit| ValidateLimit{Within Approval<br/>Limit?}
-    CheckConstraints -->|Clearance Level| ValidateClearance{Clearance<br/>Sufficient?}
+    CheckAction -->|Yes| CheckConstraints{Additional<br>Constraints?}
+    CheckConstraints -->|Department Scope| ValidateDept{User in Same<br>Department?}
+    CheckConstraints -->|Location Scope| ValidateLoc{User at Same<br>Location?}
+    CheckConstraints -->|Approval Limit| ValidateLimit{Within Approval<br>Limit?}
+    CheckConstraints -->|Clearance Level| ValidateClearance{Clearance<br>Sufficient?}
     CheckConstraints -->|None| GrantAccess
 
     ValidateDept -->|No| LogDenied

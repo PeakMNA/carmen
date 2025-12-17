@@ -101,7 +101,7 @@ export function CountDetailForm({ onClose, onSubmit }: CountDetailFormProps) {
             <div className="flex items-center gap-2">
               <Package className="h-4 w-4 text-gray-400" />
               <span className="text-sm font-medium">Reference:</span>
-              <span className="text-sm">PC-2024-001</span>
+              <span className="text-sm">PC-2410-001</span>
             </div>
           </div>
         </div>

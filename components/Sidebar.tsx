@@ -146,6 +146,7 @@ const menuItems: MenuItem[] = [
       },
       { name: "Transactions", path: "/inventory-management/transactions" },
       { name: "Inventory Adjustments", path: "/inventory-management/inventory-adjustments" },
+      { name: "Transaction Categories", path: "/inventory-management/transaction-categories" },
       { name: "Spot Check", path: "/inventory-management/spot-check" },
       { name: "Physical Count", path: "/inventory-management/physical-count-management" },
       { name: "Period End", path: "/inventory-management/period-end" },
@@ -156,29 +157,20 @@ const menuItems: MenuItem[] = [
     path: "/operational-planning",
     icon: "CalendarClock",
     subItems: [
-      { 
-        name: "Recipe Management", 
+      {
+        name: "Recipe Management",
         path: "/operational-planning/recipe-management",
         subItems: [
           { name: "Recipe Library", path: "/operational-planning/recipe-management/recipes" },
           { name: "Categories", path: "/operational-planning/recipe-management/categories" },
           { name: "Cuisine Types", path: "/operational-planning/recipe-management/cuisine-types" },
+          { name: "Equipment", path: "/operational-planning/recipe-management/equipment" },
+          { name: "Recipe Units", path: "/operational-planning/recipe-management/units" },
         ]
       },
       { name: "Menu Engineering", path: "/operational-planning/menu-engineering" },
       { name: "Demand Forecasting", path: "/operational-planning/demand-forecasting" },
       { name: "Inventory Planning", path: "/operational-planning/inventory-planning" },
-    ],
-  },
-  {
-    title: "Production",
-    path: "/production",
-    icon: "Factory",
-    subItems: [
-      { name: "Recipe Execution", path: "/production/recipe-execution" },
-      { name: "Batch Production", path: "/production/batch-production" },
-      { name: "Wastage Tracking", path: "/production/wastage-tracking" },
-      { name: "Quality Control", path: "/production/quality-control" },
     ],
   },
   {
@@ -240,17 +232,18 @@ const menuItems: MenuItem[] = [
         ]
       },
       {
-        name: "System Integrations", 
-        path: "/system-administration/system-integrations",
+        name: "System Integrations",
+        path: "/system-administration/system-integration",
         subItems: [
-          { 
-            name: "POS Integration", 
-            path: "/system-administration/system-integrations/pos",
+          {
+            name: "POS Integration",
+            path: "/system-administration/system-integration/pos",
             subItems: [
-              { name: "Dashboard", path: "/system-administration/system-integrations/pos" },
-              { name: "Mapping", path: "/system-administration/system-integrations/pos/mapping/recipes" },
-              { name: "Transactions", path: "/system-administration/system-integrations/pos/transactions" },
-              { name: "Settings", path: "/system-administration/system-integrations/pos/settings" },
+              { name: "Dashboard", path: "/system-administration/system-integration/pos" },
+              { name: "Mapping", path: "/system-administration/system-integration/pos?tab=mapping" },
+              { name: "Transactions", path: "/system-administration/system-integration/pos?tab=transactions" },
+              { name: "Configuration", path: "/system-administration/system-integration/pos?tab=config" },
+              { name: "Reports", path: "/system-administration/system-integration/pos?tab=reports" },
             ]
           },
         ]

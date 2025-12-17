@@ -37,20 +37,20 @@ This document provides visual flow diagrams for all major workflows in the Purch
 flowchart TD
     Start([Start]) --> ClickNew[User clicks 'New Template']
     ClickNew --> DisplayForm[Display template creation form]
-    DisplayForm --> EnterData[User enters:<br/>- Description<br/>- Department<br/>- Request Type]
+    DisplayForm --> EnterData[User enters:<br>- Description<br>- Department<br>- Request Type]
     EnterData --> ClickCreate[User clicks 'Create']
-    ClickCreate --> ValidateClient{Validate input<br/>client-side}
+    ClickCreate --> ValidateClient{Validate input<br>client-side}
 
     ValidateClient -->|Invalid| DisplayErrors[Display validation errors]
     DisplayErrors --> CorrectErrors[User corrects errors]
     CorrectErrors --> ClickCreate
 
-    ValidateClient -->|Valid| CallServer[Call server action:<br/>createTemplate]
-    CallServer --> GenerateNum[Generate template number<br/>TPL-YY-NNNN]
-    GenerateNum --> InsertDB[Insert template record<br/>to database]
+    ValidateClient -->|Valid| CallServer[Call server action:<br>createTemplate]
+    CallServer --> GenerateNum[Generate template number<br>TPL-YY-NNNN]
+    GenerateNum --> InsertDB[Insert template record<br>to database]
 
-    InsertDB -->|Success| LogActivity[Log activity:<br/>template_created]
-    LogActivity --> Navigate[Navigate to template<br/>detail page - edit mode]
+    InsertDB -->|Success| LogActivity[Log activity:<br>template_created]
+    LogActivity --> Navigate[Navigate to template<br>detail page - edit mode]
     Navigate --> ShowSuccess[Display success message]
     ShowSuccess --> EndSuccess([End])
 
@@ -69,32 +69,32 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> ClickAdd[User in edit mode<br/>clicks Add Item]
+    Start([Start]) --> ClickAdd[User in edit mode<br>clicks Add Item]
     ClickAdd --> ShowDialog[Display item form dialog]
-    ShowDialog --> EnterBasic[User enters:<br/>- Item code<br/>- Description<br/>- UOM<br/>- Quantity<br/>- Unit price<br/>- Currency]
-    EnterBasic --> Calculate[System calculates<br/>totalAmount = qty * unitPrice]
-    Calculate --> EnterFinancial[User enters financial coding:<br/>- Budget code<br/>- Account code<br/>- Department<br/>- Tax code]
+    ShowDialog --> EnterBasic[User enters:<br>- Item code<br>- Description<br>- UOM<br>- Quantity<br>- Unit price<br>- Currency]
+    EnterBasic --> Calculate[System calculates<br>totalAmount = qty * unitPrice]
+    Calculate --> EnterFinancial[User enters financial coding:<br>- Budget code<br>- Account code<br>- Department<br>- Tax code]
     EnterFinancial --> ClickAddBtn[User clicks Add]
-    ClickAddBtn --> ValidateZod{Validate all fields<br/>Zod schema}
+    ClickAddBtn --> ValidateZod{Validate all fields<br>Zod schema}
 
     ValidateZod -->|Invalid| ShowValidation[Display validation errors]
     ShowValidation --> CorrectItem[User corrects errors]
     CorrectItem --> ClickAddBtn
 
-    ValidateZod -->|Valid| CheckDuplicate{Check duplicate<br/>item code}
+    ValidateZod -->|Valid| CheckDuplicate{Check duplicate<br>item code}
 
-    CheckDuplicate -->|Duplicate| DupError[Display error:<br/>Item code already exists]
+    CheckDuplicate -->|Duplicate| DupError[Display error:<br>Item code already exists]
     DupError --> EndDup([End])
 
-    CheckDuplicate -->|Unique| CallAddItem[Call server action:<br/>addTemplateItem]
-    CallAddItem --> InsertItem[Insert item record<br/>Recalculate template total]
+    CheckDuplicate -->|Unique| CallAddItem[Call server action:<br>addTemplateItem]
+    CallAddItem --> InsertItem[Insert item record<br>Recalculate template total]
 
-    InsertItem -->|Success| LogItem[Log activity:<br/>item_added]
-    LogItem --> CloseDialog[Close dialog<br/>Refresh items list]
+    InsertItem -->|Success| LogItem[Log activity:<br>item_added]
+    LogItem --> CloseDialog[Close dialog<br>Refresh items list]
     CloseDialog --> ItemSuccess[Display success message]
     ItemSuccess --> EndSuccess([End])
 
-    InsertItem -->|Failure| KeepOpen[Display error<br/>Keep dialog open]
+    InsertItem -->|Failure| KeepOpen[Display error<br>Keep dialog open]
     KeepOpen --> EndFail([End])
 
     style Start fill:#e1f5fe
@@ -113,25 +113,25 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> ClickDefault[User clicks<br/>'Set as Default']
-    ClickDefault --> CheckCurrent{Check current<br/>default for dept}
+    Start([Start]) --> ClickDefault[User clicks<br>'Set as Default']
+    ClickDefault --> CheckCurrent{Check current<br>default for dept}
 
-    CheckCurrent -->|None exists| ProceedDirect[Proceed to set<br/>default directly]
+    CheckCurrent -->|None exists| ProceedDirect[Proceed to set<br>default directly]
 
-    CheckCurrent -->|Another exists| ShowConfirm[Display confirmation:<br/>'Replace TPL-XX-XXXX<br/>as default?']
+    CheckCurrent -->|Another exists| ShowConfirm[Display confirmation:<br>'Replace TPL-XX-XXXX<br>as default?']
     ShowConfirm --> UserDecides{User confirms?}
 
     UserDecides -->|Cancel| EndCancel([End])
     UserDecides -->|Confirm| CallSetDefault
 
-    ProceedDirect --> CallSetDefault[Call server action:<br/>setDefaultTemplate]
+    ProceedDirect --> CallSetDefault[Call server action:<br>setDefaultTemplate]
     CallSetDefault --> BeginTx[BEGIN TRANSACTION]
-    BeginTx --> RemovePrev[Remove is_default<br/>from previous template]
-    RemovePrev --> SetNew[Set is_default=true<br/>on selected template]
-    SetNew --> LogBoth[Log activity for<br/>both templates]
+    BeginTx --> RemovePrev[Remove is_default<br>from previous template]
+    RemovePrev --> SetNew[Set is_default=true<br>on selected template]
+    SetNew --> LogBoth[Log activity for<br>both templates]
     LogBoth --> CommitTx[COMMIT TRANSACTION]
 
-    CommitTx -->|Success| UpdateUI[Update UI with<br/>default indicator]
+    CommitTx -->|Success| UpdateUI[Update UI with<br>default indicator]
     UpdateUI --> DefaultSuccess[Display success message]
     DefaultSuccess --> EndSuccess([End])
 
@@ -155,34 +155,34 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Start<br/>in PR module]) --> ClickUse[User clicks<br/>'Use Template']
-    ClickUse --> ShowModal[Display template<br/>selection modal]
+    Start([Start<br>in PR module]) --> ClickUse[User clicks<br>'Use Template']
+    ClickUse --> ShowModal[Display template<br>selection modal]
     ShowModal --> SelectTemplate[User selects template]
-    SelectTemplate --> OptionalSettings[Optional: Select vendor,<br/>delivery date, apply<br/>current pricing]
+    SelectTemplate --> OptionalSettings[Optional: Select vendor,<br>delivery date, apply<br>current pricing]
     OptionalSettings --> ConfirmConvert[User confirms conversion]
-    ConfirmConvert --> CallConversion[PR module calls<br/>template conversion service]
-    CallConversion --> ValidateTemplate{Validate template<br/>exists & is active}
+    ConfirmConvert --> CallConversion[PR module calls<br>template conversion service]
+    CallConversion --> ValidateTemplate{Validate template<br>exists & is active}
 
-    ValidateTemplate -->|Invalid| InvalidError[Error: 'Template not<br/>active or not found']
+    ValidateTemplate -->|Invalid| InvalidError[Error: 'Template not<br>active or not found']
     InvalidError --> EndInvalid([End])
 
-    ValidateTemplate -->|Valid| FetchTemplate[Fetch template<br/>with all items]
-    FetchTemplate --> ApplyPricing{Apply current<br/>pricing?}
+    ValidateTemplate -->|Valid| FetchTemplate[Fetch template<br>with all items]
+    FetchTemplate --> ApplyPricing{Apply current<br>pricing?}
 
-    ApplyPricing -->|Yes| GetCurrentPrices[For each item, call<br/>Vendor Management<br/>for current price]
-    GetCurrentPrices --> UpdatePrices[Update item prices<br/>if different]
+    ApplyPricing -->|Yes| GetCurrentPrices[For each item, call<br>Vendor Management<br>for current price]
+    GetCurrentPrices --> UpdatePrices[Update item prices<br>if different]
     UpdatePrices --> GeneratePR
 
-    ApplyPricing -->|No| GeneratePR[Generate PR number<br/>PR-YY-NNNN]
+    ApplyPricing -->|No| GeneratePR[Generate PR number<br>PR-YY-NNNN]
 
-    GeneratePR --> CreatePR[Create PR record:<br/>- Description<br/>- Department<br/>- Type<br/>- Status = Draft<br/>- Source template ID]
-    CreatePR --> CreateItems[Create PR line items<br/>from template items]
-    CreateItems --> IncrementUsage[Increment template<br/>usage_count]
-    IncrementUsage --> UpdateLastUsed[Update template<br/>last_used_at]
-    UpdateLastUsed --> LogConversion[Log activity:<br/>template_converted_to_pr]
+    GeneratePR --> CreatePR[Create PR record:<br>- Description<br>- Department<br>- Type<br>- Status = Draft<br>- Source template ID]
+    CreatePR --> CreateItems[Create PR line items<br>from template items]
+    CreateItems --> IncrementUsage[Increment template<br>usage_count]
+    IncrementUsage --> UpdateLastUsed[Update template<br>last_used_at]
+    UpdateLastUsed --> LogConversion[Log activity:<br>template_converted_to_pr]
 
-    LogConversion -->|Success| ReturnPR[Return PR data<br/>to calling module]
-    ReturnPR --> DisplayPR[PR module displays<br/>new PR in Draft status]
+    LogConversion -->|Success| ReturnPR[Return PR data<br>to calling module]
+    ReturnPR --> DisplayPR[PR module displays<br>new PR in Draft status]
     DisplayPR --> EndSuccess([End])
 
     LogConversion -->|Failure| RollbackAll[Rollback all changes]
@@ -205,30 +205,30 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Start]) --> ClickDelete[User clicks 'Delete']
-    ClickDelete --> CheckDefault{Is template<br/>default?}
+    ClickDelete --> CheckDefault{Is template<br>default?}
 
-    CheckDefault -->|Yes| DefaultError[Error: 'Remove default<br/>status first']
+    CheckDefault -->|Yes| DefaultError[Error: 'Remove default<br>status first']
     DefaultError --> EndDefault([End])
 
-    CheckDefault -->|No| ShowConfirmation[Display confirmation dialog:<br/>- Template number<br/>- Description<br/>- Item count<br/>- Warning message]
-    ShowConfirmation --> UserConfirms{User confirms<br/>deletion?}
+    CheckDefault -->|No| ShowConfirmation[Display confirmation dialog:<br>- Template number<br>- Description<br>- Item count<br>- Warning message]
+    ShowConfirmation --> UserConfirms{User confirms<br>deletion?}
 
     UserConfirms -->|Cancel| EndCancel([End])
 
-    UserConfirms -->|Confirm| CheckRefs{Check for active<br/>PR references}
+    UserConfirms -->|Confirm| CheckRefs{Check for active<br>PR references}
 
-    CheckRefs -->|Has refs| RefError[Error: 'Cannot delete.<br/>N active PRs reference it']
+    CheckRefs -->|Has refs| RefError[Error: 'Cannot delete.<br>N active PRs reference it']
     RefError --> EndRef([End])
 
-    CheckRefs -->|No refs| CallDelete[Call server action:<br/>deleteTemplate]
+    CheckRefs -->|No refs| CallDelete[Call server action:<br>deleteTemplate]
     CallDelete --> BeginTx[BEGIN TRANSACTION]
-    BeginTx --> SoftDelete[Set template<br/>deleted_at = NOW<br/>deleted_by = user_id]
-    SoftDelete --> CascadeItems[Soft delete all<br/>template items - cascade]
-    CascadeItems --> LogDelete[Log activity:<br/>template_deleted]
+    BeginTx --> SoftDelete[Set template<br>deleted_at = NOW<br>deleted_by = user_id]
+    SoftDelete --> CascadeItems[Soft delete all<br>template items - cascade]
+    CascadeItems --> LogDelete[Log activity:<br>template_deleted]
     LogDelete --> CommitTx[COMMIT TRANSACTION]
 
-    CommitTx -->|Success| RemoveUI[Remove template<br/>from UI list]
-    RemoveUI --> NavigateList[Navigate to list<br/>if on detail page]
+    CommitTx -->|Success| RemoveUI[Remove template<br>from UI list]
+    RemoveUI --> NavigateList[Navigate to list<br>if on detail page]
     NavigateList --> DeleteSuccess[Display success message]
     DeleteSuccess --> EndSuccess([End])
 
@@ -254,15 +254,15 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Start]) --> ClickClone[User clicks 'Clone']
-    ClickClone --> FetchSource[Fetch source template<br/>with all items]
-    FetchSource --> GenerateNum[Generate new template<br/>number TPL-YY-NNNN]
-    GenerateNum --> CreateClone[Create new template:<br/>- New number<br/>- Description + ' Copy'<br/>- Same department<br/>- Same request type<br/>- Status = Draft]
-    CreateClone --> CopyItems[Copy all items<br/>to new template]
-    CopyItems --> RecalcTotal[Recalculate<br/>estimated total]
-    RecalcTotal --> LogClone[Log activity:<br/>template_cloned]
+    ClickClone --> FetchSource[Fetch source template<br>with all items]
+    FetchSource --> GenerateNum[Generate new template<br>number TPL-YY-NNNN]
+    GenerateNum --> CreateClone[Create new template:<br>- New number<br>- Description + ' Copy'<br>- Same department<br>- Same request type<br>- Status = Draft]
+    CreateClone --> CopyItems[Copy all items<br>to new template]
+    CopyItems --> RecalcTotal[Recalculate<br>estimated total]
+    RecalcTotal --> LogClone[Log activity:<br>template_cloned]
 
-    LogClone -->|Success| Navigate[Navigate to new<br/>template detail page]
-    Navigate --> ShowSuccess[Display success:<br/>'Cloned as TPL-YY-NNNN']
+    LogClone -->|Success| Navigate[Navigate to new<br>template detail page]
+    Navigate --> ShowSuccess[Display success:<br>'Cloned as TPL-YY-NNNN']
     ShowSuccess --> EndSuccess([End])
 
     LogClone -->|Failure| RollbackClone[Rollback all changes]
@@ -280,21 +280,21 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> SelectMultiple[User selects multiple<br/>templates via checkboxes]
-    SelectMultiple --> ChooseAction{User selects<br/>bulk action}
+    Start([Start]) --> SelectMultiple[User selects multiple<br>templates via checkboxes]
+    SelectMultiple --> ChooseAction{User selects<br>bulk action}
 
-    ChooseAction -->|Delete Selected| ConfirmDelete[Display confirmation:<br/>Delete N templates?]
+    ChooseAction -->|Delete Selected| ConfirmDelete[Display confirmation:<br>Delete N templates?]
     ConfirmDelete --> UserConfirmsDel{Confirm?}
     UserConfirmsDel -->|Cancel| EndCancel([End])
     UserConfirmsDel -->|Confirm| LoopDel
 
-    ChooseAction -->|Clone Selected| ConfirmClone[Display confirmation:<br/>Clone N templates?]
+    ChooseAction -->|Clone Selected| ConfirmClone[Display confirmation:<br>Clone N templates?]
     ConfirmClone --> UserConfirmsClone{Confirm?}
     UserConfirmsClone -->|Cancel| EndCancel
     UserConfirmsClone -->|Confirm| LoopClone
 
     %% Delete Process
-    LoopDel[For each selected template] --> CheckCanDel{Can delete?<br/>Not default,<br/>no refs}
+    LoopDel[For each selected template] --> CheckCanDel{Can delete?<br>Not default,<br>no refs}
     CheckCanDel -->|Yes| DoDelete[Soft delete template]
     CheckCanDel -->|No| RecordFail[Record failure]
     DoDelete --> NextDel{More templates?}
@@ -303,12 +303,12 @@ flowchart TD
     NextDel -->|No| ShowResults
 
     %% Clone Process
-    LoopClone[For each selected template] --> DoClone[Clone template<br/>with new number]
+    LoopClone[For each selected template] --> DoClone[Clone template<br>with new number]
     DoClone --> NextClone{More templates?}
     NextClone -->|Yes| LoopClone
     NextClone -->|No| ShowResults
 
-    ShowResults[Display summary:<br/>Successfully processed<br/>X of Y templates] --> DeselectAll[Deselect all templates]
+    ShowResults[Display summary:<br>Successfully processed<br>X of Y templates] --> DeselectAll[Deselect all templates]
     DeselectAll --> RefreshList[Refresh templates list]
     RefreshList --> EndSuccess([End])
 
@@ -333,12 +333,12 @@ flowchart TD
 stateDiagram-v2
     [*] --> Draft: Create Template
 
-    Draft --> Active: Activate<br/>(requires ≥1 item)
-    Active --> Inactive: Inactivate<br/>(manual)
-    Inactive --> Active: Reactivate<br/>(manual)
+    Draft --> Active: Activate<br>(requires ≥1 item)
+    Active --> Inactive: Inactivate<br>(manual)
+    Inactive --> Active: Reactivate<br>(manual)
 
-    Draft --> Deleted: Delete<br/>(soft delete)
-    Inactive --> Deleted: Delete<br/>(soft delete)
+    Draft --> Deleted: Delete<br>(soft delete)
+    Inactive --> Deleted: Delete<br>(soft delete)
 
     note right of Draft
         Initial state for all new templates.
@@ -378,21 +378,21 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> ClickEdit[User clicks 'Edit'<br/>or navigates with mode=edit]
-    ClickEdit --> LoadTemplate[Load template data<br/>into form]
-    LoadTemplate --> DisplayEdit[Display edit form<br/>with current values]
-    DisplayEdit --> UserModifies[User modifies:<br/>- Description<br/>- Request Type<br/>- Items via Items tab]
+    Start([Start]) --> ClickEdit[User clicks 'Edit'<br>or navigates with mode=edit]
+    ClickEdit --> LoadTemplate[Load template data<br>into form]
+    LoadTemplate --> DisplayEdit[Display edit form<br>with current values]
+    DisplayEdit --> UserModifies[User modifies:<br>- Description<br>- Request Type<br>- Items via Items tab]
     UserModifies --> ClickSave[User clicks 'Save']
-    ClickSave --> ValidateEdit{Validate changes<br/>client-side}
+    ClickSave --> ValidateEdit{Validate changes<br>client-side}
 
     ValidateEdit -->|Invalid| ShowEditErrors[Display validation errors]
     ShowEditErrors --> CorrectEdit[User corrects errors]
     CorrectEdit --> ClickSave
 
-    ValidateEdit -->|Valid| CallUpdate[Call server action:<br/>updateTemplate]
-    CallUpdate --> UpdateDB[Update template record<br/>Set updated_at, updated_by]
+    ValidateEdit -->|Valid| CallUpdate[Call server action:<br>updateTemplate]
+    CallUpdate --> UpdateDB[Update template record<br>Set updated_at, updated_by]
 
-    UpdateDB -->|Success| LogUpdate[Log activity:<br/>template_updated]
+    UpdateDB -->|Success| LogUpdate[Log activity:<br>template_updated]
     LogUpdate --> SwitchView[Switch to view mode]
     SwitchView --> EditSuccess[Display success message]
     EditSuccess --> EndSuccess([End])
@@ -413,19 +413,19 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Start]) --> ViewList[User views templates list]
-    ViewList --> ApplyFilters[User applies filters:<br/>- Status<br/>- Request Type<br/>- Department<br/>- Search text]
-    ApplyFilters --> BuildQuery[Build filter query<br/>with AND logic]
-    BuildQuery --> ExecuteQuery[Execute filtered query<br/>client-side or server]
+    ViewList --> ApplyFilters[User applies filters:<br>- Status<br>- Request Type<br>- Department<br>- Search text]
+    ApplyFilters --> BuildQuery[Build filter query<br>with AND logic]
+    BuildQuery --> ExecuteQuery[Execute filtered query<br>client-side or server]
     ExecuteQuery --> UpdateResults[Update results display]
-    UpdateResults --> ShowCount[Show result count:<br/>'Showing X of Y templates']
+    UpdateResults --> ShowCount[Show result count:<br>'Showing X of Y templates']
     ShowCount --> WaitAction{User action}
 
     WaitAction -->|Modify filters| ApplyFilters
-    WaitAction -->|Clear filters| ClearAll[Reset all filters<br/>to defaults]
+    WaitAction -->|Clear filters| ClearAll[Reset all filters<br>to defaults]
     ClearAll --> ExecuteQuery
-    WaitAction -->|Select template| Navigate[Navigate to<br/>template detail]
+    WaitAction -->|Select template| Navigate[Navigate to<br>template detail]
     Navigate --> EndNav([End])
-    WaitAction -->|Toggle view| SwitchView[Switch between<br/>Table / Card view]
+    WaitAction -->|Toggle view| SwitchView[Switch between<br>Table / Card view]
     SwitchView --> UpdateResults
 
     style Start fill:#e1f5fe

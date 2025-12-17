@@ -238,7 +238,7 @@ export function ModernGRNDialog({
             onChange={(e) => handleInputChange("ref", e.target.value)}
             readOnly={isReadOnly}
             className={cn(errors.ref && "border-red-500")}
-            placeholder="GRN-2024-001"
+            placeholder="GRN-2410-001"
           />
           {errors.ref && (
             <p className="text-sm text-red-500 flex items-center gap-1">
@@ -297,7 +297,7 @@ export function ModernGRNDialog({
               value={formData.invoiceNumber}
               onChange={(e) => handleInputChange("invoiceNumber", e.target.value)}
               readOnly={isReadOnly}
-              placeholder="INV-2024-001"
+              placeholder="INV-2410-001"
             />
           </div>
           
@@ -323,7 +323,7 @@ export function ModernGRNDialog({
               value={formData.taxInvoiceNumber}
               onChange={(e) => handleInputChange("taxInvoiceNumber", e.target.value)}
               readOnly={isReadOnly}
-              placeholder="TAX-2024-001"
+              placeholder="TAX-2410-001"
             />
           </div>
           

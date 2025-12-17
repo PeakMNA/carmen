@@ -612,7 +612,7 @@ function createMockVendor(overrides?: Partial<Vendor>): Vendor {
 function createMockPurchaseRequest(overrides?: Partial<PurchaseRequest>): PurchaseRequest {
   return {
     id: generateId(),
-    number: 'PR-2024-001',
+    number: 'PR-2401-0001',
     description: 'Test Purchase Request',
     department: 'Kitchen',
     requestor: 'test-user-id',

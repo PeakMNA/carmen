@@ -369,7 +369,7 @@ export class PermissionService {
       status: d.status,
       parentDepartment: d.parentDepartment,
       costCenter: d.costCenter,
-      manager: d.manager,
+      managers: d.managers,
       assignedUsers: d.assignedUsers
     })) || [];
     const permissionLocations = user.locations?.map(l => ({
@@ -405,7 +405,7 @@ export class PermissionService {
         status: user.context.currentDepartment.status,
         parentDepartment: user.context.currentDepartment.parentDepartment,
         costCenter: user.context.currentDepartment.costCenter,
-        manager: user.context.currentDepartment.manager,
+        managers: user.context.currentDepartment.managers,
         assignedUsers: user.context.currentDepartment.assignedUsers
       },
       departments: permissionDepartments,

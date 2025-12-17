@@ -27,6 +27,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -148,7 +149,7 @@ END IF
 **Priority**: Critical
 **Enforcement**: Client, Server, Database
 
-**Rule**: Reference number must follow the format STK-IN-YYYY-NNNN.
+**Rule**: Reference number must follow the format STK-IN-YYMM-NNNN.
 
 **Validation Logic**:
 ```
@@ -163,7 +164,7 @@ END IF
 
 **Error Messages**:
 - "Reference number is required."
-- "Invalid reference number format. Must be STK-IN-YYYY-NNNN (e.g., STK-IN-2024-0001)."
+- "Invalid reference number format. Must be STK-IN-YYMM-NNNN (e.g., STK-IN-2501-0001)."
 
 **Business Rule Reference**: BR-STI-017
 **Tested By**: TEST-STI-VAL-004
@@ -1676,13 +1677,13 @@ All error messages follow a consistent format:
 
 **Preconditions**:
 - User has Inventory.StockIn.Create permission
-- Valid GRN exists in Committed status (GRN-2024-0001)
+- Valid GRN exists in Committed status (GRN-2401-0001)
 - User has access to target location
 
 **Test Data**:
 ```
 Transaction Type: Good Receive Note
-Related Doc: GRN-2024-0001
+Related Doc: GRN-2401-0001
 Date: 2024-01-15 (within 30 days)
 Location: Main Warehouse
 Line Items: 2 products, valid quantities, costs from GRN
@@ -1888,8 +1889,8 @@ Line Items: 2 products, valid quantities, costs from GRN
 **Objective**: Verify reference numbers cannot be duplicated
 
 **Test Cases**:
-1. Create transaction with ref STK-IN-2024-0001 → Expected: SUCCESS
-2. Try to create another with STK-IN-2024-0001 → Expected: ERROR VAL-STI-005
+1. Create transaction with ref STK-IN-2401-0001 → Expected: SUCCESS
+2. Try to create another with STK-IN-2401-0001 → Expected: ERROR VAL-STI-005
 3. Auto-generate ref number → Expected: SUCCESS (unique number)
 
 **Validations Tested**: VAL-STI-005

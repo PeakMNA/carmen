@@ -3,9 +3,9 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.0.0
-- **Last Updated**: 2025-11-12
-- **Status**: Active - For Implementation
+- **Version**: 1.3.0
+- **Last Updated**: 2025-12-13
+- **Status**: Active - Implementation Complete
 
 ## Related Documents
 - [Business Requirements](./BR-store-requisitions.md) - Business rules, requirements, and backend specifications
@@ -23,6 +23,8 @@
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
+| 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code - verified component architecture, status values, tab configuration |
+| 1.3.0 | 2025-12-13 | Documentation Team | Added new creation page route, inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling |
 ---
 
 ## 1. System Architecture
@@ -33,31 +35,31 @@ The Store Requisitions module follows Next.js 14 App Router architecture with cl
 
 ```mermaid
 graph TB
-    subgraph "Client Layer - Browser"
+    subgraph 'Client Layer - Browser'
         UI[React UI Components]
         State[Zustand State Management]
         Form[React Hook Form + Zod]
     end
 
-    subgraph "Application Layer - Next.js Server"
+    subgraph 'Application Layer - Next.js Server'
         Pages[App Router Pages]
         ServerActions[Server Actions]
         API[API Route Handlers]
     end
 
-    subgraph "Business Logic Layer"
+    subgraph 'Business Logic Layer'
         ReqService[Requisition Service]
         InvService[Inventory Service]
         WorkflowService[Workflow Service]
         NotifService[Notification Service]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         DB[(PostgreSQL Database)]
         Cache[Redis Cache]
     end
 
-    subgraph "External Integrations"
+    subgraph 'External Integrations'
         InventoryMgmt[Inventory Management]
         WorkflowEngine[Workflow Engine]
         UserMgmt[User Management]
@@ -119,17 +121,21 @@ graph TB
 
 ```mermaid
 graph TD
-    Root["/store-operations"] --> Requisitions["/store-requisitions"]
+    Root['/store-operations'] --> Requisitions['/store-requisitions']
 
-    Requisitions --> List["page.tsx - List View"]
-    Requisitions --> Detail["[id]/page.tsx - Detail View"]
+    Requisitions --> List['page.tsx - List View']
+    Requisitions --> NewPage['new/page.tsx - Create New']
+    Requisitions --> Detail['[id]/page.tsx - Detail View']
 
-    List --> |"Click New"| CreateModal["Create Modal"]
-    List --> |"Click Row"| Detail
+    List --> |'Click New'| NewPage
+    List --> |'Click Row'| Detail
 
-    Detail --> |"View Mode"| DetailView["Detail Display"]
-    Detail --> |"Edit Mode"| EditForm["Edit Form"]
-    Detail --> |"Approval Mode"| ApprovalView["Approval Interface"]
+    NewPage --> |'Save Draft'| Detail
+    NewPage --> |'Submit'| Detail
+
+    Detail --> |'View Mode'| DetailView['Detail Display']
+    Detail --> |'Edit Mode'| EditForm['Edit Form']
+    Detail --> |'Approval Mode'| ApprovalView['Approval Interface']
 ```
 
 ### 2.2 Pages Description
@@ -150,6 +156,8 @@ graph TD
 - Quick actions per row (view, edit, delete)
 - Status badges with color coding
 - Priority indicators for emergency requisitions
+- **"Request From"** column displaying source location name
+- **"Requested By"** column showing requisition creator name
 
 **Data Loading**: Server-side data fetching with filtering params, client-side state management for UI interactions.
 
@@ -157,7 +165,57 @@ graph TD
 
 ---
 
-#### 2.2.2 Store Requisition Detail Page
+#### 2.2.2 New Store Requisition Page
+**Route**: /store-operations/store-requisitions/new
+**File**: app/(main)/store-operations/store-requisitions/new/page.tsx
+**Component**: NewStoreRequisitionPage
+
+**Purpose**: Dedicated page for creating new store requisitions with inline item addition.
+
+**Key Features**:
+- Header information panel with:
+  - Auto-generated requisition number (SR-YYMM-NNNN format)
+  - Requisition date (auto-set to current date)
+  - **"Requested By"** field (read-only, displays current user's name)
+  - Expected delivery date picker
+  - **"Request From"** dropdown for source location selection
+  - Location Type display (INVENTORY, DIRECT, CONSIGNMENT)
+  - Description/purpose text area
+  - Job Code selector with CRUD support
+  - Project selector with CRUD support
+- **Inline Add Item Pattern**:
+  - "Add Item" button activates inline row in items table
+  - Popover with Command component for product search
+  - CommandInput for search term entry
+  - CommandList displays matching products
+  - Inline quantity input field
+  - Add/Cancel buttons for item confirmation
+- Items table with edit/delete actions
+- Form actions: Save as Draft, Submit for Approval, Cancel
+
+**State Management**:
+```typescript
+// Inline add item state
+const [isAddingItem, setIsAddingItem] = useState(false)
+const [newItemProductId, setNewItemProductId] = useState("")
+const [newItemQty, setNewItemQty] = useState(1)
+const [productSearchOpen, setProductSearchOpen] = useState(false)
+```
+
+**UI Components**:
+- Shadcn/ui Popover for product search overlay
+- Shadcn/ui Command for searchable list
+- React Hook Form for form validation
+- Zod schema for data validation
+
+**Navigation Flow**:
+- Entry: List page "New Requisition" button
+- Exit (Success): Redirects to detail page with new requisition ID
+- Exit (Cancel): Returns to list page
+
+---
+
+#### 2.2.3 Store Requisition Detail Page
 **Route**: /store-operations/store-requisitions/[id]
 **File**: app/(main)/store-operations/store-requisitions/[id]/page.tsx
 **Component**: StoreRequisitionDetailComponent
@@ -202,8 +260,8 @@ graph TD
 sequenceDiagram
     participant User
     participant ListPage
+    participant NewPage
     participant DetailPage
-    participant CreateModal
     participant ServerAction
 
     User->>ListPage: Navigate to /store-requisitions
@@ -212,12 +270,18 @@ sequenceDiagram
     ListPage->>User: Display requisitions table
 
     alt Create New
-        User->>CreateModal: Click "New Requisition"
-        CreateModal->>User: Show create form
-        User->>CreateModal: Fill form + Add items
-        CreateModal->>ServerAction: Submit requisition
-        ServerAction-->>CreateModal: Return new requisition ID
-        CreateModal->>DetailPage: Navigate to detail page
+        User->>ListPage: Click "New Requisition"
+        ListPage->>NewPage: Navigate to /store-requisitions/new
+        NewPage->>User: Display creation form with "Requested By" auto-populated
+        User->>NewPage: Select "Request From" location
+        User->>NewPage: Click "Add Item" (inline pattern)
+        NewPage->>User: Show inline row with Popover + Command search
+        User->>NewPage: Search and select product
+        User->>NewPage: Enter quantity and confirm
+        User->>NewPage: Submit requisition
+        NewPage->>ServerAction: Create requisition
+        ServerAction-->>NewPage: Return new requisition ID
+        NewPage->>DetailPage: Navigate to detail page
     end
 
     alt View Existing
@@ -236,7 +300,7 @@ sequenceDiagram
 
 ```mermaid
 graph TD
-    subgraph "List Page Components"
+    subgraph 'List Page Components'
         ListPage[StoreRequisitionListComponent]
         ListPage --> ListHeader[ListHeader]
         ListPage --> ListFilters[ListFilters]
@@ -246,7 +310,25 @@ graph TD
         ListFilters --> FilterBuilder[FilterBuilder]
     end
 
-    subgraph "Detail Page Components"
+    subgraph 'New Requisition Page Components'
+        NewPage[NewStoreRequisitionPage]
+        NewPage --> NewHeaderForm[Header Information Form]
+        NewPage --> NewItemsTable[Items Table]
+        NewPage --> InlineAddRow[Inline Add Item Row]
+        NewPage --> FormActions[Form Action Buttons]
+
+        NewHeaderForm --> RequestedByField[Requested By Display]
+        NewHeaderForm --> RequestFromSelect[Request From Dropdown]
+        NewHeaderForm --> LocationTypeBadge[Location Type Badge]
+        NewHeaderForm --> JobCodeSelect[Job Code Selector]
+        NewHeaderForm --> ProjectSelect[Project Selector]
+
+        InlineAddRow --> ProductSearch[Popover + Command Search]
+        InlineAddRow --> QtyInput[Quantity Input]
+        InlineAddRow --> AddCancelBtns[Add/Cancel Buttons]
+    end
+
+    subgraph 'Detail Page Components'
         DetailPage[StoreRequisitionDetailComponent]
         DetailPage --> HeaderInfo[HeaderInfo]
         DetailPage --> HeaderActions[HeaderActions]
@@ -287,11 +369,53 @@ graph TD
 **Key Interactions**:
 - Fetches data via server actions
 - Navigates to detail page on row click
-- Opens create modal for new requisitions
+- Navigates to new requisition page (`/store-requisitions/new`) on "New Requisition" button click
 
 ---
 
-#### 3.2.2 StoreRequisitionDetailComponent
+#### 3.2.2 NewStoreRequisitionPage
+**File**: app/(main)/store-operations/store-requisitions/new/page.tsx
+**Type**: Client Component
+
+**Responsibilities**:
+- Render requisition creation form with header fields
+- Auto-populate "Requested By" field with current user's name
+- Display "Request From" dropdown for source location selection
+- Handle Location Type determination (INVENTORY, DIRECT, CONSIGNMENT)
+- Manage inline add item pattern for line items
+- Support Job Code and Project selection with CRUD
+
+**State Management**:
+```typescript
+// Inline add item state
+const [isAddingItem, setIsAddingItem] = useState(false)
+const [newItemProductId, setNewItemProductId] = useState("")
+const [newItemQty, setNewItemQty] = useState(1)
+const [productSearchOpen, setProductSearchOpen] = useState(false)
+
+// Form state via React Hook Form
+const form = useForm<StoreRequisitionFormData>({
+  resolver: zodResolver(storeRequisitionSchema),
+  defaultValues: { /* ... */ }
+})
+```
+
+**Key UI Components**:
+- Shadcn/ui Popover + Command for product search
+- CommandInput, CommandList, CommandItem for searchable product selection
+- LocationTypeBadge for displaying location type
+- Input fields for quantity entry
+
+**Key Interactions**:
+- Uses `useSimpleUser()` hook to get current user's name
+- Calls `getLocationTypeByLocationId()` for Location Type lookup
+- Validates form with Zod schema before submission
+- Creates requisition via server action
+- Navigates to detail page on success
+
+---
+
+#### 3.2.3 StoreRequisitionDetailComponent
 **File**: app/(main)/store-operations/store-requisitions/components/store-requisition-detail.tsx
 **Type**: Client Component
 
@@ -317,7 +441,7 @@ graph TD
 
 ---
 
-#### 3.2.3 ApprovalWorkflow Component
+#### 3.2.4 ApprovalWorkflow Component
 **File**: app/(main)/store-operations/store-requisitions/components/approval-workflow.tsx
 **Type**: Client Component
 
@@ -345,7 +469,7 @@ graph TD
 
 ---
 
-#### 3.2.4 ListFilters Component
+#### 3.2.5 ListFilters Component
 **File**: app/(main)/store-operations/store-requisitions/components/list-filters.tsx
 **Type**: Client Component
 
@@ -370,7 +494,7 @@ graph TD
 
 ---
 
-#### 3.2.5 FilterBuilder Component
+#### 3.2.6 FilterBuilder Component
 **File**: app/(main)/store-operations/store-requisitions/components/filter-builder.tsx
 **Type**: Client Component
 
@@ -394,7 +518,7 @@ graph TD
 
 ---
 
-#### 3.2.6 HeaderInfo Component
+#### 3.2.7 HeaderInfo Component
 **File**: app/(main)/store-operations/store-requisitions/components/header-info.tsx
 **Type**: Client Component
 
@@ -625,7 +749,7 @@ Server actions are the primary method for data mutations in Next.js 14 App Route
 - Line items array (product_id, requested_qty, to_location_id, description per item)
 
 **Processing**:
-- Generate unique requisition number (SR-YYYY-NNNN format)
+- Generate unique requisition number (SR-YYMM-NNNN format)
 - Validate all input data with Zod schema
 - Begin database transaction
 - Insert requisition header with status = draft
@@ -888,7 +1012,7 @@ Server actions are the primary method for data mutations in Next.js 14 App Route
   - If partial: issued_qty < approved_qty for any item
     - Requisition remains in_progress
     - Track remaining quantities
-- Generate issuance document (SI-YYYY-NNNN)
+- Generate issuance document (SI-YYMM-NNNN)
 - Send notification to requestor with issuance details
 
 **Output**:
@@ -1192,25 +1316,25 @@ sequenceDiagram
 **sendApprovalNotification**:
 - Input: Approver IDs, Requisition ID, Requisition Summary
 - Sends: Email + in-app notification
-- Template: "You have a new requisition to approve: SR-YYYY-NNNN"
+- Template: "You have a new requisition to approve: SR-YYMM-NNNN"
 - Includes: Direct link to requisition, requestor name, item count, summary
 
 **sendRejectionNotification**:
 - Input: Requestor ID, Requisition ID, Rejection Reason
 - Sends: Email + in-app notification
-- Template: "Your requisition SR-YYYY-NNNN was rejected"
+- Template: "Your requisition SR-YYMM-NNNN was rejected"
 - Includes: Full rejection reason, rejector name, guidance for resubmission
 
 **sendReviewRequestNotification**:
 - Input: Requestor ID, Requisition ID, Review Comments
 - Sends: Email + in-app notification
-- Template: "Your requisition SR-YYYY-NNNN requires changes"
+- Template: "Your requisition SR-YYMM-NNNN requires changes"
 - Includes: Detailed review comments, specific items needing attention
 
 **sendIssuanceNotification**:
 - Input: Requestor ID, Requisition ID, Issued Items List
 - Sends: Email + in-app notification
-- Template: "Items issued for SR-YYYY-NNNN"
+- Template: "Items issued for SR-YYMM-NNNN"
 - Includes: Issued quantities, pickup location, contact person
 
 ---
@@ -1422,38 +1546,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/store-operations/store-requisitions)"]
-    CreatePage["Create Page<br/>(/store-operations/store-requisitions/new)"]
-    DetailPage["Detail Page<br/>(/store-operations/store-requisitions/[id])"]
-    EditPage["Edit Page<br/>(/store-operations/store-requisitions/[id]/edit)"]
+    ListPage['List Page<br>(/store-operations/store-requisitions)']
+    CreatePage['Create Page<br>(/store-operations/store-requisitions/new)']
+    DetailPage["Detail Page<br>(/store-operations/store-requisitions/[id])"]
+    EditPage["Edit Page<br>(/store-operations/store-requisitions/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage

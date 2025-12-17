@@ -232,7 +232,7 @@ CREATE INDEX idx_pr_location_date ON purchase_requests(location_id, date DESC);
 
 -- Comments
 COMMENT ON TABLE purchase_requests IS 'Main table for purchase request headers';
-COMMENT ON COLUMN purchase_requests.ref_number IS 'Unique reference number in format PR-YYYY-NNNN';
+COMMENT ON COLUMN purchase_requests.ref_number IS 'Unique reference number in format PR-YYMM-NNNN';
 COMMENT ON COLUMN purchase_requests.type IS 'Type of purchase request: General, Market List, or Asset';
 COMMENT ON COLUMN purchase_requests.approval_status IS 'Current approval workflow status';
 ```

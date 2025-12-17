@@ -84,7 +84,7 @@ The Wastage Reporting module involves multiple actors (kitchen staff, store mana
 ```mermaid
 flowchart TD
     Start([Kitchen Staff identifies wastage]) --> Navigate[Navigate to Wastage Reporting]
-    Navigate --> RecordType{Single or<br/>Batch?}
+    Navigate --> RecordType{Single or<br>Batch?}
 
     RecordType -->|Single| SingleForm[Fill Single Product Form]
     RecordType -->|Batch| BatchForm[Fill Batch Wastage Form]
@@ -96,7 +96,7 @@ flowchart TD
     SelectMultiple --> EnterQty
 
     EnterQty --> CategorySelect[Select Wastage Category]
-    CategorySelect --> CheckSupplier{Supplier<br/>Issue?}
+    CategorySelect --> CheckSupplier{Supplier<br>Issue?}
 
     CheckSupplier -->|Yes| SelectVendor[Select Vendor & Quality Issue Type]
     CheckSupplier -->|No| CheckValue{Value > $100?}
@@ -106,7 +106,7 @@ flowchart TD
     CheckValue -->|No| PhotoOptional[Photo Optional]
 
     PhotoRequired --> PhotoUpload[Upload Photos with Watermark]
-    PhotoOptional --> PhotoChoice{Add<br/>Photo?}
+    PhotoOptional --> PhotoChoice{Add<br>Photo?}
     PhotoChoice -->|Yes| PhotoUpload
     PhotoChoice -->|No| ValidateForm
 
@@ -116,15 +116,15 @@ flowchart TD
     ShowErrors --> EnterQty
 
     ValidateForm -->|Yes| CalculateTotal[System Calculates Total Value]
-    CalculateTotal --> StockCheck{Sufficient<br/>Stock?}
+    CalculateTotal --> StockCheck{Sufficient<br>Stock?}
 
     StockCheck -->|No| StockError[Display Stock Insufficient Error]
     StockError --> EnterQty
 
     StockCheck -->|Yes| DetermineApproval[Determine Approval Level Required]
-    DetermineApproval --> CheckThreshold{Value vs<br/>Thresholds?}
+    DetermineApproval --> CheckThreshold{Value vs<br>Thresholds?}
 
-    CheckThreshold -->|< $50| AutoApprove{Auto-Approve<br/>Rules?}
+    CheckThreshold -->|< $50| AutoApprove{Auto-Approve<br>Rules?}
     AutoApprove -->|Yes| SetAutoApprove[Set is_auto_approved=true]
     AutoApprove -->|No| SetLevel1[Approval Level = 1]
 
@@ -138,7 +138,7 @@ flowchart TD
     SetLevel3 --> SaveDraft
 
     SaveDraft --> ReviewScreen[Display Review Screen]
-    ReviewScreen --> ConfirmSubmit{Confirm<br/>Submit?}
+    ReviewScreen --> ConfirmSubmit{Confirm<br>Submit?}
 
     ConfirmSubmit -->|No| SaveAsDraft([Saved as Draft])
     ConfirmSubmit -->|Yes| Submit[Submit Wastage]
@@ -231,12 +231,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Wastage Submitted]) --> ExtractParams[Extract Parameters:<br/>- total_value<br/>- wastage_category<br/>- approval_level_required]
+    Start([Wastage Submitted]) --> ExtractParams[Extract Parameters:<br>- total_value<br>- wastage_category<br>- approval_level_required]
 
-    ExtractParams --> CheckLevel{Approval<br/>Level?}
+    ExtractParams --> CheckLevel{Approval<br>Level?}
 
-    CheckLevel -->|0 Auto-Approve| AutoApproveCheck{Auto-Approve<br/>Rules Match?}
-    AutoApproveCheck -->|Yes| MarkApproved[Update Status: approved<br/>is_auto_approved: true]
+    CheckLevel -->|0 Auto-Approve| AutoApproveCheck{Auto-Approve<br>Rules Match?}
+    AutoApproveCheck -->|Yes| MarkApproved[Update Status: approved<br>is_auto_approved: true]
     AutoApproveCheck -->|No| RouteLevel1[Route to Level 1]
 
     MarkApproved --> AdjustInventory[Trigger Inventory Adjustment]
@@ -249,16 +249,16 @@ flowchart TD
 
     RouteLevel1 --> NotifyL1[Notify Department Manager]
     NotifyL1 --> WaitL1[Wait for Level 1 Response]
-    WaitL1 --> SLACheck1{SLA<br/>Exceeded?}
+    WaitL1 --> SLACheck1{SLA<br>Exceeded?}
 
     SLACheck1 -->|Yes| SendReminder1[Send Reminder Email]
     SendReminder1 --> WaitL1
 
-    SLACheck1 -->|No| L1Decision{Level 1<br/>Decision?}
+    SLACheck1 -->|No| L1Decision{Level 1<br>Decision?}
 
-    L1Decision -->|Approved| RecordL1Approval[Record Approval:<br/>- approver_id<br/>- approval_date<br/>- comments]
-    L1Decision -->|Partial| RecordL1Partial[Record Partial Approval:<br/>- approved_quantity<br/>- rejected_quantity<br/>- adjustment_reason]
-    L1Decision -->|Rejected| RecordL1Rejection[Record Rejection:<br/>- rejection_reason<br/>- comments]
+    L1Decision -->|Approved| RecordL1Approval[Record Approval:<br>- approver_id<br>- approval_date<br>- comments]
+    L1Decision -->|Partial| RecordL1Partial[Record Partial Approval:<br>- approved_quantity<br>- rejected_quantity<br>- adjustment_reason]
+    L1Decision -->|Rejected| RecordL1Rejection[Record Rejection:<br>- rejection_reason<br>- comments]
     L1Decision -->|Returned| SetDraftStatus[Status: draft]
 
     RecordL1Rejection --> UpdateStatusRejected[Status: rejected]
@@ -268,7 +268,7 @@ flowchart TD
     SetDraftStatus --> NotifySubmitter2[Notify Submitter to Revise]
     NotifySubmitter2 --> ReturnedEnd([Returned for Revision])
 
-    RecordL1Approval --> CheckMoreLevels{More<br/>Levels?}
+    RecordL1Approval --> CheckMoreLevels{More<br>Levels?}
     RecordL1Partial --> CheckMoreLevels
 
     CheckMoreLevels -->|No| FinalApproved[Status: approved or partially_approved]
@@ -276,14 +276,14 @@ flowchart TD
 
     RouteLevel2 --> NotifyL2[Notify Store Manager]
     NotifyL2 --> WaitL2[Wait for Level 2 Response]
-    WaitL2 --> L2Decision{Level 2<br/>Decision?}
+    WaitL2 --> L2Decision{Level 2<br>Decision?}
 
     L2Decision -->|Approved| RecordL2Approval[Record Level 2 Approval]
     L2Decision -->|Rejected| RecordL2Rejection[Record Level 2 Rejection]
     L2Decision -->|Partial| RecordL2Partial[Record Level 2 Partial]
 
     RecordL2Rejection --> UpdateStatusRejected
-    RecordL2Approval --> CheckLevel3{Level 3<br/>Required?}
+    RecordL2Approval --> CheckLevel3{Level 3<br>Required?}
     RecordL2Partial --> CheckLevel3
 
     CheckLevel3 -->|No| FinalApproved
@@ -291,7 +291,7 @@ flowchart TD
 
     RouteLevel3 --> NotifyL3[Notify Finance Manager]
     NotifyL3 --> WaitL3[Wait for Level 3 Response]
-    WaitL3 --> L3Decision{Level 3<br/>Decision?}
+    WaitL3 --> L3Decision{Level 3<br>Decision?}
 
     L3Decision -->|Approved| RecordL3Approval[Record Level 3 Approval]
     L3Decision -->|Rejected| RecordL3Rejection[Record Level 3 Rejection]
@@ -354,9 +354,9 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Add Photo]) --> CheckCount{Current<br/>Photo Count?}
+    Start([User Clicks Add Photo]) --> CheckCount{Current<br>Photo Count?}
 
-    CheckCount -->|< 5| CameraChoice{Photo<br/>Source?}
+    CheckCount -->|< 5| CameraChoice{Photo<br>Source?}
     CheckCount -->|≥ 5| MaxReached[Display: Maximum 5 photos reached]
     MaxReached --> End1([End])
 
@@ -364,7 +364,7 @@ flowchart TD
     CameraChoice -->|Gallery| OpenGallery[Open Photo Gallery]
     CameraChoice -->|Desktop| FileUpload[Open File Upload Dialog]
 
-    RequestCamera --> CameraGranted{Permission<br/>Granted?}
+    RequestCamera --> CameraGranted{Permission<br>Granted?}
     CameraGranted -->|No| CameraError[Display: Camera access denied]
     CameraError --> End1
     CameraGranted -->|Yes| CapturePhoto[Capture Photo]
@@ -373,45 +373,45 @@ flowchart TD
     FileUpload --> SelectPhoto
     CapturePhoto --> SelectPhoto
 
-    SelectPhoto --> ExtractEXIF[Extract EXIF Metadata:<br/>- captured_at<br/>- device_info<br/>- gps_coordinates]
+    SelectPhoto --> ExtractEXIF[Extract EXIF Metadata:<br>- captured_at<br>- device_info<br>- gps_coordinates]
 
-    ExtractEXIF --> ClientValidate{Validate<br/>File?}
+    ExtractEXIF --> ClientValidate{Validate<br>File?}
 
-    ClientValidate -->|Invalid| ShowFileError[Display Error:<br/>- Wrong format<br/>- File too large<br/>- Corrupted]
+    ClientValidate -->|Invalid| ShowFileError[Display Error:<br>- Wrong format<br>- File too large<br>- Corrupted]
     ShowFileError --> End1
 
-    ClientValidate -->|Valid| ClientCompress[Client-Side Compression:<br/>Max 2MB, Quality 85%]
-    ClientCompress --> AddCaption{Add<br/>Caption?}
+    ClientValidate -->|Valid| ClientCompress[Client-Side Compression:<br>Max 2MB, Quality 85%]
+    ClientCompress --> AddCaption{Add<br>Caption?}
 
     AddCaption -->|Yes| EnterCaption[User Enters Caption]
     AddCaption -->|No| PrepareUpload
-    EnterCaption --> PrepareUpload[Prepare Upload:<br/>- FormData with photo<br/>- Metadata JSON]
+    EnterCaption --> PrepareUpload[Prepare Upload:<br>- FormData with photo<br>- Metadata JSON]
 
     PrepareUpload --> UploadAPI[POST /api/wastage/photos]
-    UploadAPI --> ServerValidate{Server<br/>Validation?}
+    UploadAPI --> ServerValidate{Server<br>Validation?}
 
-    ServerValidate -->|Invalid| ServerError[Return Error:<br/>- Invalid format<br/>- Malicious content<br/>- Size exceeded]
+    ServerValidate -->|Invalid| ServerError[Return Error:<br>- Invalid format<br>- Malicious content<br>- Size exceeded]
     ServerError --> End1
 
-    ServerValidate -->|Valid| GeneratePath[Generate Storage Path:<br/>location_id/year/month/wastage_number/photo_id.ext]
+    ServerValidate -->|Valid| GeneratePath[Generate Storage Path:<br>location_id/year/month/wastage_number/photo_id.ext]
 
     GeneratePath --> ReadImage[Sharp: Read Image Buffer]
     ReadImage --> ExtractDimensions[Extract Width & Height]
-    ExtractDimensions --> AddWatermark[Sharp: Add Watermark:<br/>Text: "wastage_number | location | date"]
+    ExtractDimensions --> AddWatermark[Sharp: Add Watermark:<br>Text: wastage_number - location - date]
 
-    AddWatermark --> GenerateThumbnail[Sharp: Generate Thumbnail:<br/>300px width, maintain aspect ratio]
-    GenerateThumbnail --> UploadOriginal[Upload to Supabase Storage:<br/>bucket: wastage-photos<br/>path: storage_path]
+    AddWatermark --> GenerateThumbnail[Sharp: Generate Thumbnail:<br>300px width, maintain aspect ratio]
+    GenerateThumbnail --> UploadOriginal[Upload to Supabase Storage:<br>bucket: wastage-photos<br>path: storage_path]
 
-    UploadOriginal --> UploadSuccess{Upload<br/>Success?}
+    UploadOriginal --> UploadSuccess{Upload<br>Success?}
 
-    UploadSuccess -->|No| RetryUpload{Retry<br/>Count < 3?}
+    UploadSuccess -->|No| RetryUpload{Retry<br>Count < 3?}
     RetryUpload -->|Yes| UploadOriginal
-    RetryUpload -->|No| UploadFailed[Status: failed<br/>Log error]
+    RetryUpload -->|No| UploadFailed[Status: failed<br>Log error]
     UploadFailed --> End1
 
-    UploadSuccess -->|Yes| SaveMetadata[(Save to wastage_photos:<br/>- storage_path<br/>- file_size<br/>- dimensions<br/>- watermark_text<br/>- device_info<br/>- gps_coordinates)]
+    UploadSuccess -->|Yes| SaveMetadata[(Save to wastage_photos:<br>- storage_path<br>- file_size<br>- dimensions<br>- watermark_text<br>- device_info<br>- gps_coordinates)]
 
-    SaveMetadata --> GenerateURL[Generate Signed URL:<br/>Expires in 1 hour]
+    SaveMetadata --> GenerateURL[Generate Signed URL:<br>Expires in 1 hour]
     GenerateURL --> UpdateStatus[Status: completed]
     UpdateStatus --> DisplayThumb[Display Thumbnail in UI]
     DisplayThumb --> Success([Photo Uploaded])
@@ -480,22 +480,22 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    Kitchen([Kitchen Staff]) -->|Records Wastage| WastageSystem{Wastage<br/>Reporting<br/>System}
+    Kitchen([Kitchen Staff]) -->|Records Wastage| WastageSystem{Wastage<br>Reporting<br>System}
     Manager([Managers]) -->|Approves/Rejects| WastageSystem
     WastageSystem -->|Notifications| Kitchen
     WastageSystem -->|Notifications| Manager
 
-    WastageSystem <-->|Query/Update| DB[(Wastage<br/>Database)]
+    WastageSystem <-->|Query/Update| DB[(Wastage<br>Database)]
 
-    WastageSystem <-->|Product Info,<br/>Stock Levels| Inventory[Inventory<br/>Management<br/>System]
+    WastageSystem <-->|Product Info,<br>Stock Levels| Inventory[Inventory<br>Management<br>System]
 
-    WastageSystem <-->|GL Posting| Finance[Finance<br/>System]
+    WastageSystem <-->|GL Posting| Finance[Finance<br>System]
 
-    WastageSystem <-->|Photo Storage,<br/>Signed URLs| Storage[Supabase<br/>Storage]
+    WastageSystem <-->|Photo Storage,<br>Signed URLs| Storage[Supabase<br>Storage]
 
-    WastageSystem -->|Analytics Data| Analytics[Analytics/<br/>Reporting]
+    WastageSystem -->|Analytics Data| Analytics[Analytics/<br>Reporting]
 
-    WastageSystem <-->|Vendor Info,<br/>Quality Issues| Vendor[Vendor<br/>Management]
+    WastageSystem <-->|Vendor Info,<br>Quality Issues| Vendor[Vendor<br>Management]
 
     style Kitchen fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Manager fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -536,15 +536,15 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "Wastage Reporting System"
-        P1[1.0<br/>Record Wastage]
-        P2[2.0<br/>Upload Photos]
-        P3[3.0<br/>Validate & Calculate]
-        P4[4.0<br/>Manage Approval Workflow]
-        P5[5.0<br/>Adjust Inventory]
-        P6[6.0<br/>Post to GL]
-        P7[7.0<br/>Send Notifications]
-        P8[8.0<br/>Generate Reports]
+    subgraph 'Wastage Reporting System'
+        P1[1.0<br>Record Wastage]
+        P2[2.0<br>Upload Photos]
+        P3[3.0<br>Validate & Calculate]
+        P4[4.0<br>Manage Approval Workflow]
+        P5[5.0<br>Adjust Inventory]
+        P6[6.0<br>Post to GL]
+        P7[7.0<br>Send Notifications]
+        P8[8.0<br>Generate Reports]
 
         DS1[(D1: wastage_headers)]
         DS2[(D2: wastage_line_items)]
@@ -695,32 +695,32 @@ sequenceDiagram
     Service->>Service: Determine approval level (value=$125)
     Note over Service: Value $125 → Level 1 (Dept Manager)
 
-    Service->>DB: INSERT INTO wastage_headers<br/>(wastage_number, total_value, doc_status, approval_level_required)
+    Service->>DB: INSERT INTO wastage_headers<br>(wastage_number, total_value, doc_status, approval_level_required)
     DB-->>Service: Header created (id, wastage_number)
 
-    Service->>DB: INSERT INTO wastage_line_items<br/>(wastage_header_id, product_id, quantity, total_value)
+    Service->>DB: INSERT INTO wastage_line_items<br>(wastage_header_id, product_id, quantity, total_value)
     DB-->>Service: Line item created
 
-    Service->>DB: UPDATE wastage_photos<br/>SET wastage_header_id = ? WHERE id = ?
+    Service->>DB: UPDATE wastage_photos<br>SET wastage_header_id = ? WHERE id = ?
     DB-->>Service: Photos linked
 
-    Service->>DB: INSERT INTO audit_log<br/>(action: 'wastage_created')
+    Service->>DB: INSERT INTO audit_log<br>(action: 'wastage_created')
     DB-->>Service: Audit logged
 
     Service->>DB: COMMIT TRANSACTION
     DB-->>Service: Transaction committed
 
-    Service->>Queue: Publish WastageCreated event<br/>{wastageId, approverId, value}
+    Service->>Queue: Publish WastageCreated event<br>{wastageId, approverId, value}
     Service-->>API: Success (wastage_number, id)
     API-->>UI: 201 Created (wastage data)
-    UI-->>User: Display "Wastage WST-2025-0112-0023 submitted"
+    UI-->>User: Display 'Wastage WST-2501-0112-0023 submitted'
 
     Queue->>Service: Process WastageCreated event
     Service->>DB: SELECT approver WHERE role = 'dept_manager'
     DB-->>Service: Approver details (email, name)
     Service->>Email: Send approval request email
     Email-->>User: Notification email sent
-    Email-->>User: Email: "New wastage awaiting approval"
+    Email-->>User: Email: 'New wastage awaiting approval'
 ```
 
 **Key Timing Metrics**:
@@ -765,16 +765,16 @@ sequenceDiagram
     Approver->>UI: Navigate to Approval Queue
     UI->>API: GET /api/wastage/approvals?status=pending&level=1
     API->>Service: getPendingApprovals(userId, level)
-    Service->>DB: SELECT * FROM wastage_headers<br/>WHERE current_approval_level = 0<br/>AND approval_level_required >= 1
+    Service->>DB: SELECT * FROM wastage_headers<br>WHERE current_approval_level = 0<br>AND approval_level_required >= 1
     DB-->>Service: Pending wastage list
     Service-->>API: Approval queue data
     API-->>UI: 200 OK (pending list)
     UI-->>Approver: Display 5 pending wastage items
 
-    Approver->>UI: Click wastage WST-2025-0112-0023
+    Approver->>UI: Click wastage WST-2501-0112-0023
     UI->>API: GET /api/wastage/{id}?include=photos,lineItems
     API->>Service: getWastageById(id, include)
-    Service->>DB: SELECT wastage_headers, line_items, photos<br/>WHERE id = ?
+    Service->>DB: SELECT wastage_headers, line_items, photos<br>WHERE id = ?
     DB-->>Service: Complete wastage data
     Service-->>API: Wastage details
     API-->>UI: 200 OK (wastage)
@@ -784,7 +784,7 @@ sequenceDiagram
     Approver->>UI: Enter comments: "Approved. Photos clear."
     Approver->>UI: Click "Approve"
 
-    UI->>API: POST /api/wastage/{id}/approve<br/>{comments, approvedValue}
+    UI->>API: POST /api/wastage/{id}/approve<br>{comments, approvedValue}
     API->>API: Authenticate approver
     API->>Service: approveWastage(wastageId, approverId, comments)
 
@@ -795,45 +795,45 @@ sequenceDiagram
 
     Service->>DB: BEGIN TRANSACTION
 
-    Service->>DB: INSERT INTO wastage_approvals<br/>(wastage_header_id, approval_level: 1,<br/>approver_id, approval_action: 'approved',<br/>original_value, approved_value, comments)
+    Service->>DB: INSERT INTO wastage_approvals<br>(wastage_header_id, approval_level: 1,<br>approver_id, approval_action: 'approved',<br>original_value, approved_value, comments)
     DB-->>Service: Approval record created
 
-    Service->>DB: UPDATE wastage_headers<br/>SET current_approval_level = 1,<br/>doc_status = 'approved',<br/>doc_version = doc_version + 1<br/>WHERE id = ? AND doc_version = ?
+    Service->>DB: UPDATE wastage_headers<br>SET current_approval_level = 1,<br>doc_status = 'approved',<br>doc_version = doc_version + 1<br>WHERE id = ? AND doc_version = ?
     Note over Service: Optimistic locking check
     DB-->>Service: Header updated (1 row)
 
-    Service->>DB: INSERT INTO audit_log<br/>(action: 'wastage_approved')
+    Service->>DB: INSERT INTO audit_log<br>(action: 'wastage_approved')
     DB-->>Service: Audit logged
 
     Service->>DB: COMMIT TRANSACTION
     DB-->>Service: Transaction committed
 
-    Service->>Queue: Publish WastageApproved event<br/>{wastageId, approverId, value, lineItems}
+    Service->>Queue: Publish WastageApproved event<br>{wastageId, approverId, value, lineItems}
     Service-->>API: Success (approval data)
     API-->>UI: 200 OK (approval)
-    UI-->>Approver: Display "Wastage approved successfully"
+    UI-->>Approver: Display 'Wastage approved successfully'
 
     par Inventory Adjustment (Async)
         Queue->>Inventory: Process WastageApproved event
-        Inventory->>Inventory: Calculate stock adjustment<br/>(reduce stock by wastage qty)
+        Inventory->>Inventory: Calculate stock adjustment<br>(reduce stock by wastage qty)
         Inventory->>DB: BEGIN TRANSACTION
-        Inventory->>DB: INSERT INTO inventory_transactions<br/>(type: 'adjustment_out',<br/>reason: 'wastage',<br/>reference: wastage_number)
+        Inventory->>DB: INSERT INTO inventory_transactions<br>(type: 'adjustment_out',<br>reason: 'wastage',<br>reference: wastage_number)
         DB-->>Inventory: Transaction created (id)
-        Inventory->>DB: UPDATE inventory_stock<br/>SET quantity = quantity - wastage_qty<br/>WHERE product_id = ? AND location_id = ?
+        Inventory->>DB: UPDATE inventory_stock<br>SET quantity = quantity - wastage_qty<br>WHERE product_id = ? AND location_id = ?
         DB-->>Inventory: Stock updated
-        Inventory->>DB: UPDATE wastage_headers<br/>SET inventory_adjusted = true,<br/>inventory_adjustment_id = ?
+        Inventory->>DB: UPDATE wastage_headers<br>SET inventory_adjusted = true,<br>inventory_adjustment_id = ?
         DB-->>Inventory: Updated
         Inventory->>DB: COMMIT TRANSACTION
         Inventory->>Queue: Publish InventoryAdjusted event
     and GL Posting (Async)
         Queue->>Finance: Process WastageApproved event
-        Finance->>Finance: Calculate GL entry<br/>DR: Wastage Expense (5200-010)<br/>CR: Inventory Asset (1400-010)
+        Finance->>Finance: Calculate GL entry<br>DR: Wastage Expense 5200-010<br>CR: Inventory Asset 1400-010
         Finance->>DB: BEGIN TRANSACTION
-        Finance->>DB: INSERT INTO gl_journal_entries<br/>(type: 'wastage_expense',<br/>reference: wastage_number,<br/>total_debit, total_credit)
+        Finance->>DB: INSERT INTO gl_journal_entries<br>(type: 'wastage_expense',<br>reference: wastage_number,<br>total_debit, total_credit)
         DB-->>Finance: Journal entry created (id)
-        Finance->>DB: INSERT INTO gl_journal_lines (2 rows)<br/>(debit line, credit line)
+        Finance->>DB: INSERT INTO gl_journal_lines (2 rows)<br>(debit line, credit line)
         DB-->>Finance: Lines created
-        Finance->>DB: UPDATE wastage_headers<br/>SET gl_posted = true,<br/>gl_journal_entry_id = ?
+        Finance->>DB: UPDATE wastage_headers<br>SET gl_posted = true,<br>gl_journal_entry_id = ?
         DB-->>Finance: Updated
         Finance->>DB: COMMIT TRANSACTION
         Finance->>Queue: Publish GLPosted event
@@ -1021,29 +1021,29 @@ stateDiagram-v2
 flowchart TD
     Start([Wastage Approved]) --> Event[WastageApproved Event Published to Queue]
     Event --> Consume[Inventory Service Consumes Event]
-    Consume --> Extract[Extract Wastage Data:<br/>- wastage_id<br/>- line_items<br/>- location_id<br/>- product_ids<br/>- quantities]
+    Consume --> Extract[Extract Wastage Data:<br>- wastage_id<br>- line_items<br>- location_id<br>- product_ids<br>- quantities]
 
     Extract --> StartTxn[BEGIN TRANSACTION]
-    StartTxn --> CreateHeader[Create Inventory Transaction Header:<br/>type: 'adjustment_out'<br/>reason: 'wastage'<br/>reference: wastage_number]
+    StartTxn --> CreateHeader[Create Inventory Transaction Header:<br>type: 'adjustment_out'<br>reason: 'wastage'<br>reference: wastage_number]
 
-    CreateHeader --> LoopItems{More<br/>Line Items?}
+    CreateHeader --> LoopItems{More<br>Line Items?}
 
     LoopItems -->|Yes| GetLineItem[Get Next Line Item]
-    GetLineItem --> CreateLine[Create Inventory Transaction Line:<br/>- product_id<br/>- quantity (negative)<br/>- unit_cost]
+    GetLineItem --> CreateLine[Create Inventory Transaction Line:<br>- product_id<br>- quantity as negative value<br>- unit_cost]
 
-    CreateLine --> UpdateStock[UPDATE inventory_stock<br/>SET quantity = quantity - wastage_qty,<br/>last_movement_date = NOW()<br/>WHERE product_id = ? AND location_id = ?]
+    CreateLine --> UpdateStock[UPDATE inventory_stock<br>SET quantity = quantity - wastage_qty,<br>last_movement_date = NOW<br>WHERE product_id = ? AND location_id = ?]
 
-    UpdateStock --> CheckResult{Stock<br/>Updated?}
+    UpdateStock --> CheckResult{Stock<br>Updated?}
     CheckResult -->|No rows| StockError[ERROR: Product not found in inventory]
-    CheckResult -->|Success| CheckNegative{Stock<br/>< 0?}
+    CheckResult -->|Success| CheckNegative{Stock<br>< 0?}
 
     CheckNegative -->|Yes| NegativeError[ERROR: Negative stock not allowed]
     CheckNegative -->|No| LoopItems
 
     LoopItems -->|No more items| CalcTotal[Calculate Transaction Total]
-    CalcTotal --> UpdateWastage[UPDATE wastage_headers<br/>SET inventory_adjusted = true,<br/>inventory_adjustment_id = ?,<br/>updated_date = NOW()]
+    CalcTotal --> UpdateWastage[UPDATE wastage_headers<br>SET inventory_adjusted = true,<br>inventory_adjustment_id = ?,<br>updated_date = NOW]
 
-    UpdateWastage --> LogAudit[INSERT INTO audit_log:<br/>action: 'inventory_adjusted_wastage']
+    UpdateWastage --> LogAudit[INSERT INTO audit_log:<br>action: 'inventory_adjusted_wastage']
     LogAudit --> CommitTxn[COMMIT TRANSACTION]
     CommitTxn --> PublishEvent[Publish InventoryAdjusted Event]
     PublishEvent --> Success([Inventory Adjusted])
@@ -1051,7 +1051,7 @@ flowchart TD
     StockError --> Rollback[ROLLBACK TRANSACTION]
     NegativeError --> Rollback
     Rollback --> LogError[Log Error to Error Table]
-    LogError --> Retry{Retry<br/>Count < 3?}
+    LogError --> Retry{Retry<br>Count < 3?}
     Retry -->|Yes| WaitBackoff[Wait with exponential backoff]
     WaitBackoff --> Consume
     Retry -->|No| AlertOps[Alert Operations Team]
@@ -1074,13 +1074,13 @@ flowchart TD
 ```typescript
 {
   id: uuid,
-  transaction_number: "INV-ADJ-2025-0112-0045",
+  transaction_number: "INV-ADJ-2501-0112-0045",
   transaction_type: "adjustment_out",
   transaction_date: "2025-01-12",
   location_id: uuid,
   reference_type: "wastage",
   reference_id: wastage_header_id,
-  reference_number: "WST-2025-0112-0023",
+  reference_number: "WST-2501-0112-0023",
   total_value: -31.25,
   status: "completed",
   notes: "Inventory adjustment for approved wastage",
@@ -1116,7 +1116,7 @@ SET
   quantity = quantity - 2.5,  -- Reduce stock
   last_movement_date = NOW(),
   last_movement_type = 'adjustment_out',
-  last_movement_reference = 'WST-2025-0112-0023'
+  last_movement_reference = 'WST-2501-0112-0023'
 WHERE
   product_id = {product_id}
   AND location_id = {location_id}
@@ -1147,35 +1147,35 @@ WHERE
 flowchart TD
     Start([Wastage Approved]) --> Event[WastageApproved Event Published]
     Event --> Consume[Finance Service Consumes Event]
-    Consume --> Extract[Extract Wastage Data:<br/>- wastage_id<br/>- total_value<br/>- wastage_category<br/>- location_id<br/>- currency]
+    Consume --> Extract[Extract Wastage Data:<br>- wastage_id<br>- total_value<br>- wastage_category<br>- location_id<br>- currency]
 
-    Extract --> LookupMapping[Lookup GL Account Mapping<br/>from wastage_configuration]
+    Extract --> LookupMapping[Lookup GL Account Mapping<br>from wastage_configuration]
     LookupMapping --> GetAccounts[Get GL Accounts by Category]
 
-    GetAccounts --> CheckMapping{Mapping<br/>Found?}
+    GetAccounts --> CheckMapping{Mapping<br>Found?}
     CheckMapping -->|No| UseDefault[Use Default Wastage Expense Account]
     CheckMapping -->|Yes| PrepareEntry[Prepare Journal Entry]
     UseDefault --> PrepareEntry
 
     PrepareEntry --> StartTxn[BEGIN TRANSACTION]
-    StartTxn --> CreateHeader[Create GL Journal Entry Header:<br/>type: 'wastage_expense'<br/>reference: wastage_number<br/>posting_date: current_date]
+    StartTxn --> CreateHeader[Create GL Journal Entry Header:<br>type: 'wastage_expense'<br>reference: wastage_number<br>posting_date: current_date]
 
-    CreateHeader --> CreateDebit[Create Debit Line:<br/>Account: Wastage Expense (5200-010)<br/>Amount: wastage total_value<br/>Description: "Wastage - {category}"]
+    CreateHeader --> CreateDebit[Create Debit Line:<br>Account: Wastage Expense 5200-010<br>Amount: wastage total_value<br>Description: Wastage - category]
 
-    CreateDebit --> CreateCredit[Create Credit Line:<br/>Account: Inventory Asset (1400-010)<br/>Amount: wastage total_value<br/>Description: "Inventory reduction - {wastage_number}"]
+    CreateDebit --> CreateCredit[Create Credit Line:<br>Account: Inventory Asset 1400-010<br>Amount: wastage total_value<br>Description: Inventory reduction - wastage_number]
 
-    CreateCredit --> ValidateBalance{Debit =<br/>Credit?}
+    CreateCredit --> ValidateBalance{Debit =<br>Credit?}
     ValidateBalance -->|No| BalanceError[ERROR: Unbalanced entry]
-    ValidateBalance -->|Yes| UpdateWastage[UPDATE wastage_headers<br/>SET gl_posted = true,<br/>gl_journal_entry_id = ?,<br/>updated_date = NOW()]
+    ValidateBalance -->|Yes| UpdateWastage2[UPDATE wastage_headers<br>SET gl_posted = true,<br>gl_journal_entry_id = ?,<br>updated_date = NOW]
 
-    UpdateWastage --> LogAudit[INSERT INTO audit_log:<br/>action: 'gl_posted_wastage']
+    UpdateWastage --> LogAudit[INSERT INTO audit_log:<br>action: 'gl_posted_wastage']
     LogAudit --> CommitTxn[COMMIT TRANSACTION]
     CommitTxn --> PublishEvent[Publish GLPosted Event]
     PublishEvent --> Success([GL Posted])
 
     BalanceError --> Rollback[ROLLBACK TRANSACTION]
     Rollback --> LogError[Log Error to Error Table]
-    LogError --> Retry{Retry<br/>Count < 3?}
+    LogError --> Retry{Retry<br>Count < 3?}
     Retry -->|Yes| WaitBackoff[Wait with exponential backoff]
     WaitBackoff --> Consume
     Retry -->|No| AlertFinance[Alert Finance Team]
@@ -1198,14 +1198,14 @@ flowchart TD
 ```typescript
 {
   id: uuid,
-  entry_number: "JE-2025-0112-1234",
+  entry_number: "JE-2501-0112-1234",
   entry_type: "wastage_expense",
   posting_date: "2025-01-12",
   period: "2025-01",
   fiscal_year: 2025,
   reference_type: "wastage",
   reference_id: wastage_header_id,
-  reference_number: "WST-2025-0112-0023",
+  reference_number: "WST-2501-0112-0023",
   description: "Wastage expense - Preparation error",
   currency: "USD",
   total_debit: 31.25,
@@ -1244,7 +1244,7 @@ flowchart TD
     cost_center: "Kitchen",
     department: "Operations",
     location_id: uuid,
-    description: "Inventory reduction - WST-2025-0112-0023"
+    description: "Inventory reduction - WST-2501-0112-0023"
   }
 ]
 ```
@@ -1287,31 +1287,31 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User Selects Batch Wastage]) --> InitForm[Initialize Batch Wastage Form]
-    InitForm --> EnterContext[Enter Batch Context:<br/>e.g., "Sunday buffet cleanup"]
-    EnterContext --> SelectCategory[Select Common Category:<br/>e.g., overproduction]
+    InitForm --> EnterContext[Enter Batch Context:<br>e.g., 'Sunday buffet cleanup']
+    EnterContext --> SelectCategory[Select Common Category:<br>e.g., overproduction]
     SelectCategory --> AddItem1[Add Line Item 1]
 
     AddItem1 --> SelectProd1[Select Product 1]
     SelectProd1 --> EnterQty1[Enter Quantity & Line Reason]
     EnterQty1 --> CalcLine1[System Calculates Line Total]
-    CalcLine1 --> AddAnother1{Add Another<br/>Item?}
+    CalcLine1 --> AddAnother1{Add Another<br>Item?}
 
     AddAnother1 -->|Yes| AddItem2[Add Line Item 2]
     AddItem2 --> SelectProd2[Select Product 2]
     SelectProd2 --> EnterQty2[Enter Quantity & Line Reason]
     EnterQty2 --> CalcLine2[System Calculates Line Total]
-    CalcLine2 --> AddAnother2{Add Another<br/>Item?}
+    CalcLine2 --> AddAnother2{Add Another<br>Item?}
 
     AddAnother2 -->|Yes| AddItem3[Add Line Item 3...]
     AddAnother2 -->|No| CalcGrandTotal
 
-    AddAnother1 -->|No| CalcGrandTotal[Calculate Grand Total:<br/>Sum of all line totals]
+    AddAnother1 -->|No| CalcGrandTotal[Calculate Grand Total:<br>Sum of all line totals]
     AddItem3 --> CalcGrandTotal
 
     CalcGrandTotal --> DisplayTotal[Display Total Value: $450.00]
-    DisplayTotal --> PhotoCheck{Add<br/>Photos?}
+    DisplayTotal --> PhotoCheck{Add<br>Photos?}
 
-    PhotoCheck -->|Yes| SelectLineItem{Associate<br/>with line item?}
+    PhotoCheck -->|Yes| SelectLineItem{Associate<br>with line item?}
     PhotoCheck -->|No| ValidateBatch
 
     SelectLineItem -->|Specific Item| TagPhoto[Tag Photo to Line Item]
@@ -1320,19 +1320,19 @@ flowchart TD
     HeaderPhoto --> UploadPhoto
     UploadPhoto --> PhotoCheck
 
-    ValidateBatch{Validate<br/>Batch?}
-    ValidateBatch -->|Invalid| ShowErrors[Display Validation Errors:<br/>- Duplicate products<br/>- Missing quantities<br/>- Stock insufficient]
+    ValidateBatch{Validate<br>Batch?}
+    ValidateBatch -->|Invalid| ShowErrors[Display Validation Errors:<br>- Duplicate products<br>- Missing quantities<br>- Stock insufficient]
     ShowErrors --> AddItem1
 
-    ValidateBatch -->|Valid| DetermineApproval[Determine Approval Level:<br/>Total $450 → Level 2]
-    DetermineApproval --> ReviewBatch[Display Batch Review Screen:<br/>3 line items, $450 total]
-    ReviewBatch --> ConfirmSubmit{Confirm<br/>Submit?}
+    ValidateBatch -->|Valid| DetermineApproval[Determine Approval Level:<br>Total $450 → Level 2]
+    DetermineApproval --> ReviewBatch[Display Batch Review Screen:<br>3 line items, $450 total]
+    ReviewBatch --> ConfirmSubmit{Confirm<br>Submit?}
 
     ConfirmSubmit -->|No| SaveDraft([Saved as Draft])
-    ConfirmSubmit -->|Yes| CreateHeader[Create wastage_headers:<br/>is_batch = true<br/>batch_context = "Sunday buffet cleanup"]
+    ConfirmSubmit -->|Yes| CreateHeader[Create wastage_headers:<br>is_batch = true<br>batch_context = 'Sunday buffet cleanup']
 
-    CreateHeader --> LoopLines{More<br/>Line Items?}
-    LoopLines -->|Yes| CreateLine[Create wastage_line_items:<br/>line_number, product_id, quantity]
+    CreateHeader --> LoopLines{More<br>Line Items?}
+    LoopLines -->|Yes| CreateLine[Create wastage_line_items:<br>line_number, product_id, quantity]
     CreateLine --> LinkPhotos[Link Line-Specific Photos]
     LinkPhotos --> LoopLines
 
@@ -1354,7 +1354,7 @@ flowchart TD
 **Batch Header**:
 ```typescript
 {
-  wastage_number: "WST-2025-0112-0045",
+  wastage_number: "WST-2501-0112-0045",
   wastage_date: "2025-01-12",
   location_id: "Hotel Grand Restaurant",
   wastage_category: "overproduction",
@@ -1379,7 +1379,7 @@ flowchart TD
     unit_cost: 45.00,
     total_value: 135.00,
     line_reason: "15 portions unserved, 3kg total",
-    line_photos: ["photo-001-uuid", "photo-002-uuid"]
+    line_photos: ['photo-001-uuid', 'photo-002-uuid']
   },
   {
     line_number: 2,
@@ -1390,7 +1390,7 @@ flowchart TD
     unit_cost: 50.00,
     total_value: 125.00,
     line_reason: "10 portions unserved, 2.5kg total",
-    line_photos: ["photo-003-uuid"]
+    line_photos: ['photo-003-uuid']
   },
   {
     line_number: 3,
@@ -1434,47 +1434,47 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Approver Reviews Wastage]) --> ViewDetails[View Wastage Details:<br/>Product: Beef Ribeye<br/>Quantity: 5 kg<br/>Value: $225]
+    Start([Approver Reviews Wastage]) --> ViewDetails[View Wastage Details:<br>Product: Beef Ribeye<br>Quantity: 5 kg<br>Value: $225]
     ViewDetails --> ViewPhotos[View Photo Evidence]
-    ViewPhotos --> ApproverDecision{Approver<br/>Decision?}
+    ViewPhotos --> ApproverDecision{Approver<br>Decision?}
 
     ApproverDecision -->|Full Approval| FullApprove[Approve Full Quantity]
     ApproverDecision -->|Rejection| FullReject[Reject Entire Wastage]
-    ApproverDecision -->|Partial| ClickPartial[Click "Partial Approval" Button]
+    ApproverDecision -->|Partial| ClickPartial[Click 'Partial Approval' Button]
 
     ClickPartial --> ShowDialog[Display Partial Approval Dialog]
     ShowDialog --> EnterApproved[Enter Approved Quantity: 4 kg]
-    EnterApproved --> CalcRejected[System Calculates:<br/>Rejected Quantity: 1 kg<br/>Rejected Value: $45]
+    EnterApproved --> CalcRejected[System Calculates:<br>Rejected Quantity: 1 kg<br>Rejected Value: $45]
 
-    CalcRejected --> DisplaySplit[Display Split Summary:<br/>✓ Approved: 4 kg ($180)<br/>✗ Rejected: 1 kg ($45)]
-    DisplaySplit --> EnterReason[Enter Adjustment Reason:<br/>"Only 4 kg clearly visible in photos.<br/>Resubmit remaining 1 kg with better documentation."]
+    CalcRejected --> DisplaySplit[Display Split Summary:<br>✓ Approved: 4 kg - $180<br>✗ Rejected: 1 kg - $45]
+    DisplaySplit --> EnterReason[Enter Adjustment Reason:<br>'Only 4 kg clearly visible in photos.<br>Resubmit remaining 1 kg with better documentation.']
 
-    EnterReason --> ValidatePartial{Validate<br/>Partial?}
-    ValidatePartial -->|Invalid| ShowPartialErrors[Display Errors:<br/>- Approved qty must be > 0<br/>- Approved qty must be < original<br/>- Reason must be provided]
+    EnterReason --> ValidatePartial{Validate<br>Partial?}
+    ValidatePartial -->|Invalid| ShowPartialErrors[Display Errors:<br>- Approved qty must be > 0<br>- Approved qty must be < original<br>- Reason must be provided]
     ShowPartialErrors --> EnterApproved
 
-    ValidatePartial -->|Valid| ConfirmPartial{Confirm<br/>Partial?}
+    ValidatePartial -->|Valid| ConfirmPartial{Confirm<br>Partial?}
     ConfirmPartial -->|No| ViewDetails
     ConfirmPartial -->|Yes| StartTxn[BEGIN TRANSACTION]
 
-    StartTxn --> CreateApproval[CREATE wastage_approvals:<br/>approval_action: 'partially_approved'<br/>original_value: 225.00<br/>approved_value: 180.00<br/>rejected_value: 45.00<br/>adjustment_reason: "Only 4kg..."]
+    StartTxn --> CreateApproval[CREATE wastage_approvals:<br>approval_action: 'partially_approved'<br>original_value: 225.00<br>approved_value: 180.00<br>rejected_value: 45.00<br>adjustment_reason: 'Only 4kg...']
 
-    CreateApproval --> UpdateHeader[UPDATE wastage_headers:<br/>doc_status: 'partially_approved'<br/>current_approval_level: 1]
+    CreateApproval --> UpdateHeader[UPDATE wastage_headers:<br>doc_status: 'partially_approved'<br>current_approval_level: 1]
 
-    UpdateHeader --> UpdateLineItem[UPDATE wastage_line_items:<br/>approved_quantity: 4.0<br/>rejected_quantity: 1.0<br/>line_status: 'partially_approved']
+    UpdateHeader --> UpdateLineItem[UPDATE wastage_line_items:<br>approved_quantity: 4.0<br>rejected_quantity: 1.0<br>line_status: 'partially_approved']
 
-    UpdateLineItem --> RecordLineAdj[Store Line Item Adjustments JSON:<br/>{<br/>  "line_item_id": "...",<br/>  "product_name": "Beef Ribeye",<br/>  "original_quantity": 5.0,<br/>  "approved_quantity": 4.0,<br/>  "rejected_quantity": 1.0,<br/>  "reason": "Only 4 kg visible..."<br/>}]
+    UpdateLineItem --> RecordLineAdj[Store Line Item Adjustments JSON:<br>{<br>  'line_item_id': '...',<br>  'product_name': 'Beef Ribeye',<br>  'original_quantity': 5.0,<br>  'approved_quantity': 4.0,<br>  'rejected_quantity': 1.0,<br>  'reason': 'Only 4 kg visible...'<br>}]
 
-    RecordLineAdj --> LogAudit[INSERT INTO audit_log:<br/>action: 'partial_approval']
+    RecordLineAdj --> LogAudit[INSERT INTO audit_log:<br>action: 'partial_approval']
     LogAudit --> CommitTxn[COMMIT TRANSACTION]
-    CommitTxn --> NotifySubmitter[Notify Submitter:<br/>"Partial Approval - 4kg approved, 1kg rejected"]
+    CommitTxn --> NotifySubmitter[Notify Submitter:<br>'Partial Approval - 4kg approved, 1kg rejected']
 
-    NotifySubmitter --> CheckMore{More<br/>Approval Levels?}
+    NotifySubmitter --> CheckMore{More<br>Approval Levels?}
     CheckMore -->|Yes| RouteNext[Route to Next Level with Approved Value]
-    CheckMore -->|No| TriggerInventory[Trigger Inventory Adjustment:<br/>Reduce stock by approved_quantity only]
+    CheckMore -->|No| TriggerInventory[Trigger Inventory Adjustment:<br>Reduce stock by approved_quantity only]
 
     RouteNext --> TriggerInventory
-    TriggerInventory --> TriggerGL[Trigger GL Posting:<br/>Post approved_value only]
+    TriggerInventory --> TriggerGL[Trigger GL Posting:<br>Post approved_value only]
     TriggerGL --> Success([Partially Approved])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000

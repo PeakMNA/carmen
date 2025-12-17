@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-02 | Inventory Management Team | Initial version |
 
 ---
@@ -70,7 +71,7 @@ This data definition describes the data structures required for managing invento
 3. **InventoryTransaction → SourceDocument**: Polymorphic relationship
    - Business meaning: Each transaction references its source (GRN, requisition, adjustment)
    - Cardinality: One source document can create multiple transactions (multi-item documents)
-   - Example: GRN-2025-001 creates 5 transactions (one per line item)
+   - Example: GRN-2501-0001 creates 5 transactions (one per line item)
 
 4. **InventoryStatus → InventoryItem + Location**: Composite relationship
    - Business meaning: Tracks current quantity for each item at each location
@@ -129,9 +130,9 @@ This data definition describes the data structures required for managing invento
 **Core Business Fields**:
 - **transaction_number**: VARCHAR(50) - Unique business identifier
   - Required: Yes
-  - Format: System-generated sequence (e.g., `TXN-2025-001234`)
+  - Format: System-generated sequence (e.g., `TXN-2501-001234`)
   - Purpose: Human-readable reference for transaction
-  - Example: `TXN-2025-001234`, `GRN-2025-0567`
+  - Example: `TXN-2501-001234`, `GRN-2501-0567`
   - Business rule: Auto-generated on creation, immutable
 
 - **transaction_date**: TIMESTAMP - When transaction occurred
@@ -215,7 +216,7 @@ This data definition describes the data structures required for managing invento
 - **source_document_number**: VARCHAR(100) - Business number of source
   - Required: Yes
   - Purpose: Human-readable reference
-  - Example: `GRN-2025-0567`
+  - Example: `GRN-2501-0567`
   - Use case: User display and reporting
 
 - **reference_transaction_id**: UUID - Links related transactions
@@ -267,7 +268,7 @@ This data definition describes the data structures required for managing invento
 - **gl_posting_reference**: VARCHAR(100) - GL journal reference
   - Required: No (set after GL posting)
   - Purpose: Links inventory transaction to GL entry
-  - Example: `JE-2025-01234`
+  - Example: `JE-2501-01234`
   - Use case: Financial reconciliation
 
 - **reversed_by**: UUID - Transaction that reversed this one
@@ -304,7 +305,7 @@ This data definition describes the data structures required for managing invento
 | Field Name | Data Type | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto-generated | Primary key | 550e8400-... | Unique, Non-null |
-| transaction_number | VARCHAR(50) | Yes | Auto-generated | Business identifier | TXN-2025-001234 | Unique, Immutable |
+| transaction_number | VARCHAR(50) | Yes | Auto-generated | Business identifier | TXN-2501-001234 | Unique, Immutable |
 | transaction_date | TIMESTAMP | Yes | - | Transaction timestamp | 2025-01-20 14:30:00 | UTC, Not future |
 | transaction_type | VARCHAR(50) | Yes | - | Transaction category | GRN, ISSUE, TRANSFER | ENUM constraint |
 | movement_type | VARCHAR(20) | Yes | - | Movement direction | IN, OUT, TRANSFER | ENUM constraint |
@@ -316,7 +317,7 @@ This data definition describes the data structures required for managing invento
 | total_cost | DECIMAL(19,2) | Yes | - | Total transaction cost | 1889.48 | Calculated |
 | source_document_type | VARCHAR(100) | Yes | - | Source doc type | GRN, REQUISITION | Non-empty |
 | source_document_id | UUID | Yes | - | Source doc ID | CC1e3900-... | Foreign Key |
-| source_document_number | VARCHAR(100) | Yes | - | Source doc number | GRN-2025-0567 | Non-empty |
+| source_document_number | VARCHAR(100) | Yes | - | Source doc number | GRN-2501-0567 | Non-empty |
 | reference_transaction_id | UUID | No | NULL | Related transaction | DD1e4900-... | Foreign Key |
 | lot_number | VARCHAR(100) | No | NULL | Lot/batch number | LOT-2025-JAN-001 | - |
 | expiry_date | DATE | No | NULL | Expiration date | 2025-02-15 | Future date |
@@ -324,7 +325,7 @@ This data definition describes the data structures required for managing invento
 | posted_at | TIMESTAMP | No | NULL | Posting timestamp | 2025-01-20 15:00:00 | UTC, Immutable |
 | posted_by | UUID | No | NULL | Posting user | DD1e4900-... | Foreign Key |
 | gl_posted | BOOLEAN | Yes | false | GL integration status | true, false | - |
-| gl_posting_reference | VARCHAR(100) | No | NULL | GL journal reference | JE-2025-01234 | - |
+| gl_posting_reference | VARCHAR(100) | No | NULL | GL journal reference | JE-2501-01234 | - |
 | reversed_by | UUID | No | NULL | Reversal transaction | EE1e5900-... | Foreign Key |
 | reversal_date | TIMESTAMP | No | NULL | Reversal timestamp | 2025-01-25 10:00:00 | UTC |
 | reversal_reason | TEXT | No | NULL | Reversal explanation | "Quantity error..." | Max 500 chars |
@@ -677,7 +678,7 @@ IF affected_rows == 0:
 | allocated_quantity | DECIMAL(19,4) | Yes | - | Allocated amount | 50.0000 | Positive |
 | source_type | VARCHAR(100) | Yes | - | Source type | ORDER, REQUISITION | ENUM |
 | source_id | UUID | Yes | - | Source ID | NN2e9900-... | Foreign Key |
-| source_number | VARCHAR(100) | Yes | - | Source number | REQ-2025-001 | - |
+| source_number | VARCHAR(100) | Yes | - | Source number | REQ-2501-0001 | - |
 | allocation_date | TIMESTAMP | Yes | NOW() | Allocation time | 2025-01-20 14:00:00 | UTC |
 | required_by_date | DATE | No | NULL | Required date | 2025-01-25 | - |
 | status | VARCHAR(50) | Yes | 'ACTIVE' | Allocation status | ACTIVE, FULFILLED | ENUM |

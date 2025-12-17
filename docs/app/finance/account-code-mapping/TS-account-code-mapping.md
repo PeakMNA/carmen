@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Documentation Team | Initial version |
 
 ---
@@ -264,34 +265,34 @@ app/(main)/finance/account-code-mapping/
 
 ```mermaid
 graph TD
-    A["Finance Module"] --> B["COA Management"]
-    A --> C["Mapping Rules"]
-    A --> D["Journal Entries"]
-    A --> E["Period Management"]
-    A --> F["Reconciliation"]
+    A['Finance Module'] --> B['COA Management']
+    A --> C['Mapping Rules']
+    A --> D['Journal Entries']
+    A --> E['Period Management']
+    A --> F['Reconciliation']
 
-    B --> B1["COA List"]
-    B --> B2["Account Detail"]
-    B --> B3["Create Account"]
-    B --> B4["COA Structure View"]
+    B --> B1['COA List']
+    B --> B2['Account Detail']
+    B --> B3['Create Account']
+    B --> B4['COA Structure View']
 
-    C --> C1["Rules List"]
-    C --> C2["Rule Detail"]
-    C --> C3["Create Rule"]
-    C --> C4["Test Rule"]
+    C --> C1['Rules List']
+    C --> C2['Rule Detail']
+    C --> C3['Create Rule']
+    C --> C4['Test Rule']
 
-    D --> D1["Entries List"]
-    D --> D2["Entry Detail"]
-    D --> D3["Manual Entry Form"]
-    D --> D4["Unmapped Queue"]
+    D --> D1['Entries List']
+    D --> D2['Entry Detail']
+    D --> D3['Manual Entry Form']
+    D --> D4['Unmapped Queue']
 
-    E --> E1["Period List"]
-    E --> E2["Close Wizard"]
-    E --> E3["Reopen Request"]
+    E --> E1['Period List']
+    E --> E2['Close Wizard']
+    E --> E3['Reopen Request']
 
-    F --> F1["Recon Dashboard"]
-    F --> F2["Account Recon"]
-    F --> F3["Variance Analysis"]
+    F --> F1['Recon Dashboard']
+    F --> F2['Account Recon']
+    F --> F3['Variance Analysis']
 ```
 
 ---

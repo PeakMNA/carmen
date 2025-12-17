@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-02 | Documentation Team | Initial version |
 
 ---
@@ -191,13 +192,13 @@ flowchart TD
 
     GetUnits --> CheckData{Data available?}
     CheckData -->|No| ShowEmpty[Display empty state]
-    CheckData -->|Yes| InitFilters[Initialize filters:<br/>- Search: empty<br/>- Status: all<br/>- Type: all<br/>- View: table]
+    CheckData -->|Yes| InitFilters[Initialize filters:<br>- Search: empty<br>- Status: all<br>- Type: all<br>- View: table]
 
     InitFilters --> ApplyFilters[Apply filters to data]
     ApplyFilters --> RenderView{View mode?}
 
-    RenderView -->|Table| ShowTable[Display table view with:<br/>- Code, Name, Description<br/>- Type badge<br/>- Status badge<br/>- Actions]
-    RenderView -->|Cards| ShowCards[Display card view with:<br/>- Unit information cards<br/>- Visual indicators<br/>- Action buttons]
+    RenderView -->|Table| ShowTable[Display table view with:<br>- Code, Name, Description<br>- Type badge<br>- Status badge<br>- Actions]
+    RenderView -->|Cards| ShowCards[Display card view with:<br>- Unit information cards<br>- Visual indicators<br>- Action buttons]
 
     ShowTable --> UserInteraction[Wait for user interaction]
     ShowCards --> UserInteraction
@@ -259,7 +260,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User clicks Add Unit]) --> OpenDialog[Open unit creation dialog]
-    OpenDialog --> ShowForm[Display form with fields:<br/>- Code (required)<br/>- Name (required)<br/>- Description (optional)<br/>- Type (required)<br/>- Status (default: Active)]
+    OpenDialog --> ShowForm[Display form with fields:<br>- Code (required)<br>- Name (required)<br>- Description (optional)<br>- Type (required)<br>- Status (default: Active)]
 
     ShowForm --> UserFill[User fills form fields]
     UserFill --> UserAction{User action?}
@@ -268,32 +269,32 @@ flowchart TD
     CloseDialog --> End1([End: Cancelled])
 
     UserAction -->|Save| ValidateClient[Client-side validation]
-    ValidateClient --> CheckRequired{All required<br/>fields filled?}
+    ValidateClient --> CheckRequired{All required<br>fields filled?}
 
-    CheckRequired -->|No| ShowErrors1[Highlight missing fields<br/>Show error messages]
+    CheckRequired -->|No| ShowErrors1[Highlight missing fields<br>Show error messages]
     ShowErrors1 --> UserFill
 
     CheckRequired -->|Yes| CheckFormat{Valid format?}
-    CheckFormat -->|No| ShowErrors2[Show format errors:<br/>- Code: 2-10 chars<br/>- Name: 1-100 chars<br/>- Type: valid enum]
+    CheckFormat -->|No| ShowErrors2[Show format errors:<br>- Code: 2-10 chars<br>- Name: 1-100 chars<br>- Type: valid enum]
     ShowErrors2 --> UserFill
 
-    CheckFormat -->|Yes| TransformData[Transform data:<br/>- Uppercase code<br/>- Trim whitespace<br/>- Set timestamps]
+    CheckFormat -->|Yes| TransformData[Transform data:<br>- Uppercase code<br>- Trim whitespace<br>- Set timestamps]
 
-    TransformData --> CheckDuplicate{Code already<br/>exists?}
-    CheckDuplicate -->|Yes| ShowDupError[Show duplicate error:<br/>Unit code must be unique]
+    TransformData --> CheckDuplicate{Code already<br>exists?}
+    CheckDuplicate -->|Yes| ShowDupError[Show duplicate error:<br>Unit code must be unique]
     ShowDupError --> UserFill
 
     CheckDuplicate -->|No| GenerateID[Generate UUID for new unit]
-    GenerateID --> SetAudit[Set audit fields:<br/>- created_at: NOW<br/>- created_by: current user<br/>- updated_at: NOW<br/>- updated_by: current user]
+    GenerateID --> SetAudit[Set audit fields:<br>- created_at: NOW<br>- created_by: current user<br>- updated_at: NOW<br>- updated_by: current user]
 
     SetAudit --> SaveData[(Save to data store)]
-    SaveData --> CheckSave{Save<br/>successful?}
+    SaveData --> CheckSave{Save<br>successful?}
 
-    CheckSave -->|No| ShowSaveError[Show error message:<br/>Failed to save unit]
+    CheckSave -->|No| ShowSaveError[Show error message:<br>Failed to save unit]
     ShowSaveError --> UserFill
 
     CheckSave -->|Yes| RefreshList[Refresh unit list]
-    RefreshList --> ShowSuccess[Show success message:<br/>Unit created successfully]
+    RefreshList --> ShowSuccess[Show success message:<br>Unit created successfully]
     ShowSuccess --> CloseDialog2[Close dialog]
     CloseDialog2 --> End2([End: Success])
 
@@ -344,14 +345,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks Edit]) --> CheckRefs{Unit has<br/>references?}
+    Start([User clicks Edit]) --> CheckRefs{Unit has<br>references?}
 
     CheckRefs -->|Yes| CheckCode[Check if code change attempted]
     CheckRefs -->|No| LoadData[Load unit data]
 
     CheckCode --> LoadData
     LoadData --> OpenDialog[Open edit dialog]
-    OpenDialog --> PreFill[Pre-fill form with current values:<br/>- Code (read-only if referenced)<br/>- Name<br/>- Description<br/>- Type (read-only if referenced)<br/>- Status]
+    OpenDialog --> PreFill[Pre-fill form with current values:<br>- Code (read-only if referenced)<br>- Name<br>- Description<br>- Type (read-only if referenced)<br>- Status]
 
     PreFill --> UserEdit[User modifies fields]
     UserEdit --> UserAction{User action?}
@@ -359,38 +360,38 @@ flowchart TD
     UserAction -->|Cancel| CloseDialog[Close dialog]
     CloseDialog --> End1([End: Cancelled])
 
-    UserAction -->|Save| CheckChanges{Any changes<br/>made?}
+    UserAction -->|Save| CheckChanges{Any changes<br>made?}
     CheckChanges -->|No| CloseDialog
 
     CheckChanges -->|Yes| ValidateClient[Client-side validation]
-    ValidateClient --> CheckRequired{All required<br/>fields valid?}
+    ValidateClient --> CheckRequired{All required<br>fields valid?}
 
     CheckRequired -->|No| ShowErrors1[Show validation errors]
     ShowErrors1 --> UserEdit
 
-    CheckRequired -->|Yes| CheckCodeChange{Code<br/>changed?}
+    CheckRequired -->|Yes| CheckCodeChange{Code<br>changed?}
 
-    CheckCodeChange -->|Yes| HasRefs{Has<br/>references?}
-    HasRefs -->|Yes| BlockChange[Show error:<br/>Cannot change code<br/>of referenced unit]
+    CheckCodeChange -->|Yes| HasRefs{Has<br>references?}
+    HasRefs -->|Yes| BlockChange[Show error:<br>Cannot change code<br>of referenced unit]
     BlockChange --> UserEdit
 
-    HasRefs -->|No| CheckDuplicate{New code<br/>exists?}
+    HasRefs -->|No| CheckDuplicate{New code<br>exists?}
     CheckDuplicate -->|Yes| ShowDupError[Show duplicate error]
     ShowDupError --> UserEdit
 
     CheckDuplicate -->|No| UpdateData[Prepare update]
     CheckCodeChange -->|No| UpdateData
 
-    UpdateData --> SetAudit[Update audit fields:<br/>- updated_at: NOW<br/>- updated_by: current user]
+    UpdateData --> SetAudit[Update audit fields:<br>- updated_at: NOW<br>- updated_by: current user]
 
     SetAudit --> SaveChanges[(Save changes to database)]
-    SaveChanges --> CheckSave{Save<br/>successful?}
+    SaveChanges --> CheckSave{Save<br>successful?}
 
     CheckSave -->|No| ShowSaveError[Show save error]
     ShowSaveError --> UserEdit
 
     CheckSave -->|Yes| RefreshList[Refresh unit list]
-    RefreshList --> ShowSuccess[Show success message:<br/>Unit updated successfully]
+    RefreshList --> ShowSuccess[Show success message:<br>Unit updated successfully]
     ShowSuccess --> CloseDialog2[Close dialog]
     CloseDialog2 --> End2([End: Success])
 
@@ -446,48 +447,48 @@ The flow includes special handling for code changes based on unit references:
 
 ```mermaid
 flowchart TD
-    Start([User clicks Delete]) --> ShowConfirm[Show confirmation dialog:<br/>Are you sure you want<br/>to delete this unit?]
+    Start([User clicks Delete]) --> ShowConfirm[Show confirmation dialog:<br>Are you sure you want<br>to delete this unit?]
 
     ShowConfirm --> UserConfirm{User confirms?}
     UserConfirm -->|No| End1([End: Cancelled])
 
-    UserConfirm -->|Yes| CheckRefs[Check for references in:<br/>- Products<br/>- Recipes<br/>- Inventory<br/>- Purchase Orders<br/>- Conversions]
+    UserConfirm -->|Yes| CheckRefs[Check for references in:<br>- Products<br>- Recipes<br>- Inventory<br>- Purchase Orders<br>- Conversions]
 
-    CheckRefs --> HasRefs{Has active<br/>references?}
+    CheckRefs --> HasRefs{Has active<br>references?}
 
     HasRefs -->|Yes| CountRefs[Count references by type]
-    CountRefs --> ShowBlockMsg[Show blocking message:<br/>Cannot delete unit {CODE}<br/><br/>Referenced by:<br/>- X products<br/>- Y recipes<br/>- Z transactions]
-    ShowBlockMsg --> OfferDeactivate[Offer alternative:<br/>Deactivate instead of delete?]
+    CountRefs --> ShowBlockMsg[Show blocking message:<br>Cannot delete unit {CODE}<br><br>Referenced by:<br>- X products<br>- Y recipes<br>- Z transactions]
+    ShowBlockMsg --> OfferDeactivate[Offer alternative:<br>Deactivate instead of delete?]
 
     OfferDeactivate --> UserChoice{User choice?}
     UserChoice -->|Cancel| End2([End: Cancelled])
     UserChoice -->|Deactivate| DeactivateFlow[Go to Deactivate Flow]
 
-    HasRefs -->|No| CheckHistorical{Has historical<br/>references?}
+    HasRefs -->|No| CheckHistorical{Has historical<br>references?}
 
-    CheckHistorical -->|Yes| ShowWarning[Show warning:<br/>Unit has historical data<br/>Will be soft-deleted<br/>(deleted_at set)]
+    CheckHistorical -->|Yes| ShowWarning[Show warning:<br>Unit has historical data<br>Will be soft-deleted<br>(deleted_at set)]
     ShowWarning --> UserProceed{Proceed?}
     UserProceed -->|No| End3([End: Cancelled])
 
     CheckHistorical -->|No| UserProceed
     UserProceed -->|Yes| SetDeletedAt[Set deleted_at = NOW]
 
-    SetDeletedAt --> SetAudit[Set updated_at = NOW<br/>Set updated_by = current user]
+    SetDeletedAt --> SetAudit[Set updated_at = NOW<br>Set updated_by = current user]
     SetAudit --> SaveSoftDelete[(Save soft delete)]
 
-    SaveSoftDelete --> CheckSave{Save<br/>successful?}
-    CheckSave -->|No| ShowError[Show error message:<br/>Failed to delete unit]
+    SaveSoftDelete --> CheckSave{Save<br>successful?}
+    CheckSave -->|No| ShowError[Show error message:<br>Failed to delete unit]
     ShowError --> End4([End: Error])
 
     CheckSave -->|Yes| RemoveFromList[Remove unit from active list]
-    RemoveFromList --> ShowSuccess[Show success message:<br/>Unit deleted successfully]
+    RemoveFromList --> ShowSuccess[Show success message:<br>Unit deleted successfully]
     ShowSuccess --> RefreshList[Refresh unit list]
     RefreshList --> End5([End: Success])
 
     DeactivateFlow --> SetInactive[Set isActive = false]
     SetInactive --> SetAudit2[Update audit fields]
     SetAudit2 --> SaveDeactivate[(Save deactivation)]
-    SaveDeactivate --> ShowDeactivateSuccess[Show success:<br/>Unit deactivated]
+    SaveDeactivate --> ShowDeactivateSuccess[Show success:<br>Unit deactivated]
     ShowDeactivateSuccess --> RefreshList
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -583,11 +584,11 @@ flowchart LR
 
     UseMemo --> FilterLogic
 
-    FilterLogic -->|Test each unit| TestSearch{Matches<br/>search term?}
-    TestSearch -->|Yes| TestStatus{Matches<br/>status filter?}
+    FilterLogic -->|Test each unit| TestSearch{Matches<br>search term?}
+    TestSearch -->|Yes| TestStatus{Matches<br>status filter?}
     TestSearch -->|No| Exclude1[Exclude from results]
 
-    TestStatus -->|Yes| TestType{Matches<br/>type filter?}
+    TestStatus -->|Yes| TestType{Matches<br>type filter?}
     TestStatus -->|No| Exclude2[Exclude from results]
 
     TestType -->|Yes| Include[Include in results]
@@ -672,7 +673,7 @@ RETURN filteredUnits
 
 ```mermaid
 flowchart TD
-    Start([User clicks view toggle]) --> CurrentMode{Current view<br/>mode?}
+    Start([User clicks view toggle]) --> CurrentMode{Current view<br>mode?}
 
     CurrentMode -->|Table| SetCards[Set viewMode = 'cards']
     CurrentMode -->|Cards| SetTable[Set viewMode = 'table']
@@ -683,8 +684,8 @@ flowchart TD
     SavePref1 --> ReRender1[Re-render with card layout]
     SavePref2 --> ReRender2[Re-render with table layout]
 
-    ReRender1 --> ShowCards[Display card grid:<br/>- 3-4 cards per row<br/>- Unit info cards<br/>- Visual badges]
-    ReRender2 --> ShowTable[Display table:<br/>- Sortable columns<br/>- Inline actions<br/>- Compact view]
+    ReRender1 --> ShowCards[Display card grid:<br>- 3-4 cards per row<br>- Unit info cards<br>- Visual badges]
+    ReRender2 --> ShowTable[Display table:<br>- Sortable columns<br>- Inline actions<br>- Compact view]
 
     ShowCards --> End([View updated])
     ShowTable --> End
@@ -737,10 +738,10 @@ stateDiagram-v2
     Active --> Inactive: Deactivate
     Inactive --> Active: Reactivate
 
-    Active --> SoftDeleted: Soft delete<br/>(no active references)
-    Inactive --> SoftDeleted: Soft delete<br/>(no active references)
+    Active --> SoftDeleted: Soft delete<br>(no active references)
+    Inactive --> SoftDeleted: Soft delete<br>(no active references)
 
-    Active --> Blocked: Attempt delete<br/>(has active references)
+    Active --> Blocked: Attempt delete<br>(has active references)
     Blocked --> Active: Cancel deletion
     Blocked --> Inactive: Choose deactivate instead
 
@@ -866,11 +867,11 @@ stateDiagram-v2
 ```mermaid
 flowchart TD
     subgraph Page Layer
-        PageComp[page.tsx<br/>Server Component]
+        PageComp[page.tsx<br>Server Component]
     end
 
     subgraph Client Component Layer
-        UnitList[UnitList Component<br/>Client Component]
+        UnitList[UnitList Component<br>Client Component]
         FilterBar[Filter Controls]
         ViewToggle[View Mode Toggle]
         UnitTable[Unit Table View]
@@ -890,8 +891,8 @@ flowchart TD
     end
 
     subgraph State Management
-        LocalState[React useState:<br/>- searchTerm<br/>- statusFilter<br/>- typeFilter<br/>- viewMode]
-        ComputedState[React useMemo:<br/>- filteredUnits]
+        LocalState[React useState:<br>- searchTerm<br>- statusFilter<br>- typeFilter<br>- viewMode]
+        ComputedState[React useMemo:<br>- filteredUnits]
     end
 
     subgraph Data Layer
@@ -999,20 +1000,20 @@ User Action → State Update → useMemo Recompute → View Re-render → UI Upd
 
 ```mermaid
 flowchart LR
-    User([User:<br/>Admin, Manager,<br/>Chef, Storekeeper]) -->|Create/Edit/Delete units| System{Units<br/>Management<br/>System}
+    User([User:<br>Admin, Manager,<br>Chef, Storekeeper]) -->|Create/Edit/Delete units| System{Units<br>Management<br>System}
     System -->|Display units, confirmations| User
 
-    System <-->|Read/Write unit data| DB[(Database:<br/>units table)]
+    System <-->|Read/Write unit data| DB[(Database:<br>units table)]
 
     System -->|Check references| ProductDB[(Products DB)]
     System -->|Check references| RecipeDB[(Recipes DB)]
     System -->|Check references| InventoryDB[(Inventory DB)]
     System -->|Check references| PurchaseDB[(Purchase Orders DB)]
 
-    System -->|Provide unit options| ProductMgmt[Product<br/>Management]
-    System -->|Provide unit options| RecipeMgmt[Recipe<br/>Management]
-    System -->|Provide unit options| ProcurementMgmt[Procurement<br/>Management]
-    System -->|Provide unit options| InventoryMgmt[Inventory<br/>Management]
+    System -->|Provide unit options| ProductMgmt[Product<br>Management]
+    System -->|Provide unit options| RecipeMgmt[Recipe<br>Management]
+    System -->|Provide unit options| ProcurementMgmt[Procurement<br>Management]
+    System -->|Provide unit options| InventoryMgmt[Inventory<br>Management]
 
     style User fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style System fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
@@ -1039,14 +1040,14 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "Units Management System"
-        P1[1.0<br/>List Units]
-        P2[2.0<br/>Create Unit]
-        P3[3.0<br/>Edit Unit]
-        P4[4.0<br/>Delete Unit]
-        P5[5.0<br/>Filter & Search]
-        P6[6.0<br/>Validate Data]
-        P7[7.0<br/>Check References]
+    subgraph 'Units Management System'
+        P1[1.0<br>List Units]
+        P2[2.0<br>Create Unit]
+        P3[3.0<br>Edit Unit]
+        P4[4.0<br>Delete Unit]
+        P5[5.0<br>Filter & Search]
+        P6[6.0<br>Validate Data]
+        P7[7.0<br>Check References]
 
         DS1[(D1: units table)]
         DS2[(D2: audit_log)]
@@ -1161,7 +1162,7 @@ sequenceDiagram
     ProductService-->>ProductForm: Product created
     ProductForm-->>User: Success message
 
-    Note over DB: Unit is now referenced<br/>Cannot delete or change code
+    Note over DB: Unit is now referenced<br>Cannot delete or change code
 ```
 
 **Integration Rules**:
@@ -1210,7 +1211,7 @@ sequenceDiagram
     RecipeService-->>RecipeForm: Recipe created
     RecipeForm-->>Chef: Success message
 
-    Note over DB: Unit is now referenced by recipe<br/>Cannot delete or change code/type
+    Note over DB: Unit is now referenced by recipe<br>Cannot delete or change code/type
 ```
 
 **Integration Rules**:
@@ -1245,14 +1246,14 @@ sequenceDiagram
 
     InventoryForm->>InventoryService: POST /api/inventory/adjustments
     InventoryService->>DB: BEGIN TRANSACTION
-    InventoryService->>DB: INSERT INTO inventory_transactions<br/>(product_id, quantity=50, unit_id=KG, type='ADJUSTMENT')
+    InventoryService->>DB: INSERT INTO inventory_transactions<br>(product_id, quantity=50, unit_id=KG, type='ADJUSTMENT')
     InventoryService->>DB: UPDATE inventory_balance SET quantity = quantity + 50
     InventoryService->>DB: COMMIT
     DB-->>InventoryService: Success
     InventoryService-->>InventoryForm: Transaction recorded
     InventoryForm-->>Storekeeper: Success message
 
-    Note over DB: Unit used in transaction<br/>Cannot delete (historical data)
+    Note over DB: Unit used in transaction<br>Cannot delete (historical data)
 ```
 
 **Integration Rules**:
@@ -1284,24 +1285,24 @@ sequenceDiagram
     DB-->>ProductAPI: Product with base and alternative units
     ProductAPI-->>POForm: Return product details
 
-    POForm->>POForm: Display unit options:<br/>- Base unit (KG)<br/>- Alternative units (BOX, CASE)
+    POForm->>POForm: Display unit options:<br>- Base unit (KG)<br>- Alternative units (BOX, CASE)
 
     Buyer->>POForm: Select unit: BOX
     Buyer->>POForm: Enter quantity: 20
 
-    Note over POForm: System shows:<br/>20 BOX = 200 KG<br/>(conversion factor = 10)
+    Note over POForm: System shows:<br>20 BOX = 200 KG<br>(conversion factor = 10)
 
     Buyer->>POForm: Submit Purchase Order
     POForm->>PurchaseService: POST /api/purchase-orders
     PurchaseService->>DB: BEGIN TRANSACTION
     PurchaseService->>DB: INSERT INTO purchase_orders
-    PurchaseService->>DB: INSERT INTO purchase_order_items<br/>(quantity=20, unit_id=BOX)
+    PurchaseService->>DB: INSERT INTO purchase_order_items<br>(quantity=20, unit_id=BOX)
     PurchaseService->>DB: COMMIT
     DB-->>PurchaseService: Success
     PurchaseService-->>POForm: PO created
     POForm-->>Buyer: Success message
 
-    Note over DB: Unit referenced in active PO<br/>Cannot delete unit
+    Note over DB: Unit referenced in active PO<br>Cannot delete unit
 ```
 
 **Integration Rules**:
@@ -1333,45 +1334,45 @@ flowchart TD
     ClassifyError -->|Network Error| NetError[Network Error Handler]
     ClassifyError -->|Unknown Error| UnknownError[Unknown Error Handler]
 
-    ValError --> ShowValMsg[Show validation messages:<br/>- Highlight invalid fields<br/>- Display inline errors<br/>- Keep form open]
+    ValError --> ShowValMsg[Show validation messages:<br>- Highlight invalid fields<br>- Display inline errors<br>- Keep form open]
     ShowValMsg --> UserFix[User corrects input]
     UserFix --> Try
 
-    DupError --> ShowDupMsg[Show duplicate error:<br/>Unit code already exists<br/>Suggest alternative codes]
+    DupError --> ShowDupMsg[Show duplicate error:<br>Unit code already exists<br>Suggest alternative codes]
     ShowDupMsg --> UserFix
 
-    RefError --> ShowRefMsg[Show reference error:<br/>Cannot delete/modify<br/>Referenced by X records<br/>Offer deactivation option]
+    RefError --> ShowRefMsg[Show reference error:<br>Cannot delete/modify<br>Referenced by X records<br>Offer deactivation option]
     ShowRefMsg --> UserDecision{User decision?}
     UserDecision -->|Deactivate| DeactivateFlow[Deactivate instead of delete]
     UserDecision -->|Cancel| Cancel([Cancelled])
     DeactivateFlow --> Try
 
-    PermError --> ShowPermMsg[Show permission error:<br/>Insufficient permissions<br/>Contact administrator]
+    PermError --> ShowPermMsg[Show permission error:<br>Insufficient permissions<br>Contact administrator]
     ShowPermMsg --> LogPermError[Log security event]
     LogPermError --> BlockOp([Operation Blocked])
 
     DBError --> CheckRetry{Retryable?}
-    CheckRetry -->|Yes| RetryLogic{Retry count<br/>< 3?}
+    CheckRetry -->|Yes| RetryLogic{Retry count<br>< 3?}
     RetryLogic -->|Yes| WaitBackoff[Wait with exponential backoff]
     WaitBackoff --> Try
     RetryLogic -->|No| LogDBError[Log database error]
 
     CheckRetry -->|No| LogDBError
-    LogDBError --> ShowDBMsg[Show user-friendly error:<br/>Database error occurred<br/>Please try again]
+    LogDBError --> ShowDBMsg[Show user-friendly error:<br>Database error occurred<br>Please try again]
     ShowDBMsg --> NotifyAdmin[Notify administrator]
     NotifyAdmin --> ManualFix[Manual Intervention Required]
 
-    NetError --> RetryNet{Retry count<br/>< 3?}
+    NetError --> RetryNet{Retry count<br>< 3?}
     RetryNet -->|Yes| WaitNet[Wait 2 seconds]
     WaitNet --> Try
-    RetryNet -->|No| ShowNetMsg[Show network error:<br/>Connection failed<br/>Check internet connection]
+    RetryNet -->|No| ShowNetMsg[Show network error:<br>Connection failed<br>Check internet connection]
     ShowNetMsg --> OfferRetry[Offer manual retry button]
     OfferRetry --> UserRetry{User retries?}
     UserRetry -->|Yes| Try
     UserRetry -->|No| Cancel
 
     UnknownError --> LogUnknown[Log full error details]
-    LogUnknown --> ShowGenericMsg[Show generic error:<br/>Unexpected error occurred<br/>Error ID: {uuid}]
+    LogUnknown --> ShowGenericMsg[Show generic error:<br>Unexpected error occurred<br>Error ID: {uuid}]
     ShowGenericMsg --> NotifyDev[Alert development team]
     NotifyDev --> OfferSupport[Offer support contact]
     OfferSupport --> ManualFix

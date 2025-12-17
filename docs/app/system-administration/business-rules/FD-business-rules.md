@@ -8,6 +8,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -79,7 +80,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User selects Fractional Sales category]) --> SelectType[Select fractional type:<br/>pizza-slice, cake-slice, etc.]
+    Start([User selects Fractional Sales category]) --> SelectType[Select fractional type:<br>pizza-slice, cake-slice, etc.]
     SelectType --> SetSafetyLevel[Set food safety level: high, medium, low]
 
     SetSafetyLevel --> AddCompliance{Add compliance requirement?}
@@ -88,7 +89,7 @@ flowchart TD
     AddCompliance -->|No| AddQualityStd
 
     AddQualityStd{Add quality standard?}
-    AddQualityStd -->|Yes| SelectMeasurement[Select measurement type:<br/>time, temperature, appearance, etc.]
+    AddQualityStd -->|Yes| SelectMeasurement[Select measurement type:<br>time, temperature, appearance, etc.]
     SelectMeasurement --> EnterMinMax[Enter min/max values and unit]
     EnterMinMax --> SetTolerance[Set tolerance level %]
     SetTolerance --> SetCritical{Critical control point?}
@@ -199,10 +200,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Manager opens Compliance Monitoring]) --> LoadDashboard[Load compliance dashboard]
-    LoadDashboard --> DisplayMetrics[Display metrics: total violations,<br/>open count, by severity]
+    LoadDashboard --> DisplayMetrics[Display metrics: total violations,<br>open count, by severity]
 
     DisplayMetrics --> FilterOptions{Apply filters?}
-    FilterOptions -->|Yes| SelectFilters[Select filters: type, status,<br/>location, date range]
+    FilterOptions -->|Yes| SelectFilters[Select filters: type, status,<br>location, date range]
     SelectFilters --> ApplyFilters[Apply filters to violations list]
     ApplyFilters --> DisplayFiltered
     FilterOptions -->|No| DisplayAll[Display all violations]
@@ -211,7 +212,7 @@ flowchart TD
     DisplayFiltered --> SelectViolation{Select violation?}
 
     SelectViolation -->|Yes| LoadDetails[Load violation details]
-    LoadDetails --> ShowViolation[Display violation information:<br/>type, description, location,<br/>detected time, rule name]
+    LoadDetails --> ShowViolation[Display violation information:<br>type, description, location,<br>detected time, rule name]
 
     ShowViolation --> ActionMenu{Choose action}
     ActionMenu -->|Acknowledge| CheckAckAuth{Has authority?}
@@ -279,7 +280,7 @@ flowchart TD
     Start([Corrective action assigned]) --> NotifyAssignee[Send notification to assignee]
     NotifyAssignee --> AssigneeReceives[Assignee receives assignment]
 
-    AssigneeReceives --> ViewAction[View action details:<br/>violation, description,<br/>target date, evidence req]
+    AssigneeReceives --> ViewAction[View action details:<br>violation, description,<br>target date, evidence req]
 
     ViewAction --> AssigneeAction{Assignee chooses}
     AssigneeAction -->|Accept| AcceptAction[Accept assignment]
@@ -320,7 +321,7 @@ flowchart TD
 
     ActionComplete -->|Yes| EvidenceReq{Evidence required?}
     EvidenceReq -->|No| MarkCompleted
-    EvidenceReq -->|Yes| UploadEvidence[Upload evidence:<br/>photos, documents, logs]
+    EvidenceReq -->|Yes| UploadEvidence[Upload evidence:<br>photos, documents, logs]
 
     UploadEvidence --> ValidateEvidence{Evidence valid?}
     ValidateEvidence -->|No| ShowEvidenceError[Show: Invalid evidence format]
@@ -364,7 +365,7 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User clicks Test Rule]) --> SelectRule[Select rule to test]
-    SelectRule --> LoadRuleConfig[Load rule configuration:<br/>conditions and actions]
+    SelectRule --> LoadRuleConfig[Load rule configuration:<br>conditions and actions]
 
     LoadRuleConfig --> TestMode{Test mode?}
     TestMode -->|Use test scenario| SelectScenario[Select predefined test scenario]
@@ -407,8 +408,8 @@ flowchart TD
     ResultsMatch -->|Yes| MarkPassed[Mark test as PASSED]
     ResultsMatch -->|No| MarkFailed[Mark test as FAILED]
 
-    MarkPassed --> DisplayResults[Display test results:<br/>status, execution time,<br/>triggered conditions,<br/>executed actions]
-    MarkFailed --> DisplayDifferences[Display differences:<br/>expected vs actual]
+    MarkPassed --> DisplayResults[Display test results:<br>status, execution time,<br>triggered conditions,<br>executed actions]
+    MarkFailed --> DisplayDifferences[Display differences:<br>expected vs actual]
     DisplayDifferences --> DisplayResults
 
     DisplayResults --> SaveResults{Save results?}
@@ -434,42 +435,42 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User opens Analytics Dashboard]) --> SelectPeriod[Select time period:<br/>last 7/30/90 days, custom]
+    Start([User opens Analytics Dashboard]) --> SelectPeriod[Select time period:<br>last 7/30/90 days, custom]
     SelectPeriod --> LoadData[Load performance data for period]
 
-    LoadData --> CalculateMetrics[Calculate aggregate metrics:<br/>total triggers, success rate,<br/>avg processing time]
+    LoadData --> CalculateMetrics[Calculate aggregate metrics:<br>total triggers, success rate,<br>avg processing time]
 
-    CalculateMetrics --> DisplayOverview[Display overview dashboard:<br/>- Total rules<br/>- Active rules<br/>- Total triggers<br/>- Overall success rate<br/>- Avg processing time]
+    CalculateMetrics --> DisplayOverview[Display overview dashboard:<br>- Total rules<br>- Active rules<br>- Total triggers<br>- Overall success rate<br>- Avg processing time]
 
     DisplayOverview --> CategoryBreakdown[Calculate category breakdown]
-    CategoryBreakdown --> DisplayCategories[Display category performance:<br/>triggers, success rate, cost savings<br/>per category]
+    CategoryBreakdown --> DisplayCategories[Display category performance:<br>triggers, success rate, cost savings<br>per category]
 
     DisplayCategories --> TopPerformers[Identify top performing rules]
-    TopPerformers --> DisplayTop[Display top 10 rules by:<br/>- Trigger count<br/>- Success rate<br/>- Cost savings<br/>- Time saved]
+    TopPerformers --> DisplayTop[Display top 10 rules by:<br>- Trigger count<br>- Success rate<br>- Cost savings<br>- Time saved]
 
     DisplayTop --> UnderPerformers[Identify underperforming rules]
-    UnderPerformers --> DisplayUnder[Display rules with:<br/>- Success rate < 80%<br/>- High failure count<br/>- Processing time > threshold]
+    UnderPerformers --> DisplayUnder[Display rules with:<br>- Success rate < 80%<br>- High failure count<br>- Processing time > threshold]
 
     DisplayUnder --> TrendAnalysis[Calculate trends]
-    TrendAnalysis --> DisplayTrends[Display trend charts:<br/>- Daily triggers over time<br/>- Success rate trends<br/>- Processing time trends]
+    TrendAnalysis --> DisplayTrends[Display trend charts:<br>- Daily triggers over time<br>- Success rate trends<br>- Processing time trends]
 
     DisplayTrends --> UserAction{User action?}
 
     UserAction -->|View rule details| SelectRule[Select specific rule]
-    UserAction -->|Filter data| ApplyFilters[Apply filters:<br/>category, status, date range]
+    UserAction -->|Filter data| ApplyFilters[Apply filters:<br>category, status, date range]
     UserAction -->|Export| ExportData[Export analytics data]
     UserAction -->|Drill down| DrillDown[Drill down into specific metric]
     UserAction -->|Close| End([End])
 
     SelectRule --> LoadRuleDetails[Load detailed rule analytics]
-    LoadRuleDetails --> DisplayRuleAnalytics[Display rule-specific analytics:<br/>- Hourly trigger pattern<br/>- Success/failure breakdown<br/>- Average processing time<br/>- Cost savings<br/>- Recent executions log]
+    LoadRuleDetails --> DisplayRuleAnalytics[Display rule-specific analytics:<br>- Hourly trigger pattern<br>- Success/failure breakdown<br>- Average processing time<br>- Cost savings<br>- Recent executions log]
     DisplayRuleAnalytics --> RuleActions{Action?}
 
     RuleActions -->|View executions| ShowExecutions[Show execution history]
     RuleActions -->|Adjust rule| NavigateEdit[Navigate to rule editor]
     RuleActions -->|Back| DisplayTrends
 
-    ShowExecutions --> DisplayExecutions[Display execution log:<br/>timestamp, status, duration,<br/>conditions met, actions executed]
+    ShowExecutions --> DisplayExecutions[Display execution log:<br>timestamp, status, duration,<br>conditions met, actions executed]
     DisplayExecutions --> RuleActions
 
     NavigateEdit --> End
@@ -497,14 +498,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Triggering event occurs]) --> IdentifyContext[Identify event context:<br/>type, data, source]
+    Start([Triggering event occurs]) --> IdentifyContext[Identify event context:<br>type, data, source]
     IdentifyContext --> LoadActiveRules[Load all active rules for context]
 
     LoadActiveRules --> HasRules{Rules found?}
     HasRules -->|No| LogNoRules[Log: No applicable rules]
     LogNoRules --> End([End])
 
-    HasRules -->|Yes| SortRules[Sort rules by priority<br/>highest to lowest]
+    HasRules -->|Yes| SortRules[Sort rules by priority<br>highest to lowest]
     SortRules --> InitQueue[Initialize execution queue]
 
     InitQueue --> NextRule{More rules?}
@@ -604,11 +605,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Rule change initiated]) --> CaptureChange[Capture change details:<br/>field, old value, new value]
-    CaptureChange --> IdentifyAction[Identify action type:<br/>create, modify, activate,<br/>deactivate, delete]
+    Start([Rule change initiated]) --> CaptureChange[Capture change details:<br>field, old value, new value]
+    CaptureChange --> IdentifyAction[Identify action type:<br>create, modify, activate,<br>deactivate, delete]
 
     IdentifyAction --> RequireJustification{Justification required?}
-    RequireJustification -->|Yes| PromptReason[Prompt for reason and<br/>business justification]
+    RequireJustification -->|Yes| PromptReason[Prompt for reason and<br>business justification]
     RequireJustification -->|No| AutoJustification[Generate auto justification]
 
     PromptReason --> ValidateReason{Reason provided?}
@@ -642,7 +643,7 @@ flowchart TD
     UserChoice -->|No| DirectSave
 
     DirectSave --> CreateAuditEntry[Create audit trail entry]
-    CreateAuditEntry --> RecordMetadata[Record metadata:<br/>- IP address<br/>- User agent<br/>- Timestamp<br/>- User ID]
+    CreateAuditEntry --> RecordMetadata[Record metadata:<br>- IP address<br>- User agent<br>- Timestamp<br>- User ID]
 
     RecordMetadata --> StoreChanges[Store before/after values in JSON]
     StoreChanges --> ApplyChange[Apply change to rule]
@@ -669,11 +670,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([External module triggers rule]) --> IdentifyModule[Identify calling module:<br/>Procurement, Inventory,<br/>Vendor, etc.]
+    Start([External module triggers rule]) --> IdentifyModule[Identify calling module:<br>Procurement, Inventory,<br>Vendor, etc.]
 
-    IdentifyModule --> ExtractContext[Extract context data:<br/>entity type, entity ID,<br/>operation, user]
+    IdentifyModule --> ExtractContext[Extract context data:<br>entity type, entity ID,<br>operation, user]
 
-    ExtractContext --> FindRules[Find applicable rules by:<br/>- Category match<br/>- Context match<br/>- Active status]
+    ExtractContext --> FindRules[Find applicable rules by:<br>- Category match<br>- Context match<br>- Active status]
 
     FindRules --> HasRules{Rules found?}
     HasRules -->|No| ReturnNoRules[Return: No rules applicable]
@@ -687,7 +688,7 @@ flowchart TD
     ExecuteRules --> CollectResults[Collect all rule results]
 
     CollectResults --> AnyBlocking{Any blocking actions?}
-    AnyBlocking -->|Yes| PrepareBlock[Prepare blocking response:<br/>- Blocked actions<br/>- Reasons<br/>- Required approvals]
+    AnyBlocking -->|Yes| PrepareBlock[Prepare blocking response:<br>- Blocked actions<br>- Reasons<br>- Required approvals]
     AnyBlocking -->|No| PrepareAllow
 
     PrepareBlock --> ReturnBlock[Return: Operation blocked]
@@ -704,7 +705,7 @@ flowchart TD
     BlockSale --> ShowUserMessage1[Show user message with reason]
     ShowUserMessage1 --> End
 
-    PrepareAllow[Prepare allow response:<br/>- Applied actions<br/>- Warnings<br/>- Recommendations]
+    PrepareAllow[Prepare allow response:<br>- Applied actions<br>- Warnings<br>- Recommendations]
     PrepareAllow --> ReturnAllow[Return: Operation allowed]
 
     ReturnAllow --> ApplyActions{Actions to apply?}

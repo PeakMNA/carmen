@@ -83,8 +83,8 @@ const MOCK_PROJECT_CODES = [
   { value: "GAMMA-003", label: "Project Gamma (GAMMA-003)" },
 ];
 const MOCK_JOB_CODES = [
-  { value: "JOB-2023-006", label: "Kitchen Reno (JOB-2023-006)" },
-  { value: "JOB-2024-001", label: "Lobby Upgrade (JOB-2024-001)" },
+  { value: "JOB-2310-006", label: "Kitchen Reno (JOB-2310-006)" },
+  { value: "JOB-2410-001", label: "Lobby Upgrade (JOB-2410-001)" },
 ];
 const MOCK_JOB_NUMBERS = [
   { value: "FB-2024-Q1-001", label: "FB-2024-Q1-001" },

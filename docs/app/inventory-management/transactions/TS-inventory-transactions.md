@@ -14,19 +14,19 @@
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         A[TransactionsPage] --> B[TransactionSummaryCards]
         A --> C[TransactionFilters]
         A --> D[TransactionTable]
         A --> E[TransactionAnalytics]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         F[Mock Data Generator]
         G[User Context]
     end
 
-    subgraph "External Sources"
+    subgraph 'External Sources'
         H[GRN Module]
         I[Store Requisitions]
         J[Inventory Adjustments]

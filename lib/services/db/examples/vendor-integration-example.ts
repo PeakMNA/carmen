@@ -31,7 +31,7 @@ export async function vendorManagementExample() {
       status: 'active' as VendorStatus,
       preferredCurrency: 'USD',
       paymentTerms: 'Net 30 days',
-      companyRegistration: 'PFS-2024-001',
+      companyRegistration: 'PFS-2410-001',
       taxId: 'TAX-PFS-123456',
       website: 'https://premiumfood.com',
       businessType: 'manufacturer' as VendorBusinessType,

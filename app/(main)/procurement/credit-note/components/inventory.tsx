@@ -18,8 +18,8 @@ const inventoryData = {
       originalCost: 50.00,
       newCost: 45.00,
       movement: [
-        { date: '2024-10-01', type: 'Receipt', quantity: 500, reference: 'GRN-2024-001' },
-        { date: '2024-10-15', type: 'Issue', quantity: -200, reference: 'ISS-2024-001' }
+        { date: '2024-10-01', type: 'Receipt', quantity: 500, reference: 'GRN-2410-001' },
+        { date: '2024-10-15', type: 'Issue', quantity: -200, reference: 'ISS-2410-001' }
       ]
     },
     {
@@ -30,7 +30,7 @@ const inventoryData = {
       originalCost: 50.00,
       newCost: 45.00,
       movement: [
-        { date: '2024-10-15', type: 'Receipt', quantity: 500, reference: 'GRN-2024-002' }
+        { date: '2024-10-15', type: 'Receipt', quantity: 500, reference: 'GRN-2410-002' }
       ]
     }
   ],
@@ -84,7 +84,7 @@ export default function InventoryImpact() {
             <h2 className="text-lg font-medium text-gray-900">Inventory Impact</h2>
           </div>
           <div className="text-sm text-gray-500">
-            Document: CN-2024-001
+            Document: CN-2410-001
           </div>
         </div>
       </div>

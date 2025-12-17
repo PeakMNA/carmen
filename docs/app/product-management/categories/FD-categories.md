@@ -16,6 +16,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-02-11 | System | Initial flow diagrams documentation |
 
 ---
@@ -45,26 +46,26 @@ This document provides comprehensive visual representations of the Product Categ
 
 ```mermaid
 flowchart TB
-    subgraph "Presentation Layer"
+    subgraph 'Presentation Layer'
         UI[Category Management UI]
         Form[Category Forms]
         Tree[Hierarchy Tree View]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         API[REST API Endpoints]
         Validation[Input Validation]
         Business[Business Logic Service]
         Cache[Cache Layer]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         DB[(PostgreSQL Database)]
         Triggers[Database Triggers]
         Views[Materialized Views]
     end
 
-    subgraph "External Systems"
+    subgraph 'External Systems'
         Products[Products Module]
         Users[User Management]
         Audit[Audit Log System]
@@ -157,7 +158,7 @@ erDiagram
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Create Category]) --> CheckAuth{User Has<br/>Permission?}
+    Start([User Clicks Create Category]) --> CheckAuth{User Has<br>Permission?}
 
     CheckAuth -->|No| Deny[Show Permission Denied]
     CheckAuth -->|Yes| ShowForm[Display Category Form]
@@ -166,36 +167,36 @@ flowchart TD
 
     ShowForm --> SelectType{Select Category Type}
 
-    SelectType -->|Category Level 1| SetL1[Set Level = 1<br/>parent_id = null]
+    SelectType -->|Category Level 1| SetL1[Set Level = 1<br>parent_id = null]
     SelectType -->|Subcategory Level 2| ChooseParent1[Choose Parent Category]
     SelectType -->|Item Group Level 3| ChooseParent2[Choose Parent Subcategory]
 
-    ChooseParent1 --> SetL2[Set Level = 2<br/>parent_id = selected]
-    ChooseParent2 --> SetL3[Set Level = 3<br/>parent_id = selected]
+    ChooseParent1 --> SetL2[Set Level = 2<br>parent_id = selected]
+    ChooseParent2 --> SetL3[Set Level = 3<br>parent_id = selected]
 
-    SetL1 --> FillForm[User Fills Form:<br/>Name, Description,<br/>Sort Order]
+    SetL1 --> FillForm[User Fills Form:<br>Name, Description,<br>Sort Order]
     SetL2 --> FillForm
     SetL3 --> FillForm
 
     FillForm --> Submit[User Submits]
-    Submit --> ValidateFE{Frontend<br/>Validation}
+    Submit --> ValidateFE{Frontend<br>Validation}
 
     ValidateFE -->|Fail| ShowErrors1[Show Validation Errors]
     ShowErrors1 --> FillForm
 
     ValidateFE -->|Pass| SendAPI[Send POST /api/categories]
-    SendAPI --> ValidateBE{Backend<br/>Validation}
+    SendAPI --> ValidateBE{Backend<br>Validation}
 
     ValidateBE -->|Fail| ReturnError[Return 400 Error]
     ReturnError --> ShowErrors2[Display Error Message]
     ShowErrors2 --> FillForm
 
-    ValidateBE -->|Pass| CheckUnique{Name Unique<br/>in Parent?}
+    ValidateBE -->|Pass| CheckUnique{Name Unique<br>in Parent?}
 
     CheckUnique -->|No| ReturnDup[Return Duplicate Error]
     ReturnDup --> ShowErrors2
 
-    CheckUnique -->|Yes| CheckHierarchy{Valid<br/>Hierarchy?}
+    CheckUnique -->|Yes| CheckHierarchy{Valid<br>Hierarchy?}
 
     CheckHierarchy -->|No| ReturnHier[Return Hierarchy Error]
     ReturnHier --> ShowErrors2
@@ -235,7 +236,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Edit Category]) --> CheckAuth{User Has<br/>Permission?}
+    Start([User Clicks Edit Category]) --> CheckAuth{User Has<br>Permission?}
 
     CheckAuth -->|No| Deny[Show Permission Denied]
     CheckAuth -->|Yes| LoadData[Load Category Data]
@@ -243,32 +244,32 @@ flowchart TD
     Deny --> End1([End])
 
     LoadData --> ShowForm[Display Pre-filled Form]
-    ShowForm --> UserEdit[User Edits:<br/>Name, Description,<br/>Status, Sort Order]
+    ShowForm --> UserEdit[User Edits:<br>Name, Description,<br>Status, Sort Order]
 
     UserEdit --> Submit[User Submits]
-    Submit --> ValidateFE{Frontend<br/>Validation}
+    Submit --> ValidateFE{Frontend<br>Validation}
 
     ValidateFE -->|Fail| ShowErrors1[Show Validation Errors]
     ShowErrors1 --> UserEdit
 
     ValidateFE -->|Pass| SendAPI[Send PUT /api/categories/:id]
-    SendAPI --> ValidateBE{Backend<br/>Validation}
+    SendAPI --> ValidateBE{Backend<br>Validation}
 
     ValidateBE -->|Fail| ReturnError[Return 400 Error]
     ReturnError --> ShowErrors2[Display Error Message]
     ShowErrors2 --> UserEdit
 
-    ValidateBE -->|Pass| CheckUnique{Name Unique<br/>in Parent?}
+    ValidateBE -->|Pass| CheckUnique{Name Unique<br>in Parent?}
 
     CheckUnique -->|No| ReturnDup[Return Duplicate Error]
     ReturnDup --> ShowErrors2
 
-    CheckUnique -->|Yes| CheckChildren{Has<br/>Children?}
+    CheckUnique -->|Yes| CheckChildren{Has<br>Children?}
 
-    CheckChildren -->|Yes| CheckParentChange{Parent ID<br/>Changed?}
+    CheckChildren -->|Yes| CheckParentChange{Parent ID<br>Changed?}
     CheckChildren -->|No| ProceedUpdate[Proceed with Update]
 
-    CheckParentChange -->|Yes| ReturnBlock[Return Cannot Move<br/>with Children Error]
+    CheckParentChange -->|Yes| ReturnBlock[Return Cannot Move<br>with Children Error]
     ReturnBlock --> ShowErrors2
 
     CheckParentChange -->|No| ProceedUpdate
@@ -276,10 +277,10 @@ flowchart TD
     ProceedUpdate --> UpdateDB[UPDATE categories SET...]
     UpdateDB --> TriggerBefore[Execute Before Update Trigger]
 
-    TriggerBefore --> SetTimestamp[Set updated_at = NOW<br/>Set updated_by = user_id]
+    TriggerBefore --> SetTimestamp[Set updated_at = NOW<br>Set updated_by = user_id]
     SetTimestamp --> TriggerAfter[Execute After Update Trigger]
 
-    TriggerAfter --> RecalcPath{Path<br/>Changed?}
+    TriggerAfter --> RecalcPath{Path<br>Changed?}
 
     RecalcPath -->|Yes| UpdateDescPath[Update Descendant Paths]
     RecalcPath -->|No| UpdateCounts
@@ -315,51 +316,51 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Clicks Delete Category]) --> CheckAuth{User Has<br/>Permission?}
+    Start([User Clicks Delete Category]) --> CheckAuth{User Has<br>Permission?}
 
     CheckAuth -->|No| Deny[Show Permission Denied]
-    CheckAuth -->|Yes| ShowConfirm[Show Delete Confirmation<br/>Dialog with Warning]
+    CheckAuth -->|Yes| ShowConfirm[Show Delete Confirmation<br>Dialog with Warning]
 
     Deny --> End1([End])
 
-    ShowConfirm --> UserDecide{User<br/>Confirms?}
+    ShowConfirm --> UserDecide{User<br>Confirms?}
 
     UserDecide -->|Cancel| End2([End - Cancelled])
     UserDecide -->|Confirm| SendAPI[Send DELETE /api/categories/:id]
 
-    SendAPI --> CheckProducts{Has<br/>Products?}
+    SendAPI --> CheckProducts{Has<br>Products?}
 
-    CheckProducts -->|Yes| ReturnBlock[Return 409 Conflict:<br/>Cannot Delete with Products]
-    ReturnBlock --> ShowError[Display Error Message:<br/>Move or Remove Products First]
+    CheckProducts -->|Yes| ReturnBlock[Return 409 Conflict:<br>Cannot Delete with Products]
+    ReturnBlock --> ShowError[Display Error Message:<br>Move or Remove Products First]
     ShowError --> End3([End - Blocked])
 
-    CheckProducts -->|No| CheckChildren{Has<br/>Children?}
+    CheckProducts -->|No| CheckChildren{Has<br>Children?}
 
-    CheckChildren -->|Yes| ConfirmCascade[Show Cascade Warning:<br/>Will Also Delete X Children]
+    CheckChildren -->|Yes| ConfirmCascade[Show Cascade Warning:<br>Will Also Delete X Children]
     CheckChildren -->|No| ProceedDelete[Proceed with Soft Delete]
 
-    ConfirmCascade --> UserCascade{User<br/>Confirms<br/>Cascade?}
+    ConfirmCascade --> UserCascade{User<br>Confirms<br>Cascade?}
 
     UserCascade -->|Cancel| End4([End - Cancelled])
     UserCascade -->|Confirm| ProceedDelete
 
     ProceedDelete --> BeginTxn[BEGIN TRANSACTION]
-    BeginTxn --> SoftDelete[UPDATE categories<br/>SET deleted_at = NOW<br/>deleted_by = user_id]
+    BeginTxn --> SoftDelete[UPDATE categories<br>SET deleted_at = NOW<br>deleted_by = user_id]
 
-    SoftDelete --> TriggerCascade{Has<br/>Children?}
+    SoftDelete --> TriggerCascade{Has<br>Children?}
 
-    TriggerCascade -->|Yes| DeleteChildren[Soft Delete All Descendants<br/>Recursively]
+    TriggerCascade -->|Yes| DeleteChildren[Soft Delete All Descendants<br>Recursively]
     TriggerCascade -->|No| UpdateParentCounts
 
     DeleteChildren --> UpdateParentCounts[Update Parent Item Counts]
     UpdateParentCounts --> ClearCache[Clear Category Cache]
 
-    ClearCache --> LogAudit[Log to Audit Trail:<br/>Deletion + Cascade Info]
+    ClearCache --> LogAudit[Log to Audit Trail:<br>Deletion + Cascade Info]
     LogAudit --> CommitTxn[COMMIT TRANSACTION]
 
     CommitTxn --> Return200[Return 200 OK]
     Return200 --> RefreshUI[Refresh UI Category Tree]
-    RefreshUI --> ShowSuccess[Show Success Message:<br/>Category Deleted]
+    RefreshUI --> ShowSuccess[Show Success Message:<br>Category Deleted]
     ShowSuccess --> End5([End - Success])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -384,33 +385,33 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Drags Category]) --> CheckAuth{User Has<br/>Permission?}
+    Start([User Drags Category]) --> CheckAuth{User Has<br>Permission?}
 
-    CheckAuth -->|No| Deny[Prevent Drag<br/>Show Warning]
-    CheckAuth -->|Yes| ShowGhost[Show Drag Ghost<br/>Visual Feedback]
+    CheckAuth -->|No| Deny[Prevent Drag<br>Show Warning]
+    CheckAuth -->|Yes| ShowGhost[Show Drag Ghost<br>Visual Feedback]
 
     Deny --> End1([End])
 
-    ShowGhost --> UserDrag[User Moves Category<br/>Over Drop Zones]
-    UserDrag --> HighlightZone[Highlight Valid<br/>Drop Zones]
+    ShowGhost --> UserDrag[User Moves Category<br>Over Drop Zones]
+    UserDrag --> HighlightZone[Highlight Valid<br>Drop Zones]
 
     HighlightZone --> UserDrop[User Drops Category]
-    UserDrop --> ValidateTarget{Valid Drop<br/>Target?}
+    UserDrop --> ValidateTarget{Valid Drop<br>Target?}
 
     ValidateTarget -->|No| ShowError[Show Invalid Drop Error]
     ShowError --> RevertPos[Revert to Original Position]
     RevertPos --> End2([End - Invalid])
 
-    ValidateTarget -->|Yes| CheckSameParent{Same<br/>Parent?}
+    ValidateTarget -->|Yes| CheckSameParent{Same<br>Parent?}
 
-    CheckSameParent -->|No| ReturnError[Return Cannot Move<br/>Between Parents Error]
+    CheckSameParent -->|No| ReturnError[Return Cannot Move<br>Between Parents Error]
     ReturnError --> RevertPos
 
-    CheckSameParent -->|Yes| CalcNewOrder[Calculate New<br/>Sort Order Values]
+    CheckSameParent -->|Yes| CalcNewOrder[Calculate New<br>Sort Order Values]
     CalcNewOrder --> OptimisticUI[Update UI Optimistically]
 
     OptimisticUI --> SendAPI[Send PATCH /api/categories/reorder]
-    SendAPI --> ValidateBE{Backend<br/>Validation}
+    SendAPI --> ValidateBE{Backend<br>Validation}
 
     ValidateBE -->|Fail| ReturnAPIError[Return 400 Error]
     ReturnAPIError --> RollbackUI[Rollback UI Changes]
@@ -418,7 +419,7 @@ flowchart TD
     ShowAPIError --> End3([End - Failed])
 
     ValidateBE -->|Pass| BeginTxn[BEGIN TRANSACTION]
-    BeginTxn --> UpdateSortOrders[UPDATE Multiple Categories<br/>SET sort_order = new_value]
+    BeginTxn --> UpdateSortOrders[UPDATE Multiple Categories<br>SET sort_order = new_value]
 
     UpdateSortOrders --> TriggerUpdate[Execute Update Triggers]
     TriggerUpdate --> ClearCache[Clear Category Cache]
@@ -453,36 +454,36 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Page Load]) --> FetchRoot[Fetch Root Categories<br/>GET /api/categories?level=1]
+    Start([Page Load]) --> FetchRoot[Fetch Root Categories<br>GET /api/categories?level=1]
 
-    FetchRoot --> CacheCheck{Cache<br/>Hit?}
+    FetchRoot --> CacheCheck{Cache<br>Hit?}
 
     CacheCheck -->|Yes| ReturnCached[Return Cached Data]
-    CacheCheck -->|No| QueryDB[Query Database:<br/>WHERE level=1<br/>AND deleted_at IS NULL]
+    CacheCheck -->|No| QueryDB[Query Database:<br>WHERE level=1<br>AND deleted_at IS NULL]
 
-    QueryDB --> StoreCache[Store in Cache<br/>TTL = 5 minutes]
+    QueryDB --> StoreCache[Store in Cache<br>TTL = 5 minutes]
     StoreCache --> ReturnData[Return Category List]
 
     ReturnCached --> ReturnData
-    ReturnData --> RenderTree[Render Root Categories<br/>as Collapsed Nodes]
+    ReturnData --> RenderTree[Render Root Categories<br>as Collapsed Nodes]
 
     RenderTree --> WaitAction[Wait for User Action]
 
     WaitAction --> UserClick{User Action}
 
-    UserClick -->|Click Expand| CheckLoaded{Children<br/>Loaded?}
+    UserClick -->|Click Expand| CheckLoaded{Children<br>Loaded?}
     UserClick -->|Click Category| NavToDetail[Navigate to Detail Page]
     UserClick -->|Search| ExecuteSearch[Execute Search Flow]
 
-    CheckLoaded -->|Yes| ShowChildren[Show Children<br/>Expand Node]
-    CheckLoaded -->|No| FetchChildren[Fetch Children<br/>GET /api/categories?parent_id=X]
+    CheckLoaded -->|Yes| ShowChildren[Show Children<br>Expand Node]
+    CheckLoaded -->|No| FetchChildren[Fetch Children<br>GET /api/categories?parent_id=X]
 
-    FetchChildren --> ChildCacheCheck{Cache<br/>Hit?}
+    FetchChildren --> ChildCacheCheck{Cache<br>Hit?}
 
     ChildCacheCheck -->|Yes| ReturnChildCached[Return Cached Children]
-    ChildCacheCheck -->|No| QueryChildren[Query Database:<br/>WHERE parent_id=X<br/>AND deleted_at IS NULL]
+    ChildCacheCheck -->|No| QueryChildren[Query Database:<br>WHERE parent_id=X<br>AND deleted_at IS NULL]
 
-    QueryChildren --> StoreChildCache[Store in Cache<br/>TTL = 5 minutes]
+    QueryChildren --> StoreChildCache[Store in Cache<br>TTL = 5 minutes]
     StoreChildCache --> ReturnChildData[Return Children List]
 
     ReturnChildCached --> ReturnChildData
@@ -493,7 +494,7 @@ flowchart TD
     NavToDetail --> End1([End - Navigate])
     ExecuteSearch --> End2([End - Search])
 
-    UserClick -->|Click Collapse| HideChildren[Hide Children<br/>Collapse Node]
+    UserClick -->|Click Collapse| HideChildren[Hide Children<br>Collapse Node]
     HideChildren --> WaitAction
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -515,25 +516,25 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         UI[React UI Components]
         Form[React Hook Forms]
         State[Zustand Store]
     end
 
-    subgraph "API Layer"
+    subgraph 'API Layer'
         Routes[Next.js API Routes]
         Middleware[Auth Middleware]
         Validator[Zod Validators]
     end
 
-    subgraph "Service Layer"
+    subgraph 'Service Layer'
         Service[Category Service]
         Business[Business Logic]
         Cache[Redis Cache]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         ORM[Prisma ORM]
         DB[(PostgreSQL)]
         Triggers[DB Triggers]
@@ -583,27 +584,27 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    Start([Product Category<br/>Assignment Change]) --> TriggerEvent[Database Trigger:<br/>after_product_category_change]
+    Start([Product Category<br>Assignment Change]) --> TriggerEvent[Database Trigger:<br>after_product_category_change]
 
-    TriggerEvent --> GetOldCat{Old Category<br/>Exists?}
+    TriggerEvent --> GetOldCat{Old Category<br>Exists?}
 
-    GetOldCat -->|Yes| DecOld[Decrement Old Category<br/>item_count]
+    GetOldCat -->|Yes| DecOld[Decrement Old Category<br>item_count]
     GetOldCat -->|No| GetNewCat
 
-    DecOld --> PropagateOldUp[Propagate Up Old Hierarchy:<br/>UPDATE parent item_count]
+    DecOld --> PropagateOldUp[Propagate Up Old Hierarchy:<br>UPDATE parent item_count]
 
-    PropagateOldUp --> GetNewCat{New Category<br/>Exists?}
+    PropagateOldUp --> GetNewCat{New Category<br>Exists?}
 
-    GetNewCat -->|Yes| IncNew[Increment New Category<br/>item_count]
+    GetNewCat -->|Yes| IncNew[Increment New Category<br>item_count]
     GetNewCat -->|No| RefreshView
 
-    IncNew --> PropagateNewUp[Propagate Up New Hierarchy:<br/>UPDATE parent item_count]
+    IncNew --> PropagateNewUp[Propagate Up New Hierarchy:<br>UPDATE parent item_count]
 
-    PropagateNewUp --> RefreshView[Refresh Materialized View:<br/>v_category_counts]
+    PropagateNewUp --> RefreshView[Refresh Materialized View:<br>v_category_counts]
 
-    RefreshView --> ClearCache[Clear Category<br/>Cache Keys]
+    RefreshView --> ClearCache[Clear Category<br>Cache Keys]
 
-    ClearCache --> LogChange[Log Change to<br/>Audit Trail]
+    ClearCache --> LogChange[Log Change to<br>Audit Trail]
 
     LogChange --> End([End - Counts Updated])
 
@@ -772,7 +773,7 @@ sequenceDiagram
     SVC-->>API: Impact: 3 children, 0 products
     API-->>UI: 200 OK
 
-    UI->>U: Show confirmation dialog:<br/>"Will also delete 3 children"
+    UI->>U: Show confirmation dialog:<br>"Will also delete 3 children"
     U->>UI: Confirm deletion
 
     UI->>API: DELETE /api/categories/:id
@@ -783,10 +784,10 @@ sequenceDiagram
     DB-->>SVC: No products found
 
     SVC->>DB: BEGIN TRANSACTION
-    SVC->>DB: Recursive CTE query:<br/>Find all descendants
+    SVC->>DB: Recursive CTE query:<br>Find all descendants
     DB-->>SVC: List of 3 descendants
 
-    SVC->>DB: UPDATE categories<br/>SET deleted_at=NOW, deleted_by=user_id<br/>WHERE id IN (parent, child1, child2, child3)
+    SVC->>DB: UPDATE categories<br>SET deleted_at=NOW, deleted_by=user_id<br>WHERE id IN (parent, child1, child2, child3)
 
     DB->>TRIG: Execute soft_delete_cascade trigger
     TRIG->>DB: Update parent item counts
@@ -796,7 +797,7 @@ sequenceDiagram
     SVC->>DB: COMMIT TRANSACTION
 
     SVC->>CACHE: Invalidate all affected cache keys
-    SVC->>AUDIT: Log deletion + cascade info:<br/>"Deleted category + 3 children"
+    SVC->>AUDIT: Log deletion + cascade info:<br>"Deleted category + 3 children"
 
     SVC-->>API: Success + deletion summary
     API-->>UI: 200 OK
@@ -832,8 +833,8 @@ stateDiagram-v2
     Editing --> Active: Cancel edit (was active)
     Editing --> Inactive: Cancel edit (was inactive)
 
-    Deleted --> [*]: Permanent deletion<br/>(after retention period)
-    Deleted --> Active: Restore category<br/>(admin only)
+    Deleted --> [*]: Permanent deletion<br>(after retention period)
+    Deleted --> Active: Restore category<br>(admin only)
 
     note right of Draft
         Initial state when created
@@ -876,11 +877,11 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TB
-    Start([Start Category Management]) --> ViewList[View Category List<br/>Hierarchical Tree]
+    Start([Start Category Management]) --> ViewList[View Category List<br>Hierarchical Tree]
 
     ViewList --> UserAction{User Action}
 
-    UserAction -->|Create| ValidateCreate{Has Create<br/>Permission?}
+    UserAction -->|Create| ValidateCreate{Has Create<br>Permission?}
     UserAction -->|Edit| SelectEdit[Select Category to Edit]
     UserAction -->|Delete| SelectDelete[Select Category to Delete]
     UserAction -->|Reorder| DragDrop[Drag & Drop to Reorder]
@@ -892,7 +893,7 @@ flowchart TB
 
     ShowAuthError --> ViewList
 
-    CreateFlow --> CheckSuccess{Create<br/>Successful?}
+    CreateFlow --> CheckSuccess{Create<br>Successful?}
     CheckSuccess -->|No| ShowCreateError[Show Error Message]
     CheckSuccess -->|Yes| ShowCreateSuccess[Show Success Message]
 
@@ -900,11 +901,11 @@ flowchart TB
     ShowCreateSuccess --> RefreshList1[Refresh Category List]
     RefreshList1 --> ViewList
 
-    SelectEdit --> ValidateEdit{Has Edit<br/>Permission?}
+    SelectEdit --> ValidateEdit{Has Edit<br>Permission?}
     ValidateEdit -->|No| ShowAuthError
     ValidateEdit -->|Yes| EditFlow[Execute Edit Flow]
 
-    EditFlow --> CheckEditSuccess{Edit<br/>Successful?}
+    EditFlow --> CheckEditSuccess{Edit<br>Successful?}
     CheckEditSuccess -->|No| ShowEditError[Show Error Message]
     CheckEditSuccess -->|Yes| ShowEditSuccess[Show Success Message]
 
@@ -912,17 +913,17 @@ flowchart TB
     ShowEditSuccess --> RefreshList2[Refresh Category List]
     RefreshList2 --> ViewList
 
-    SelectDelete --> ValidateDelete{Has Delete<br/>Permission?}
+    SelectDelete --> ValidateDelete{Has Delete<br>Permission?}
     ValidateDelete -->|No| ShowAuthError
     ValidateDelete -->|Yes| CheckImpact[Check Deletion Impact]
 
-    CheckImpact --> ShowImpact[Show Impact:<br/>Products, Children]
-    ShowImpact --> ConfirmDelete{User<br/>Confirms?}
+    CheckImpact --> ShowImpact[Show Impact:<br>Products, Children]
+    ShowImpact --> ConfirmDelete{User<br>Confirms?}
 
     ConfirmDelete -->|No| ViewList
     ConfirmDelete -->|Yes| DeleteFlow[Execute Delete Flow]
 
-    DeleteFlow --> CheckDeleteSuccess{Delete<br/>Successful?}
+    DeleteFlow --> CheckDeleteSuccess{Delete<br>Successful?}
     CheckDeleteSuccess -->|No| ShowDeleteError[Show Error Message]
     CheckDeleteSuccess -->|Yes| ShowDeleteSuccess[Show Success Message]
 
@@ -930,11 +931,11 @@ flowchart TB
     ShowDeleteSuccess --> RefreshList3[Refresh Category List]
     RefreshList3 --> ViewList
 
-    DragDrop --> ValidateReorder{Has Reorder<br/>Permission?}
+    DragDrop --> ValidateReorder{Has Reorder<br>Permission?}
     ValidateReorder -->|No| ShowAuthError
     ValidateReorder -->|Yes| ReorderFlow[Execute Reorder Flow]
 
-    ReorderFlow --> CheckReorderSuccess{Reorder<br/>Successful?}
+    ReorderFlow --> CheckReorderSuccess{Reorder<br>Successful?}
     CheckReorderSuccess -->|No| ShowReorderError[Show Error Message]
     CheckReorderSuccess -->|Yes| ShowReorderSuccess[Show Success Indicator]
 
@@ -945,7 +946,7 @@ flowchart TB
     Search --> ShowResults[Display Search Results]
     ShowResults --> ViewList
 
-    ViewDetails --> ShowDetail[Show Detail Page<br/>with Products]
+    ViewDetails --> ShowDetail[Show Detail Page<br>with Products]
     ShowDetail --> DetailAction{Action}
 
     DetailAction -->|Edit| SelectEdit
@@ -974,21 +975,21 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph "Categories Module"
+    subgraph 'Categories Module'
         CatUI[Category Management UI]
         CatAPI[Category API]
         CatService[Category Service]
         CatDB[(categories table)]
     end
 
-    subgraph "Products Module"
+    subgraph 'Products Module'
         ProdUI[Product Management UI]
         ProdAPI[Product API]
         ProdService[Product Service]
         ProdDB[(products table)]
     end
 
-    subgraph "Shared Services"
+    subgraph 'Shared Services'
         Cache[Redis Cache]
         Audit[Audit Log Service]
         Events[Event Bus]
@@ -1049,45 +1050,45 @@ flowchart TB
 
 ```mermaid
 flowchart LR
-    subgraph "Categories Module"
+    subgraph 'Categories Module'
         CatAPI[Category API]
         CatService[Category Service]
     end
 
-    subgraph "User Management"
+    subgraph 'User Management'
         AuthMiddleware[Auth Middleware]
         RBACService[RBAC Service]
         UserDB[(users table)]
         RoleDB[(roles table)]
     end
 
-    subgraph "Audit System"
+    subgraph 'Audit System'
         AuditLog[(audit_logs table)]
     end
 
     Request[HTTP Request] --> AuthMiddleware
 
-    AuthMiddleware -->|Verify JWT| Check{Token<br/>Valid?}
+    AuthMiddleware -->|Verify JWT| Check{Token<br>Valid?}
 
     Check -->|No| Reject[401 Unauthorized]
-    Check -->|Yes| ExtractUser[Extract User ID<br/>& Context]
+    Check -->|Yes| ExtractUser[Extract User ID<br>& Context]
 
     ExtractUser --> RBACService
     RBACService --> UserDB
     RBACService --> RoleDB
 
-    RBACService -->|Check permissions| AuthCheck{Has<br/>Permission?}
+    RBACService -->|Check permissions| AuthCheck{Has<br>Permission?}
 
     AuthCheck -->|No| Deny[403 Forbidden]
     AuthCheck -->|Yes| CatAPI
 
     CatAPI -->|Process with user_id| CatService
 
-    CatService -->|Set created_by/<br/>updated_by/<br/>deleted_by| UserContext[User Context]
+    CatService -->|Set created_by/<br>updated_by/<br>deleted_by| UserContext[User Context]
 
     CatService --> AuditLog
 
-    AuditLog -->|Record action| LogEntry[user_id, action,<br/>timestamp, details]
+    AuditLog -->|Record action| LogEntry[user_id, action,<br>timestamp, details]
 
     style Request fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Reject fill:#ffcccc,stroke:#cc0000,stroke-width:2px,color:#000
@@ -1111,7 +1112,7 @@ flowchart LR
 
 ```mermaid
 flowchart TB
-    subgraph User["👤 User (Product Manager)"]
+    subgraph User['👤 User (Product Manager)']
         U1[Access category page]
         U2[Click Create Category]
         U3[Fill form fields]
@@ -1119,7 +1120,7 @@ flowchart TB
         U5[Review success/error]
     end
 
-    subgraph Frontend["💻 Frontend Application"]
+    subgraph Frontend['💻 Frontend Application']
         F1[Render category list]
         F2[Display create form]
         F3[Validate form inputs]
@@ -1127,7 +1128,7 @@ flowchart TB
         F5[Display response]
     end
 
-    subgraph Backend["⚙️ Backend Service"]
+    subgraph Backend['⚙️ Backend Service']
         B1[Authenticate request]
         B2[Authorize action]
         B3[Validate business rules]
@@ -1135,7 +1136,7 @@ flowchart TB
         B5[Return response]
     end
 
-    subgraph Database["🗄️ Database"]
+    subgraph Database['🗄️ Database']
         D1[Check constraints]
         D2[Insert record]
         D3[Execute triggers]
@@ -1185,29 +1186,29 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    Start{Delete Category<br/>Request} --> CheckAuth{User has<br/>delete permission?}
+    Start{Delete Category<br>Request} --> CheckAuth{User has<br>delete permission?}
 
-    CheckAuth -->|No| ResultDeny[❌ DENY<br/>Permission Error]
-    CheckAuth -->|Yes| CheckProducts{Has assigned<br/>products?}
+    CheckAuth -->|No| ResultDeny[❌ DENY<br>Permission Error]
+    CheckAuth -->|Yes| CheckProducts{Has assigned<br>products?}
 
-    CheckProducts -->|Yes| ResultBlock[❌ BLOCK<br/>Remove products first]
-    CheckProducts -->|No| CheckChildren{Has child<br/>categories?}
+    CheckProducts -->|Yes| ResultBlock[❌ BLOCK<br>Remove products first]
+    CheckProducts -->|No| CheckChildren{Has child<br>categories?}
 
-    CheckChildren -->|No| AllowSimple[✅ ALLOW<br/>Simple soft delete]
-    CheckChildren -->|Yes| CountChildren[Count descendants:<br/>Level 2 + Level 3]
+    CheckChildren -->|No| AllowSimple[✅ ALLOW<br>Simple soft delete]
+    CheckChildren -->|Yes| CountChildren[Count descendants:<br>Level 2 + Level 3]
 
-    CountChildren --> ShowImpact{Show impact:<br/>N children<br/>will be deleted}
+    CountChildren --> ShowImpact{Show impact:<br>N children<br>will be deleted}
 
-    ShowImpact --> UserConfirm{User confirms<br/>cascade delete?}
+    ShowImpact --> UserConfirm{User confirms<br>cascade delete?}
 
-    UserConfirm -->|No| ResultCancel[⏸️ CANCEL<br/>User cancelled]
-    UserConfirm -->|Yes| AllowCascade[✅ ALLOW<br/>Cascade soft delete]
+    UserConfirm -->|No| ResultCancel[⏸️ CANCEL<br>User cancelled]
+    UserConfirm -->|Yes| AllowCascade[✅ ALLOW<br>Cascade soft delete]
 
-    AllowSimple --> CheckSystem{System<br/>category?}
+    AllowSimple --> CheckSystem{System<br>category?}
     AllowCascade --> CheckSystem
 
-    CheckSystem -->|Yes| ResultProtect[❌ PROTECT<br/>System category]
-    CheckSystem -->|No| FinalAllow[✅ PROCEED<br/>Execute delete]
+    CheckSystem -->|Yes| ResultProtect[❌ PROTECT<br>System category]
+    CheckSystem -->|No| FinalAllow[✅ PROCEED<br>Execute delete]
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style ResultDeny fill:#ffcccc,stroke:#cc0000,stroke-width:2px,color:#000
@@ -1227,39 +1228,39 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start{Update Category<br/>Request} --> CheckAuth{User has<br/>edit permission?}
+    Start{Update Category<br>Request} --> CheckAuth{User has<br>edit permission?}
 
-    CheckAuth -->|No| ResultDeny[❌ DENY<br/>Permission Error]
-    CheckAuth -->|Yes| CheckExists{Category<br/>exists?}
+    CheckAuth -->|No| ResultDeny[❌ DENY<br>Permission Error]
+    CheckAuth -->|Yes| CheckExists{Category<br>exists?}
 
-    CheckExists -->|No| Result404[❌ NOT FOUND<br/>Category does not exist]
-    CheckExists -->|Yes| CheckDeleted{Is soft<br/>deleted?}
+    CheckExists -->|No| Result404[❌ NOT FOUND<br>Category does not exist]
+    CheckExists -->|Yes| CheckDeleted{Is soft<br>deleted?}
 
-    CheckDeleted -->|Yes| ResultDeleted[❌ INVALID<br/>Cannot edit deleted]
-    CheckDeleted -->|No| ValidateName{Name valid?<br/>1-100 chars}
+    CheckDeleted -->|Yes| ResultDeleted[❌ INVALID<br>Cannot edit deleted]
+    CheckDeleted -->|No| ValidateName{Name valid?<br>1-100 chars}
 
-    ValidateName -->|No| ResultInvalidName[❌ INVALID<br/>Name validation failed]
-    ValidateName -->|Yes| CheckNameUnique{Name unique<br/>within parent?}
+    ValidateName -->|No| ResultInvalidName[❌ INVALID<br>Name validation failed]
+    ValidateName -->|Yes| CheckNameUnique{Name unique<br>within parent?}
 
-    CheckNameUnique -->|No| ResultDuplicate[❌ DUPLICATE<br/>Name already exists]
-    CheckNameUnique -->|Yes| CheckParentChange{Parent ID<br/>changed?}
+    CheckNameUnique -->|No| ResultDuplicate[❌ DUPLICATE<br>Name already exists]
+    CheckNameUnique -->|Yes| CheckParentChange{Parent ID<br>changed?}
 
-    CheckParentChange -->|No| AllowUpdate[✅ ALLOW<br/>Standard update]
-    CheckParentChange -->|Yes| CheckChildren{Has<br/>children?}
+    CheckParentChange -->|No| AllowUpdate[✅ ALLOW<br>Standard update]
+    CheckParentChange -->|Yes| CheckChildren{Has<br>children?}
 
-    CheckChildren -->|Yes| ResultMoveBlock[❌ BLOCK<br/>Cannot move with children]
-    CheckChildren -->|No| ValidateNewParent{New parent<br/>valid?}
+    CheckChildren -->|Yes| ResultMoveBlock[❌ BLOCK<br>Cannot move with children]
+    CheckChildren -->|No| ValidateNewParent{New parent<br>valid?}
 
-    ValidateNewParent -->|No| ResultInvalidParent[❌ INVALID<br/>Invalid parent]
-    ValidateNewParent -->|Yes| CheckLoop{Would create<br/>circular reference?}
+    ValidateNewParent -->|No| ResultInvalidParent[❌ INVALID<br>Invalid parent]
+    ValidateNewParent -->|Yes| CheckLoop{Would create<br>circular reference?}
 
-    CheckLoop -->|Yes| ResultCircular[❌ INVALID<br/>Circular reference]
-    CheckLoop -->|No| CheckLevel{New level<br/>valid? (1-3)}
+    CheckLoop -->|Yes| ResultCircular[❌ INVALID<br>Circular reference]
+    CheckLoop -->|No| CheckLevel{New level<br>valid? (1-3)}
 
-    CheckLevel -->|No| ResultInvalidLevel[❌ INVALID<br/>Level out of range]
-    CheckLevel -->|Yes| AllowMove[✅ ALLOW<br/>Update with move]
+    CheckLevel -->|No| ResultInvalidLevel[❌ INVALID<br>Level out of range]
+    CheckLevel -->|Yes| AllowMove[✅ ALLOW<br>Update with move]
 
-    AllowUpdate --> Proceed[✅ PROCEED<br/>Execute update]
+    AllowUpdate --> Proceed[✅ PROCEED<br>Execute update]
     AllowMove --> Proceed
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1287,13 +1288,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Logs In]) --> Dashboard[Navigate to<br/>Product Management]
+    Start([User Logs In]) --> Dashboard[Navigate to<br>Product Management]
 
-    Dashboard --> CatPage[Access Categories<br/>Sub-module]
+    Dashboard --> CatPage[Access Categories<br>Sub-module]
 
-    CatPage --> LoadTree[System loads<br/>category tree]
+    CatPage --> LoadTree[System loads<br>category tree]
 
-    LoadTree --> ViewTree[User views<br/>hierarchical tree]
+    LoadTree --> ViewTree[User views<br>hierarchical tree]
 
     ViewTree --> Decide{User Decision}
 
@@ -1304,7 +1305,7 @@ flowchart TD
     Decide -->|Find Category| SearchAction[Search Activity]
     Decide -->|Exit| Exit([End Session])
 
-    CreateAction --> SelectLevel[Select hierarchy level:<br/>Category/Subcategory/Item Group]
+    CreateAction --> SelectLevel[Select hierarchy level:<br>Category/Subcategory/Item Group]
     SelectLevel --> SelectParent{Level > 1?}
     SelectParent -->|Yes| ChooseParent[Choose parent category]
     SelectParent -->|No| FillName
@@ -1319,7 +1320,7 @@ flowchart TD
 
     EditAction --> SelectEdit[Select category to edit]
     SelectEdit --> LoadEdit[Load category data]
-    LoadEdit --> ModifyFields[Modify fields:<br/>name, description,<br/>status, sort order]
+    LoadEdit --> ModifyFields[Modify fields:<br>name, description,<br>status, sort order]
     ModifyFields --> SubmitEdit[Submit changes]
     SubmitEdit --> ValidateEdit{Valid?}
     ValidateEdit -->|No| FixEditErrors[Fix validation errors]
@@ -1328,16 +1329,16 @@ flowchart TD
     EditSuccess --> ViewTree
 
     DeleteAction --> SelectDelete[Select category to delete]
-    SelectDelete --> CheckImpactDel[System shows<br/>deletion impact]
+    SelectDelete --> CheckImpactDel[System shows<br>deletion impact]
     CheckImpactDel --> ConfirmDelete{User confirms?}
     ConfirmDelete -->|No| ViewTree
     ConfirmDelete -->|Yes| ExecuteDelete[Execute soft delete]
     ExecuteDelete --> DeleteSuccess[Category deleted]
     DeleteSuccess --> ViewTree
 
-    ReorderAction --> DragCategory[Drag category<br/>to new position]
+    ReorderAction --> DragCategory[Drag category<br>to new position]
     DragCategory --> DropCategory[Drop in new position]
-    DropCategory --> ValidateReorder{Valid<br/>drop zone?}
+    DropCategory --> ValidateReorder{Valid<br>drop zone?}
     ValidateReorder -->|No| RevertDrag[Revert to original]
     RevertDrag --> ViewTree
     ValidateReorder -->|Yes| SaveOrder[Save new order]
@@ -1347,7 +1348,7 @@ flowchart TD
     SearchAction --> EnterSearch[Enter search term]
     EnterSearch --> FilterTree[System filters tree]
     FilterTree --> ViewResults[View search results]
-    ViewResults --> ClearSearch{Clear<br/>search?}
+    ViewResults --> ClearSearch{Clear<br>search?}
     ClearSearch -->|Yes| ViewTree
     ClearSearch -->|No| Decide
 
@@ -1372,17 +1373,17 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    subgraph "Page Level"
+    subgraph 'Page Level'
         CatPage[CategoryManagementPage]
     end
 
-    subgraph "Container Components"
+    subgraph 'Container Components'
         CatList[CategoryListContainer]
         CatForm[CategoryFormContainer]
         CatDetail[CategoryDetailContainer]
     end
 
-    subgraph "Presentational Components"
+    subgraph 'Presentational Components'
         TreeView[CategoryTreeView]
         TreeNode[CategoryTreeNode]
         FormFields[CategoryFormFields]
@@ -1391,19 +1392,19 @@ flowchart TB
         ConfirmDialog[ConfirmDialog]
     end
 
-    subgraph "State Management"
+    subgraph 'State Management'
         Store[Zustand Store]
         CatState[categoryState]
         UIState[uiState]
     end
 
-    subgraph "Hooks"
+    subgraph 'Hooks'
         UseCategories[useCategories]
         UseCategoryMutations[useCategoryMutations]
         UseTreeNavigation[useTreeNavigation]
     end
 
-    subgraph "API Layer"
+    subgraph 'API Layer'
         QueryClient[React Query Client]
         API[Category API Service]
     end
@@ -1460,9 +1461,9 @@ flowchart TB
 
 ```mermaid
 flowchart TD
-    Start[Category Operation] --> Try{Execute<br/>Operation}
+    Start[Category Operation] --> Try{Execute<br>Operation}
 
-    Try -->|Success| Success([✅ Success<br/>Return result])
+    Try -->|Success| Success([✅ Success<br>Return result])
     Try -->|Error| ClassifyError{Error Type}
 
     ClassifyError -->|Validation Error| ValError[Validation Error Handler]
@@ -1472,20 +1473,20 @@ flowchart TD
     ClassifyError -->|Network Error| NetError[Network Error Handler]
     ClassifyError -->|Database Error| DBError[Database Error Handler]
 
-    ValError --> FormatVal[Format Validation Messages:<br/>- Field-specific errors<br/>- User-friendly text]
-    FormatVal --> ReturnVal[Return 400 Bad Request<br/>with error details]
+    ValError --> FormatVal[Format Validation Messages:<br>- Field-specific errors<br>- User-friendly text]
+    FormatVal --> ReturnVal[Return 400 Bad Request<br>with error details]
     ReturnVal --> UserFixVal[User corrects input]
     UserFixVal --> Try
 
-    DupError --> FormatDup[Format Duplicate Message:<br/>"Category name already exists"]
+    DupError --> FormatDup[Format Duplicate Message:<br>'Category name already exists']
     FormatDup --> ReturnDup[Return 409 Conflict]
     ReturnDup --> UserFixDup[User changes name]
     UserFixDup --> Try
 
-    ConstraintError --> CheckType{Constraint<br/>Type}
-    CheckType -->|Hierarchy| HierMsg["Cannot move category<br/>with children"]
-    CheckType -->|Foreign Key| FKMsg["Cannot delete:<br/>products assigned"]
-    CheckType -->|Check| CheckMsg["Invalid level<br/>or sort order"]
+    ConstraintError --> CheckType{Constraint<br>Type}
+    CheckType -->|Hierarchy| HierMsg['Cannot move category<br>with children']
+    CheckType -->|Foreign Key| FKMsg['Cannot delete:<br>products assigned']
+    CheckType -->|Check| CheckMsg['Invalid level<br>or sort order']
 
     HierMsg --> ReturnConstraint[Return 400 Bad Request]
     FKMsg --> ReturnConstraint
@@ -1499,16 +1500,16 @@ flowchart TD
     UserContact --> EndPerm([End - No retry])
 
     NetError --> CheckRetry{Retryable?}
-    CheckRetry -->|Yes| CountRetry{Retry count<br/>< 3?}
+    CheckRetry -->|Yes| CountRetry{Retry count<br>< 3?}
     CheckRetry -->|No| ReturnNet[Return 503 Service Unavailable]
     ReturnNet --> ShowOffline[Show offline message]
     ShowOffline --> EndNet([End - Manual retry])
 
-    CountRetry -->|Yes| WaitBackoff[Wait with exponential backoff:<br/>1s, 2s, 4s]
+    CountRetry -->|Yes| WaitBackoff[Wait with exponential backoff:<br>1s, 2s, 4s]
     CountRetry -->|No| ReturnNet
     WaitBackoff --> Try
 
-    DBError --> LogDB[Log database error<br/>with stack trace]
+    DBError --> LogDB[Log database error<br>with stack trace]
     LogDB --> AlertOps[Alert operations team]
     AlertOps --> ReturnDB[Return 500 Internal Error]
     ReturnDB --> ShowGeneric[Show generic error message]

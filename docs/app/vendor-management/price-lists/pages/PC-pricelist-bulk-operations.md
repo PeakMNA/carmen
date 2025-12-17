@@ -202,7 +202,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 
 ### Table Row Example
 ```
-[☑] | PL-2024-001 | Fresh Produce - Jan 2024 | ABC Foods | Active | Jan 1 - Mar 31 | 125 | Jan 15 |
+[☑] | PL-2401-0001 | Fresh Produce - Jan 2024 | ABC Foods | Active | Jan 1 - Mar 31 | 125 | Jan 15 |
 ```
 
 **Row States**:
@@ -326,19 +326,19 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ Ineligible: 3 price lists                                    │
 │                                                              │
 │ Issues:                                                      │
-│ • PL-2024-003: Currently locked by Sarah Johnson           │
+│ • PL-2401-0003: Currently locked by Sarah Johnson           │
 │   (being edited)                                             │
 │   → Action: Wait for unlock or remove from selection       │
 │                                                              │
-│ • PL-2024-012: Archived status (cannot modify)              │
+│ • PL-2401-0012: Archived status (cannot modify)              │
 │   → Action: Remove from selection                           │
 │                                                              │
-│ • PL-2024-025: Pending approval (restricted)                │
+│ • PL-2401-0025: Pending approval (restricted)                │
 │   → Action: Wait for approval or remove                     │
 │                                                              │
 │ Options:                                                     │
 │ [Remove Ineligible Items (3)] [Cancel Operation]           │
-│ [Contact Sarah J. about PL-2024-003]                        │
+│ [Contact Sarah J. about PL-2401-0003]                        │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -361,8 +361,8 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ Extend by [30__] days                                       │
 │                                                              │
 │ Preview:                                                     │
-│ PL-2024-001: Jan 1 - Mar 31 → Jan 1 - Apr 30              │
-│ PL-2024-002: Jan 5 - Apr 5  → Jan 5 - May 5               │
+│ PL-2401-0001: Jan 1 - Mar 31 → Jan 1 - Apr 30              │
+│ PL-2401-0002: Jan 5 - Apr 5  → Jan 5 - May 5               │
 │ ... (10 more)                                               │
 │                                                              │
 │ Options:                                                     │
@@ -453,13 +453,13 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │                                                              │
 │ Price List          Current → New         Impact            │
 │ ─────────────────────────────────────────────────────────── │
-│ PL-2024-001         Active → Archived     125 products     │
+│ PL-2401-0001         Active → Archived     125 products     │
 │ Fresh Produce Jan                                            │
 │                                                              │
-│ PL-2024-002         Active → Archived     112 products     │
+│ PL-2401-0002         Active → Archived     112 products     │
 │ Dairy Products Jan                                           │
 │                                                              │
-│ PL-2024-003         Active → Archived     98 products      │
+│ PL-2401-0003         Active → Archived     98 products      │
 │ Meat & Poultry Jan                                           │
 │                                                              │
 │ ... (12 more items)                                         │
@@ -493,7 +493,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │                                                              │
 │ The following conflicts must be resolved before proceeding: │
 │                                                              │
-│ Conflict 1: PL-2024-005                                     │
+│ Conflict 1: PL-2401-0005                                     │
 │ Issue: This price list has pending approval workflow        │
 │ Current approver: Sarah Johnson (Procurement Manager)        │
 │                                                              │
@@ -504,7 +504,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │                                                              │
 │ ─────────────────────────────────────────────────────────── │
 │                                                              │
-│ Conflict 2: PL-2024-008, PL-2024-012                        │
+│ Conflict 2: PL-2401-0008, PL-2401-0012                        │
 │ Issue: Referenced in 5 active purchase orders                │
 │ Archiving these will affect ongoing procurement             │
 │                                                              │
@@ -530,19 +530,19 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │                                                              │
 │ [▓▓▓▓▓▓▓▓▓▓▓░░░░░░░░░] 53%                                 │
 │                                                              │
-│ Current: Processing PL-2024-008 (Meat & Poultry)           │
+│ Current: Processing PL-2401-0008 (Meat & Poultry)           │
 │ Estimated time remaining: 15 seconds                         │
 │                                                              │
 │ Progress Log:                                                │
-│ ✓ PL-2024-001 archived successfully                        │
-│ ✓ PL-2024-002 archived successfully                        │
-│ ✓ PL-2024-003 archived successfully                        │
-│ ✓ PL-2024-004 archived successfully                        │
-│ ✓ PL-2024-005 archived successfully                        │
-│ ✓ PL-2024-006 archived successfully                        │
-│ ✓ PL-2024-007 archived successfully                        │
-│ ⏳ PL-2024-008 processing...                                │
-│ ⏳ PL-2024-009 queued                                        │
+│ ✓ PL-2401-0001 archived successfully                        │
+│ ✓ PL-2401-0002 archived successfully                        │
+│ ✓ PL-2401-0003 archived successfully                        │
+│ ✓ PL-2401-0004 archived successfully                        │
+│ ✓ PL-2401-0005 archived successfully                        │
+│ ✓ PL-2401-0006 archived successfully                        │
+│ ✓ PL-2401-0007 archived successfully                        │
+│ ⏳ PL-2401-0008 processing...                                │
+│ ⏳ PL-2401-0009 queued                                        │
 │ ... (6 more queued)                                         │
 │                                                              │
 │ [Pause] [Cancel Operation]                                  │
@@ -569,8 +569,8 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ ⚠️ Warnings: 2 items                                        │
 │                                                              │
 │ Warnings:                                                    │
-│ • PL-2024-008: Related purchase orders updated              │
-│ • PL-2024-012: Related purchase orders updated              │
+│ • PL-2401-0008: Related purchase orders updated              │
+│ • PL-2401-0012: Related purchase orders updated              │
 │                                                              │
 │ ┌───────────────────────────────────────────┐              │
 │ │ Summary                                   │              │
@@ -580,7 +580,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ │ • 3 vendors notified                      │              │
 │ │ • 15 audit log entries created            │              │
 │ │                                           │              │
-│ │ Operation ID: BLK-OP-2024-001             │              │
+│ │ Operation ID: BLK-OP-2401-0001             │              │
 │ │ Can be rolled back until: Jan 25, 2024    │              │
 │ └───────────────────────────────────────────┘              │
 │                                                              │
@@ -605,9 +605,9 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ ✗ Failed: 3 price lists                                    │
 │                                                              │
 │ Failed Items:                                                │
-│ • PL-2024-003: Locked by another user                       │
-│ • PL-2024-007: Validation error (invalid prices)            │
-│ • PL-2024-014: Database connection timeout                  │
+│ • PL-2401-0003: Locked by another user                       │
+│ • PL-2401-0007: Validation error (invalid prices)            │
+│ • PL-2401-0014: Database connection timeout                  │
 │                                                              │
 │ Options:                                                     │
 │ [Retry Failed Items] [Rollback All] [Close]                │
@@ -615,7 +615,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ ┌───────────────────────────────────────────┐              │
 │ │ Error Details                             │              │
 │ │                                           │              │
-│ │ PL-2024-007: Invalid prices detected     │              │
+│ │ PL-2401-0007: Invalid prices detected     │              │
 │ │ • Product PROD-045: Price $0.00          │              │
 │ │ • Product PROD-089: Price negative       │              │
 │ │                                           │              │
@@ -639,7 +639,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ Are you sure you want to rollback this operation?           │
 │                                                              │
 │ Operation Details:                                           │
-│ ID: BLK-OP-2024-001                                         │
+│ ID: BLK-OP-2401-0001                                         │
 │ Type: Archive Price Lists                                   │
 │ Executed: Jan 20, 2024 at 10:30 AM                         │
 │ By: John Smith                                               │
@@ -674,12 +674,12 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │                                                              │
 │ Cannot rollback some items due to changes:                  │
 │                                                              │
-│ PL-2024-005:                                                 │
+│ PL-2401-0005:                                                 │
 │ Issue: Modified by Sarah Johnson after bulk operation       │
 │ Changed: Prices updated on Jan 21, 2024                     │
 │ → Cannot rollback this item automatically                   │
 │                                                              │
-│ PL-2024-012:                                                 │
+│ PL-2401-0012:                                                 │
 │ Issue: Deleted by system administrator                       │
 │ → Cannot rollback (item no longer exists)                   │
 │                                                              │
@@ -710,10 +710,10 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │                                                              │
 │ Operation ID    Type      Items  Status     Date       By    │
 │ ─────────────────────────────────────────────────────────── │
-│ BLK-OP-2024-003 Archive   15    ✓ Success  Jan 20    You   │
-│ BLK-OP-2024-002 Export    25    ✓ Success  Jan 19    You   │
-│ BLK-OP-2024-001 Update    12    ⚠️ Partial  Jan 18    Sarah │
-│ BLK-OP-2023-345 Delete    5     ✗ Failed   Jan 15    Mike  │
+│ BLK-OP-2401-0003 Archive   15    ✓ Success  Jan 20    You   │
+│ BLK-OP-2401-0002 Export    25    ✓ Success  Jan 19    You   │
+│ BLK-OP-2401-0001 Update    12    ⚠️ Partial  Jan 18    Sarah │
+│ BLK-OP-2301-0345 Delete    5     ✗ Failed   Jan 15    Mike  │
 │                                                              │
 │ [Load More]                                                  │
 └─────────────────────────────────────────────────────────────┘
@@ -722,7 +722,7 @@ Centralized interface for performing bulk operations on multiple price lists sim
 **History Detail Card** (click row):
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│ Operation Details: BLK-OP-2024-003                           │
+│ Operation Details: BLK-OP-2401-0003                           │
 │                                                              │
 │ Operation Type: Archive Price Lists                          │
 │ Status: ✓ Completed Successfully                            │
@@ -755,9 +755,9 @@ Centralized interface for performing bulk operations on multiple price lists sim
 │ │ Detailed Log (Last 10 entries)            │              │
 │ │                                           │              │
 │ │ 10:30:43 - Operation completed            │              │
-│ │ 10:30:41 - PL-2024-015 archived ✓        │              │
-│ │ 10:30:39 - PL-2024-014 archived ✓        │              │
-│ │ 10:30:37 - PL-2024-013 archived ✓        │              │
+│ │ 10:30:41 - PL-2401-0015 archived ✓        │              │
+│ │ 10:30:39 - PL-2401-0014 archived ✓        │              │
+│ │ 10:30:37 - PL-2401-0013 archived ✓        │              │
 │ │ ... (12 more entries)                     │              │
 │ │                                           │              │
 │ │ [View Full Log (47 entries)]              │              │
@@ -1109,7 +1109,7 @@ analytics.track('Bulk Operation Started', {
 
 // Operation completed
 analytics.track('Bulk Operation Completed', {
-  operation_id: 'BLK-OP-2024-001',
+  operation_id: 'BLK-OP-2401-0001',
   operation_type: 'archive',
   success_count: 15,
   failed_count: 0,
@@ -1118,7 +1118,7 @@ analytics.track('Bulk Operation Completed', {
 
 // Rollback performed
 analytics.track('Bulk Operation Rolled Back', {
-  operation_id: 'BLK-OP-2024-001',
+  operation_id: 'BLK-OP-2401-0001',
   reason: 'incorrect_application',
   items_rolled_back: 15
 });
@@ -1135,7 +1135,7 @@ const response = await fetch('/api/bulk-operations/validate', {
   method: 'POST',
   body: JSON.stringify({
     operation_type: 'archive',
-    price_list_ids: ['PL-2024-001', 'PL-2024-002']
+    price_list_ids: ['PL-2401-0001', 'PL-2401-0002']
   })
 });
 
@@ -1155,7 +1155,7 @@ const response = await fetch('/api/bulk-operations/execute', {
   method: 'POST',
   body: JSON.stringify({
     operation_type: 'archive',
-    price_list_ids: ['PL-2024-001'],
+    price_list_ids: ['PL-2401-0001'],
     options: {
       notify_vendors: true,
       create_audit_log: true
@@ -1165,7 +1165,7 @@ const response = await fetch('/api/bulk-operations/execute', {
 
 // Response (async):
 {
-  "operation_id": "BLK-OP-2024-001",
+  "operation_id": "BLK-OP-2401-0001",
   "status": "processing"
 }
 ```

@@ -1,3 +1,14 @@
+/**
+ * Credit Note Component
+ *
+ * Transaction Code Format: CN-YYMM-NNNN
+ * - CN: Credit Note prefix
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: CN-2410-001 = Credit Note #001 from October 2024
+ */
+
 "use client";
 
 import {
@@ -372,7 +383,7 @@ interface CreditNoteItem {
 export function CreditNoteComponent() {
   const [showPanel, setShowPanel] = useState(false);
   const [headerData, setHeaderData] = useState({
-    creditNoteNumber: "CN-2024-001",
+    creditNoteNumber: "CN-2410-001",
     date: "2024-03-20",
     type: "QUANTITY_RETURN" as CreditNoteType,
     status: "DRAFT" as CreditNoteStatus,
@@ -380,11 +391,11 @@ export function CreditNoteComponent() {
     vendorCode: "VEN-001",
     currency: "THB",
     exchangeRate: "1.0000",
-    invoiceReference: "INV-2024-0123",
+    invoiceReference: "INV-2410-0123",
     invoiceDate: "2024-03-15",
-    taxInvoiceReference: "TAX-2024-0123",
+    taxInvoiceReference: "TAX-2410-0123",
     taxDate: "2024-03-15",
-    grnReference: "GRN-2024-0089",
+    grnReference: "GRN-2410-0089",
     grnDate: "2024-03-10",
     reason: "",
     description: "Credit note for damaged beverage products received in last shipment. Items show signs of mishandling during transport.",
@@ -441,7 +452,7 @@ export function CreditNoteComponent() {
       commitDate: '2024-01-15',
       postingDate: '2024-01-15',
       movementType: 'CREDIT_NOTE',
-      sourceDocument: 'CN-2024-001', 
+      sourceDocument: 'CN-2410-001', 
       store: 'WH-001',
       status: 'Posted',
       items: [
@@ -614,7 +625,7 @@ export function CreditNoteComponent() {
       id: '1',
       user: 'John Doe',
       action: 'Created',
-      details: 'Credit Note #CN-2024-001',
+      details: 'Credit Note #CN-2410-001',
       timestamp: '2024-03-20 09:00 AM'
     },
     {

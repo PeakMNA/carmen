@@ -470,7 +470,7 @@ Data Stored
 
 ### VAL-SREP-102: Stock Availability Check
 
-**Rule Description**: Before approving replenishment request, verify sufficient stock available at source location (warehouse).
+**Rule Description**: Before approving transfer request, verify sufficient stock available at source location (warehouse).
 
 **Business Justification**: Prevents approving requests that cannot be fulfilled, avoiding false expectations.
 
@@ -519,7 +519,7 @@ Data Stored
 
 ### VAL-SREP-103: Emergency Request Frequency Limit
 
-**Rule Description**: Store locations limited to 2 emergency replenishment requests per week.
+**Rule Description**: Store locations limited to 2 emergency transfer requests per week.
 
 **Business Justification**: Prevents abuse of emergency process and encourages proper planning.
 
@@ -623,7 +623,7 @@ Data Stored
 4. If user-provided quantity differs by >20%, flag for review
 5. Minimum replenishment: 1 unit (don't allow zero)
 
-**When Validated**: On replenishment request creation from recommendations
+**When Validated**: On transfer request creation from recommendations
 
 **Implementation Requirements**:
 - **Client-Side**: Display calculation breakdown to user
@@ -953,10 +953,10 @@ ABS(calculated_total - provided_total) <= allow_difference
 **Validation Rule**: User must have `create_replenishment_request` permission and access to requesting location.
 
 **Checked Permissions**:
-- `create_replenishment_request`: Can create replenishment requests
+- `create_replenishment_request`: Can create transfer requests
 - Location access: User is assigned to requesting location
 
-**When Validated**: Before replenishment request creation
+**When Validated**: Before transfer request creation
 
 **Implementation Requirements**:
 - **Client-Side**: Hide create request button if permission missing
@@ -964,7 +964,7 @@ ABS(calculated_total - provided_total) <= allow_difference
 - **Database**: RLS policies enforce location access
 
 **Error Code**: VAL-SREP-302
-**Error Message**: "You do not have permission to create replenishment requests for this location"
+**Error Message**: "You do not have permission to create transfer requests for this location"
 **User Action**: Request permission or create request for accessible location.
 
 ---
@@ -1092,15 +1092,15 @@ export const ParLevelConfigSchema = z.object({
   par_level: z.number({
     required_error: "Par level is required",
     invalid_type_error: "Par level must be a number"
-  }).positive("Par level must be greater than zero"),
+  }).positive('Par level must be greater than zero'),
   reorder_point: z.number({
     required_error: "Reorder point is required",
     invalid_type_error: "Reorder point must be a number"
-  }).positive("Reorder point must be greater than zero"),
+  }).positive('Reorder point must be greater than zero'),
   minimum_level: z.number({
     required_error: "Minimum level is required",
     invalid_type_error: "Minimum level must be a number"
-  }).positive("Minimum level must be greater than zero"),
+  }).positive('Minimum level must be greater than zero'),
   maximum_level: z.number().positive().optional(),
   lead_time_days: z.number()
     .int("Lead time must be a whole number of days")
@@ -1128,13 +1128,13 @@ export const ParLevelConfigSchema = z.object({
   (data) => data.reorder_point < data.par_level,
   {
     message: "Reorder point must be less than par level",
-    path: ["reorder_point"]
+    path: ['reorder_point']
   }
 ).refine(
   (data) => data.minimum_level < data.reorder_point,
   {
     message: "Minimum level must be less than reorder point",
-    path: ["minimum_level"]
+    path: ['minimum_level']
   }
 ).refine(
   (data) => {
@@ -1145,7 +1145,7 @@ export const ParLevelConfigSchema = z.object({
   },
   {
     message: "Reorder point should be between 30% and 60% of par level",
-    path: ["reorder_point"]
+    path: ['reorder_point']
   }
 ).refine(
   (data) => {
@@ -1156,7 +1156,7 @@ export const ParLevelConfigSchema = z.object({
   },
   {
     message: "Minimum level should be approximately 30% of par level",
-    path: ["minimum_level"]
+    path: ['minimum_level']
   }
 );
 
@@ -1165,14 +1165,14 @@ export type ParLevelConfig = z.infer<typeof ParLevelConfigSchema>;
 
 ---
 
-### Schema: Replenishment Request Header
+### Schema: Transfer Request Header
 
 ```typescript
-export const ReplenishmentRequestHeaderSchema = z.object({
+export const TransferRequestHeaderSchema = z.object({
   id: z.string().uuid().optional(),
   request_number: z.string()
     .regex(/^REP-\d{4}-\d{4}$/, {
-      message: "Request number must be in format REP-YYYY-NNNN"
+      message: "Request number must be in format REP-YYMM-NNNN"
     })
     .optional(), // Auto-generated
   from_location_id: z.string().uuid("Invalid source location ID"),
@@ -1208,7 +1208,7 @@ export const ReplenishmentRequestHeaderSchema = z.object({
   (data) => data.required_by_date > data.request_date,
   {
     message: "Required by date must be after request date",
-    path: ["required_by_date"]
+    path: ['required_by_date']
   }
 ).refine(
   (data) => {
@@ -1220,19 +1220,19 @@ export const ReplenishmentRequestHeaderSchema = z.object({
   },
   {
     message: "Required by date cannot be more than 30 days from request date",
-    path: ["required_by_date"]
+    path: ['required_by_date']
   }
 );
 
-export type ReplenishmentRequestHeader = z.infer<typeof ReplenishmentRequestHeaderSchema>;
+export type TransferRequestHeader = z.infer<typeof TransferRequestHeaderSchema>;
 ```
 
 ---
 
-### Schema: Replenishment Request Detail
+### Schema: Transfer Request Detail
 
 ```typescript
-export const ReplenishmentRequestDetailSchema = z.object({
+export const TransferRequestDetailSchema = z.object({
   id: z.string().uuid().optional(),
   request_id: z.string().uuid("Invalid request ID"),
   line_number: z.number().int().positive("Line number must be positive"),
@@ -1243,7 +1243,7 @@ export const ReplenishmentRequestDetailSchema = z.object({
   requested_quantity: z.number({
     required_error: "Requested quantity is required",
     invalid_type_error: "Requested quantity must be a number"
-  }).positive("Requested quantity must be greater than zero"),
+  }).positive('Requested quantity must be greater than zero'),
   approved_quantity: z.number().nonnegative().optional().nullable(),
   current_stock_level: z.number().nonnegative().optional(),
   par_level: z.number().positive().optional(),
@@ -1262,7 +1262,7 @@ export const ReplenishmentRequestDetailSchema = z.object({
   },
   {
     message: "Approved quantity cannot exceed requested quantity",
-    path: ["approved_quantity"]
+    path: ['approved_quantity']
   }
 ).refine(
   (data) => {
@@ -1274,11 +1274,11 @@ export const ReplenishmentRequestDetailSchema = z.object({
   },
   {
     message: "Requested quantity cannot exceed twice the par level",
-    path: ["requested_quantity"]
+    path: ['requested_quantity']
   }
 );
 
-export type ReplenishmentRequestDetail = z.infer<typeof ReplenishmentRequestDetailSchema>;
+export type TransferRequestDetail = z.infer<typeof TransferRequestDetailSchema>;
 ```
 
 ---
@@ -1290,7 +1290,7 @@ export const StockTransferHeaderSchema = z.object({
   id: z.string().uuid().optional(),
   transfer_number: z.string()
     .regex(/^TRF-\d{4}-\d{4}$/, {
-      message: "Transfer number must be in format TRF-YYYY-NNNN"
+      message: "Transfer number must be in format TRF-YYMM-NNNN"
     })
     .optional(), // Auto-generated
   request_id: z.string().uuid("Invalid request ID").optional(),
@@ -1334,7 +1334,7 @@ export const StockTransferHeaderSchema = z.object({
   },
   {
     message: "Dispatch date cannot be before scheduled date",
-    path: ["dispatch_date"]
+    path: ['dispatch_date']
   }
 ).refine(
   (data) => {
@@ -1346,7 +1346,7 @@ export const StockTransferHeaderSchema = z.object({
   },
   {
     message: "Received date cannot be before dispatch date",
-    path: ["received_date"]
+    path: ['received_date']
   }
 );
 
@@ -1368,7 +1368,7 @@ export const StockTransferDetailSchema = z.object({
   uom: z.string().min(1, "Unit of measure is required"),
   quantity: z.number({
     required_error: "Quantity is required"
-  }).positive("Quantity must be greater than zero"),
+  }).positive('Quantity must be greater than zero'),
   received_quantity: z.number().nonnegative().optional().nullable(),
   batch_lot_number: z.string()
     .regex(/^LOT-\d{4}-\d{2}-\d{2}$/, {
@@ -1391,7 +1391,7 @@ export const StockTransferDetailSchema = z.object({
   },
   {
     message: "Received quantity cannot exceed transferred quantity",
-    path: ["received_quantity"]
+    path: ['received_quantity']
   }
 ).refine(
   (data) => {
@@ -1409,7 +1409,7 @@ export const StockTransferDetailSchema = z.object({
   },
   {
     message: "Expiry date must be at least 7 days in the future for perishable items",
-    path: ["expiry_date"]
+    path: ['expiry_date']
   }
 );
 
@@ -1451,13 +1451,13 @@ export const ConsumptionPatternSchema = z.object({
   (data) => data.analysis_period_end > data.analysis_period_start,
   {
     message: "Analysis period end must be after start",
-    path: ["analysis_period_end"]
+    path: ['analysis_period_end']
   }
 ).refine(
   (data) => data.peak_daily_consumption >= data.average_daily_consumption,
   {
     message: "Peak daily consumption must be greater than or equal to average",
-    path: ["peak_daily_consumption"]
+    path: ['peak_daily_consumption']
   }
 );
 
@@ -1490,7 +1490,7 @@ export const ParLevelApprovalSchema = z.object({
   },
   {
     message: "Only par level changes greater than 20% require approval",
-    path: ["proposed_par_level"]
+    path: ['proposed_par_level']
   }
 );
 
@@ -1512,7 +1512,7 @@ export const RequestApprovalSchema = z.object({
     item_decision: z.enum(['approved', 'partially_approved', 'rejected']),
     rejection_reason: z.string().max(200).optional(),
     notes: z.string().max(500).optional()
-  })).min(1, "At least one line item is required"),
+  })).min(1, 'At least one line item is required'),
   overall_comments: z.string().max(500).optional(),
   approved_by_id: z.string().uuid("Invalid approver ID"),
   scheduled_transfer_date: z.date().optional()
@@ -1525,7 +1525,7 @@ export const RequestApprovalSchema = z.object({
   },
   {
     message: "Approved quantity cannot exceed requested quantity for any item",
-    path: ["line_items"]
+    path: ['line_items']
   }
 ).refine(
   (data) => {
@@ -1539,7 +1539,7 @@ export const RequestApprovalSchema = z.object({
   },
   {
     message: "Partial approval must have at least one item with reduced or rejected quantity",
-    path: ["approval_decision"]
+    path: ['approval_decision']
   }
 ).refine(
   (data) => {
@@ -1555,7 +1555,7 @@ export const RequestApprovalSchema = z.object({
   },
   {
     message: "Partial approvals should be at least 50% of requested quantity per item (unless rejected)",
-    path: ["line_items"]
+    path: ['line_items']
   }
 );
 

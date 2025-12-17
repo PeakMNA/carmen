@@ -3,6 +3,8 @@
 import { Suspense, useState } from "react"
 import { Recipe, Ingredient, PreparationStep } from '@/lib/types'
 import { mockRecipes } from '@/lib/mock-data'
+import { getCategoryDefaults, getRecipeCategoryById } from '@/lib/mock-data/categories'
+import { MarginCalculator } from '../components/margin-calculator'
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
@@ -541,131 +543,13 @@ export default function RecipeViewPage({ params }: RecipeViewPageProps) {
                   </div>
                 </Card>
 
-                {/* Cost Summary */}
-                <Card className="px-3 py-6">
-                  <h3 className="font-medium mb-4">Cost Summary</h3>
-                  <div className="space-y-6">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className="text-sm text-muted-foreground">Labor Cost %</label>
-                        <div className="flex items-center gap-2 mt-1">
-                          <input
-                            type="number"
-                            className="w-full rounded-md border px-3 py-2"
-                            defaultValue="30"
-                            disabled
-                          />
-                          <span className="text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                      <div>
-                        <label className="text-sm text-muted-foreground">Overhead %</label>
-                        <div className="flex items-center gap-2 mt-1">
-                          <input
-                            type="number"
-                            className="w-full rounded-md border px-3 py-2"
-                            defaultValue="20"
-                            disabled
-                          />
-                          <span className="text-muted-foreground">%</span>
-                        </div>
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between py-2">
-                        <span className="text-sm">Ingredient Cost:</span>
-                        <span className="font-medium">${recipe.totalCost.amount.toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between py-2">
-                        <span className="text-sm">Labor Cost (30%):</span>
-                        <span className="font-medium">${(recipe.totalCost.amount * 0.3).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between py-2">
-                        <span className="text-sm">Overhead (20%):</span>
-                        <span className="font-medium">${(recipe.totalCost.amount * 0.2).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between py-2 border-t">
-                        <span className="font-medium">Total Cost Per Portion:</span>
-                        <span className="font-medium">${recipe.costPerPortion.amount.toFixed(2)}</span>
-                      </div>
-                    </div>
-                  </div>
-                </Card>
+                {/* Margin Calculator - replaces Cost Summary and Pricing Analysis */}
+                <MarginCalculator
+                  recipe={recipe}
+                  categoryDefaults={getCategoryDefaults(recipe.categoryId)}
+                  categoryName={getRecipeCategoryById(recipe.categoryId)?.name}
+                />
               </div>
-
-              {/* Pricing Analysis */}
-              <Card className="px-3 py-6">
-                <h3 className="font-medium mb-4">Pricing Analysis</h3>
-                <div className="grid grid-cols-2 gap-6">
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-sm text-muted-foreground block mb-1">Target Food Cost %</label>
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="number"
-                          className="w-full rounded-md border px-3 py-2"
-                          defaultValue="33"
-                          disabled
-                        />
-                        <span className="text-muted-foreground">%</span>
-                      </div>
-                    </div>
-
-                    <div>
-                      <label className="text-sm text-muted-foreground block mb-1">Selling Price</label>
-                      <div className="flex items-center gap-2">
-                        <span className="text-muted-foreground">$</span>
-                        <input
-                          type="number"
-                          className="w-full rounded-md border px-3 py-2"
-                          defaultValue={recipe.yieldVariants[0]?.sellingPrice?.amount || 0}
-                          disabled
-                        />
-                      </div>
-                    </div>
-
-                    <div className="space-y-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Recommended Price:</span>
-                        <span>${(recipe.costPerPortion.amount * 3).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Current Price:</span>
-                        <span>${recipe.yieldVariants[0]?.sellingPrice?.amount.toFixed(2) || 'N/A'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Food Cost %:</span>
-                        <span className={cn(
-                          recipe.foodCostPercentage > 33 ? "text-destructive" : "text-green-600"
-                        )}>
-                          {recipe.foodCostPercentage.toFixed(1)}%
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Gross Profit:</span>
-                        <span>
-                          {recipe.yieldVariants[0]?.sellingPrice
-                            ? `$${(recipe.yieldVariants[0].sellingPrice.amount - recipe.costPerPortion.amount).toFixed(2)}`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Gross Margin:</span>
-                        <span>
-                          {recipe.yieldVariants[0]?.marginPercentage
-                            ? `${recipe.yieldVariants[0].marginPercentage.toFixed(1)}%`
-                            : 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border rounded-lg p-4 flex items-center justify-center text-muted-foreground">
-                    Profitability Chart Coming Soon
-                  </div>
-                </div>
-              </Card>
 
               {/* Competitor Analysis */}
               <Card className="px-3 py-6">

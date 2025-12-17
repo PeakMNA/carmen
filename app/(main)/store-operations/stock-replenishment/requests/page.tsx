@@ -51,18 +51,18 @@ import {
 
 // Extended mock data for transfer requests
 const allTransferRequests = [
-  { id: "TR-2024-0089", location: "Central Kitchen", locationCode: "CK-001", items: 8, totalValue: 450.00, status: "pending", priority: "high", requestedBy: "John Smith", approvedBy: null, date: "2024-01-15", notes: "Urgent - running low on beverages" },
-  { id: "TR-2024-0088", location: "Main Bar", locationCode: "MB-001", items: 5, totalValue: 285.50, status: "approved", priority: "medium", requestedBy: "Sarah Wilson", approvedBy: "Mike Chen", date: "2024-01-15", notes: "Weekly bar restock" },
-  { id: "TR-2024-0087", location: "Restaurant", locationCode: "RS-001", items: 12, totalValue: 780.25, status: "in_transit", priority: "high", requestedBy: "Mike Chen", approvedBy: "David Brown", date: "2024-01-14", notes: "Weekend preparation" },
-  { id: "TR-2024-0086", location: "Poolside Bar", locationCode: "PB-001", items: 3, totalValue: 125.00, status: "completed", priority: "low", requestedBy: "Emma Davis", approvedBy: "John Smith", date: "2024-01-14", notes: "Regular restock" },
-  { id: "TR-2024-0085", location: "Room Service", locationCode: "RS-002", items: 6, totalValue: 320.75, status: "completed", priority: "medium", requestedBy: "James Lee", approvedBy: "Sarah Wilson", date: "2024-01-13", notes: "Mini bar supplies" },
-  { id: "TR-2024-0084", location: "Central Kitchen", locationCode: "CK-001", items: 15, totalValue: 1250.00, status: "completed", priority: "high", requestedBy: "John Smith", approvedBy: "David Brown", date: "2024-01-13", notes: "Banquet preparation" },
-  { id: "TR-2024-0083", location: "Main Bar", locationCode: "MB-001", items: 4, totalValue: 180.00, status: "rejected", priority: "low", requestedBy: "Sarah Wilson", approvedBy: null, date: "2024-01-12", notes: "Duplicate request" },
-  { id: "TR-2024-0082", location: "Restaurant", locationCode: "RS-001", items: 9, totalValue: 520.50, status: "completed", priority: "medium", requestedBy: "Mike Chen", approvedBy: "John Smith", date: "2024-01-12", notes: "Lunch service prep" },
-  { id: "TR-2024-0081", location: "Poolside Bar", locationCode: "PB-001", items: 7, totalValue: 380.25, status: "completed", priority: "high", requestedBy: "Emma Davis", approvedBy: "Mike Chen", date: "2024-01-11", notes: "Pool party event" },
-  { id: "TR-2024-0080", location: "Room Service", locationCode: "RS-002", items: 5, totalValue: 275.00, status: "completed", priority: "medium", requestedBy: "James Lee", approvedBy: "Sarah Wilson", date: "2024-01-11", notes: "VIP guest requests" },
-  { id: "TR-2024-0079", location: "Central Kitchen", locationCode: "CK-001", items: 20, totalValue: 1850.00, status: "completed", priority: "high", requestedBy: "John Smith", approvedBy: "David Brown", date: "2024-01-10", notes: "Monthly bulk transfer" },
-  { id: "TR-2024-0078", location: "Main Bar", locationCode: "MB-001", items: 6, totalValue: 420.00, status: "completed", priority: "medium", requestedBy: "Sarah Wilson", approvedBy: "Mike Chen", date: "2024-01-10", notes: "Premium spirits restock" },
+  { id: "TR-2410-0089", location: "Central Kitchen", locationCode: "CK-001", items: 8, totalValue: 450.00, status: "pending", priority: "high", requestedBy: "John Smith", approvedBy: null, date: "2024-01-15", notes: "Urgent - running low on beverages" },
+  { id: "TR-2410-0088", location: "Main Bar", locationCode: "MB-001", items: 5, totalValue: 285.50, status: "approved", priority: "medium", requestedBy: "Sarah Wilson", approvedBy: "Mike Chen", date: "2024-01-15", notes: "Weekly bar restock" },
+  { id: "TR-2410-0087", location: "Restaurant", locationCode: "RS-001", items: 12, totalValue: 780.25, status: "in_transit", priority: "high", requestedBy: "Mike Chen", approvedBy: "David Brown", date: "2024-01-14", notes: "Weekend preparation" },
+  { id: "TR-2410-0086", location: "Poolside Bar", locationCode: "PB-001", items: 3, totalValue: 125.00, status: "completed", priority: "low", requestedBy: "Emma Davis", approvedBy: "John Smith", date: "2024-01-14", notes: "Regular restock" },
+  { id: "TR-2410-0085", location: "Room Service", locationCode: "RS-002", items: 6, totalValue: 320.75, status: "completed", priority: "medium", requestedBy: "James Lee", approvedBy: "Sarah Wilson", date: "2024-01-13", notes: "Mini bar supplies" },
+  { id: "TR-2410-0084", location: "Central Kitchen", locationCode: "CK-001", items: 15, totalValue: 1250.00, status: "completed", priority: "high", requestedBy: "John Smith", approvedBy: "David Brown", date: "2024-01-13", notes: "Banquet preparation" },
+  { id: "TR-2410-0083", location: "Main Bar", locationCode: "MB-001", items: 4, totalValue: 180.00, status: "rejected", priority: "low", requestedBy: "Sarah Wilson", approvedBy: null, date: "2024-01-12", notes: "Duplicate request" },
+  { id: "TR-2410-0082", location: "Restaurant", locationCode: "RS-001", items: 9, totalValue: 520.50, status: "completed", priority: "medium", requestedBy: "Mike Chen", approvedBy: "John Smith", date: "2024-01-12", notes: "Lunch service prep" },
+  { id: "TR-2410-0081", location: "Poolside Bar", locationCode: "PB-001", items: 7, totalValue: 380.25, status: "completed", priority: "high", requestedBy: "Emma Davis", approvedBy: "Mike Chen", date: "2024-01-11", notes: "Pool party event" },
+  { id: "TR-2410-0080", location: "Room Service", locationCode: "RS-002", items: 5, totalValue: 275.00, status: "completed", priority: "medium", requestedBy: "James Lee", approvedBy: "Sarah Wilson", date: "2024-01-11", notes: "VIP guest requests" },
+  { id: "TR-2410-0079", location: "Central Kitchen", locationCode: "CK-001", items: 20, totalValue: 1850.00, status: "completed", priority: "high", requestedBy: "John Smith", approvedBy: "David Brown", date: "2024-01-10", notes: "Monthly bulk transfer" },
+  { id: "TR-2410-0078", location: "Main Bar", locationCode: "MB-001", items: 6, totalValue: 420.00, status: "completed", priority: "medium", requestedBy: "Sarah Wilson", approvedBy: "Mike Chen", date: "2024-01-10", notes: "Premium spirits restock" },
 ]
 
 function getStatusBadge(status: string) {

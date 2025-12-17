@@ -18,6 +18,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -69,25 +70,25 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         UI[React Components]
         Forms[Form Components]
         Dashboard[Dashboard Views]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         SA[Server Actions]
         Services[Business Services]
         Alerts[Alert Engine]
         Recs[Recommendation Engine]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         DB[(PostgreSQL Database)]
         Cache[Redis Cache]
     end
 
-    subgraph "External Systems"
+    subgraph 'External Systems'
         Inv[Standard Inventory]
         Order[Order Management]
         Notif[Notification Service]
@@ -125,25 +126,25 @@ graph TB
 
 ```mermaid
 graph LR
-    subgraph "Input Sources"
+    subgraph 'Input Sources'
         User[User Input]
         Cron[Scheduled Jobs]
         Events[System Events]
     end
 
-    subgraph "Processing"
+    subgraph 'Processing'
         Validate[Validation Layer]
         Business[Business Logic]
         Calculate[Calculations]
     end
 
-    subgraph "Storage"
+    subgraph 'Storage'
         Tables[(Core Tables)]
         Audit[(Audit Tables)]
         Cache[(Cache)]
     end
 
-    subgraph "Outputs"
+    subgraph 'Outputs'
         UI[UI Updates]
         Alerts[Alert System]
         Reports[Reports]
@@ -180,36 +181,36 @@ graph LR
 
 ```mermaid
 flowchart TD
-    Start([User: Configure Fractional Item]) --> CheckAuth{User Has<br/>Permission?}
+    Start([User: Configure Fractional Item]) --> CheckAuth{User Has<br>Permission?}
 
     CheckAuth -->|No| ErrorAuth[Error: Unauthorized]
-    CheckAuth -->|Yes| SelectItem[Select Item from<br/>Product Catalog]
+    CheckAuth -->|Yes| SelectItem[Select Item from<br>Product Catalog]
 
-    SelectItem --> CheckExists{Item Already<br/>Configured?}
+    SelectItem --> CheckExists{Item Already<br>Configured?}
 
-    CheckExists -->|Yes| LoadConfig[Load Existing<br/>Configuration]
-    CheckExists -->|No| NewConfig[Create New<br/>Configuration]
+    CheckExists -->|Yes| LoadConfig[Load Existing<br>Configuration]
+    CheckExists -->|No| NewConfig[Create New<br>Configuration]
 
     LoadConfig --> ConfigForm[Display Configuration Form]
     NewConfig --> ConfigForm
 
-    ConfigForm --> EnterDetails[Enter/Edit Details:<br/>- Portion Sizes<br/>- Shelf Life<br/>- Quality Hours<br/>- Waste %<br/>- Costs]
+    ConfigForm --> EnterDetails[Enter/Edit Details:<br>- Portion Sizes<br>- Shelf Life<br>- Quality Hours<br>- Waste %<br>- Costs]
 
-    EnterDetails --> ValidateInput{Valid<br/>Input?}
+    EnterDetails --> ValidateInput{Valid<br>Input?}
 
-    ValidateInput -->|No| ShowErrors[Show Validation<br/>Errors]
+    ValidateInput -->|No| ShowErrors[Show Validation<br>Errors]
     ShowErrors --> ConfigForm
 
-    ValidateInput -->|Yes| CheckRules{Business Rules<br/>Pass?}
+    ValidateInput -->|Yes| CheckRules{Business Rules<br>Pass?}
 
-    CheckRules -->|No| ShowBizErrors[Show Business<br/>Rule Errors]
+    CheckRules -->|No| ShowBizErrors[Show Business<br>Rule Errors]
     ShowBizErrors --> ConfigForm
 
-    CheckRules -->|Yes| SaveConfig[(Save to<br/>tb_fractional_item)]
+    CheckRules -->|Yes| SaveConfig[(Save to<br>tb_fractional_item)]
 
-    SaveConfig --> LogActivity[Log Activity:<br/>CREATE/UPDATE]
+    SaveConfig --> LogActivity[Log Activity:<br>CREATE/UPDATE]
 
-    LogActivity --> Success[Success Message:<br/>Item Configured]
+    LogActivity --> Success[Success Message:<br>Item Configured]
 
     Success --> End([End])
     ErrorAuth --> End
@@ -229,53 +230,53 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: Split Conversion]) --> ViewStock[View Stock List<br/>Filter: RAW/PREPARED]
+    Start([User: Split Conversion]) --> ViewStock[View Stock List<br>Filter: RAW/PREPARED]
 
     ViewStock --> SelectStock[Select Stock to Split]
 
-    SelectStock --> CheckState{Stock State<br/>= RAW or<br/>PREPARED?}
+    SelectStock --> CheckState{Stock State<br>= RAW or<br>PREPARED?}
 
-    CheckState -->|No| ErrorState[Error: Invalid State<br/>for Split]
+    CheckState -->|No| ErrorState[Error: Invalid State<br>for Split]
 
-    CheckState -->|Yes| LoadItem[(Load Item Config:<br/>Portion Sizes)]
+    CheckState -->|Yes| LoadItem[(Load Item Config:<br>Portion Sizes)]
 
-    LoadItem --> SelectPortion[Select Portion Size<br/>e.g., 8 slices]
+    LoadItem --> SelectPortion[Select Portion Size<br>e.g., 8 slices]
 
-    SelectPortion --> EnterQty[Enter Quantity<br/>Whole Units to Split]
+    SelectPortion --> EnterQty[Enter Quantity<br>Whole Units to Split]
 
-    EnterQty --> ValidateQty{Quantity<br/>Available?}
+    EnterQty --> ValidateQty{Quantity<br>Available?}
 
-    ValidateQty -->|No| ErrorQty[Error: Insufficient<br/>Stock]
+    ValidateQty -->|No| ErrorQty[Error: Insufficient<br>Stock]
 
-    ValidateQty -->|Yes| Calculate[Calculate:<br/>- Expected Portions<br/>- Waste Amount<br/>- Actual Portions<br/>- Efficiency]
+    ValidateQty -->|Yes| Calculate[Calculate:<br>- Expected Portions<br>- Waste Amount<br>- Actual Portions<br>- Efficiency]
 
-    Calculate --> Preview[Show Conversion<br/>Preview with Costs]
+    Calculate --> Preview[Show Conversion<br>Preview with Costs]
 
-    Preview --> Confirm{User<br/>Confirms?}
+    Preview --> Confirm{User<br>Confirms?}
 
     Confirm -->|No| Cancel[Cancel Operation]
 
     Confirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> CreateRecord[(Create<br/>tb_conversion_record)]
+    BeginTx --> CreateRecord[(Create<br>tb_conversion_record)]
 
-    CreateRecord --> UpdateStock[(Update<br/>tb_fractional_stock:<br/>- Deduct whole_units<br/>- Add total_portions<br/>- Update state)]
+    CreateRecord --> UpdateStock[(Update<br>tb_fractional_stock:<br>- Deduct whole_units<br>- Add total_portions<br>- Update state)]
 
-    UpdateStock --> CreateWaste{Waste<br/>Generated?}
+    UpdateStock --> CreateWaste{Waste<br>Generated?}
 
-    CreateWaste -->|Yes| RecordWaste[(Record Waste in<br/>tb_fractional_stock)]
+    CreateWaste -->|Yes| RecordWaste[(Record Waste in<br>tb_fractional_stock)]
     CreateWaste -->|No| CheckAlert
 
-    RecordWaste --> CheckAlert{Quality/Qty<br/>Alerts?}
+    RecordWaste --> CheckAlert{Quality/Qty<br>Alerts?}
 
-    CheckAlert -->|Yes| CreateAlert[(Create<br/>tb_inventory_alert)]
+    CheckAlert -->|Yes| CreateAlert[(Create<br>tb_inventory_alert)]
     CheckAlert -->|No| CommitTx
 
     CreateAlert --> CommitTx[Commit Transaction]
 
-    CommitTx --> LogActivity[Log Activity:<br/>SPLIT_CONVERSION]
+    CommitTx --> LogActivity[Log Activity:<br>SPLIT_CONVERSION]
 
-    LogActivity --> Success[Success Message:<br/>Conversion Complete<br/>Show Efficiency]
+    LogActivity --> Success[Success Message:<br>Conversion Complete<br>Show Efficiency]
 
     Success --> End([End])
     ErrorState --> End
@@ -299,53 +300,53 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: Combine Conversion]) --> ViewStock[View Stock List<br/>Filter: PORTIONED/PARTIAL]
+    Start([User: Combine Conversion]) --> ViewStock[View Stock List<br>Filter: PORTIONED/PARTIAL]
 
     ViewStock --> SelectStock[Select Stock to Combine]
 
-    SelectStock --> CheckState{Stock State<br/>= PORTIONED<br/>or PARTIAL?}
+    SelectStock --> CheckState{Stock State<br>= PORTIONED<br>or PARTIAL?}
 
-    CheckState -->|No| ErrorState[Error: Invalid State<br/>for Combine]
+    CheckState -->|No| ErrorState[Error: Invalid State<br>for Combine]
 
-    CheckState -->|Yes| LoadItem[(Load Item Config:<br/>Portions per Whole)]
+    CheckState -->|Yes| LoadItem[(Load Item Config:<br>Portions per Whole)]
 
-    LoadItem --> ShowAvailable[Show Available<br/>Portions Count]
+    LoadItem --> ShowAvailable[Show Available<br>Portions Count]
 
-    ShowAvailable --> EnterQty[Enter Portions<br/>to Combine]
+    ShowAvailable --> EnterQty[Enter Portions<br>to Combine]
 
-    EnterQty --> ValidateQty{Portions<br/>Available?}
+    EnterQty --> ValidateQty{Portions<br>Available?}
 
-    ValidateQty -->|No| ErrorQty[Error: Insufficient<br/>Portions]
+    ValidateQty -->|No| ErrorQty[Error: Insufficient<br>Portions]
 
-    ValidateQty -->|Yes| Calculate[Calculate:<br/>- Whole Units Created<br/>- Remaining Portions<br/>- Quality Impact]
+    ValidateQty -->|Yes| Calculate[Calculate:<br>- Whole Units Created<br>- Remaining Portions<br>- Quality Impact]
 
-    Calculate --> CheckQuality{Quality<br/>Acceptable?}
+    Calculate --> CheckQuality{Quality<br>Acceptable?}
 
-    CheckQuality -->|No| WarnQuality[Warning: Quality<br/>Degradation]
+    CheckQuality -->|No| WarnQuality[Warning: Quality<br>Degradation]
     WarnQuality --> Confirm
 
-    CheckQuality -->|Yes| Preview[Show Combine<br/>Preview]
+    CheckQuality -->|Yes| Preview[Show Combine<br>Preview]
 
-    Preview --> Confirm{User<br/>Confirms?}
+    Preview --> Confirm{User<br>Confirms?}
 
     Confirm -->|No| Cancel[Cancel Operation]
 
     Confirm -->|Yes| BeginTx[Begin Transaction]
 
-    BeginTx --> CreateRecord[(Create<br/>tb_conversion_record)]
+    BeginTx --> CreateRecord[(Create<br>tb_conversion_record)]
 
-    CreateRecord --> UpdateStock[(Update<br/>tb_fractional_stock:<br/>- Add whole_units<br/>- Deduct total_portions<br/>- Update state)]
+    CreateRecord --> UpdateStock[(Update<br>tb_fractional_stock:<br>- Add whole_units<br>- Deduct total_portions<br>- Update state)]
 
-    UpdateStock --> UpdateQuality{Quality<br/>Degraded?}
+    UpdateStock --> UpdateQuality{Quality<br>Degraded?}
 
-    UpdateQuality -->|Yes| AdjustGrade[(Adjust<br/>quality_grade)]
+    UpdateQuality -->|Yes| AdjustGrade[(Adjust<br>quality_grade)]
     UpdateQuality -->|No| CommitTx
 
     AdjustGrade --> CommitTx[Commit Transaction]
 
-    CommitTx --> LogActivity[Log Activity:<br/>COMBINE_CONVERSION]
+    CommitTx --> LogActivity[Log Activity:<br>COMBINE_CONVERSION]
 
-    LogActivity --> Success[Success Message:<br/>Combination Complete]
+    LogActivity --> Success[Success Message:<br>Combination Complete]
 
     Success --> End([End])
     ErrorState --> End
@@ -369,51 +370,51 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Scheduled Job:<br/>Every 15 minutes]) --> LoadActive[(Load Active<br/>Fractional Stock<br/>WHERE prepared_at<br/>IS NOT NULL)]
+    Start([Scheduled Job:<br>Every 15 minutes]) --> LoadActive[(Load Active<br>Fractional Stock<br>WHERE prepared_at<br>IS NOT NULL)]
 
-    LoadActive --> LoopStock{For Each<br/>Stock Record}
+    LoadActive --> LoopStock{For Each<br>Stock Record}
 
     LoopStock -->|No More| End([End])
 
-    LoopStock -->|Next| LoadConfig[(Load Item Config:<br/>shelf_life_hours<br/>max_quality_hours)]
+    LoopStock -->|Next| LoadConfig[(Load Item Config:<br>shelf_life_hours<br>max_quality_hours)]
 
-    LoadConfig --> CalcElapsed[Calculate:<br/>Hours Elapsed Since<br/>prepared_at]
+    LoadConfig --> CalcElapsed[Calculate:<br>Hours Elapsed Since<br>prepared_at]
 
-    CalcElapsed --> CheckExpired{Expired?<br/>elapsed ><br/>shelf_life}
+    CalcElapsed --> CheckExpired{Expired?<br>elapsed ><br>shelf_life}
 
-    CheckExpired -->|Yes| SetExpired[Set quality_grade<br/>= 'expired']
+    CheckExpired -->|Yes| SetExpired[Set quality_grade<br>= 'expired']
     SetExpired --> CreateExpiryAlert
 
-    CheckExpired -->|No| CheckExcellent{Excellent?<br/>elapsed <=<br/>max_quality}
+    CheckExpired -->|No| CheckExcellent{Excellent?<br>elapsed <=<br>max_quality}
 
-    CheckExcellent -->|Yes| SetExcellent[Set quality_grade<br/>= 'excellent']
+    CheckExcellent -->|Yes| SetExcellent[Set quality_grade<br>= 'excellent']
     SetExcellent --> LoopStock
 
-    CheckExcellent -->|No| CalcPercent[Calculate:<br/>shelf_life_percent<br/>= elapsed / shelf_life]
+    CheckExcellent -->|No| CalcPercent[Calculate:<br>shelf_life_percent<br>= elapsed / shelf_life]
 
-    CalcPercent --> CheckGood{percent<br/><= 0.75?}
+    CalcPercent --> CheckGood{percent<br><= 0.75?}
 
-    CheckGood -->|Yes| SetGood[Set quality_grade<br/>= 'good']
+    CheckGood -->|Yes| SetGood[Set quality_grade<br>= 'good']
     SetGood --> CheckPrevious
 
-    CheckGood -->|No| CheckFair{percent<br/><= 0.90?}
+    CheckGood -->|No| CheckFair{percent<br><= 0.90?}
 
-    CheckFair -->|Yes| SetFair[Set quality_grade<br/>= 'fair']
+    CheckFair -->|Yes| SetFair[Set quality_grade<br>= 'fair']
     SetFair --> CheckPrevious
 
-    CheckFair -->|No| SetPoor[Set quality_grade<br/>= 'poor']
+    CheckFair -->|No| SetPoor[Set quality_grade<br>= 'poor']
 
-    SetPoor --> CreateDegAlert[Create Alert:<br/>QUALITY_DEGRADING]
+    SetPoor --> CreateDegAlert[Create Alert:<br>QUALITY_DEGRADING]
     CreateDegAlert --> CheckPrevious
 
-    CheckPrevious{Grade<br/>Changed?}
+    CheckPrevious{Grade<br>Changed?}
 
     CheckPrevious -->|No| LoopStock
-    CheckPrevious -->|Yes| UpdateDB[(Update Stock:<br/>quality_grade<br/>quality_updated_at)]
+    CheckPrevious -->|Yes| UpdateDB[(Update Stock:<br>quality_grade<br>quality_updated_at)]
 
     UpdateDB --> LoopStock
 
-    CreateExpiryAlert[(Create Alert:<br/>QUALITY_POOR<br/>severity: CRITICAL)]
+    CreateExpiryAlert[(Create Alert:<br>QUALITY_POOR<br>severity: CRITICAL)]
 
     CreateExpiryAlert --> UpdateDB
 
@@ -434,61 +435,61 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Scheduled Job:<br/>Every 30 minutes]) --> LoadStock[(Load All Active<br/>Fractional Stock)]
+    Start([Scheduled Job:<br>Every 30 minutes]) --> LoadStock[(Load All Active<br>Fractional Stock)]
 
-    LoadStock --> LoopStock{For Each<br/>Stock Record}
+    LoadStock --> LoopStock{For Each<br>Stock Record}
 
     LoopStock -->|No More| End([End])
 
-    LoopStock -->|Next| CheckQuality{Quality<br/>= poor or<br/>expired?}
+    LoopStock -->|Next| CheckQuality{Quality<br>= poor or<br>expired?}
 
-    CheckQuality -->|Yes| CreateQualityAlert[(Create Alert:<br/>QUALITY_POOR<br/>severity: HIGH)]
+    CheckQuality -->|Yes| CreateQualityAlert[(Create Alert:<br>QUALITY_POOR<br>severity: HIGH)]
 
     CheckQuality -->|No| CheckExpiry
 
-    CreateQualityAlert --> CheckExpiry{Expiry<br/>within 24hrs?}
+    CreateQualityAlert --> CheckExpiry{Expiry<br>within 24hrs?}
 
-    CheckExpiry -->|Yes| CreateExpiryAlert[(Create Alert:<br/>EXPIRY_WARNING<br/>severity: HIGH)]
+    CheckExpiry -->|Yes| CreateExpiryAlert[(Create Alert:<br>EXPIRY_WARNING<br>severity: HIGH)]
 
     CheckExpiry -->|No| CheckPortions
 
-    CreateExpiryAlert --> CheckPortions{Available<br/>Portions < Min<br/>Threshold?}
+    CreateExpiryAlert --> CheckPortions{Available<br>Portions < Min<br>Threshold?}
 
-    CheckPortions -->|Yes| LoadHistory[(Load Sales<br/>History:<br/>Last 7 Days)]
+    CheckPortions -->|Yes| LoadHistory[(Load Sales<br>History:<br>Last 7 Days)]
 
     CheckPortions -->|No| CheckReserved
 
-    LoadHistory --> CalcAvg[Calculate:<br/>Daily Average<br/>Sales]
+    LoadHistory --> CalcAvg[Calculate:<br>Daily Average<br>Sales]
 
-    CalcAvg --> CalcStockout[Calculate:<br/>Hours Until<br/>Stockout]
+    CalcAvg --> CalcStockout[Calculate:<br>Hours Until<br>Stockout]
 
-    CalcStockout --> CheckUrgent{Stockout<br/>< 4 hours?}
+    CalcStockout --> CheckUrgent{Stockout<br>< 4 hours?}
 
-    CheckUrgent -->|Yes| CreateUrgentAlert[(Create Alert:<br/>PORTION_LOW<br/>severity: CRITICAL)]
+    CheckUrgent -->|Yes| CreateUrgentAlert[(Create Alert:<br>PORTION_LOW<br>severity: CRITICAL)]
 
-    CheckUrgent -->|No| CreateLowAlert[(Create Alert:<br/>PORTION_LOW<br/>severity: MEDIUM)]
+    CheckUrgent -->|No| CreateLowAlert[(Create Alert:<br>PORTION_LOW<br>severity: MEDIUM)]
 
     CreateUrgentAlert --> CheckReserved
     CreateLowAlert --> CheckReserved
 
-    CheckReserved{Reserved ><br/>80% of Total?}
+    CheckReserved{Reserved ><br>80% of Total?}
 
-    CheckReserved -->|Yes| CreateReservedAlert[(Create Alert:<br/>RESERVED_HIGH<br/>severity: MEDIUM)]
+    CheckReserved -->|Yes| CreateReservedAlert[(Create Alert:<br>RESERVED_HIGH<br>severity: MEDIUM)]
 
     CheckReserved -->|No| CheckConversion
 
-    CreateReservedAlert --> CheckConversion{Optimal for<br/>Conversion?}
+    CreateReservedAlert --> CheckConversion{Optimal for<br>Conversion?}
 
-    CheckConversion -->|Yes| CreateConvAlert[(Create Alert:<br/>CONVERSION_OPTIMAL<br/>severity: LOW)]
+    CheckConversion -->|Yes| CreateConvAlert[(Create Alert:<br>CONVERSION_OPTIMAL<br>severity: LOW)]
 
     CheckConversion -->|No| CheckAlertExists
 
-    CreateConvAlert --> CheckAlertExists{Active Alert<br/>Already Exists?}
+    CreateConvAlert --> CheckAlertExists{Active Alert<br>Already Exists?}
 
     CheckAlertExists -->|Yes| LoopStock
-    CheckAlertExists -->|No| SaveAlert[(Save Alert to<br/>tb_inventory_alert)]
+    CheckAlertExists -->|No| SaveAlert[(Save Alert to<br>tb_inventory_alert)]
 
-    SaveAlert --> SendNotif[Send Notification<br/>to User]
+    SaveAlert --> SendNotif[Send Notification<br>to User]
 
     SendNotif --> LoopStock
 
@@ -518,28 +519,28 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: View Stock List]) --> LoadDefaults[Load Default View:<br/>Current Location<br/>All Active Items]
+    Start([User: View Stock List]) --> LoadDefaults[Load Default View:<br>Current Location<br>All Active Items]
 
-    LoadDefaults --> ApplyFilters{User Applies<br/>Filters?}
+    LoadDefaults --> ApplyFilters{User Applies<br>Filters?}
 
     ApplyFilters -->|No| QueryDB
 
-    ApplyFilters -->|Yes| SelectFilters[Select Filters:<br/>- State<br/>- Quality Grade<br/>- Expiry Range<br/>- Item Category<br/>- Has Alerts]
+    ApplyFilters -->|Yes| SelectFilters[Select Filters:<br>- State<br>- Quality Grade<br>- Expiry Range<br>- Item Category<br>- Has Alerts]
 
-    SelectFilters --> QueryDB[(Query<br/>tb_fractional_stock<br/>WITH Filters)]
+    SelectFilters --> QueryDB[(Query<br>tb_fractional_stock<br>WITH Filters)]
 
-    QueryDB --> SortResults[Sort Results:<br/>- Expiry Date ASC<br/>- Quality DESC<br/>- Updated At DESC]
+    QueryDB --> SortResults[Sort Results:<br>- Expiry Date ASC<br>- Quality DESC<br>- Updated At DESC]
 
-    SortResults --> EnrichData[Enrich Data:<br/>- Item Details<br/>- Available Portions<br/>- Alert Count<br/>- Last Conversion]
+    SortResults --> EnrichData[Enrich Data:<br>- Item Details<br>- Available Portions<br>- Alert Count<br>- Last Conversion]
 
-    EnrichData --> DisplayList[Display Stock List<br/>with Indicators:<br/>🔴 Expiring Soon<br/>⚠️ Quality Issue<br/>📊 Low Stock]
+    EnrichData --> DisplayList[Display Stock List<br>with Indicators:<br>🔴 Expiring Soon<br>⚠️ Quality Issue<br>📊 Low Stock]
 
-    DisplayList --> UserAction{User<br/>Action?}
+    DisplayList --> UserAction{User<br>Action?}
 
     UserAction -->|Refresh| LoadDefaults
     UserAction -->|Change Filter| SelectFilters
-    UserAction -->|View Details| ViewDetails[Show Stock<br/>Details Modal]
-    UserAction -->|Convert| GoConvert[Navigate to<br/>Conversion Screen]
+    UserAction -->|View Details| ViewDetails[Show Stock<br>Details Modal]
+    UserAction -->|Convert| GoConvert[Navigate to<br>Conversion Screen]
     UserAction -->|Exit| End([End])
 
     ViewDetails --> UserAction
@@ -556,22 +557,22 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User: View Conversion History]) --> SelectFilters[Select Filters:<br/>- Date Range<br/>- Item<br/>- Conversion Type<br/>- Location<br/>- Performed By]
+    Start([User: View Conversion History]) --> SelectFilters[Select Filters:<br>- Date Range<br>- Item<br>- Conversion Type<br>- Location<br>- Performed By]
 
-    SelectFilters --> QueryDB[(Query<br/>tb_conversion_record<br/>WITH Filters<br/>ORDER BY performed_at DESC)]
+    SelectFilters --> QueryDB[(Query<br>tb_conversion_record<br>WITH Filters<br>ORDER BY performed_at DESC)]
 
-    QueryDB --> LoadRelated[(Load Related Data:<br/>- Item Info<br/>- User Info<br/>- Stock Before/After)]
+    QueryDB --> LoadRelated[(Load Related Data:<br>- Item Info<br>- User Info<br>- Stock Before/After)]
 
-    LoadRelated --> GroupByDate[Group Records<br/>by Date]
+    LoadRelated --> GroupByDate[Group Records<br>by Date]
 
-    GroupByDate --> CalcStats[Calculate Stats:<br/>- Total Conversions<br/>- Avg Efficiency<br/>- Total Waste<br/>- Cost Summary]
+    GroupByDate --> CalcStats[Calculate Stats:<br>- Total Conversions<br>- Avg Efficiency<br>- Total Waste<br>- Cost Summary]
 
-    CalcStats --> DisplayResults[Display Results<br/>with Timeline View]
+    CalcStats --> DisplayResults[Display Results<br>with Timeline View]
 
-    DisplayResults --> UserAction{User<br/>Action?}
+    DisplayResults --> UserAction{User<br>Action?}
 
     UserAction -->|Change Filter| SelectFilters
-    UserAction -->|View Details| ViewConversion[Show Conversion<br/>Details Modal]
+    UserAction -->|View Details| ViewConversion[Show Conversion<br>Details Modal]
     UserAction -->|Export| ExportData[Export to CSV/Excel]
     UserAction -->|Exit| End([End])
 
@@ -593,55 +594,55 @@ flowchart TD
 
 ```mermaid
 stateDiagram-v2
-    [*] --> RAW: Inventory Receipt<br/>(Whole Items)
+    [*] --> RAW: Inventory Receipt<br>(Whole Items)
 
-    RAW --> PREPARED: Prepare<br/>Operation
-    RAW --> PORTIONED: Direct Split<br/>(No Prep)
+    RAW --> PREPARED: Prepare<br>Operation
+    RAW --> PORTIONED: Direct Split<br>(No Prep)
     RAW --> WASTE: Mark as Waste
 
-    PREPARED --> PORTIONED: Portion<br/>Operation
+    PREPARED --> PORTIONED: Portion<br>Operation
     PREPARED --> WASTE: Mark as Waste
 
-    PORTIONED --> PARTIAL: Partial<br/>Consumption
-    PORTIONED --> COMBINED: Combine<br/>Operation
+    PORTIONED --> PARTIAL: Partial<br>Consumption
+    PORTIONED --> COMBINED: Combine<br>Operation
     PORTIONED --> WASTE: Mark as Waste
 
-    PARTIAL --> PORTIONED: Conversion<br/>Complete
-    PARTIAL --> COMBINED: Combine<br/>Operation
+    PARTIAL --> PORTIONED: Conversion<br>Complete
+    PARTIAL --> COMBINED: Combine<br>Operation
     PARTIAL --> WASTE: Mark as Waste
 
     COMBINED --> PORTIONED: Re-Split
     COMBINED --> WASTE: Mark as Waste
 
-    WASTE --> [*]: Inventory<br/>Write-off
+    WASTE --> [*]: Inventory<br>Write-off
 
     note right of RAW
-        Initial state for<br/>
-        whole items from<br/>
+        Initial state for<br>
+        whole items from<br>
         standard inventory
     end note
 
     note right of PREPARED
-        Items processed<br/>
-        but not portioned<br/>
+        Items processed<br>
+        but not portioned<br>
         (e.g., cooked pizza)
     end note
 
     note right of PORTIONED
-        Items divided into<br/>
-        sellable portions<br/>
+        Items divided into<br>
+        sellable portions<br>
         (e.g., pizza slices)
     end note
 
     note right of PARTIAL
-        Some portions sold,<br/>
-        remainder tracked<br/>
+        Some portions sold,<br>
+        remainder tracked<br>
         separately
     end note
 
     note right of WASTE
-        Terminal state<br/>
-        for waste tracking<br/>
+        Terminal state<br>
+        for waste tracking<br>
         and reporting
     end note
 ```
@@ -650,45 +651,45 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> EXCELLENT: Item Prepared<br/>(prepared_at set)
+    [*] --> EXCELLENT: Item Prepared<br>(prepared_at set)
 
-    EXCELLENT --> GOOD: max_quality_hours<br/>Elapsed
+    EXCELLENT --> GOOD: max_quality_hours<br>Elapsed
 
-    GOOD --> FAIR: 75% Shelf Life<br/>Elapsed
+    GOOD --> FAIR: 75% Shelf Life<br>Elapsed
 
-    FAIR --> POOR: 90% Shelf Life<br/>Elapsed
+    FAIR --> POOR: 90% Shelf Life<br>Elapsed
 
-    POOR --> EXPIRED: shelf_life_hours<br/>Exceeded
+    POOR --> EXPIRED: shelf_life_hours<br>Exceeded
 
-    EXPIRED --> [*]: Marked as<br/>WASTE
+    EXPIRED --> [*]: Marked as<br>WASTE
 
     note right of EXCELLENT
-        Within max_quality_hours<br/>
-        Perfect selling condition<br/>
+        Within max_quality_hours<br>
+        Perfect selling condition<br>
         No alerts
     end note
 
     note right of GOOD
-        Past max_quality_hours<br/>
-        Still good quality<br/>
+        Past max_quality_hours<br>
+        Still good quality<br>
         No alerts
     end note
 
     note right of FAIR
-        75-90% shelf life<br/>
-        Quality degrading<br/>
+        75-90% shelf life<br>
+        Quality degrading<br>
         Alert: QUALITY_DEGRADING
     end note
 
     note right of POOR
-        90-100% shelf life<br/>
-        Poor quality<br/>
+        90-100% shelf life<br>
+        Poor quality<br>
         Alert: QUALITY_POOR
     end note
 
     note right of EXPIRED
-        Past shelf_life_hours<br/>
-        Must be disposed<br/>
+        Past shelf_life_hours<br>
+        Must be disposed<br>
         Alert: QUALITY_POOR (CRITICAL)
     end note
 ```
@@ -697,47 +698,47 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> ACTIVE: Alert<br/>Triggered
+    [*] --> ACTIVE: Alert<br>Triggered
 
-    ACTIVE --> ACKNOWLEDGED: User<br/>Acknowledges
-    ACTIVE --> DISMISSED: User<br/>Dismisses
-    ACTIVE --> AUTO_RESOLVED: System<br/>Resolves
+    ACTIVE --> ACKNOWLEDGED: User<br>Acknowledges
+    ACTIVE --> DISMISSED: User<br>Dismisses
+    ACTIVE --> AUTO_RESOLVED: System<br>Resolves
 
-    ACKNOWLEDGED --> RESOLVED: User<br/>Resolves Issue
-    ACKNOWLEDGED --> DISMISSED: User<br/>Dismisses
-    ACKNOWLEDGED --> AUTO_RESOLVED: System<br/>Resolves
+    ACKNOWLEDGED --> RESOLVED: User<br>Resolves Issue
+    ACKNOWLEDGED --> DISMISSED: User<br>Dismisses
+    ACKNOWLEDGED --> AUTO_RESOLVED: System<br>Resolves
 
     RESOLVED --> [*]: Complete
     DISMISSED --> [*]: Complete
     AUTO_RESOLVED --> [*]: Complete
 
     note right of ACTIVE
-        Alert created<br/>
-        Requires attention<br/>
+        Alert created<br>
+        Requires attention<br>
         Visible in dashboard
     end note
 
     note right of ACKNOWLEDGED
-        User has seen alert<br/>
-        Issue being addressed<br/>
+        User has seen alert<br>
+        Issue being addressed<br>
         Still visible
     end note
 
     note right of RESOLVED
-        User manually<br/>
-        resolved issue<br/>
+        User manually<br>
+        resolved issue<br>
         No longer active
     end note
 
     note right of DISMISSED
-        User chose to<br/>
-        ignore alert<br/>
+        User chose to<br>
+        ignore alert<br>
         No longer visible
     end note
 
     note right of AUTO_RESOLVED
-        System detected<br/>
-        issue resolved<br/>
+        System detected<br>
+        issue resolved<br>
         No action needed
     end note
 ```
@@ -750,35 +751,35 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([Inventory Receipt<br/>Processing]) --> CheckItem{Item is<br/>Fractional?}
+    Start([Inventory Receipt<br>Processing]) --> CheckItem{Item is<br>Fractional?}
 
-    CheckItem -->|No| StandardFlow[Process as<br/>Standard Item]
+    CheckItem -->|No| StandardFlow[Process as<br>Standard Item]
     StandardFlow --> End([End])
 
-    CheckItem -->|Yes| LoadConfig[(Load Fractional<br/>Item Config)]
+    CheckItem -->|Yes| LoadConfig[(Load Fractional<br>Item Config)]
 
-    LoadConfig --> CheckStock{Stock Exists<br/>for Location?}
+    LoadConfig --> CheckStock{Stock Exists<br>for Location?}
 
-    CheckStock -->|No| CreateStock[(Create New<br/>tb_fractional_stock<br/>state = RAW)]
+    CheckStock -->|No| CreateStock[(Create New<br>tb_fractional_stock<br>state = RAW)]
 
-    CheckStock -->|Yes| LoadStock[(Load Existing<br/>Stock Record)]
+    CheckStock -->|Yes| LoadStock[(Load Existing<br>Stock Record)]
 
     CreateStock --> UpdateQty
-    LoadStock --> UpdateQty[Update Quantities:<br/>whole_units +=<br/>received_qty]
+    LoadStock --> UpdateQty[Update Quantities:<br>whole_units +=<br>received_qty]
 
-    UpdateQty --> CalcPortions[Calculate:<br/>total_portions<br/>= whole_units *<br/>portions_per_whole]
+    UpdateQty --> CalcPortions[Calculate:<br>total_portions<br>= whole_units *<br>portions_per_whole]
 
-    CalcPortions --> SaveStock[(Save Stock<br/>Changes)]
+    CalcPortions --> SaveStock[(Save Stock<br>Changes)]
 
-    SaveStock --> CreateTransaction[(Create<br/>tb_inventory_transaction<br/>for Standard Inventory)]
+    SaveStock --> CreateTransaction[(Create<br>tb_inventory_transaction<br>for Standard Inventory)]
 
-    CreateTransaction --> SyncBalances[Sync Balance:<br/>Standard ↔ Fractional]
+    CreateTransaction --> SyncBalances[Sync Balance:<br>Standard ↔ Fractional]
 
-    SyncBalances --> LogActivity[Log Activity:<br/>INVENTORY_RECEIPT]
+    SyncBalances --> LogActivity[Log Activity:<br>INVENTORY_RECEIPT]
 
-    LogActivity --> CheckThreshold{Stock Below<br/>Threshold?}
+    LogActivity --> CheckThreshold{Stock Below<br>Threshold?}
 
-    CheckThreshold -->|Yes| CreateAlert[(Create Alert:<br/>PORTION_LOW)]
+    CheckThreshold -->|Yes| CreateAlert[(Create Alert:<br>PORTION_LOW)]
     CheckThreshold -->|No| Success
 
     CreateAlert --> Success[Receipt Complete]
@@ -802,40 +803,40 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Order Item<br/>Requested]) --> CheckFractional{Is Fractional<br/>Item?}
+    Start([Order Item<br>Requested]) --> CheckFractional{Is Fractional<br>Item?}
 
-    CheckFractional -->|No| StandardFlow[Process Standard<br/>Order Item]
+    CheckFractional -->|No| StandardFlow[Process Standard<br>Order Item]
     StandardFlow --> End([End])
 
-    CheckFractional -->|Yes| CheckPortions{Order by<br/>Portions?}
+    CheckFractional -->|Yes| CheckPortions{Order by<br>Portions?}
 
-    CheckPortions -->|No| CheckWhole[Check Whole<br/>Units Available]
-    CheckPortions -->|Yes| CheckAvail[Check Portions<br/>Available]
+    CheckPortions -->|No| CheckWhole[Check Whole<br>Units Available]
+    CheckPortions -->|Yes| CheckAvail[Check Portions<br>Available]
 
-    CheckWhole --> ValidateWhole{Whole Units<br/>Available?}
+    CheckWhole --> ValidateWhole{Whole Units<br>Available?}
     ValidateWhole -->|No| ErrorStock
     ValidateWhole -->|Yes| ReserveWhole
 
-    CheckAvail --> ValidatePortions{Portions<br/>Available?}
+    CheckAvail --> ValidatePortions{Portions<br>Available?}
 
-    ValidatePortions -->|No| ErrorStock[Error: Insufficient<br/>Stock]
+    ValidatePortions -->|No| ErrorStock[Error: Insufficient<br>Stock]
     ErrorStock --> End
 
-    ValidatePortions -->|Yes| ReservePortions[(Reserve Portions:<br/>reserved_portions +=<br/>qty_ordered)]
+    ValidatePortions -->|Yes| ReservePortions[(Reserve Portions:<br>reserved_portions +=<br>qty_ordered)]
 
-    ReserveWhole[(Reserve Whole:<br/>whole_units -=<br/>qty_ordered)]
+    ReserveWhole[(Reserve Whole:<br>whole_units -=<br>qty_ordered)]
 
-    ReservePortions --> UpdateAvail[Update:<br/>available_portions<br/>= total - reserved]
+    ReservePortions --> UpdateAvail[Update:<br>available_portions<br>= total - reserved]
     ReserveWhole --> UpdateAvail
 
-    UpdateAvail --> SaveStock[(Save Stock<br/>Changes)]
+    UpdateAvail --> SaveStock[(Save Stock<br>Changes)]
 
-    SaveStock --> CheckLow{Available<br/>< Threshold?}
+    SaveStock --> CheckLow{Available<br>< Threshold?}
 
-    CheckLow -->|Yes| CreateAlert[(Create Alert:<br/>PORTION_LOW)]
+    CheckLow -->|Yes| CreateAlert[(Create Alert:<br>PORTION_LOW)]
     CheckLow -->|No| Success
 
-    CreateAlert --> Success[Item Reserved<br/>for Order]
+    CreateAlert --> Success[Item Reserved<br>for Order]
 
     Success --> End
 
@@ -857,48 +858,48 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Scheduled Job:<br/>Daily 6 AM]) --> LoadItems[(Load All Fractional<br/>Items with Stock)]
+    Start([Scheduled Job:<br>Daily 6 AM]) --> LoadItems[(Load All Fractional<br>Items with Stock)]
 
-    LoadItems --> LoopItems{For Each<br/>Item}
+    LoadItems --> LoopItems{For Each<br>Item}
 
     LoopItems -->|No More| End([End])
 
-    LoopItems -->|Next| LoadSales[(Load Sales History:<br/>Last 30 Days)]
+    LoopItems -->|Next| LoadSales[(Load Sales History:<br>Last 30 Days)]
 
-    LoadSales --> LoadStock[(Load Current Stock:<br/>All States)]
+    LoadSales --> LoadStock[(Load Current Stock:<br>All States)]
 
-    LoadStock --> AnalyzeDemand[Analyze Demand:<br/>- Daily Average<br/>- Trend<br/>- Day of Week Pattern]
+    LoadStock --> AnalyzeDemand[Analyze Demand:<br>- Daily Average<br>- Trend<br>- Day of Week Pattern]
 
-    AnalyzeDemand --> ForecastDemand[Forecast Demand:<br/>Next 3 Days]
+    AnalyzeDemand --> ForecastDemand[Forecast Demand:<br>Next 3 Days]
 
-    ForecastDemand --> CheckGap{Demand Gap<br/>Detected?}
+    ForecastDemand --> CheckGap{Demand Gap<br>Detected?}
 
     CheckGap -->|No| LoopItems
 
     CheckGap -->|Yes| CheckType{Gap Type?}
 
-    CheckType -->|Portion Shortage| GenSplitRec[Generate<br/>SPLIT Recommendation]
-    CheckType -->|Excess Portions| GenCombineRec[Generate<br/>COMBINE Recommendation]
-    CheckType -->|Quality Issue| GenPrepareRec[Generate<br/>PREPARE Recommendation]
+    CheckType -->|Portion Shortage| GenSplitRec[Generate<br>SPLIT Recommendation]
+    CheckType -->|Excess Portions| GenCombineRec[Generate<br>COMBINE Recommendation]
+    CheckType -->|Quality Issue| GenPrepareRec[Generate<br>PREPARE Recommendation]
 
     GenSplitRec --> CalcParams
     GenCombineRec --> CalcParams
     GenPrepareRec --> CalcParams
 
-    CalcParams[Calculate Parameters:<br/>- Recommended Units<br/>- Expected Yield<br/>- Estimated Cost<br/>- Estimated Revenue<br/>- Confidence Score]
+    CalcParams[Calculate Parameters:<br>- Recommended Units<br>- Expected Yield<br>- Estimated Cost<br>- Estimated Revenue<br>- Confidence Score]
 
-    CalcParams --> SetPriority[Set Priority Score<br/>Based on:<br/>- Urgency<br/>- Revenue Impact<br/>- Efficiency]
+    CalcParams --> SetPriority[Set Priority Score<br>Based on:<br>- Urgency<br>- Revenue Impact<br>- Efficiency]
 
-    SetPriority --> CalcTiming[Calculate Optimal<br/>Conversion Time:<br/>Based on demand peak]
+    SetPriority --> CalcTiming[Calculate Optimal<br>Conversion Time:<br>Based on demand peak]
 
-    CalcTiming --> SaveRec[(Save Recommendation:<br/>tb_conversion_recommendation<br/>status = PENDING)]
+    CalcTiming --> SaveRec[(Save Recommendation:<br>tb_conversion_recommendation<br>status = PENDING)]
 
-    SaveRec --> CreateAlert{High Priority<br/>Recommendation?}
+    SaveRec --> CreateAlert{High Priority<br>Recommendation?}
 
-    CreateAlert -->|Yes| GenAlert[(Create Alert:<br/>CONVERSION_OPTIMAL)]
+    CreateAlert -->|Yes| GenAlert[(Create Alert:<br>CONVERSION_OPTIMAL)]
     CreateAlert -->|No| LoopItems
 
-    GenAlert --> SendNotif[Send Notification<br/>to Manager]
+    GenAlert --> SendNotif[Send Notification<br>to Manager]
 
     SendNotif --> LoopItems
 
@@ -921,44 +922,44 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Alert Created]) --> GetSeverity{Alert<br/>Severity?}
+    Start([Alert Created]) --> GetSeverity{Alert<br>Severity?}
 
-    GetSeverity -->|CRITICAL| ImmediateNotif[Send Immediate<br/>Notification:<br/>- Push<br/>- Email<br/>- SMS]
+    GetSeverity -->|CRITICAL| ImmediateNotif[Send Immediate<br>Notification:<br>- Push<br>- Email<br>- SMS]
 
-    GetSeverity -->|HIGH| UrgentNotif[Send Urgent<br/>Notification:<br/>- Push<br/>- Email]
+    GetSeverity -->|HIGH| UrgentNotif[Send Urgent<br>Notification:<br>- Push<br>- Email]
 
-    GetSeverity -->|MEDIUM| StandardNotif[Send Standard<br/>Notification:<br/>- Push]
+    GetSeverity -->|MEDIUM| StandardNotif[Send Standard<br>Notification:<br>- Push]
 
-    GetSeverity -->|LOW| DeferNotif[Defer to<br/>Daily Summary]
+    GetSeverity -->|LOW| DeferNotif[Defer to<br>Daily Summary]
 
     ImmediateNotif --> GetUsers
     UrgentNotif --> GetUsers
     StandardNotif --> GetUsers
     DeferNotif --> End([End])
 
-    GetUsers[(Get Recipients:<br/>- Location Managers<br/>- Department Heads<br/>- Inventory Staff)]
+    GetUsers[(Get Recipients:<br>- Location Managers<br>- Department Heads<br>- Inventory Staff)]
 
-    GetUsers --> CheckPrefs{Check User<br/>Preferences}
+    GetUsers --> CheckPrefs{Check User<br>Preferences}
 
-    CheckPrefs --> FilterRecipients[Filter Recipients<br/>by Preferences]
+    CheckPrefs --> FilterRecipients[Filter Recipients<br>by Preferences]
 
-    FilterRecipients --> SendBatch[Send Notifications<br/>in Batch]
+    FilterRecipients --> SendBatch[Send Notifications<br>in Batch]
 
-    SendBatch --> LogSent[(Log Notifications<br/>Sent)]
+    SendBatch --> LogSent[(Log Notifications<br>Sent)]
 
-    LogSent --> TrackDelivery[Track Delivery<br/>Status]
+    LogSent --> TrackDelivery[Track Delivery<br>Status]
 
-    TrackDelivery --> CheckFailed{Delivery<br/>Failed?}
+    TrackDelivery --> CheckFailed{Delivery<br>Failed?}
 
-    CheckFailed -->|Yes| Retry[Retry After<br/>5 Minutes]
+    CheckFailed -->|Yes| Retry[Retry After<br>5 Minutes]
     CheckFailed -->|No| Success
 
-    Retry --> CheckRetries{Retry Count<br/>< 3?}
+    Retry --> CheckRetries{Retry Count<br>< 3?}
 
     CheckRetries -->|Yes| SendBatch
-    CheckRetries -->|No| LogFailure[Log Delivery<br/>Failure]
+    CheckRetries -->|No| LogFailure[Log Delivery<br>Failure]
 
-    LogFailure --> Success[Notification<br/>Process Complete]
+    LogFailure --> Success[Notification<br>Process Complete]
 
     Success --> End
 
@@ -980,48 +981,48 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Conversion<br/>Operation Starts]) --> BeginTx[Begin<br/>Transaction]
+    Start([Conversion<br>Operation Starts]) --> BeginTx[Begin<br>Transaction]
 
-    BeginTx --> ValidateInput{Input<br/>Valid?}
+    BeginTx --> ValidateInput{Input<br>Valid?}
 
-    ValidateInput -->|No| RollbackTx1[Rollback<br/>Transaction]
-    RollbackTx1 --> LogError1[Log Error:<br/>VALIDATION_FAILED]
-    LogError1 --> ReturnError1[Return Error<br/>to User]
+    ValidateInput -->|No| RollbackTx1[Rollback<br>Transaction]
+    RollbackTx1 --> LogError1[Log Error:<br>VALIDATION_FAILED]
+    LogError1 --> ReturnError1[Return Error<br>to User]
     ReturnError1 --> End([End])
 
-    ValidateInput -->|Yes| CheckStock{Stock<br/>Available?}
+    ValidateInput -->|Yes| CheckStock{Stock<br>Available?}
 
-    CheckStock -->|No| RollbackTx2[Rollback<br/>Transaction]
-    RollbackTx2 --> LogError2[Log Error:<br/>INSUFFICIENT_STOCK]
-    LogError2 --> ReturnError2[Return Error<br/>to User]
+    CheckStock -->|No| RollbackTx2[Rollback<br>Transaction]
+    RollbackTx2 --> LogError2[Log Error:<br>INSUFFICIENT_STOCK]
+    LogError2 --> ReturnError2[Return Error<br>to User]
     ReturnError2 --> End
 
-    CheckStock -->|Yes| ProcessConv[Process<br/>Conversion]
+    CheckStock -->|Yes| ProcessConv[Process<br>Conversion]
 
-    ProcessConv --> CheckDbError{Database<br/>Error?}
+    ProcessConv --> CheckDbError{Database<br>Error?}
 
-    CheckDbError -->|Yes| RollbackTx3[Rollback<br/>Transaction]
-    RollbackTx3 --> LogError3[Log Error:<br/>DATABASE_ERROR]
-    LogError3 --> CheckRetryable{Error<br/>Retryable?}
+    CheckDbError -->|Yes| RollbackTx3[Rollback<br>Transaction]
+    RollbackTx3 --> LogError3[Log Error:<br>DATABASE_ERROR]
+    LogError3 --> CheckRetryable{Error<br>Retryable?}
 
-    CheckRetryable -->|Yes| Retry{Retry Count<br/>< 3?}
+    CheckRetryable -->|Yes| Retry{Retry Count<br>< 3?}
     Retry -->|Yes| WaitRetry[Wait 1 Second]
     WaitRetry --> ProcessConv
-    Retry -->|No| ReturnError3[Return Error:<br/>Max Retries Exceeded]
+    Retry -->|No| ReturnError3[Return Error:<br>Max Retries Exceeded]
     ReturnError3 --> End
 
-    CheckRetryable -->|No| ReturnError4[Return Error<br/>to User]
+    CheckRetryable -->|No| ReturnError4[Return Error<br>to User]
     ReturnError4 --> End
 
-    CheckDbError -->|No| CommitTx[Commit<br/>Transaction]
+    CheckDbError -->|No| CommitTx[Commit<br>Transaction]
 
-    CommitTx --> CheckCommit{Commit<br/>Successful?}
+    CommitTx --> CheckCommit{Commit<br>Successful?}
 
-    CheckCommit -->|No| LogError4[Log Error:<br/>COMMIT_FAILED]
-    LogError4 --> ReturnError5[Return Error<br/>to User]
+    CheckCommit -->|No| LogError4[Log Error:<br>COMMIT_FAILED]
+    LogError4 --> ReturnError5[Return Error<br>to User]
     ReturnError5 --> End
 
-    CheckCommit -->|Yes| Success[Return Success<br/>to User]
+    CheckCommit -->|Yes| Success[Return Success<br>to User]
 
     Success --> End
 
@@ -1050,35 +1051,35 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User Request:<br/>Load Stock List]) --> CheckCache{Data in<br/>Redis Cache?}
+    Start([User Request:<br>Load Stock List]) --> CheckCache{Data in<br>Redis Cache?}
 
-    CheckCache -->|Yes| ValidateCache{Cache Valid?<br/>< 5 minutes old}
+    CheckCache -->|Yes| ValidateCache{Cache Valid?<br>< 5 minutes old}
 
-    ValidateCache -->|Yes| ReturnCache[Return Cached<br/>Data]
+    ValidateCache -->|Yes| ReturnCache[Return Cached<br>Data]
     ReturnCache --> End([End])
 
-    ValidateCache -->|No| InvalidateCache[Invalidate<br/>Cache Entry]
+    ValidateCache -->|No| InvalidateCache[Invalidate<br>Cache Entry]
     InvalidateCache --> QueryDB
 
-    CheckCache -->|No| QueryDB[(Query Database:<br/>Use Optimized<br/>Indexes)]
+    CheckCache -->|No| QueryDB[(Query Database:<br>Use Optimized<br>Indexes)]
 
-    QueryDB --> UseIndexes[Apply Indexes:<br/>- location_id<br/>- current_state<br/>- quality_grade]
+    QueryDB --> UseIndexes[Apply Indexes:<br>- location_id<br>- current_state<br>- quality_grade]
 
-    UseIndexes --> LimitResults[Limit Results:<br/>Pagination<br/>50 per page]
+    UseIndexes --> LimitResults[Limit Results:<br>Pagination<br>50 per page]
 
-    LimitResults --> JoinRelated[Join Related:<br/>- Item Config<br/>- Alert Count<br/>Only needed fields]
+    LimitResults --> JoinRelated[Join Related:<br>- Item Config<br>- Alert Count<br>Only needed fields]
 
-    JoinRelated --> FetchData[Fetch Data<br/>from Database]
+    JoinRelated --> FetchData[Fetch Data<br>from Database]
 
-    FetchData --> CacheResult[Cache Result<br/>in Redis<br/>TTL: 5 minutes]
+    FetchData --> CacheResult[Cache Result<br>in Redis<br>TTL: 5 minutes]
 
-    CacheResult --> ReturnData[Return Data<br/>to User]
+    CacheResult --> ReturnData[Return Data<br>to User]
 
-    ReturnData --> LogMetrics[Log Performance:<br/>- Query Time<br/>- Cache Hit Rate<br/>- Row Count]
+    ReturnData --> LogMetrics[Log Performance:<br>- Query Time<br>- Cache Hit Rate<br>- Row Count]
 
-    LogMetrics --> CheckSlow{Query Time<br/>> 1 second?}
+    LogMetrics --> CheckSlow{Query Time<br>> 1 second?}
 
-    CheckSlow -->|Yes| LogAlert[Create Alert:<br/>SLOW_QUERY]
+    CheckSlow -->|Yes| LogAlert[Create Alert:<br>SLOW_QUERY]
     CheckSlow -->|No| End
 
     LogAlert --> End

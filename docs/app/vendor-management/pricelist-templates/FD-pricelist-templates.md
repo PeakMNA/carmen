@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-11-25 | Documentation Team | Simplified to align with BR-pricelist-templates.md; Removed distribution, approval, notification, and submission tracking workflows; Streamlined to core template functionality |
 | 1.1 | 2025-11-25 | Documentation Team | Updated Mermaid diagrams for 8.8.2 compatibility |
 | 1.0 | 2024-01-15 | System | Initial creation |
@@ -30,25 +31,25 @@ This document provides visual representations of workflows and processes in the 
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         UI[Next.js UI Components]
         Forms[React Hook Form + Zod]
         State[Zustand + React Query]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         Pages[Server Components]
         Actions[Server Actions]
         API[Route Handlers]
     end
 
-    subgraph "Business Logic Layer"
+    subgraph 'Business Logic Layer'
         Auth[Authentication Service]
         Validation[Validation Service]
         Template[Template Service]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         Prisma[Prisma ORM]
         DB[(PostgreSQL)]
     end

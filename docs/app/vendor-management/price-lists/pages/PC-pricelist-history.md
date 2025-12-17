@@ -1141,7 +1141,7 @@ Jan 15, 2:30 PM
 │ │ Department: Procurement                   │              │
 │ │ Submission Date: Jan 15, 2024 10:30 AM    │              │
 │ │                                           │              │
-│ │ Price List: PL-2024-001                   │              │
+│ │ Price List: PL-2401-0001                   │              │
 │ │ Reference: Fresh Produce - January 2024   │              │
 │ └───────────────────────────────────────────┘              │
 │                                                              │
@@ -2002,7 +2002,7 @@ const response = await fetch('/api/price-lists/history?{params}');
       "submitted_by": "user-123",
       "submitted_at": "2024-01-15T10:30:00Z",
       "status": "approved",
-      "price_list_id": "PL-2024-001"
+      "price_list_id": "PL-2401-0001"
     }
   ],
   "pagination": {
@@ -2057,7 +2057,7 @@ const response = await fetch('/api/price-lists/alerts', {
   body: JSON.stringify({
     name: "Fresh Tomatoes Price Alert",
     product_id: "PROD-001",
-    vendor_ids: ["VEN-001", "VEN-002"],
+    vendor_ids: ['VEN-001', 'VEN-002'],
     conditions: {
       increase_threshold: 10,
       decrease_threshold: 10,
@@ -2091,8 +2091,8 @@ const response = await fetch('/api/price-lists/history/export', {
     format: "excel",
     scope: "filtered",
     filters: {
-      product_ids: ["PROD-001", "PROD-002"],
-      vendor_ids: ["VEN-001", "VEN-002"],
+      product_ids: ['PROD-001', 'PROD-002'],
+      vendor_ids: ['VEN-001', 'VEN-002'],
       start_date: "2023-01-01",
       end_date: "2024-01-31"
     },

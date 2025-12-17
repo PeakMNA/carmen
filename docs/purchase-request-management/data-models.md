@@ -21,7 +21,7 @@ The `PurchaseRequest` interface is the primary data model for purchase requests.
 export interface PurchaseRequest {
   // Basic Information
   id: string;                     // Unique identifier for the PR
-  refNumber: string;              // Reference number (e.g., PR-2023-001)
+  refNumber: string;              // Reference number (e.g., PR-2301-0001)
   date: Date;                     // Creation date
   type: PRType;                   // Type of purchase request
   deliveryDate: Date;             // Expected delivery date

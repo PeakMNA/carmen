@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version based on UI prototype and inventory transactions system |
 
 
@@ -329,7 +330,7 @@ The system must provide print and export capabilities for transaction documents 
 ### Data Validation Rules
 
 - **BR-STI-016**: Transaction date cannot be more than 30 days in the past or more than 1 day in the future
-- **BR-STI-017**: Transaction reference number must follow format: STK-IN-YYYY-NNNN (e.g., STK-IN-2024-0001)
+- **BR-STI-017**: Transaction reference number must follow format: STK-IN-YYMM-NNNN (e.g., STK-IN-2501-0001)
 - **BR-STI-018**: Reference numbers must be unique across all stock in transactions
 - **BR-STI-019**: Location must be a valid, active location from the Location master
 - **BR-STI-020**: Each transaction must include at least 1 line item
@@ -385,6 +386,71 @@ The system must provide print and export capabilities for transaction documents 
 - **BR-STI-052**: GL posting failure must prevent transaction commit
 - **BR-STI-053**: System must support manual GL posting retry for failed transactions
 
+### Location Type Business Rules
+
+Stock In transaction behavior varies based on the **location type** of the destination location. The system supports three location types that determine whether inventory balances are updated and how costs are recorded.
+
+#### Location Type Definitions
+
+| Location Type | Code | Purpose | Examples |
+|---------------|------|---------|----------|
+| **INVENTORY** | INV | Standard tracked warehouse locations | Main Warehouse, Central Kitchen Store |
+| **DIRECT** | DIR | Direct expense locations (no stock balance) | Restaurant Bar Direct, Kitchen Direct |
+| **CONSIGNMENT** | CON | Vendor-owned inventory locations | Beverage Consignment, Linen Consignment |
+
+#### BR-STI-054: Location Type Processing Rules
+
+**INVENTORY Locations (INV)**:
+- ✅ Full stock-in processing with balance update
+- ✅ Creates FIFO cost layer with lot tracking
+- ✅ Updates inventory asset balance
+- ✅ GL: Debit Inventory Asset, Credit Accounts Payable
+- ✅ Complete movement history recorded
+
+**DIRECT Locations (DIR)**:
+- ❌ No stock balance update (items expensed immediately)
+- ❌ No cost layer created
+- ✅ Receipt recorded for audit trail only
+- ✅ GL: Debit Department Expense, Credit Accounts Payable
+- ⚠️ Stock-in creates expense posting, not inventory
+
+**CONSIGNMENT Locations (CON)**:
+- ✅ Full stock-in processing with balance update
+- ✅ Creates FIFO cost layer with vendor ownership
+- ✅ Updates consignment stock balance
+- ✅ GL: Debit Consignment Asset, Credit Vendor Liability
+- ✅ Vendor-owned until consumed
+
+#### BR-STI-055: Location Type Feature Matrix
+
+| Feature | INVENTORY | DIRECT | CONSIGNMENT |
+|---------|-----------|--------|-------------|
+| **Balance Update** | ✅ Increases stock | ❌ None | ✅ Increases stock |
+| **Cost Layer** | ✅ FIFO layer created | ❌ None | ✅ FIFO layer (vendor) |
+| **Lot Tracking** | ✅ Full | ❌ None | ✅ Full |
+| **Batch Numbers** | ✅ Tracked | ❌ Not tracked | ✅ Tracked |
+| **Expiry Dates** | ✅ Tracked | ❌ Not tracked | ✅ Tracked |
+| **GL Posting** | Asset increase | Expense posting | Liability increase |
+| **Movement History** | ✅ Full | ⚠️ Receipt only | ✅ Full |
+| **Physical Count** | ✅ Applicable | ❌ Not applicable | ✅ Vendor reconciliation |
+
+#### BR-STI-056: Location Type Validation Rules
+
+1. **Transaction Type Restrictions**:
+   - GRN to DIRECT location: Creates expense posting instead of stock-in
+   - Transfer to DIRECT location: Not permitted (blocked at source)
+   - Issue Return to DIRECT location: Not permitted
+
+2. **UI Behavior**:
+   - Location type badge displayed in location selection
+   - Warning banner when destination is DIRECT location
+   - Stock movement tabs filter out DIRECT location items
+
+3. **Reporting Impact**:
+   - DIRECT locations excluded from inventory balance reports
+   - DIRECT locations included in expense analysis reports
+   - Stock cards not maintained for DIRECT locations
+
 ---
 
 ## Data Model
@@ -401,7 +467,7 @@ interface StockInTransaction {
   id: string;                     // UUID primary key
 
   // Transaction identification
-  refNo: string;                  // Format: STK-IN-YYYY-NNNN (e.g., STK-IN-2024-0001)
+  refNo: string;                  // Format: STK-IN-YYMM-NNNN (e.g., STK-IN-2501-0001)
   date: Date;                     // Transaction date (determines costing period)
 
   // Transaction classification

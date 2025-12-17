@@ -84,13 +84,13 @@ Key design principles include: (1) Separation of header and line items to suppor
    - Business meaning: A wastage transaction can contain multiple line items representing different products wasted in a batch. Single-product wastage has one line item, batch wastage has multiple.
    - Cardinality: One header has 1 to many line items (minimum one required for valid transaction)
    - Cascade behavior: Deleting header cascades to delete all line items (maintain referential integrity)
-   - Example: Wastage WST-2025-0112-0023 contains 3 line items - Atlantic Salmon (2.5 kg), Beef Ribeye (1 kg), and Fresh Pasta (3 kg)
+   - Example: Wastage WST-2501-0112-0023 contains 3 line items - Atlantic Salmon (2.5 kg), Beef Ribeye (1 kg), and Fresh Pasta (3 kg)
 
 2. **wastage_headers → wastage_photos**: One-to-Many relationship
    - Business meaning: A wastage transaction can have multiple photo evidence attachments (up to 5 photos per transaction)
    - Cardinality: One header has 0 to 5 photos (zero photos allowed for low-value wastage, mandatory for high-value)
    - Cascade behavior: Deleting header soft-deletes photos (retains for audit, optionally purges physical files)
-   - Example: Wastage WST-2025-0112-0023 has 2 photos showing overcooked salmon from different angles
+   - Example: Wastage WST-2501-0112-0023 has 2 photos showing overcooked salmon from different angles
 
 3. **wastage_headers → wastage_approvals**: One-to-Many relationship
    - Business meaning: A wastage transaction progresses through approval workflow with each level creating an approval record. Multi-level approvals create multiple approval records.
@@ -157,8 +157,8 @@ Key design principles include: (1) Separation of header and line items to suppor
 
 **Primary Identification**:
 - **ID Field**: `id` - UUID unique identifier, auto-generated using gen_random_uuid()
-- **Business Key**: `wastage_number` - Human-readable wastage number in format WST-YYYY-MMDD-NNNN (e.g., WST-2025-0112-0023)
-- **Display Name**: Wastage number combined with product summary (e.g., "WST-2025-0112-0023 - Atlantic Salmon 2.5kg")
+- **Business Key**: `wastage_number` - Human-readable wastage number in format WST-YYYY-MMDD-NNNN (e.g., WST-2501-0112-0023)
+- **Display Name**: Wastage number combined with product summary (e.g., "WST-2501-0112-0023 - Atlantic Salmon 2.5kg")
 
 **Core Business Fields**:
 
@@ -239,7 +239,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 - **grn_reference** - VARCHAR(50) - Goods Receipt Note number for traceability
   - Required: No
   - Business meaning: Links wastage to specific delivery for supplier complaint and return
-  - Example: GRN-2025-0110-0015
+  - Example: GRN-2501-0110-0015
 
 **Financial Fields**:
 
@@ -384,7 +384,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 | Field Name | Data Type | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | gen_random_uuid() | Primary key, unique identifier | 550e8400-e29b... | PRIMARY KEY, NOT NULL |
-| wastage_number | VARCHAR(20) | Yes | Auto-generated | Human-readable wastage number | WST-2025-0112-0023 | UNIQUE (where deleted_at IS NULL) |
+| wastage_number | VARCHAR(20) | Yes | Auto-generated | Human-readable wastage number | WST-2501-0112-0023 | UNIQUE (where deleted_at IS NULL) |
 | wastage_date | DATE | Yes | - | Date wastage occurred | 2025-01-12 | NOT NULL, <= CURRENT_DATE |
 | wastage_time | TIME | Yes | CURRENT_TIME | Time wastage occurred | 14:30:00 | NOT NULL |
 | location_id | UUID | Yes | - | Location where wastage occurred | 550e8400-... | FK locations(id), NOT NULL |
@@ -397,7 +397,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 | is_supplier_quality_issue | BOOLEAN | Yes | false | Supplier quality flag | true, false | NOT NULL |
 | supplier_id | UUID | No | NULL | Vendor reference | 550e8400-... | FK vendors(id) |
 | quality_issue_type | VARCHAR(100) | No | NULL | Type of quality problem | damaged_in_transit | Required if is_supplier_quality_issue |
-| grn_reference | VARCHAR(50) | No | NULL | Goods receipt note number | GRN-2025-0110-0015 | - |
+| grn_reference | VARCHAR(50) | No | NULL | Goods receipt note number | GRN-2501-0110-0015 | - |
 | total_value | DECIMAL(15,2) | Yes | 0.00 | Total wastage value | 31.25, 125.00 | NOT NULL, >= 0 |
 | currency | VARCHAR(3) | Yes | 'USD' | ISO currency code | USD, EUR, GBP | NOT NULL, valid ISO code |
 | doc_status | VARCHAR(50) | Yes | 'draft' | Current workflow status | pending_approval | NOT NULL, CHECK (valid values) |
@@ -428,7 +428,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 
 **Unique Constraints**:
 - `wastage_number`: Must be unique among non-deleted records (allows reuse after soft delete)
-  - Format: WST-YYYY-MMDD-NNNN (e.g., WST-2025-0112-0023)
+  - Format: WST-YYYY-MMDD-NNNN (e.g., WST-2501-0112-0023)
   - YYYY = 4-digit year, MMDD = 2-digit month and day, NNNN = 4-digit sequence
   - Sequence resets daily for manageable numbering
   - Unique constraint: CREATE UNIQUE INDEX idx_wastage_number_active ON wastage_headers(wastage_number) WHERE deleted_at IS NULL
@@ -539,7 +539,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 **Example 1: Standard Preparation Error Wastage**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440001
-Wastage Number: WST-2025-0112-0023
+Wastage Number: WST-2501-0112-0023
 Date: 2025-01-12
 Time: 14:30:00
 Location: Restaurant A Downtown
@@ -562,7 +562,7 @@ Approved: 2025-01-12T15:10:00Z by Store Manager Maria
 **Example 2: High-Value Multi-Product Batch Wastage**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440002
-Wastage Number: WST-2025-0112-0045
+Wastage Number: WST-2501-0112-0045
 Date: 2025-01-12
 Time: 21:45:00
 Location: Hotel Grand Restaurant
@@ -586,7 +586,7 @@ Approved Level 2: 2025-01-13T10:30:00Z by Finance Manager Frank
 **Example 3: Supplier Quality Issue Wastage**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440003
-Wastage Number: WST-2025-0113-0007
+Wastage Number: WST-2501-0113-0007
 Date: 2025-01-13
 Time: 09:15:00
 Location: Restaurant B Harbor
@@ -596,7 +596,7 @@ Reason: "Entire shipment of fresh salmon received this morning showing signs of 
 Is Supplier Quality Issue: true
 Supplier: ABC Seafood Suppliers (Vendor-123)
 Quality Issue Type: damaged_in_transit
-GRN Reference: GRN-2025-0113-0005
+GRN Reference: GRN-2501-0113-0005
 Total Value: $250.00 USD
 Status: approved
 Photos: 3 photos attached showing product condition and thermometer reading
@@ -608,7 +608,7 @@ Notes: "Supplier complaint filed. Requesting credit memo and replacement shipmen
 **Example 4: Auto-Approved Expired Items**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440004
-Wastage Number: WST-2025-0114-0012
+Wastage Number: WST-2501-0114-0012
 Date: 2025-01-14
 Time: 07:30:00
 Location: Restaurant A Downtown
@@ -628,7 +628,7 @@ Notes: "Auto-approved per policy: expired items within 24 hours of expiry date a
 **Example 5: Rejected Wastage (Insufficient Documentation)**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440005
-Wastage Number: WST-2025-0114-0018
+Wastage Number: WST-2501-0114-0018
 Date: 2025-01-14
 Time: 16:20:00
 Location: Restaurant A Downtown
@@ -752,7 +752,7 @@ Notes: "Resubmit with better documentation for approval"
   - Required: No
   - Structure: Array of photo_id UUIDs
   - Business meaning: Photos can be associated with specific line items in batch wastage
-  - Example: ["550e8400-...", "660e8400-..."]
+  - Example: ['550e8400-...', '660e8400-...']
 
 **Expiry Tracking** (for expired items):
 - **expiry_date** - DATE - Product expiry date (if applicable)
@@ -806,7 +806,7 @@ Notes: "Resubmit with better documentation for approval"
 | total_value | DECIMAL(15,2) | Yes | - | Line item value | 31.25 | NOT NULL, >= 0 |
 | costing_method | VARCHAR(50) | Yes | - | Costing method | FIFO, WeightedAverage | NOT NULL, CHECK (valid values) |
 | line_reason | TEXT | No | NULL | Line-specific reason | "This portion burned" | - |
-| line_photos | JSONB | No | [] | Photo IDs array | ["550e8400-..."] | Valid JSON array |
+| line_photos | JSONB | No | [] | Photo IDs array | ['550e8400-...'] | Valid JSON array |
 | expiry_date | DATE | No | NULL | Product expiry date | 2025-01-13 | - |
 | days_past_expiry | INTEGER | No | NULL | Days past expiry | 1, 5, -2 (before expiry) | - |
 | approved_quantity | DECIMAL(12,3) | No | NULL | Approved quantity | 2.000 | >= 0, <= quantity |
@@ -893,7 +893,7 @@ Notes: "Resubmit with better documentation for approval"
 - **storage_path** - VARCHAR(500) - Full path within bucket
   - Required: Yes
   - Format: `{location_id}/{year}/{month}/{wastage_number}/{photo_id}.{ext}`
-  - Example: `550e8400-e29b/2025/01/WST-2025-0112-0023/photo-001.jpg`
+  - Example: `550e8400-e29b/2025/01/WST-2501-0112-0023/photo-001.jpg`
   - Business meaning: Organized storage structure for efficient retrieval and cleanup
 
 - **file_name** - VARCHAR(255) - Original file name from upload
@@ -1001,7 +1001,7 @@ Notes: "Resubmit with better documentation for approval"
 - **watermark_text** - VARCHAR(200) - Text embedded in watermark
   - Required: If is_watermarked = true
   - Format: "{Wastage Number} | {Location Name} | {Date} {Time}"
-  - Example: "WST-2025-0112-0023 | Restaurant A Downtown | 2025-01-12 14:30"
+  - Example: "WST-2501-0112-0023 | Restaurant A Downtown | 2025-01-12 14:30"
   - Business meaning: Identifies source and prevents unauthorized use
 
 - **watermark_position** - VARCHAR(50) - Watermark placement
@@ -1055,7 +1055,7 @@ Notes: "Resubmit with better documentation for approval"
 | gps_longitude | DECIMAL(11,8) | No | NULL | GPS longitude | -73.9851740 | Valid longitude range |
 | gps_accuracy | DECIMAL(8,2) | No | NULL | GPS accuracy (meters) | 10.5 | >= 0 |
 | is_watermarked | BOOLEAN | Yes | true | Watermark applied | true, false | NOT NULL |
-| watermark_text | VARCHAR(200) | No | NULL | Watermark content | "WST-2025-0112..." | Required if is_watermarked |
+| watermark_text | VARCHAR(200) | No | NULL | Watermark content | "WST-2501-0112..." | Required if is_watermarked |
 | watermark_position | VARCHAR(50) | No | 'bottom_right' | Watermark placement | bottom_right | CHECK (valid values) |
 | upload_status | VARCHAR(50) | Yes | 'pending' | Processing status | completed, failed | NOT NULL, CHECK (valid values) |
 | processing_error | TEXT | No | NULL | Error message | "Compression failed" | - |
@@ -1317,7 +1317,7 @@ Notes: "Resubmit with better documentation for approval"
 | comments | TEXT | No | NULL | Approver comments | "Approved. Photos..." | Required if rejected |
 | rejection_reason | TEXT | No | NULL | Rejection explanation | "Insufficient..." | Required if rejected |
 | escalation_reason | TEXT | No | NULL | Escalation explanation | "Exceeds authority" | Required if escalated |
-| line_item_adjustments | JSONB | No | NULL | Line item changes | [{"line_item_id"...}] | Valid JSON array |
+| line_item_adjustments | JSONB | No | NULL | Line item changes | [{'line_item_id'...}] | Valid JSON array |
 | time_to_approve_seconds | INTEGER | Yes | Calculated | Approval duration | 3600, 86400 | NOT NULL, >= 0 |
 | is_overdue | BOOLEAN | Yes | false | SLA exceeded flag | true, false | NOT NULL |
 | notified_at | TIMESTAMPTZ | No | NULL | Notification timestamp | 2025-01-12T14:30:00Z | - |
@@ -1471,7 +1471,7 @@ Notes: "Resubmit with better documentation for approval"
       "watermark_enabled": true,
       "watermark_template": "{wastage_number} | {location_name} | {date}",
       "require_gps": false,
-      "accepted_formats": ["jpg", "png", "heic"],
+      "accepted_formats": ['jpg', 'png', 'heic'],
       "max_file_size_mb": 10
     }
     ```
@@ -1488,8 +1488,8 @@ Notes: "Resubmit with better documentation for approval"
       "frequent_submitter_threshold": 5,
       "supplier_quality_alert_threshold": 3,
       "notification_recipients": [
-        {"role": "Store Manager", "email": true, "sms": false},
-        {"role": "Finance Manager", "email": true, "sms": true}
+        {'role': 'Store Manager', 'email': true, 'sms': false},
+        {'role': 'Finance Manager', 'email': true, 'sms': true}
       ]
     }
     ```
@@ -1505,13 +1505,13 @@ Notes: "Resubmit with better documentation for approval"
           "code": "preparation_error",
           "name": "Preparation Error",
           "active": true,
-          "subcategories": ["overcooked", "undercooked", "wrong_recipe", "dropped", "burned"]
+          "subcategories": ["overcooked", "undercooked", 'wrong_recipe', 'dropped', 'burned']
         },
         {
           "code": "spoilage",
           "name": "Spoilage",
           "active": true,
-          "subcategories": ["temperature_abuse", "expired", "mold", "oxidation"]
+          "subcategories": ["temperature_abuse", 'expired', 'mold', 'oxidation']
         }
       ]
     }

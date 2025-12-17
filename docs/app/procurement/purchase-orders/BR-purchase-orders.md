@@ -173,7 +173,7 @@ The system provides comprehensive tracking of PO status progression (draft → s
 **Data Transformation (PR → PO)**:
 
 *Header level*:
-- orderNumber: Auto-generated (PO-YYYY-NNNNNN)
+- orderNumber: Auto-generated (PO-YYMM-NNNN)
 - orderDate: Current date/time
 - vendorId, vendorName: From PR
 - status: 'draft'
@@ -777,7 +777,7 @@ The system provides comprehensive tracking of PO status progression (draft → s
 - Standard template (professional business format)
 - Custom templates per organization/department (if configured)
 - **Includes QR code with PO number for mobile scanning**:
-  * QR code format: `PO:{orderNumber}` (e.g., "PO:PO-2025-0001")
+  * QR code format: `PO:{orderNumber}` (e.g., "PO:PO-2501-0001")
   * Positioned on PDF: Top right corner, bottom right corner, or dedicated section (configurable)
   * QR code size: 2×2 cm minimum for reliable scanning
   * Generated using `qrcode` library v1.5.3
@@ -1675,7 +1675,7 @@ The system provides comprehensive tracking of PO status progression (draft → s
 - QR code automatically generated when PO created/updated
 - Generated using `qrcode` library (v1.5.3)
 - QR code format: `PO:{orderNumber}`
-  * Example: `PO:PO-2025-0001`
+  * Example: `PO:PO-2501-0001`
   * Prefix: "PO" (identifies entity type)
   * Separator: ":"
   * PO Number: Full purchase order number
@@ -1706,7 +1706,7 @@ The system provides comprehensive tracking of PO status progression (draft → s
 
 **QR Code Storage**:
 - PO interface fields:
-  * `qrCode: string` - QR code value (e.g., "PO:PO-2025-0001")
+  * `qrCode: string` - QR code value (e.g., "PO:PO-2501-0001")
   * `qrCodeImage: string` - Base64 data URL for display
   * `qrCodeGeneratedAt: Date` - Generation timestamp
 - Updated whenever PO created or PO number changes
@@ -1780,7 +1780,7 @@ The system provides comprehensive tracking of PO status progression (draft → s
 
 **BR-PO-VAL-001: PO Number Uniqueness**
 - PO number must be unique across the system
-- Auto-generated PO numbers follow format: PO-YYYY-NNNNNN
+- Auto-generated PO numbers follow format: PO-YYMM-NNNN
 - Manual PO numbers must not duplicate existing
 
 **BR-PO-VAL-002: Required Fields**

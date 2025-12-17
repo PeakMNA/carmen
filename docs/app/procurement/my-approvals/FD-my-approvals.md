@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Documentation Team | Initial version |
 
 ---
@@ -80,73 +81,73 @@ This document provides comprehensive visual workflows for the My Approvals modul
 
 ```mermaid
 flowchart TD
-    Start([Document Submitted<br/>for Approval]) --> RouteWorkflow[Workflow Engine<br/>Routes to Approver]
-    RouteWorkflow --> CreateQueue[Create Queue Item<br/>status=pending]
-    CreateQueue --> CalcSLA[Calculate SLA Deadline<br/>based on priority]
-    CalcSLA --> AssignApprover{Delegation<br/>active?}
+    Start([Document Submitted<br>for Approval]) --> RouteWorkflow[Workflow Engine<br>Routes to Approver]
+    RouteWorkflow --> CreateQueue[Create Queue Item<br>status=pending]
+    CreateQueue --> CalcSLA[Calculate SLA Deadline<br>based on priority]
+    CalcSLA --> AssignApprover{Delegation<br>active?}
 
-    AssignApprover -->|Yes| AssignDelegate[Assign to Delegate<br/>assignee_type=delegate]
-    AssignApprover -->|No| AssignPrimary[Assign to Primary<br/>assignee_type=primary]
+    AssignApprover -->|Yes| AssignDelegate[Assign to Delegate<br>assignee_type=delegate]
+    AssignApprover -->|No| AssignPrimary[Assign to Primary<br>assignee_type=primary]
 
     AssignDelegate --> EnterQueue[Add to Approval Queue]
     AssignPrimary --> EnterQueue
-    EnterQueue --> SSEUpdate[Push SSE Update<br/>to Approver]
+    EnterQueue --> SSEUpdate[Push SSE Update<br>to Approver]
     SSEUpdate --> WaitReview[Wait for Approver]
 
-    WaitReview --> MonitorSLA{SLA threshold<br/>reached?}
-    MonitorSLA -->|Yes| SendEscalation[Send Escalation<br/>Notification]
+    WaitReview --> MonitorSLA{SLA threshold<br>reached?}
+    MonitorSLA -->|Yes| SendEscalation[Send Escalation<br>Notification]
     SendEscalation --> WaitReview
     MonitorSLA -->|No| WaitReview
 
-    WaitReview --> ApproverAction{Approver<br/>Decision}
+    WaitReview --> ApproverAction{Approver<br>Decision}
 
     ApproverAction -->|Approve| RecordApprove[Record Approval Action]
-    RecordApprove --> ValidateAuthority{Has approval<br/>authority?}
+    RecordApprove --> ValidateAuthority{Has approval<br>authority?}
     ValidateAuthority -->|No| AuthError[Authority Error]
     AuthError --> WaitReview
     ValidateAuthority -->|Yes| UpdateLevel[Update Approval Level]
 
-    UpdateLevel --> CheckFinal{Final approval<br/>level?}
+    UpdateLevel --> CheckFinal{Final approval<br>level?}
     CheckFinal -->|No| NextLevel[Route to Next Level]
     NextLevel --> CreateQueue
 
-    CheckFinal -->|Yes| FinalApprove[Mark Document<br/>Approved]
-    FinalApprove --> IntegrateBudget[Integrate with Budget<br/>Confirm Commitment]
-    IntegrateBudget --> IntegrateInventory[Integrate with Inventory<br/>Create Transaction]
-    IntegrateInventory --> IntegrateFinance[Integrate with Finance<br/>Post GL Entry]
+    CheckFinal -->|Yes| FinalApprove[Mark Document<br>Approved]
+    FinalApprove --> IntegrateBudget[Integrate with Budget<br>Confirm Commitment]
+    IntegrateBudget --> IntegrateInventory[Integrate with Inventory<br>Create Transaction]
+    IntegrateInventory --> IntegrateFinance[Integrate with Finance<br>Post GL Entry]
     IntegrateFinance --> CompleteWorkflow[Complete Workflow]
-    CompleteWorkflow --> NotifyComplete[Notify Requestor<br/>and Stakeholders]
+    CompleteWorkflow --> NotifyComplete[Notify Requestor<br>and Stakeholders]
     NotifyComplete --> RemoveQueue[Remove from Queue]
     RemoveQueue --> Success([End: Approved])
 
     ApproverAction -->|Reject| RecordReject[Record Rejection Action]
-    RecordReject --> ValidateReason{Rejection reason<br/>provided?}
+    RecordReject --> ValidateReason{Rejection reason<br>provided?}
     ValidateReason -->|No| ReasonError[Reason Required Error]
     ReasonError --> WaitReview
-    ValidateReason -->|Yes| MarkRejected[Mark Document<br/>Rejected]
+    ValidateReason -->|Yes| MarkRejected[Mark Document<br>Rejected]
 
-    MarkRejected --> ReleaseBudget[Release Budget<br/>Commitment]
+    MarkRejected --> ReleaseBudget[Release Budget<br>Commitment]
     ReleaseBudget --> TerminateWorkflow[Terminate Workflow]
     TerminateWorkflow --> NotifyReject[Notify Requestor]
     NotifyReject --> RemoveQueue2[Remove from Queue]
     RemoveQueue2 --> EndReject([End: Rejected])
 
     ApproverAction -->|Request Info| RecordInfo[Record Info Request]
-    RecordInfo --> UpdateStatus[Update status to<br/>awaiting_info]
+    RecordInfo --> UpdateStatus[Update status to<br>awaiting_info]
     UpdateStatus --> PauseSLA[Pause SLA Timer]
-    PauseSLA --> NotifyRequestor[Notify Requestor<br/>with Questions]
+    PauseSLA --> NotifyRequestor[Notify Requestor<br>with Questions]
     NotifyRequestor --> WaitResponse[Wait for Response]
 
-    WaitResponse --> CheckDeadline{Response<br/>deadline passed?}
+    WaitResponse --> CheckDeadline{Response<br>deadline passed?}
     CheckDeadline -->|Yes| SendReminder[Send Reminder]
     SendReminder --> WaitResponse
     CheckDeadline -->|No| WaitResponse
 
-    WaitResponse --> RequestorResponse{Requestor<br/>provides info?}
+    WaitResponse --> RequestorResponse{Requestor<br>provides info?}
     RequestorResponse -->|Yes| ResumeSLA[Resume SLA Timer]
-    ResumeSLA --> UpdatePending[Update status to<br/>pending]
+    ResumeSLA --> UpdatePending[Update status to<br>pending]
     UpdatePending --> WaitReview
-    RequestorResponse -->|No| RequestorRecall[Requestor Recalls<br/>Document]
+    RequestorResponse -->|No| RequestorRecall[Requestor Recalls<br>Document]
     RequestorRecall --> EndRecall([End: Recalled])
 
     ApproverAction -->|Delegate| CreateDelegation[Create Delegation]
@@ -204,48 +205,48 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User navigates to<br/>My Approvals]) --> SSRLoad[Server Component<br/>Initial Load]
-    SSRLoad --> QueryDB[(Query Database:<br/>approver_user_id=current_user<br/>status=pending)]
-    QueryDB --> JoinData[JOIN users, departments,<br/>locations for context]
-    JoinData --> CalcUrgency[Calculate Urgency Score<br/>based on SLA remaining]
-    CalcUrgency --> FormatData[Format Data for Display<br/>with denormalized fields]
-    FormatData --> HydrateClient[Hydrate Client Component<br/>with Initial Data]
+    Start([User navigates to<br>My Approvals]) --> SSRLoad[Server Component<br>Initial Load]
+    SSRLoad --> QueryDB[(Query Database:<br>approver_user_id=current_user<br>status=pending)]
+    QueryDB --> JoinData[JOIN users, departments,<br>locations for context]
+    JoinData --> CalcUrgency[Calculate Urgency Score<br>based on SLA remaining]
+    CalcUrgency --> FormatData[Format Data for Display<br>with denormalized fields]
+    FormatData --> HydrateClient[Hydrate Client Component<br>with Initial Data]
 
-    HydrateClient --> RenderQueue[Render Queue UI<br/>with Filters and Sort]
-    RenderQueue --> EstablishSSE[Establish SSE Connection<br/>/api/approvals/sse]
-    EstablishSSE --> ListenEvents[Listen for Events:<br/>- approval_added<br/>- approval_removed<br/>- approval_updated]
+    HydrateClient --> RenderQueue[Render Queue UI<br>with Filters and Sort]
+    RenderQueue --> EstablishSSE[Establish SSE Connection<br>/api/approvals/sse]
+    EstablishSSE --> ListenEvents[Listen for Events:<br>- approval_added<br>- approval_removed<br>- approval_updated]
 
-    ListenEvents --> UserAction{User<br/>Action}
+    ListenEvents --> UserAction{User<br>Action}
 
-    UserAction -->|Apply Filter| FilterClient[Client-Side Filter<br/>by type, amount, priority]
-    FilterClient --> UpdateDisplay[Update Display<br/>with Filtered Items]
+    UserAction -->|Apply Filter| FilterClient[Client-Side Filter<br>by type, amount, priority]
+    FilterClient --> UpdateDisplay[Update Display<br>with Filtered Items]
     UpdateDisplay --> UserAction
 
-    UserAction -->|Change Sort| SortClient[Client-Side Sort<br/>by date, amount, priority]
+    UserAction -->|Change Sort| SortClient[Client-Side Sort<br>by date, amount, priority]
     SortClient --> UpdateDisplay
 
-    UserAction -->|Search| SearchClient[Client-Side Search<br/>by reference, requestor]
+    UserAction -->|Search| SearchClient[Client-Side Search<br>by reference, requestor]
     SearchClient --> UpdateDisplay
 
-    UserAction -->|Save Preset| SavePreset[(Save Filter Preset<br/>to user_preferences)]
+    UserAction -->|Save Preset| SavePreset[(Save Filter Preset<br>to user_preferences)]
     SavePreset --> UserAction
 
-    UserAction -->|Load Preset| LoadPreset[(Load Filter Preset<br/>from user_preferences)]
+    UserAction -->|Load Preset| LoadPreset[(Load Filter Preset<br>from user_preferences)]
     LoadPreset --> ApplyFilters[Apply Preset Filters]
     ApplyFilters --> UpdateDisplay
 
-    UserAction -->|Background Refresh| RefreshData[React Query Background<br/>Refetch every 30s]
+    UserAction -->|Background Refresh| RefreshData[React Query Background<br>Refetch every 30s]
     RefreshData --> QueryDB
 
-    UserAction -->|SSE Event| SSEEvent{Event<br/>Type}
-    SSEEvent -->|approval_added| AddItem[Add Item to Queue<br/>with animation]
+    UserAction -->|SSE Event| SSEEvent{Event<br>Type}
+    SSEEvent -->|approval_added| AddItem[Add Item to Queue<br>with animation]
     AddItem --> UpdateCounts[Update Badge Counts]
     UpdateCounts --> UpdateDisplay
 
-    SSEEvent -->|approval_removed| RemoveItem[Remove Item from Queue<br/>with transition]
+    SSEEvent -->|approval_removed| RemoveItem[Remove Item from Queue<br>with transition]
     RemoveItem --> UpdateCounts
 
-    SSEEvent -->|approval_updated| UpdateItem[Update Item Data<br/>merge with existing]
+    SSEEvent -->|approval_updated| UpdateItem[Update Item Data<br>merge with existing]
     UpdateItem --> UpdateDisplay
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -286,100 +287,100 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks document<br/>in queue]) --> OpenModal[Open Document<br/>Review Modal]
-    OpenModal --> FetchDetails[Fetch Complete Details:<br/>- Header + Line Items<br/>- Attachments<br/>- Approval History<br/>- Budget Impact]
+    Start([User clicks document<br>in queue]) --> OpenModal[Open Document<br>Review Modal]
+    OpenModal --> FetchDetails[Fetch Complete Details:<br>- Header + Line Items<br>- Attachments<br>- Approval History<br>- Budget Impact]
 
-    FetchDetails --> ValidateAuth{User has<br/>authority?}
-    ValidateAuth -->|No| ShowAuthError[Display Authority Error<br/>show required level]
+    FetchDetails --> ValidateAuth{User has<br>authority?}
+    ValidateAuth -->|No| ShowAuthError[Display Authority Error<br>show required level]
     ShowAuthError --> CloseModal([End: Close Modal])
 
-    ValidateAuth -->|Yes| DisplayTabs[Display Tabbed View:<br/>- Details<br/>- Line Items<br/>- Attachments<br/>- History<br/>- Budget]
-    DisplayTabs --> CalcCompliance[Calculate Policy Compliance:<br/>- Budget available?<br/>- Quotes required?<br/>- Category compliance?]
-    CalcCompliance --> ShowFlags{Policy<br/>violations?}
+    ValidateAuth -->|Yes| DisplayTabs[Display Tabbed View:<br>- Details<br>- Line Items<br>- Attachments<br>- History<br>- Budget]
+    DisplayTabs --> CalcCompliance[Calculate Policy Compliance:<br>- Budget available?<br>- Quotes required?<br>- Category compliance?]
+    CalcCompliance --> ShowFlags{Policy<br>violations?}
 
-    ShowFlags -->|Yes| DisplayWarnings[Display Warning Banners<br/>with override option]
+    ShowFlags -->|Yes| DisplayWarnings[Display Warning Banners<br>with override option]
     ShowFlags -->|No| DisplayReview[Display Review Content]
     DisplayWarnings --> DisplayReview
 
-    DisplayReview --> UserReview[User Reviews Document:<br/>- Check amounts<br/>- Review justification<br/>- Verify budget<br/>- Check attachments]
+    DisplayReview --> UserReview[User Reviews Document:<br>- Check amounts<br>- Review justification<br>- Verify budget<br>- Check attachments]
 
-    UserReview --> UserDecision{User<br/>Decision}
+    UserReview --> UserDecision{User<br>Decision}
 
-    UserDecision -->|Approve| CheckOverride{Policy override<br/>needed?}
-    CheckOverride -->|Yes| EnterJustification[Enter Override<br/>Justification min 50 chars]
+    UserDecision -->|Approve| CheckOverride{Policy override<br>needed?}
+    CheckOverride -->|Yes| EnterJustification[Enter Override<br>Justification min 50 chars]
     CheckOverride -->|No| EnterComments
-    EnterJustification --> ValidateJustif{Valid<br/>justification?}
-    ValidateJustif -->|No| JustifError[Show Error:<br/>Justification too short]
+    EnterJustification --> ValidateJustif{Valid<br>justification?}
+    ValidateJustif -->|No| JustifError[Show Error:<br>Justification too short]
     JustifError --> EnterJustification
-    ValidateJustif -->|Yes| EnterComments[Enter Optional<br/>Approval Comments]
+    ValidateJustif -->|Yes| EnterComments[Enter Optional<br>Approval Comments]
 
-    EnterComments --> ConfirmApprove[Confirm Approval<br/>Dialog]
-    ConfirmApprove --> OptimisticUpdate[Optimistic UI Update<br/>remove from queue]
-    OptimisticUpdate --> CallServerAction[Call approveDocument<br/>Server Action]
+    EnterComments --> ConfirmApprove[Confirm Approval<br>Dialog]
+    ConfirmApprove --> OptimisticUpdate[Optimistic UI Update<br>remove from queue]
+    OptimisticUpdate --> CallServerAction[Call approveDocument<br>Server Action]
 
     CallServerAction --> BeginTxn[BEGIN TRANSACTION]
-    BeginTxn --> LockRecord[Lock Record with<br/>doc_version check]
-    LockRecord --> ConcurrentCheck{Concurrent<br/>modification?}
+    BeginTxn --> LockRecord[Lock Record with<br>doc_version check]
+    LockRecord --> ConcurrentCheck{Concurrent<br>modification?}
     ConcurrentCheck -->|Yes| RollbackTxn[ROLLBACK]
-    RollbackTxn --> RevertOptimistic[Revert Optimistic Update<br/>re-add to queue]
-    RevertOptimistic --> ShowConcurrentError[Show Concurrent<br/>Approval Error]
+    RollbackTxn --> RevertOptimistic[Revert Optimistic Update<br>re-add to queue]
+    RevertOptimistic --> ShowConcurrentError[Show Concurrent<br>Approval Error]
     ShowConcurrentError --> CloseModal
 
-    ConcurrentCheck -->|No| RecordAction[INSERT approval_actions<br/>with hash chain]
-    RecordAction --> UpdateQueue[UPDATE approval_queue_items<br/>current_level++, doc_version++]
-    UpdateQueue --> CheckComplete{Final<br/>level?}
+    ConcurrentCheck -->|No| RecordAction[INSERT approval_actions<br>with hash chain]
+    RecordAction --> UpdateQueue[UPDATE approval_queue_items<br>current_level++, doc_version++]
+    UpdateQueue --> CheckComplete{Final<br>level?}
 
-    CheckComplete -->|No| RouteNext[Route to Next Level<br/>create new queue item]
+    CheckComplete -->|No| RouteNext[Route to Next Level<br>create new queue item]
     RouteNext --> CommitTxn[COMMIT TRANSACTION]
-    CommitTxn --> TriggerIntegrations[Trigger Async Integrations:<br/>- Notification Service<br/>- Audit Logging]
+    CommitTxn --> TriggerIntegrations[Trigger Async Integrations:<br>- Notification Service<br>- Audit Logging]
     TriggerIntegrations --> ShowSuccess[Show Success Toast]
     ShowSuccess --> CloseModalSuccess([End: Close Modal])
 
-    CheckComplete -->|Yes| UpdateDocStatus[Update Document Status<br/>to Approved]
+    CheckComplete -->|Yes| UpdateDocStatus[Update Document Status<br>to Approved]
     UpdateDocStatus --> CommitTxn
 
-    CommitTxn --> IntegrateBudget[Integrate with Budget<br/>confirm commitment]
-    IntegrateBudget --> CheckBudgetResult{Budget<br/>success?}
-    CheckBudgetResult -->|No| BudgetError[Log Budget Error<br/>flag for retry]
-    BudgetError --> ShowPartialSuccess[Show Partial Success<br/>manual review needed]
+    CommitTxn --> IntegrateBudget[Integrate with Budget<br>confirm commitment]
+    IntegrateBudget --> CheckBudgetResult{Budget<br>success?}
+    CheckBudgetResult -->|No| BudgetError[Log Budget Error<br>flag for retry]
+    BudgetError --> ShowPartialSuccess[Show Partial Success<br>manual review needed]
     ShowPartialSuccess --> CloseModalSuccess
 
-    CheckBudgetResult -->|Yes| IntegrateInventory[Integrate with Inventory<br/>create transaction]
-    IntegrateInventory --> IntegrateFinance[Integrate with Finance<br/>post GL entry]
+    CheckBudgetResult -->|Yes| IntegrateInventory[Integrate with Inventory<br>create transaction]
+    IntegrateInventory --> IntegrateFinance[Integrate with Finance<br>post GL entry]
     IntegrateFinance --> ShowSuccess
 
-    UserDecision -->|Reject| EnterReason[Enter Rejection Reason<br/>min 20 chars]
-    EnterReason --> ValidateReason{Valid<br/>reason?}
-    ValidateReason -->|No| ReasonError[Show Error:<br/>Reason too short]
+    UserDecision -->|Reject| EnterReason[Enter Rejection Reason<br>min 20 chars]
+    EnterReason --> ValidateReason{Valid<br>reason?}
+    ValidateReason -->|No| ReasonError[Show Error:<br>Reason too short]
     ReasonError --> EnterReason
 
-    ValidateReason -->|Yes| ConfirmReject[Confirm Rejection<br/>Dialog]
-    ConfirmReject --> CallRejectAction[Call rejectDocument<br/>Server Action]
+    ValidateReason -->|Yes| ConfirmReject[Confirm Rejection<br>Dialog]
+    ConfirmReject --> CallRejectAction[Call rejectDocument<br>Server Action]
     CallRejectAction --> BeginRejectTxn[BEGIN TRANSACTION]
-    BeginRejectTxn --> RecordRejectAction[INSERT approval_actions<br/>action_type=reject]
-    RecordRejectAction --> UpdateRejectQueue[UPDATE approval_queue_items<br/>status=rejected]
-    UpdateRejectQueue --> UpdateDocReject[Update Document Status<br/>to Rejected]
-    UpdateDocReject --> ReleaseBudget[Release Budget<br/>Commitment]
+    BeginRejectTxn --> RecordRejectAction[INSERT approval_actions<br>action_type=reject]
+    RecordRejectAction --> UpdateRejectQueue[UPDATE approval_queue_items<br>status=rejected]
+    UpdateRejectQueue --> UpdateDocReject[Update Document Status<br>to Rejected]
+    UpdateDocReject --> ReleaseBudget[Release Budget<br>Commitment]
     ReleaseBudget --> CommitRejectTxn[COMMIT TRANSACTION]
-    CommitRejectTxn --> NotifyReject[Send Rejection<br/>Notification]
+    CommitRejectTxn --> NotifyReject[Send Rejection<br>Notification]
     NotifyReject --> ShowRejectSuccess[Show Success Toast]
     ShowRejectSuccess --> CloseModalReject([End: Close Modal])
 
-    UserDecision -->|Request Info| EnterQuestions[Enter Information<br/>Request min 20 chars]
-    EnterQuestions --> SetDeadline[Set Response Deadline<br/>default 48 business hours]
-    SetDeadline --> ValidateInfo{Valid<br/>request?}
-    ValidateInfo -->|No| InfoError[Show Error:<br/>Request too short]
+    UserDecision -->|Request Info| EnterQuestions[Enter Information<br>Request min 20 chars]
+    EnterQuestions --> SetDeadline[Set Response Deadline<br>default 48 business hours]
+    SetDeadline --> ValidateInfo{Valid<br>request?}
+    ValidateInfo -->|No| InfoError[Show Error:<br>Request too short]
     InfoError --> EnterQuestions
 
-    ValidateInfo -->|Yes| ConfirmInfo[Confirm Information<br/>Request Dialog]
-    ConfirmInfo --> CallInfoAction[Call requestMoreInfo<br/>Server Action]
+    ValidateInfo -->|Yes| ConfirmInfo[Confirm Information<br>Request Dialog]
+    ConfirmInfo --> CallInfoAction[Call requestMoreInfo<br>Server Action]
     CallInfoAction --> BeginInfoTxn[BEGIN TRANSACTION]
-    BeginInfoTxn --> RecordInfoAction[INSERT approval_actions<br/>action_type=request_info]
-    RecordInfoAction --> UpdateInfoQueue[UPDATE approval_queue_items<br/>status=awaiting_info]
-    UpdateInfoQueue --> PauseSLA[Pause SLA Timer<br/>sla_paused_at=NOW]
+    BeginInfoTxn --> RecordInfoAction[INSERT approval_actions<br>action_type=request_info]
+    RecordInfoAction --> UpdateInfoQueue[UPDATE approval_queue_items<br>status=awaiting_info]
+    UpdateInfoQueue --> PauseSLA[Pause SLA Timer<br>sla_paused_at=NOW]
     PauseSLA --> CommitInfoTxn[COMMIT TRANSACTION]
-    CommitInfoTxn --> NotifyRequestor[Send Info Request<br/>to Requestor]
-    NotifyRequestor --> ShowInfoSuccess[Show Success Toast<br/>keep in queue with flag]
+    CommitInfoTxn --> NotifyRequestor[Send Info Request<br>to Requestor]
+    NotifyRequestor --> ShowInfoSuccess[Show Success Toast<br>keep in queue with flag]
     ShowInfoSuccess --> CloseModalInfo([End: Close Modal])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -454,62 +455,62 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User selects multiple<br/>documents in queue]) --> EnableBulk[Enable Bulk Actions<br/>Toolbar]
-    EnableBulk --> SelectDocs[User Selects Documents<br/>up to 50 max]
-    SelectDocs --> ValidateSelection{Valid<br/>selection?}
+    Start([User selects multiple<br>documents in queue]) --> EnableBulk[Enable Bulk Actions<br>Toolbar]
+    EnableBulk --> SelectDocs[User Selects Documents<br>up to 50 max]
+    SelectDocs --> ValidateSelection{Valid<br>selection?}
 
-    ValidateSelection -->|Exceeds 50 limit| LimitError[Show Error:<br/>Max 50 documents]
+    ValidateSelection -->|Exceeds 50 limit| LimitError[Show Error:<br>Max 50 documents]
     LimitError --> SelectDocs
 
-    ValidateSelection -->|Mixed types| TypeError[Show Error:<br/>Same type required]
+    ValidateSelection -->|Mixed types| TypeError[Show Error:<br>Same type required]
     TypeError --> SelectDocs
 
-    ValidateSelection -->|Valid| DisplaySummary[Display Bulk Summary:<br/>- Count<br/>- Total Amount<br/>- Document Types<br/>- Requestors]
+    ValidateSelection -->|Valid| DisplaySummary[Display Bulk Summary:<br>- Count<br>- Total Amount<br>- Document Types<br>- Requestors]
 
-    DisplaySummary --> EnterBulkComments[Enter Optional<br/>Bulk Comments]
+    DisplaySummary --> EnterBulkComments[Enter Optional<br>Bulk Comments]
     EnterBulkComments --> ReviewSummary[User Reviews Summary]
-    ReviewSummary --> ConfirmBulk[Confirm Bulk Approval<br/>Dialog with warning]
+    ReviewSummary --> ConfirmBulk[Confirm Bulk Approval<br>Dialog with warning]
 
-    ConfirmBulk --> OptimisticBulk[Optimistic UI Update<br/>remove all from queue]
-    OptimisticBulk --> CallBulkAction[Call bulkApproveDocuments<br/>Server Action]
+    ConfirmBulk --> OptimisticBulk[Optimistic UI Update<br>remove all from queue]
+    OptimisticBulk --> CallBulkAction[Call bulkApproveDocuments<br>Server Action]
 
     CallBulkAction --> BeginAtomicTxn[BEGIN ATOMIC TRANSACTION]
-    BeginAtomicTxn --> ValidateEach[Validate Each Document:<br/>- User authority<br/>- Status = pending<br/>- No self-approval]
+    BeginAtomicTxn --> ValidateEach[Validate Each Document:<br>- User authority<br>- Status = pending<br>- No self-approval]
 
     ValidateEach --> ValidationResult{All valid?}
     ValidationResult -->|No| RollbackAtomicTxn[ROLLBACK TRANSACTION]
-    RollbackAtomicTxn --> RevertBulkOptimistic[Revert Optimistic Update<br/>re-add all to queue]
-    RevertBulkOptimistic --> ShowBulkError[Show Bulk Error with<br/>Failed Document List]
-    ShowBulkError --> PartialRetry{Retry without<br/>failed docs?}
+    RollbackAtomicTxn --> RevertBulkOptimistic[Revert Optimistic Update<br>re-add all to queue]
+    RevertBulkOptimistic --> ShowBulkError[Show Bulk Error with<br>Failed Document List]
+    ShowBulkError --> PartialRetry{Retry without<br>failed docs?}
 
-    PartialRetry -->|Yes| RemoveFailed[Remove Failed Docs<br/>from Selection]
+    PartialRetry -->|Yes| RemoveFailed[Remove Failed Docs<br>from Selection]
     RemoveFailed --> DisplaySummary
     PartialRetry -->|No| CancelBulk([End: Cancel])
 
-    ValidationResult -->|Yes| CalculateTotal[Calculate Total Amount<br/>of All Documents]
-    CalculateTotal --> CheckAuthority{Total within<br/>user authority?}
+    ValidationResult -->|Yes| CalculateTotal[Calculate Total Amount<br>of All Documents]
+    CalculateTotal --> CheckAuthority{Total within<br>user authority?}
     CheckAuthority -->|No| RollbackAtomicTxn
 
-    CheckAuthority -->|Yes| ProcessLoop[Process Each Document<br/>in Transaction]
-    ProcessLoop --> RecordEachAction[INSERT approval_actions<br/>for each document]
-    RecordEachAction --> UpdateEachQueue[UPDATE approval_queue_items<br/>for each document]
-    UpdateEachQueue --> RouteEach[Route to Next Level<br/>for each document]
+    CheckAuthority -->|Yes| ProcessLoop[Process Each Document<br>in Transaction]
+    ProcessLoop --> RecordEachAction[INSERT approval_actions<br>for each document]
+    RecordEachAction --> UpdateEachQueue[UPDATE approval_queue_items<br>for each document]
+    UpdateEachQueue --> RouteEach[Route to Next Level<br>for each document]
 
     RouteEach --> LoopComplete{All processed?}
     LoopComplete -->|No| ProcessLoop
     LoopComplete -->|Yes| CommitAtomicTxn[COMMIT ATOMIC TRANSACTION]
 
-    CommitAtomicTxn --> TriggerParallelIntegrations[Trigger Parallel Integrations<br/>for All Documents]
-    TriggerParallelIntegrations --> IntegrateBulkBudget[Budget Integration<br/>for All Documents]
-    IntegrateBulkBudget --> IntegrateBulkInventory[Inventory Integration<br/>for All Documents]
-    IntegrateBulkInventory --> IntegrateBulkFinance[Finance Integration<br/>for All Documents]
+    CommitAtomicTxn --> TriggerParallelIntegrations[Trigger Parallel Integrations<br>for All Documents]
+    TriggerParallelIntegrations --> IntegrateBulkBudget[Budget Integration<br>for All Documents]
+    IntegrateBulkBudget --> IntegrateBulkInventory[Inventory Integration<br>for All Documents]
+    IntegrateBulkInventory --> IntegrateBulkFinance[Finance Integration<br>for All Documents]
 
-    IntegrateBulkFinance --> CheckIntegrations{All integrations<br/>successful?}
-    CheckIntegrations -->|No| FlagPartialSuccess[Flag Failed Integrations<br/>for Manual Review]
-    FlagPartialSuccess --> ShowPartialSuccess[Show Partial Success<br/>with Retry Option]
+    IntegrateBulkFinance --> CheckIntegrations{All integrations<br>successful?}
+    CheckIntegrations -->|No| FlagPartialSuccess[Flag Failed Integrations<br>for Manual Review]
+    FlagPartialSuccess --> ShowPartialSuccess[Show Partial Success<br>with Retry Option]
     ShowPartialSuccess --> EndPartial([End: Partial Success])
 
-    CheckIntegrations -->|Yes| ShowBulkSuccess[Show Success Toast<br/>with Count]
+    CheckIntegrations -->|Yes| ShowBulkSuccess[Show Success Toast<br>with Count]
     ShowBulkSuccess --> ClearSelection[Clear Bulk Selection]
     ClearSelection --> EndSuccess([End: Success])
 
@@ -568,88 +569,88 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks<br/>'Setup Delegation']) --> OpenForm[Open Delegation<br/>Setup Form]
-    OpenForm --> SearchDelegate[Search and Select<br/>Delegate User]
+    Start([User clicks<br>'Setup Delegation']) --> OpenForm[Open Delegation<br>Setup Form]
+    OpenForm --> SearchDelegate[Search and Select<br>Delegate User]
 
-    SearchDelegate --> ValidateDelegate{Valid<br/>delegate?}
-    ValidateDelegate -->|Same as delegator| SelfError[Show Error:<br/>Cannot delegate to self]
+    SearchDelegate --> ValidateDelegate{Valid<br>delegate?}
+    ValidateDelegate -->|Same as delegator| SelfError[Show Error:<br>Cannot delegate to self]
     SelfError --> SearchDelegate
 
-    ValidateDelegate -->|Insufficient authority| AuthorityError[Show Error:<br/>Delegate lacks authority]
+    ValidateDelegate -->|Insufficient authority| AuthorityError[Show Error:<br>Delegate lacks authority]
     AuthorityError --> SearchDelegate
 
-    ValidateDelegate -->|Valid| CheckOverlap[Check for Overlapping<br/>Delegations]
-    CheckOverlap --> OverlapResult{Overlapping<br/>period found?}
-    OverlapResult -->|Yes| OverlapError[Show Error:<br/>Overlapping delegation exists]
+    ValidateDelegate -->|Valid| CheckOverlap[Check for Overlapping<br>Delegations]
+    CheckOverlap --> OverlapResult{Overlapping<br>period found?}
+    OverlapResult -->|Yes| OverlapError[Show Error:<br>Overlapping delegation exists]
     OverlapError --> SearchDelegate
 
-    OverlapResult -->|No| SetDates[Set Start and End Dates<br/>max 90 days duration]
-    SetDates --> ValidateDates{Valid<br/>dates?}
-    ValidateDates -->|End < Start| DateError[Show Error:<br/>End must be after Start]
+    OverlapResult -->|No| SetDates[Set Start and End Dates<br>max 90 days duration]
+    SetDates --> ValidateDates{Valid<br>dates?}
+    ValidateDates -->|End < Start| DateError[Show Error:<br>End must be after Start]
     DateError --> SetDates
-    ValidateDates -->|Duration > 90 days| DurationError[Show Error:<br/>Max 90 days allowed]
+    ValidateDates -->|Duration > 90 days| DurationError[Show Error:<br>Max 90 days allowed]
     DurationError --> SetDates
 
-    ValidateDates -->|Valid| SelectScope[Select Delegation Scope:<br/>- All Documents<br/>- Specific Types<br/>- Specific Departments]
+    ValidateDates -->|Valid| SelectScope[Select Delegation Scope:<br>- All Documents<br>- Specific Types<br>- Specific Departments]
 
-    SelectScope --> ScopeType{Scope<br/>Type}
+    SelectScope --> ScopeType{Scope<br>Type}
     ScopeType -->|All Documents| SetAmountLimit
-    ScopeType -->|Specific Types| SelectTypes[Select Document Types<br/>e.g., PR, PO]
-    ScopeType -->|Specific Depts| SelectDepts[Select Departments<br/>e.g., F&B, Kitchen]
+    ScopeType -->|Specific Types| SelectTypes[Select Document Types<br>e.g., PR, PO]
+    ScopeType -->|Specific Depts| SelectDepts[Select Departments<br>e.g., F&B, Kitchen]
 
-    SelectTypes --> SetAmountLimit[Set Maximum Amount Limit<br/>optional, cannot exceed<br/>delegate authority]
+    SelectTypes --> SetAmountLimit[Set Maximum Amount Limit<br>optional, cannot exceed<br>delegate authority]
     SelectDepts --> SetAmountLimit
 
-    SetAmountLimit --> ValidateAmount{Valid<br/>amount?}
-    ValidateAmount -->|Exceeds delegate authority| AmountError[Show Error:<br/>Exceeds delegate authority]
+    SetAmountLimit --> ValidateAmount{Valid<br>amount?}
+    ValidateAmount -->|Exceeds delegate authority| AmountError[Show Error:<br>Exceeds delegate authority]
     AmountError --> SetAmountLimit
 
-    ValidateAmount -->|Valid| EnterReason[Enter Delegation Reason<br/>min 10 chars]
-    EnterReason --> EnterNotes[Enter Optional Notes<br/>and Instructions]
-    EnterNotes --> ReviewSummary[Review Delegation Summary:<br/>- Delegate Name<br/>- Date Range<br/>- Scope<br/>- Amount Limit<br/>- Pending Approvals to Transfer]
+    ValidateAmount -->|Valid| EnterReason[Enter Delegation Reason<br>min 10 chars]
+    EnterReason --> EnterNotes[Enter Optional Notes<br>and Instructions]
+    EnterNotes --> ReviewSummary[Review Delegation Summary:<br>- Delegate Name<br>- Date Range<br>- Scope<br>- Amount Limit<br>- Pending Approvals to Transfer]
 
-    ReviewSummary --> CheckPending[Query Pending Approvals<br/>Matching Scope]
-    CheckPending --> CountPending[Count Approvals<br/>to Transfer]
-    CountPending --> ShowTransfer[Show Transfer Count<br/>in Summary]
-    ShowTransfer --> ConfirmDelegation[Confirm Delegation<br/>Creation]
+    ReviewSummary --> CheckPending[Query Pending Approvals<br>Matching Scope]
+    CheckPending --> CountPending[Count Approvals<br>to Transfer]
+    CountPending --> ShowTransfer[Show Transfer Count<br>in Summary]
+    ShowTransfer --> ConfirmDelegation[Confirm Delegation<br>Creation]
 
-    ConfirmDelegation --> CallCreateAction[Call createDelegation<br/>Server Action]
+    ConfirmDelegation --> CallCreateAction[Call createDelegation<br>Server Action]
     CallCreateAction --> BeginDelegationTxn[BEGIN TRANSACTION]
-    BeginDelegationTxn --> CheckImmediate{Immediate<br/>delegation?}
+    BeginDelegationTxn --> CheckImmediate{Immediate<br>delegation?}
 
-    CheckImmediate -->|No, Future| CreateScheduled[INSERT approval_delegations<br/>status=scheduled]
-    CreateScheduled --> ScheduleActivation[Schedule Background Job<br/>for Activation at Start Time]
-    ScheduleActivation --> ScheduleExpiration[Schedule Background Job<br/>for Expiration at End Time]
+    CheckImmediate -->|No, Future| CreateScheduled[INSERT approval_delegations<br>status=scheduled]
+    CreateScheduled --> ScheduleActivation[Schedule Background Job<br>for Activation at Start Time]
+    ScheduleActivation --> ScheduleExpiration[Schedule Background Job<br>for Expiration at End Time]
     ScheduleExpiration --> CommitScheduled[COMMIT TRANSACTION]
-    CommitScheduled --> NotifyScheduled[Notify Delegate and Manager<br/>of Scheduled Delegation]
-    NotifyScheduled --> ShowScheduledSuccess[Show Success Toast:<br/>Delegation Scheduled]
+    CommitScheduled --> NotifyScheduled[Notify Delegate and Manager<br>of Scheduled Delegation]
+    NotifyScheduled --> ShowScheduledSuccess[Show Success Toast:<br>Delegation Scheduled]
     ShowScheduledSuccess --> EndScheduled([End: Scheduled])
 
-    CheckImmediate -->|Yes, Immediate| CreateActive[INSERT approval_delegations<br/>status=active]
-    CreateActive --> SetActivation[Set activation_timestamp<br/>to NOW]
-    SetActivation --> TransferApprovals[Transfer Matching Approvals<br/>to Delegate]
+    CheckImmediate -->|Yes, Immediate| CreateActive[INSERT approval_delegations<br>status=active]
+    CreateActive --> SetActivation[Set activation_timestamp<br>to NOW]
+    SetActivation --> TransferApprovals[Transfer Matching Approvals<br>to Delegate]
 
-    TransferApprovals --> UpdateQueueItems[UPDATE approval_queue_items<br/>SET approver_user_id=delegate<br/>original_approver_user_id=delegator<br/>assignee_type=delegate<br/>delegation_id=delegation.id]
+    TransferApprovals --> UpdateQueueItems[UPDATE approval_queue_items<br>SET approver_user_id=delegate<br>original_approver_user_id=delegator<br>assignee_type=delegate<br>delegation_id=delegation.id]
 
-    UpdateQueueItems --> CountTransferred[COUNT transferred<br/>approvals]
-    CountTransferred --> UpdateTransferCount[UPDATE approval_delegations<br/>approvals_transferred_count]
+    UpdateQueueItems --> CountTransferred[COUNT transferred<br>approvals]
+    CountTransferred --> UpdateTransferCount[UPDATE approval_delegations<br>approvals_transferred_count]
     UpdateTransferCount --> CommitActive[COMMIT TRANSACTION]
 
-    CommitActive --> NotifyDelegate[Notify Delegate:<br/>Delegation Active<br/>+ Transferred Approvals]
-    NotifyDelegate --> NotifyManager[Notify Manager:<br/>Delegation Active]
-    NotifyManager --> SSEUpdateDelegate[Push SSE Updates<br/>to Delegate Browser]
-    SSEUpdateDelegate --> ShowActiveSuccess[Show Success Toast:<br/>Delegation Active<br/>+ Transfer Count]
+    CommitActive --> NotifyDelegate[Notify Delegate:<br>Delegation Active<br>+ Transferred Approvals]
+    NotifyDelegate --> NotifyManager[Notify Manager:<br>Delegation Active]
+    NotifyManager --> SSEUpdateDelegate[Push SSE Updates<br>to Delegate Browser]
+    SSEUpdateDelegate --> ShowActiveSuccess[Show Success Toast:<br>Delegation Active<br>+ Transfer Count]
     ShowActiveSuccess --> EndActive([End: Active])
 
-    ScheduleActivation --> ActivationJobRuns[BACKGROUND JOB:<br/>At Start Time]
-    ActivationJobRuns --> ActivateJob[UPDATE status to active<br/>SET activation_timestamp]
-    ActivateJob --> TransferApprovalsJob[Transfer Matching Approvals<br/>same as immediate]
+    ScheduleActivation --> ActivationJobRuns[BACKGROUND JOB:<br>At Start Time]
+    ActivationJobRuns --> ActivateJob[UPDATE status to active<br>SET activation_timestamp]
+    ActivateJob --> TransferApprovalsJob[Transfer Matching Approvals<br>same as immediate]
     TransferApprovalsJob --> NotifyActivation[Notify Delegate and Manager]
     NotifyActivation --> SSEActivation[Push SSE Updates]
 
-    ScheduleExpiration --> ExpirationJobRuns[BACKGROUND JOB:<br/>At End Time]
-    ExpirationJobRuns --> DeactivateJob[UPDATE status to expired<br/>SET deactivation_timestamp]
-    DeactivateJob --> TransferBackJob[Route New Approvals<br/>Back to Original Approver]
+    ScheduleExpiration --> ExpirationJobRuns[BACKGROUND JOB:<br>At End Time]
+    ExpirationJobRuns --> DeactivateJob[UPDATE status to expired<br>SET deactivation_timestamp]
+    DeactivateJob --> TransferBackJob[Route New Approvals<br>Back to Original Approver]
     TransferBackJob --> NotifyExpiration[Notify Delegator and Manager]
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -729,23 +730,23 @@ flowchart TD
 
 ```mermaid
 flowchart TB
-    subgraph External["External Entities"]
-        Approver[👤 Approver<br/>Reviews & Approves]
-        Requestor[👤 Requestor<br/>Submits Documents]
-        Admin[👤 System Admin<br/>Configures SLA & Authority]
+    subgraph External['External Entities']
+        Approver[👤 Approver<br>Reviews & Approves]
+        Requestor[👤 Requestor<br>Submits Documents]
+        Admin[👤 System Admin<br>Configures SLA & Authority]
     end
 
-    subgraph MyApprovals["My Approvals System"]
-        System[My Approvals Module<br/>✓ Queue Management<br/>✓ Approval Processing<br/>✓ Delegation Management<br/>✓ SLA Monitoring]
+    subgraph MyApprovals['My Approvals System']
+        System[My Approvals Module<br>✓ Queue Management<br>✓ Approval Processing<br>✓ Delegation Management<br>✓ SLA Monitoring]
     end
 
-    subgraph ExternalSystems["External Systems"]
-        Budget[💰 Budget Management<br/>Commitment Tracking]
-        Inventory[📦 Inventory Management<br/>Stock Transactions]
-        Finance[💵 Finance System<br/>GL Posting]
-        Workflow[⚙️ Workflow Engine<br/>Routing & Escalation]
-        Notification[📧 Notification Service<br/>Email, Push, SMS]
-        Audit[📝 Audit System<br/>Activity Logging]
+    subgraph ExternalSystems['External Systems']
+        Budget[💰 Budget Management<br>Commitment Tracking]
+        Inventory[📦 Inventory Management<br>Stock Transactions]
+        Finance[💵 Finance System<br>GL Posting]
+        Workflow[⚙️ Workflow Engine<br>Routing & Escalation]
+        Notification[📧 Notification Service<br>Email, Push, SMS]
+        Audit[📝 Audit System<br>Activity Logging]
     end
 
     Approver -->|Review & Decision| System
@@ -801,35 +802,35 @@ flowchart TB
 
 ```mermaid
 flowchart TB
-    subgraph Inputs["Data Inputs"]
-        DocumentSubmit[Document<br/>Submission]
-        UserAction[User<br/>Actions]
-        AdminConfig[Admin<br/>Configuration]
+    subgraph Inputs['Data Inputs']
+        DocumentSubmit[Document<br>Submission]
+        UserAction[User<br>Actions]
+        AdminConfig[Admin<br>Configuration]
     end
 
-    subgraph Processes["Core Processes"]
-        P1[1.0<br/>Queue Management<br/>Load, Filter, Sort]
-        P2[2.0<br/>Approval Processing<br/>Approve, Reject, Info Request]
-        P3[3.0<br/>Delegation Management<br/>Create, Activate, Expire]
-        P4[4.0<br/>Authority Validation<br/>Check Limits, Routing]
-        P5[5.0<br/>SLA Monitoring<br/>Calculate, Escalate]
-        P6[6.0<br/>Integration Management<br/>Budget, Inventory, Finance]
-        P7[7.0<br/>Notification Management<br/>Email, Push, In-App]
+    subgraph Processes['Core Processes']
+        P1[1.0<br>Queue Management<br>Load, Filter, Sort]
+        P2[2.0<br>Approval Processing<br>Approve, Reject, Info Request]
+        P3[3.0<br>Delegation Management<br>Create, Activate, Expire]
+        P4[4.0<br>Authority Validation<br>Check Limits, Routing]
+        P5[5.0<br>SLA Monitoring<br>Calculate, Escalate]
+        P6[6.0<br>Integration Management<br>Budget, Inventory, Finance]
+        P7[7.0<br>Notification Management<br>Email, Push, In-App]
     end
 
-    subgraph DataStores["Data Stores"]
-        D1[(D1: approval_queue_items<br/>Pending Approvals)]
-        D2[(D2: approval_actions<br/>Audit Trail)]
-        D3[(D3: approval_delegations<br/>Active Delegations)]
-        D4[(D4: approval_sla_configuration<br/>SLA Policies)]
-        D5[(D5: approval_authority_matrix<br/>Approval Limits)]
+    subgraph DataStores['Data Stores']
+        D1[(D1: approval_queue_items<br>Pending Approvals)]
+        D2[(D2: approval_actions<br>Audit Trail)]
+        D3[(D3: approval_delegations<br>Active Delegations)]
+        D4[(D4: approval_sla_configuration<br>SLA Policies)]
+        D5[(D5: approval_authority_matrix<br>Approval Limits)]
     end
 
-    subgraph Outputs["Data Outputs"]
-        QueueDisplay[Approval<br/>Queue Display]
-        StatusUpdate[Status<br/>Updates]
+    subgraph Outputs['Data Outputs']
+        QueueDisplay[Approval<br>Queue Display]
+        StatusUpdate[Status<br>Updates]
         Notifications[Notifications]
-        Reports[Analytics &<br/>Reports]
+        Reports[Analytics &<br>Reports]
     end
 
     DocumentSubmit --> P1
@@ -928,24 +929,24 @@ sequenceDiagram
     User->>Browser: Navigate to /my-approvals
     Browser->>ServerComp: GET /my-approvals (SSR)
 
-    ServerComp->>DB: Query approval_queue_items<br/>WHERE approver_user_id<br/>AND status=pending
+    ServerComp->>DB: Query approval_queue_items<br>WHERE approver_user_id<br>AND status=pending
     DB-->>ServerComp: Return Queue Items
 
-    ServerComp->>DB: JOIN users, departments,<br/>locations for context
+    ServerComp->>DB: JOIN users, departments,<br>locations for context
     DB-->>ServerComp: Return Joined Data
 
-    ServerComp->>ServerComp: Calculate Urgency Scores<br/>Format Data
+    ServerComp->>ServerComp: Calculate Urgency Scores<br>Format Data
     ServerComp-->>Browser: Return HTML with Data
 
     Browser->>ClientComp: Hydrate with Initial Data
     ClientComp->>ClientComp: Render Queue UI
     ClientComp-->>User: Display Queue
 
-    ClientComp->>SSE: Establish SSE Connection<br/>/api/approvals/sse?userId
+    ClientComp->>SSE: Establish SSE Connection<br>/api/approvals/sse?userId
     SSE-->>ClientComp: Connection Established
 
     loop Real-time Updates
-        SSE->>ClientComp: Push Event:<br/>approval_added/removed/updated
+        SSE->>ClientComp: Push Event:<br>approval_added/removed/updated
         ClientComp->>ClientComp: Merge Event into Queue
         ClientComp-->>User: Update Display
     end
@@ -962,7 +963,7 @@ sequenceDiagram
     ClientComp->>ClientComp: Client-side Filter/Sort
     ClientComp-->>User: Update Display Instantly
 
-    Note over User,RQ: No server round-trip<br/>for filter/sort/search
+    Note over User,RQ: No server round-trip<br>for filter/sort/search
 ```
 
 **Key Interactions**:
@@ -993,12 +994,12 @@ sequenceDiagram
     participant SSE as SSE Server
 
     User->>UI: Click Approve
-    UI->>UI: Optimistic Update<br/>Remove from Queue
+    UI->>UI: Optimistic Update<br>Remove from Queue
     UI->>ServerAction: approveDocument({id, comments})
 
     ServerAction->>DB: BEGIN TRANSACTION
 
-    ServerAction->>DB: SELECT FOR UPDATE<br/>approval_queue_items<br/>WHERE id AND doc_version
+    ServerAction->>DB: SELECT FOR UPDATE<br>approval_queue_items<br>WHERE id AND doc_version
     DB-->>ServerAction: Queue Item (Locked)
 
     alt Concurrent Modification
@@ -1008,37 +1009,37 @@ sequenceDiagram
         UI->>UI: Revert Optimistic Update
         UI-->>User: Show Error Toast
     else Version Matches
-        ServerAction->>DB: INSERT approval_actions<br/>WITH action_hash
+        ServerAction->>DB: INSERT approval_actions<br>WITH action_hash
         DB-->>ServerAction: Action Created
 
-        ServerAction->>DB: UPDATE approval_queue_items<br/>current_level++, doc_version++
+        ServerAction->>DB: UPDATE approval_queue_items<br>current_level++, doc_version++
         DB-->>ServerAction: Queue Updated
 
         alt Not Final Level
-            ServerAction->>DB: INSERT new queue_item<br/>FOR next level
+            ServerAction->>DB: INSERT new queue_item<br>FOR next level
             DB-->>ServerAction: Next Level Created
         else Final Level
-            ServerAction->>DB: UPDATE document<br/>status=approved
+            ServerAction->>DB: UPDATE document<br>status=approved
             DB-->>ServerAction: Document Approved
         end
 
         ServerAction->>DB: COMMIT TRANSACTION
 
         par Async Integrations
-            ServerAction->>Budget: Confirm Budget Commitment<br/>{document_id, amount}
+            ServerAction->>Budget: Confirm Budget Commitment<br>{document_id, amount}
             Budget-->>ServerAction: Commitment Confirmed
         and
-            ServerAction->>Inventory: Create Inventory Transaction<br/>{document_id, items}
+            ServerAction->>Inventory: Create Inventory Transaction<br>{document_id, items}
             Inventory-->>ServerAction: Transaction Created
         and
-            ServerAction->>Finance: Post GL Entry<br/>{document_id, account_codes}
+            ServerAction->>Finance: Post GL Entry<br>{document_id, account_codes}
             Finance-->>ServerAction: GL Posted
         and
-            ServerAction->>Notification: Send Approval Notification<br/>{requestor, document}
+            ServerAction->>Notification: Send Approval Notification<br>{requestor, document}
             Notification-->>ServerAction: Notification Sent
         end
 
-        ServerAction->>SSE: Push approval_removed Event<br/>to All Approvers
+        ServerAction->>SSE: Push approval_removed Event<br>to All Approvers
         SSE-->>UI: Event Received
 
         ServerAction-->>UI: Success Response
@@ -1046,7 +1047,7 @@ sequenceDiagram
         UI->>UI: Close Modal
     end
 
-    Note over User,SSE: Optimistic UI provides<br/>instant feedback
+    Note over User,SSE: Optimistic UI provides<br>instant feedback
 ```
 
 **Key Interactions**:
@@ -1080,20 +1081,20 @@ sequenceDiagram
     participant Worker as Background Worker
 
     User->>UI: Select Multiple Docs (up to 50)
-    UI->>UI: Validate Selection<br/>Same type, All Pending
-    UI->>UI: Display Summary<br/>Count, Total Amount
+    UI->>UI: Validate Selection<br>Same type, All Pending
+    UI->>UI: Display Summary<br>Count, Total Amount
 
     User->>UI: Confirm Bulk Approval
-    UI->>UI: Optimistic Update<br/>Remove All from Queue
+    UI->>UI: Optimistic Update<br>Remove All from Queue
     UI->>ServerAction: bulkApproveDocuments({ids[], comments})
 
     ServerAction->>DB: BEGIN ATOMIC TRANSACTION
 
     loop For Each Document
-        ServerAction->>DB: SELECT FOR UPDATE<br/>approval_queue_items<br/>WHERE id
+        ServerAction->>DB: SELECT FOR UPDATE<br>approval_queue_items<br>WHERE id
         DB-->>ServerAction: Queue Item (Locked)
 
-        ServerAction->>ServerAction: Validate Authority<br/>Status, No Self-Approval
+        ServerAction->>ServerAction: Validate Authority<br>Status, No Self-Approval
 
         alt Any Validation Fails
             ServerAction->>DB: ROLLBACK TRANSACTION
@@ -1120,7 +1121,7 @@ sequenceDiagram
 
         ServerAction->>DB: COMMIT ATOMIC TRANSACTION
 
-        ServerAction->>Integration: Enqueue Bulk Integration Job<br/>{document_ids[], type: bulk_approval}
+        ServerAction->>Integration: Enqueue Bulk Integration Job<br>{document_ids[], type: bulk_approval}
         Integration-->>ServerAction: Job Queued
 
         ServerAction-->>UI: Success: Count Approved
@@ -1143,7 +1144,7 @@ sequenceDiagram
         Worker->>Integration: Mark Job Complete
     end
 
-    Note over User,Worker: Atomic transaction ensures<br/>all or nothing approval
+    Note over User,Worker: Atomic transaction ensures<br>all or nothing approval
 ```
 
 **Key Interactions**:
@@ -1175,30 +1176,30 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> pending: Document submitted<br/>for approval
+    [*] --> pending: Document submitted<br>for approval
 
-    pending --> under_review: Approver opens<br/>document
-    under_review --> pending: Approver closes<br/>without action
+    pending --> under_review: Approver opens<br>document
+    under_review --> pending: Approver closes<br>without action
 
-    under_review --> approved: Approver approves<br/>(not final level)
-    approved --> pending: Routed to<br/>next level
+    under_review --> approved: Approver approves<br>(not final level)
+    approved --> pending: Routed to<br>next level
 
-    under_review --> approved: Approver approves<br/>(final level)
-    approved --> [*]: Document fully<br/>approved
+    under_review --> approved: Approver approves<br>(final level)
+    approved --> [*]: Document fully<br>approved
 
     under_review --> rejected: Approver rejects
-    rejected --> [*]: Document rejected,<br/>workflow terminated
+    rejected --> [*]: Document rejected,<br>workflow terminated
 
-    under_review --> awaiting_info: Approver requests<br/>more information
-    awaiting_info --> pending: Requestor provides<br/>information
-    awaiting_info --> recalled: Requestor recalls<br/>document
+    under_review --> awaiting_info: Approver requests<br>more information
+    awaiting_info --> pending: Requestor provides<br>information
+    awaiting_info --> recalled: Requestor recalls<br>document
     recalled --> [*]: Document withdrawn
 
-    pending --> recalled: Requestor recalls<br/>before review
-    under_review --> returned: Approver returns<br/>to requestor
-    returned --> [*]: Sent back for<br/>correction
+    pending --> recalled: Requestor recalls<br>before review
+    under_review --> returned: Approver returns<br>to requestor
+    returned --> [*]: Sent back for<br>correction
 
-    pending --> delegated: Approver delegates<br/>to another user
+    pending --> delegated: Approver delegates<br>to another user
     delegated --> pending: Delegate assigned
 
     note right of pending
@@ -1252,23 +1253,23 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> scheduled: Delegation created<br/>start_datetime > NOW
-    [*] --> active: Delegation created<br/>start_datetime <= NOW
+    [*] --> scheduled: Delegation created<br>start_datetime > NOW
+    [*] --> active: Delegation created<br>start_datetime <= NOW
 
-    scheduled --> active: Background job runs<br/>at start_datetime
+    scheduled --> active: Background job runs<br>at start_datetime
 
-    scheduled --> revoked: Delegator cancels<br/>before activation
+    scheduled --> revoked: Delegator cancels<br>before activation
     revoked --> [*]: Delegation canceled
 
-    scheduled --> refused: Delegate refuses<br/>delegation
+    scheduled --> refused: Delegate refuses<br>delegation
     refused --> [*]: Delegation declined
 
-    active --> expired: Background job runs<br/>at end_datetime
-    expired --> [*]: Delegation ended<br/>naturally
+    active --> expired: Background job runs<br>at end_datetime
+    expired --> [*]: Delegation ended<br>naturally
 
-    active --> revoked: Delegator cancels<br/>early
+    active --> revoked: Delegator cancels<br>early
 
-    active --> extended: Delegator extends<br/>end_datetime
+    active --> extended: Delegator extends<br>end_datetime
     extended --> active: End date updated
 
     note right of scheduled
@@ -1336,39 +1337,39 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([Approval Completed<br/>Final Level]) --> CheckBudgetImpact{Budget impact<br/>exists?}
+    Start([Approval Completed<br>Final Level]) --> CheckBudgetImpact{Budget impact<br>exists?}
 
     CheckBudgetImpact -->|No| SkipBudget[Skip Budget Integration]
-    SkipBudget --> NextIntegration([Continue to<br/>Next Integration])
+    SkipBudget --> NextIntegration([Continue to<br>Next Integration])
 
-    CheckBudgetImpact -->|Yes| GetBudgetDetails[Get Budget Details:<br/>- Department<br/>- Account Code<br/>- Amount<br/>- Currency]
+    CheckBudgetImpact -->|Yes| GetBudgetDetails[Get Budget Details:<br>- Department<br>- Account Code<br>- Amount<br>- Currency]
 
-    GetBudgetDetails --> CallBudgetAPI[Call Budget API:<br/>POST /api/budget/confirm-commitment]
-    CallBudgetAPI --> BudgetValidates[Budget System Validates:<br/>- Budget exists<br/>- Sufficient balance<br/>- Not expired]
+    GetBudgetDetails --> CallBudgetAPI[Call Budget API:<br>POST /api/budget/confirm-commitment]
+    CallBudgetAPI --> BudgetValidates[Budget System Validates:<br>- Budget exists<br>- Sufficient balance<br>- Not expired]
 
-    BudgetValidates --> BudgetResult{Validation<br/>Result}
+    BudgetValidates --> BudgetResult{Validation<br>Result}
 
-    BudgetResult -->|Success| ConfirmCommitment[Budget System:<br/>- Confirms commitment<br/>- Reduces available balance<br/>- Logs transaction]
-    ConfirmCommitment --> UpdateQueueBudget[Update Queue Item:<br/>budget_commitment_confirmed=true]
+    BudgetResult -->|Success| ConfirmCommitment[Budget System:<br>- Confirms commitment<br>- Reduces available balance<br>- Logs transaction]
+    ConfirmCommitment --> UpdateQueueBudget[Update Queue Item:<br>budget_commitment_confirmed=true]
     UpdateQueueBudget --> NextIntegration
 
-    BudgetResult -->|Budget Exceeded| CheckOverride{Policy override<br/>approved?}
-    CheckOverride -->|Yes| OverrideCommitment[Budget System:<br/>- Flag as override<br/>- Confirm with warning<br/>- Log exception]
+    BudgetResult -->|Budget Exceeded| CheckOverride{Policy override<br>approved?}
+    CheckOverride -->|Yes| OverrideCommitment[Budget System:<br>- Flag as override<br>- Confirm with warning<br>- Log exception]
     OverrideCommitment --> NextIntegration
 
-    CheckOverride -->|No| RejectForBudget[Budget Insufficient:<br/>Cannot Approve]
+    CheckOverride -->|No| RejectForBudget[Budget Insufficient:<br>Cannot Approve]
     RejectForBudget --> RollbackApproval[Rollback Approval Action]
-    RollbackApproval --> NotifyApprover[Notify Approver:<br/>Budget Exceeded]
+    RollbackApproval --> NotifyApprover[Notify Approver:<br>Budget Exceeded]
     NotifyApprover --> EndReject([End: Rejected])
 
-    BudgetResult -->|Budget Not Found| FlagMissingBudget[Flag Error:<br/>Budget Configuration Missing]
+    BudgetResult -->|Budget Not Found| FlagMissingBudget[Flag Error:<br>Budget Configuration Missing]
     FlagMissingBudget --> LogError[Log Integration Error]
     LogError --> RetryQueue[Add to Retry Queue]
     RetryQueue --> NotifyAdmin[Notify System Admin]
     NotifyAdmin --> NextIntegration
 
-    BudgetResult -->|API Timeout| RetryBudget{Retry<br/>attempt?}
-    RetryBudget -->|< 3 attempts| WaitBackoff[Wait with<br/>Exponential Backoff]
+    BudgetResult -->|API Timeout| RetryBudget{Retry<br>attempt?}
+    RetryBudget -->|< 3 attempts| WaitBackoff[Wait with<br>Exponential Backoff]
     WaitBackoff --> CallBudgetAPI
 
     RetryBudget -->|>= 3 attempts| FlagTimeout[Flag Timeout Error]
@@ -1415,59 +1416,59 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Approval Completed<br/>Final Level]) --> CheckInventoryImpact{Inventory<br/>impacted?}
+    Start([Approval Completed<br>Final Level]) --> CheckInventoryImpact{Inventory<br>impacted?}
 
     CheckInventoryImpact -->|No| SkipInventory[Skip Inventory Integration]
-    SkipInventory --> NextIntegration([Continue to<br/>Next Integration])
+    SkipInventory --> NextIntegration([Continue to<br>Next Integration])
 
-    CheckInventoryImpact -->|Yes| GetDocumentType{Document<br/>Type}
+    CheckInventoryImpact -->|Yes| GetDocumentType{Document<br>Type}
 
-    GetDocumentType -->|Purchase Order| PrepareReceiving[Prepare GRN Data:<br/>- PO Line Items<br/>- Expected Quantities<br/>- Destination Location]
-    GetDocumentType -->|Wastage| PrepareWastage[Prepare Wastage Data:<br/>- Wastage Items<br/>- Quantities<br/>- Source Location<br/>- Reason Codes]
-    GetDocumentType -->|Stock Requisition| PrepareTransfer[Prepare Transfer Data:<br/>- Requested Items<br/>- Quantities<br/>- Source Location<br/>- Destination Location]
+    GetDocumentType -->|Purchase Order| PrepareReceiving[Prepare GRN Data:<br>- PO Line Items<br>- Expected Quantities<br>- Destination Location]
+    GetDocumentType -->|Wastage| PrepareWastage[Prepare Wastage Data:<br>- Wastage Items<br>- Quantities<br>- Source Location<br>- Reason Codes]
+    GetDocumentType -->|Stock Requisition| PrepareTransfer[Prepare Transfer Data:<br>- Requested Items<br>- Quantities<br>- Source Location<br>- Destination Location]
     GetDocumentType -->|Stock Transfer| PrepareTransfer
-    GetDocumentType -->|Inventory Adjustment| PrepareAdjustment[Prepare Adjustment Data:<br/>- Items<br/>- Adjustment Quantities<br/>- Location<br/>- Reason]
+    GetDocumentType -->|Inventory Adjustment| PrepareAdjustment[Prepare Adjustment Data:<br>- Items<br>- Adjustment Quantities<br>- Location<br>- Reason]
 
-    PrepareReceiving --> CallInventoryAPI[Call Inventory API:<br/>POST /api/inventory/create-transaction]
+    PrepareReceiving --> CallInventoryAPI[Call Inventory API:<br>POST /api/inventory/create-transaction]
     PrepareWastage --> CallInventoryAPI
     PrepareTransfer --> CallInventoryAPI
     PrepareAdjustment --> CallInventoryAPI
 
-    CallInventoryAPI --> InventoryValidates[Inventory System Validates:<br/>- Products exist<br/>- Locations exist<br/>- Stock available (if reduction)]
+    CallInventoryAPI --> InventoryValidates[Inventory System Validates:<br>- Products exist<br>- Locations exist<br>- Stock available (if reduction)]
 
-    InventoryValidates --> InventoryResult{Validation<br/>Result}
+    InventoryValidates --> InventoryResult{Validation<br>Result}
 
-    InventoryResult -->|Success| CreateTransaction[Inventory System:<br/>- Creates transaction record<br/>- Updates stock levels<br/>- Logs movement<br/>- Updates costing]
-    CreateTransaction --> UpdateQueueInventory[Update Queue Item:<br/>inventory_transaction_created=true<br/>transaction_reference]
+    InventoryResult -->|Success| CreateTransaction[Inventory System:<br>- Creates transaction record<br>- Updates stock levels<br>- Logs movement<br>- Updates costing]
+    CreateTransaction --> UpdateQueueInventory[Update Queue Item:<br>inventory_transaction_created=true<br>transaction_reference]
     UpdateQueueInventory --> NextIntegration
 
-    InventoryResult -->|Stock Insufficient| CheckPartialApproval{Partial approval<br/>supported?}
-    CheckPartialApproval -->|Yes| PartialTransaction[Create Partial Transaction:<br/>- Available quantity only<br/>- Flag remaining as backorder]
-    PartialTransaction --> NotifyPartial[Notify Requestor:<br/>Partial Fulfillment]
+    InventoryResult -->|Stock Insufficient| CheckPartialApproval{Partial approval<br>supported?}
+    CheckPartialApproval -->|Yes| PartialTransaction[Create Partial Transaction:<br>- Available quantity only<br>- Flag remaining as backorder]
+    PartialTransaction --> NotifyPartial[Notify Requestor:<br>Partial Fulfillment]
     NotifyPartial --> NextIntegration
 
-    CheckPartialApproval -->|No| RejectForStock[Insufficient Stock:<br/>Cannot Approve]
+    CheckPartialApproval -->|No| RejectForStock[Insufficient Stock:<br>Cannot Approve]
     RejectForStock --> RollbackApproval[Rollback Approval Action]
-    RollbackApproval --> NotifyApprover[Notify Approver:<br/>Stock Insufficient]
+    RollbackApproval --> NotifyApprover[Notify Approver:<br>Stock Insufficient]
     NotifyApprover --> EndReject([End: Rejected])
 
-    InventoryResult -->|Product Not Found| FlagMissingProduct[Flag Error:<br/>Product Configuration Missing]
+    InventoryResult -->|Product Not Found| FlagMissingProduct[Flag Error:<br>Product Configuration Missing]
     FlagMissingProduct --> LogError[Log Integration Error]
     LogError --> RetryQueue[Add to Retry Queue]
     RetryQueue --> NotifyAdmin[Notify System Admin]
     NotifyAdmin --> NextIntegration
 
-    InventoryResult -->|Location Not Found| FlagMissingLocation[Flag Error:<br/>Location Configuration Missing]
+    InventoryResult -->|Location Not Found| FlagMissingLocation[Flag Error:<br>Location Configuration Missing]
     FlagMissingLocation --> LogError
 
-    InventoryResult -->|API Timeout| RetryInventory{Retry<br/>attempt?}
-    RetryInventory -->|< 3 attempts| WaitBackoff[Wait with<br/>Exponential Backoff]
+    InventoryResult -->|API Timeout| RetryInventory{Retry<br>attempt?}
+    RetryInventory -->|< 3 attempts| WaitBackoff[Wait with<br>Exponential Backoff]
     WaitBackoff --> CallInventoryAPI
 
     RetryInventory -->|>= 3 attempts| FlagTimeout[Flag Timeout Error]
     FlagTimeout --> LogError
 
-    InventoryResult -->|Costing Error| FlagCostingError[Flag Costing Error:<br/>Transaction created<br/>but costing failed]
+    InventoryResult -->|Costing Error| FlagCostingError[Flag Costing Error:<br>Transaction created<br>but costing failed]
     FlagCostingError --> NotifyFinance[Notify Finance Team]
     NotifyFinance --> NextIntegration
 
@@ -1513,55 +1514,55 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Approval Completed<br/>Final Level]) --> CheckGLImpact{GL impact<br/>exists?}
+    Start([Approval Completed<br>Final Level]) --> CheckGLImpact{GL impact<br>exists?}
 
     CheckGLImpact -->|No| SkipFinance[Skip Finance Integration]
-    SkipFinance --> NextIntegration([Continue to<br/>Completion])
+    SkipFinance --> NextIntegration([Continue to<br>Completion])
 
-    CheckGLImpact -->|Yes| GetAccountMapping[Get Account Code Mapping:<br/>- Document Type<br/>- Product Category<br/>- Department<br/>- Cost Center]
+    CheckGLImpact -->|Yes| GetAccountMapping[Get Account Code Mapping:<br>- Document Type<br>- Product Category<br>- Department<br>- Cost Center]
 
-    GetAccountMapping --> BuildGLEntry[Build GL Entry:<br/>- Debit Accounts<br/>- Credit Accounts<br/>- Amounts<br/>- Currency<br/>- Tax<br/>- Description<br/>- Reference]
+    GetAccountMapping --> BuildGLEntry[Build GL Entry:<br>- Debit Accounts<br>- Credit Accounts<br>- Amounts<br>- Currency<br>- Tax<br>- Description<br>- Reference]
 
-    BuildGLEntry --> ValidateGLEntry{GL Entry<br/>balanced?}
-    ValidateGLEntry -->|No| GLError[GL Entry Error:<br/>Debits != Credits]
+    BuildGLEntry --> ValidateGLEntry{GL Entry<br>balanced?}
+    ValidateGLEntry -->|No| GLError[GL Entry Error:<br>Debits != Credits]
     GLError --> LogGLError[Log GL Configuration Error]
     LogGLError --> NotifyFinance[Notify Finance Team]
     NotifyFinance --> FlagManualPosting[Flag for Manual GL Posting]
     FlagManualPosting --> NextIntegration
 
-    ValidateGLEntry -->|Yes| CallFinanceAPI[Call Finance API:<br/>POST /api/finance/post-gl-entry]
-    CallFinanceAPI --> FinanceValidates[Finance System Validates:<br/>- Accounts exist<br/>- Posting period open<br/>- Currency valid<br/>- Tax codes valid]
+    ValidateGLEntry -->|Yes| CallFinanceAPI[Call Finance API:<br>POST /api/finance/post-gl-entry]
+    CallFinanceAPI --> FinanceValidates[Finance System Validates:<br>- Accounts exist<br>- Posting period open<br>- Currency valid<br>- Tax codes valid]
 
-    FinanceValidates --> FinanceResult{Validation<br/>Result}
+    FinanceValidates --> FinanceResult{Validation<br>Result}
 
-    FinanceResult -->|Success| PostGLEntry[Finance System:<br/>- Posts GL entry<br/>- Updates ledgers<br/>- Creates journal<br/>- Calculates tax]
-    PostGLEntry --> GetJournalNo[Finance System Returns:<br/>Journal Entry Number]
-    GetJournalNo --> UpdateQueueFinance[Update Queue Item:<br/>gl_posted=true<br/>journal_entry_number]
+    FinanceResult -->|Success| PostGLEntry[Finance System:<br>- Posts GL entry<br>- Updates ledgers<br>- Creates journal<br>- Calculates tax]
+    PostGLEntry --> GetJournalNo[Finance System Returns:<br>Journal Entry Number]
+    GetJournalNo --> UpdateQueueFinance[Update Queue Item:<br>gl_posted=true<br>journal_entry_number]
     UpdateQueueFinance --> NextIntegration
 
-    FinanceResult -->|Account Not Found| FlagMissingAccount[Flag Error:<br/>Account Code Missing]
+    FinanceResult -->|Account Not Found| FlagMissingAccount[Flag Error:<br>Account Code Missing]
     FlagMissingAccount --> LogGLError
 
-    FinanceResult -->|Period Closed| CheckForcePost{Force post to<br/>next period?}
-    CheckForcePost -->|Yes| PostNextPeriod[Post to Next Open Period<br/>with Effective Date]
+    FinanceResult -->|Period Closed| CheckForcePost{Force post to<br>next period?}
+    CheckForcePost -->|Yes| PostNextPeriod[Post to Next Open Period<br>with Effective Date]
     PostNextPeriod --> NextIntegration
     CheckForcePost -->|No| FlagPeriodClosed[Flag Period Closed Error]
     FlagPeriodClosed --> NotifyFinance
 
-    FinanceResult -->|Currency Error| FlagCurrencyError[Flag Currency Error:<br/>Invalid or Inactive Currency]
+    FinanceResult -->|Currency Error| FlagCurrencyError[Flag Currency Error:<br>Invalid or Inactive Currency]
     FlagCurrencyError --> LogGLError
 
-    FinanceResult -->|Tax Calculation Error| FlagTaxError[Flag Tax Error:<br/>Invalid Tax Code]
+    FinanceResult -->|Tax Calculation Error| FlagTaxError[Flag Tax Error:<br>Invalid Tax Code]
     FlagTaxError --> NotifyFinance
 
-    FinanceResult -->|API Timeout| RetryFinance{Retry<br/>attempt?}
-    RetryFinance -->|< 3 attempts| WaitBackoff[Wait with<br/>Exponential Backoff]
+    FinanceResult -->|API Timeout| RetryFinance{Retry<br>attempt?}
+    RetryFinance -->|< 3 attempts| WaitBackoff[Wait with<br>Exponential Backoff]
     WaitBackoff --> CallFinanceAPI
 
     RetryFinance -->|>= 3 attempts| FlagTimeout[Flag Timeout Error]
     FlagTimeout --> LogGLError
 
-    FinanceResult -->|Posting Restriction| FlagRestriction[Flag Posting Restriction:<br/>Account Frozen or Inactive]
+    FinanceResult -->|Posting Restriction| FlagRestriction[Flag Posting Restriction:<br>Account Frozen or Inactive]
     FlagRestriction --> NotifyFinance
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1605,62 +1606,62 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Queue Item Created]) --> LoadSLAConfig[Load SLA Configuration:<br/>- Document Type<br/>- Priority Level]
+    Start([Queue Item Created]) --> LoadSLAConfig[Load SLA Configuration:<br>- Document Type<br>- Priority Level]
 
-    LoadSLAConfig --> CalcBusinessHours[Calculate Business Hours:<br/>- Business hours start/end<br/>- Business days<br/>- Exclude holidays]
+    LoadSLAConfig --> CalcBusinessHours[Calculate Business Hours:<br>- Business hours start/end<br>- Business days<br>- Exclude holidays]
 
-    CalcBusinessHours --> CalcDeadline[Calculate SLA Deadline:<br/>submission_timestamp +<br/>target_approval_hours<br/>in business hours]
+    CalcBusinessHours --> CalcDeadline[Calculate SLA Deadline:<br>submission_timestamp +<br>target_approval_hours<br>in business hours]
 
-    CalcDeadline --> SetDeadline[Set sla_deadline in<br/>approval_queue_items]
-    SetDeadline --> StartMonitoring[Start SLA Monitoring<br/>Background Job]
+    CalcDeadline --> SetDeadline[Set sla_deadline in<br>approval_queue_items]
+    SetDeadline --> StartMonitoring[Start SLA Monitoring<br>Background Job]
 
-    StartMonitoring --> MonitorLoop{Queue Item<br/>Status}
+    StartMonitoring --> MonitorLoop{Queue Item<br>Status}
 
-    MonitorLoop -->|Pending or Under Review| CheckSLAProgress{SLA<br/>Progress}
+    MonitorLoop -->|Pending or Under Review| CheckSLAProgress{SLA<br>Progress}
 
     CheckSLAProgress -->|< Approaching Threshold| Continue[Continue Monitoring]
     Continue --> Wait[Wait 5 minutes]
     Wait --> MonitorLoop
 
-    CheckSLAProgress -->|>= Approaching Threshold| CheckNotifySent{Approaching<br/>notification sent?}
+    CheckSLAProgress -->|>= Approaching Threshold| CheckNotifySent{Approaching<br>notification sent?}
     CheckNotifySent -->|Yes| CheckEscalation
-    CheckNotifySent -->|No| SendApproaching[Send Approaching SLA<br/>Notification to Approver]
+    CheckNotifySent -->|No| SendApproaching[Send Approaching SLA<br>Notification to Approver]
     SendApproaching --> LogNotification[Log Notification Sent]
     LogNotification --> CheckEscalation
 
-    CheckEscalation{>= Escalation<br/>Threshold}
+    CheckEscalation{>= Escalation<br>Threshold}
     CheckEscalation -->|No| Continue
-    CheckEscalation -->|Yes| CheckEscalationSent{Escalation<br/>sent?}
+    CheckEscalation -->|Yes| CheckEscalationSent{Escalation<br>sent?}
     CheckEscalationSent -->|Yes| CheckBreach
-    CheckEscalationSent -->|No| SendEscalation[Send Escalation to:<br/>- Escalation Level 1 Role<br/>- Approver's Manager]
+    CheckEscalationSent -->|No| SendEscalation[Send Escalation to:<br>- Escalation Level 1 Role<br>- Approver's Manager]
 
-    SendEscalation --> UpdateEscalation[Update Queue Item:<br/>sla_escalation_sent=true<br/>sla_escalation_sent_at]
-    UpdateEscalation --> CheckMultiLevel{Multiple escalation<br/>levels configured?}
+    SendEscalation --> UpdateEscalation[Update Queue Item:<br>sla_escalation_sent=true<br>sla_escalation_sent_at]
+    UpdateEscalation --> CheckMultiLevel{Multiple escalation<br>levels configured?}
 
-    CheckMultiLevel -->|Yes| ScheduleLevel2[Schedule Level 2 Escalation<br/>after interval hours]
+    CheckMultiLevel -->|Yes| ScheduleLevel2[Schedule Level 2 Escalation<br>after interval hours]
     ScheduleLevel2 --> CheckBreach
     CheckMultiLevel -->|No| CheckBreach
 
-    CheckBreach{SLA<br/>Breach}
+    CheckBreach{SLA<br>Breach}
     CheckBreach -->|No| Continue
-    CheckBreach -->|Yes| SendBreachNotif[Send SLA Breach<br/>Notification to:<br/>- Approver<br/>- Manager<br/>- System Admin]
+    CheckBreach -->|Yes| SendBreachNotif[Send SLA Breach<br>Notification to:<br>- Approver<br>- Manager<br>- System Admin]
 
-    SendBreachNotif --> LogBreach[Log SLA Breach Event:<br/>- Time breached<br/>- Total delay<br/>- Responsible party]
-    LogBreach --> FlagOverdue[Flag Queue Item:<br/>is_overdue=true]
+    SendBreachNotif --> LogBreach[Log SLA Breach Event:<br>- Time breached<br>- Total delay<br>- Responsible party]
+    LogBreach --> FlagOverdue[Flag Queue Item:<br>is_overdue=true]
     FlagOverdue --> Continue
 
-    MonitorLoop -->|Awaiting Info| PauseSLA[Pause SLA Timer:<br/>sla_paused_at=NOW]
+    MonitorLoop -->|Awaiting Info| PauseSLA[Pause SLA Timer:<br>sla_paused_at=NOW]
     PauseSLA --> CalculatePaused[Track sla_paused_duration]
     CalculatePaused --> WaitResume[Wait for Status Change]
-    WaitResume --> StatusChange{Status<br/>Changed}
+    WaitResume --> StatusChange{Status<br>Changed}
 
-    StatusChange -->|Back to Pending| ResumeSLA[Resume SLA Timer:<br/>Add paused duration<br/>to deadline]
+    StatusChange -->|Back to Pending| ResumeSLA[Resume SLA Timer:<br>Add paused duration<br>to deadline]
     ResumeSLA --> MonitorLoop
     StatusChange -->|Other| MonitorLoop
 
     MonitorLoop -->|Approved| StopMonitoring[Stop SLA Monitoring]
-    StopMonitoring --> CalcDuration[Calculate Actual<br/>Approval Duration]
-    CalcDuration --> RecordMetrics[Record SLA Metrics:<br/>- Within SLA?<br/>- Time taken<br/>- Escalations needed]
+    StopMonitoring --> CalcDuration[Calculate Actual<br>Approval Duration]
+    CalcDuration --> RecordMetrics[Record SLA Metrics:<br>- Within SLA?<br>- Time taken<br>- Escalations needed]
     RecordMetrics --> EndSuccess([End: SLA Complete])
 
     MonitorLoop -->|Rejected or Recalled| StopMonitoring
@@ -1712,73 +1713,73 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Error Occurs]) --> ClassifyError{Error<br/>Type}
+    Start([Error Occurs]) --> ClassifyError{Error<br>Type}
 
-    ClassifyError -->|Validation Error| HandleValidation[Validation Error:<br/>- Invalid data<br/>- Missing required fields<br/>- Business rule violation]
-    HandleValidation --> DisplayValidation[Display Inline Error<br/>Messages to User]
-    DisplayValidation --> AllowCorrection[Allow User to<br/>Correct Input]
-    AllowCorrection --> RetryOperation[User Retries<br/>Operation]
+    ClassifyError -->|Validation Error| HandleValidation[Validation Error:<br>- Invalid data<br>- Missing required fields<br>- Business rule violation]
+    HandleValidation --> DisplayValidation[Display Inline Error<br>Messages to User]
+    DisplayValidation --> AllowCorrection[Allow User to<br>Correct Input]
+    AllowCorrection --> RetryOperation[User Retries<br>Operation]
 
-    ClassifyError -->|Concurrent Modification| HandleConcurrent[Concurrent Modification:<br/>- Optimistic locking failure<br/>- doc_version mismatch]
+    ClassifyError -->|Concurrent Modification| HandleConcurrent[Concurrent Modification:<br>- Optimistic locking failure<br>- doc_version mismatch]
     HandleConcurrent --> RollbackTxn[ROLLBACK Transaction]
-    RollbackTxn --> RevertOptimistic[Revert Optimistic<br/>UI Update]
-    RevertOptimistic --> DisplayConflict[Display Conflict Error:<br/>Document modified by<br/>another user]
-    DisplayConflict --> SuggestRefresh[Suggest Refresh and<br/>Retry]
+    RollbackTxn --> RevertOptimistic[Revert Optimistic<br>UI Update]
+    RevertOptimistic --> DisplayConflict[Display Conflict Error:<br>Document modified by<br>another user]
+    DisplayConflict --> SuggestRefresh[Suggest Refresh and<br>Retry]
 
-    ClassifyError -->|Database Error| HandleDatabase[Database Error:<br/>- Connection timeout<br/>- Query timeout<br/>- Deadlock]
-    HandleDatabase --> CheckRetryable{Retryable<br/>Error?}
-    CheckRetryable -->|Yes| ExponentialBackoff[Wait with<br/>Exponential Backoff<br/>1s, 2s, 4s, 8s]
-    ExponentialBackoff --> RetryDatabase{Retry<br/>Attempt}
+    ClassifyError -->|Database Error| HandleDatabase[Database Error:<br>- Connection timeout<br>- Query timeout<br>- Deadlock]
+    HandleDatabase --> CheckRetryable{Retryable<br>Error?}
+    CheckRetryable -->|Yes| ExponentialBackoff[Wait with<br>Exponential Backoff<br>1s, 2s, 4s, 8s]
+    ExponentialBackoff --> RetryDatabase{Retry<br>Attempt}
     RetryDatabase -->|< Max Retries| RetryOperation
     RetryDatabase -->|>= Max Retries| PermanentFailure
 
-    CheckRetryable -->|No| PermanentFailure[Permanent Database<br/>Failure]
-    PermanentFailure --> LogCriticalError[Log Critical Error<br/>with Stack Trace]
+    CheckRetryable -->|No| PermanentFailure[Permanent Database<br>Failure]
+    PermanentFailure --> LogCriticalError[Log Critical Error<br>with Stack Trace]
     LogCriticalError --> NotifyDevOps[Notify DevOps Team]
-    NotifyDevOps --> DisplaySystemError[Display System Error<br/>to User]
-    DisplaySystemError --> SuggestContactSupport[Suggest Contact<br/>Support]
+    NotifyDevOps --> DisplaySystemError[Display System Error<br>to User]
+    DisplaySystemError --> SuggestContactSupport[Suggest Contact<br>Support]
 
-    ClassifyError -->|Integration Error| HandleIntegration[Integration Error:<br/>- Budget System timeout<br/>- Inventory System error<br/>- Finance System unavailable]
-    HandleIntegration --> CheckIntegrationType{Integration<br/>Type}
+    ClassifyError -->|Integration Error| HandleIntegration[Integration Error:<br>- Budget System timeout<br>- Inventory System error<br>- Finance System unavailable]
+    HandleIntegration --> CheckIntegrationType{Integration<br>Type}
 
-    CheckIntegrationType -->|Budget| RetryBudget[Retry Budget Integration<br/>up to 3 times]
+    CheckIntegrationType -->|Budget| RetryBudget[Retry Budget Integration<br>up to 3 times]
     RetryBudget --> BudgetRetryResult{Success?}
     BudgetRetryResult -->|Yes| ContinueApproval
     BudgetRetryResult -->|No| FlagBudgetError[Flag Budget Error]
-    FlagBudgetError --> QueueManualReview[Add to Manual Review<br/>Queue]
-    QueueManualReview --> NotifyApprover[Notify Approver:<br/>Partial Success<br/>Manual Review Needed]
-    NotifyApprover --> ContinueApproval[Continue Approval<br/>Process]
+    FlagBudgetError --> QueueManualReview[Add to Manual Review<br>Queue]
+    QueueManualReview --> NotifyApprover[Notify Approver:<br>Partial Success<br>Manual Review Needed]
+    NotifyApprover --> ContinueApproval[Continue Approval<br>Process]
 
-    CheckIntegrationType -->|Inventory| RetryInventory[Retry Inventory Integration<br/>up to 3 times]
+    CheckIntegrationType -->|Inventory| RetryInventory[Retry Inventory Integration<br>up to 3 times]
     RetryInventory --> InventoryRetryResult{Success?}
     InventoryRetryResult -->|Yes| ContinueApproval
     InventoryRetryResult -->|No| FlagInventoryError[Flag Inventory Error]
     FlagInventoryError --> QueueManualReview
 
-    CheckIntegrationType -->|Finance| RetryFinance[Retry Finance Integration<br/>up to 3 times]
+    CheckIntegrationType -->|Finance| RetryFinance[Retry Finance Integration<br>up to 3 times]
     RetryFinance --> FinanceRetryResult{Success?}
     FinanceRetryResult -->|Yes| ContinueApproval
     FinanceRetryResult -->|No| FlagFinanceError[Flag Finance Error]
     FlagFinanceError --> QueueManualReview
 
-    ClassifyError -->|Authorization Error| HandleAuthorization[Authorization Error:<br/>- Insufficient authority<br/>- User not assigned<br/>- Delegation expired]
-    HandleAuthorization --> DisplayAuthError[Display Authorization<br/>Error to User]
-    DisplayAuthError --> SuggestContact[Suggest Contact<br/>Manager or Admin]
+    ClassifyError -->|Authorization Error| HandleAuthorization[Authorization Error:<br>- Insufficient authority<br>- User not assigned<br>- Delegation expired]
+    HandleAuthorization --> DisplayAuthError[Display Authorization<br>Error to User]
+    DisplayAuthError --> SuggestContact[Suggest Contact<br>Manager or Admin]
 
-    ClassifyError -->|SLA Breach| HandleSLA[SLA Breach:<br/>- Approval overdue<br/>- Response deadline missed]
-    HandleSLA --> SendBreachNotif[Send SLA Breach<br/>Notifications]
+    ClassifyError -->|SLA Breach| HandleSLA[SLA Breach:<br>- Approval overdue<br>- Response deadline missed]
+    HandleSLA --> SendBreachNotif[Send SLA Breach<br>Notifications]
     SendBreachNotif --> LogSLABreach[Log SLA Breach Event]
-    LogSLABreach --> ContinueProcess[Continue Approval<br/>Process]
+    LogSLABreach --> ContinueProcess[Continue Approval<br>Process]
 
-    ClassifyError -->|Workflow Error| HandleWorkflow[Workflow Error:<br/>- Routing failure<br/>- Invalid workflow state<br/>- Missing approver]
-    HandleWorkflow --> FallbackWorkflow[Use Fallback<br/>Workflow Routing]
+    ClassifyError -->|Workflow Error| HandleWorkflow[Workflow Error:<br>- Routing failure<br>- Invalid workflow state<br>- Missing approver]
+    HandleWorkflow --> FallbackWorkflow[Use Fallback<br>Workflow Routing]
     FallbackWorkflow --> NotifyAdmin[Notify System Admin]
     NotifyAdmin --> ContinueProcess
 
-    ClassifyError -->|Unknown Error| HandleUnknown[Unknown Error:<br/>- Unexpected exception<br/>- Unhandled case]
-    HandleUnknown --> LogDetailedError[Log Detailed Error:<br/>- Stack trace<br/>- Request context<br/>- User info<br/>- Timestamp]
-    LogDetailedError --> SendErrorReport[Send Error Report<br/>to Sentry]
-    SendErrorReport --> DisplayGenericError[Display Generic Error<br/>to User]
+    ClassifyError -->|Unknown Error| HandleUnknown[Unknown Error:<br>- Unexpected exception<br>- Unhandled case]
+    HandleUnknown --> LogDetailedError[Log Detailed Error:<br>- Stack trace<br>- Request context<br>- User info<br>- Timestamp]
+    LogDetailedError --> SendErrorReport[Send Error Report<br>to Sentry]
+    SendErrorReport --> DisplayGenericError[Display Generic Error<br>to User]
     DisplayGenericError --> SuggestContactSupport
 
     ContinueApproval --> EndRecovery([End: Recovered])

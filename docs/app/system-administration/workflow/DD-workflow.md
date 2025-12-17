@@ -15,6 +15,7 @@ This document defines the complete data definition for the Workflow Management m
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -71,7 +72,7 @@ This document defines the complete data definition for the Workflow Management m
       "sla": 4,
       "slaUnit": "hours",
       "roleType": "requester",
-      "availableActions": ["Submit"],
+      "availableActions": ['Submit'],
       "hideFields": {
         "pricePerUnit": false,
         "totalPrice": false
@@ -110,8 +111,8 @@ This document defines the complete data definition for the Workflow Management m
       "id": 1,
       "event": "Request Submitted",
       "eventTrigger": "onSubmit",
-      "recipients": ["Requester", "Purchasing Staff"],
-      "channels": ["Email", "System"],
+      "recipients": ['Requester', 'Purchasing Staff'],
+      "channels": ['Email', 'System'],
       "templateId": 1
     }
   ],
@@ -1193,7 +1194,7 @@ VALUES
         "sla": 4,
         "slaUnit": "hours",
         "roleType": "requester",
-        "availableActions": ["Submit"],
+        "availableActions": ['Submit'],
         "hideFields": {"pricePerUnit": false, "totalPrice": false},
         "assignedUsers": []
       },
@@ -1248,7 +1249,7 @@ WHERE is_active = true AND deleted_at IS NULL;
 -- Fast lookup in JSON data
 SELECT id, name
 FROM tb_workflow
-WHERE data @> '{"stages": [{"roleType": "approver"}]}';
+WHERE data @> '{"stages": [{'roleType': 'approver'}]}';
 -- Uses: idx_workflow_data_gin
 ```
 

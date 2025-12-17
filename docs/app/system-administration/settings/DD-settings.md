@@ -9,6 +9,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -263,8 +264,8 @@ CREATE INDEX idx_security_settings_ip_enabled ON tb_security_settings USING GIN 
 {
   "enabled": true,
   "required": false,
-  "requiredForRoles": ["system-admin", "financial-manager"],
-  "methods": ["authenticator", "sms", "email"],
+  "requiredForRoles": ['system-admin', 'financial-manager'],
+  "methods": ['authenticator', 'sms', 'email'],
   "gracePeriodDays": 7
 }
 
@@ -294,7 +295,7 @@ CREATE INDEX idx_security_settings_ip_enabled ON tb_security_settings USING GIN 
 // auditLogging
 {
   "enabled": true,
-  "events": ["login", "logout", "dataAccess", "dataModification", "settingsChange"],
+  "events": ["login", "logout", 'dataAccess', 'dataModification', 'settingsChange'],
   "retentionDays": 365
 }
 
@@ -531,7 +532,7 @@ CREATE INDEX idx_email_template_search ON tb_email_template
   {
     "name": "requestId",
     "description": "Purchase request ID",
-    "example": "PR-2024-001",
+    "example": "PR-2401-0001",
     "required": true
   }
 ]
@@ -615,7 +616,7 @@ CREATE INDEX idx_routing_rule_conditions ON tb_notification_routing_rule USING G
     "type": "notify",
     "recipientType": "role",
     "recipient": "role-002",
-    "channels": ["email", "sms"]
+    "channels": ['email', 'sms']
   }
 ]
 ```
@@ -680,14 +681,14 @@ CREATE INDEX idx_escalation_policy_stages ON tb_escalation_policy USING GIN (sta
     "level": 1,
     "delayMinutes": 0,
     "recipientRole": "role-018",
-    "channels": ["email", "in-app"],
+    "channels": ['email', 'in-app'],
     "condition": "unacknowledged"
   },
   {
     "level": 2,
     "delayMinutes": 1440,
     "recipientRole": "role-008",
-    "channels": ["email", "sms", "in-app"],
+    "channels": ['email', 'sms', 'in-app'],
     "condition": "unacknowledged"
   }
 ]

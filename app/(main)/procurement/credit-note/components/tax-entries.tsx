@@ -9,8 +9,8 @@ const formatNumber = (number: number, decimals = 2) => {
 // Mock tax data
 const taxData = {
   documentInfo: {
-    creditNote: 'CN-2024-001',
-    taxInvoice: 'TAX-2024-001',
+    creditNote: 'CN-2410-001',
+    taxInvoice: 'TAX-2410-001',
     date: '2024-10-23',
     vendor: {
       name: 'ABC Suppliers',

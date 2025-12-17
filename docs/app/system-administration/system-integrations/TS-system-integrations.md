@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Implementation Status**: Partially Implemented (POS Integration Active)
 
@@ -344,9 +345,9 @@ const filterGroups: FilterGroup[] = [
     label: "Status",
     type: "multiple",
     options: [
-      { id: "mapped", label: "Mapped", value: "mapped" },
-      { id: "unmapped", label: "Unmapped", value: "unmapped" },
-      { id: "error", label: "Error", value: "error" },
+      { id: 'mapped', label: 'Mapped', value: 'mapped' },
+      { id: 'unmapped', label: 'Unmapped', value: 'unmapped' },
+      { id: 'error', label: 'Error', value: 'error' },
     ],
   },
   {
@@ -434,15 +435,15 @@ export const recipeMappings: RecipeMapping[] = [
 ]
 
 export const categories = [
-  { id: "main-course", name: "Main Course" },
-  { id: "starters", name: "Starters" },
-  { id: "beverages", name: "Beverages" },
+  { id: 'main-course', name: 'Main Course' },
+  { id: 'starters', name: 'Starters' },
+  { id: 'beverages', name: 'Beverages' },
   // ...
 ]
 
 export const locations = [
-  { id: "loc-001", name: "Main Restaurant" },
-  { id: "loc-002", name: "Lobby Bar" },
+  { id: 'loc-001', name: 'Main Restaurant' },
+  { id: 'loc-002', name: 'Lobby Bar' },
   // ...
 ]
 ```
@@ -593,7 +594,7 @@ const columns: ColumnDef<RecipeMapping>[] = [
     cell: ({ row }) => (
       <RowActions
         onAction={(action) => handleRowAction(action, row.original)}
-        availableActions={["edit", "delete", "history", "test"]}
+        availableActions={["edit", 'delete', 'history', 'test']}
       />
     ),
   },
@@ -666,22 +667,22 @@ export function RowActions({ onAction, availableActions }: RowActionsProps) {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        {availableActions.includes("edit") && (
+        {availableActions.includes('edit') && (
           <DropdownMenuItem onClick={() => onAction("edit")}>
             <Pencil className="mr-2 h-4 w-4" /> Edit
           </DropdownMenuItem>
         )}
-        {availableActions.includes("delete") && (
+        {availableActions.includes('delete') && (
           <DropdownMenuItem onClick={() => onAction("delete")}>
             <Trash2 className="mr-2 h-4 w-4" /> Delete
           </DropdownMenuItem>
         )}
-        {availableActions.includes("history") && (
+        {availableActions.includes('history') && (
           <DropdownMenuItem onClick={() => onAction("history")}>
             <History className="mr-2 h-4 w-4" /> History
           </DropdownMenuItem>
         )}
-        {availableActions.includes("test") && (
+        {availableActions.includes('test') && (
           <DropdownMenuItem onClick={() => onAction("test")}>
             <Play className="mr-2 h-4 w-4" /> Test
           </DropdownMenuItem>
@@ -740,10 +741,10 @@ export default function POSConfigPage() {
 
   // Field mapping state
   const [fieldMappings, setFieldMappings] = useState([
-    { id: "1", posField: "item_code", systemField: "posItemCode", dataType: "string", required: true },
-    { id: "2", posField: "description", systemField: "posDescription", dataType: "string", required: true },
-    { id: "3", posField: "price", systemField: "price", dataType: "decimal", required: true },
-    { id: "4", posField: "quantity", systemField: "quantity", dataType: "decimal", required: true },
+    { id: '1', posField: 'item_code', systemField: 'posItemCode', dataType: 'string', required: true },
+    { id: '2', posField: 'description', systemField: 'posDescription', dataType: 'string', required: true },
+    { id: '3', posField: 'price', systemField: 'price', dataType: 'decimal', required: true },
+    { id: '4', posField: 'quantity', systemField: 'quantity', dataType: 'decimal', required: true },
   ])
 
   return (
@@ -1272,10 +1273,10 @@ test.describe('Recipe Mapping', () => {
 
     await page.click('text=Add Recipe Mapping')
 
-    await page.fill('[name="posItemCode"]', 'POS888')
-    await page.fill('[name="posDescription"]', 'E2E Test Item')
-    await page.selectOption('[name="recipeCode"]', 'RCP001')
-    await page.fill('[name="conversionRate"]', '1')
+    await page.fill('[name='posItemCode']', 'POS888')
+    await page.fill('[name='posDescription']', 'E2E Test Item')
+    await page.selectOption('[name='recipeCode']', 'RCP001')
+    await page.fill('[name='conversionRate']', '1')
 
     await page.click('text=Save Mapping')
 
@@ -1290,7 +1291,7 @@ test.describe('Recipe Mapping', () => {
     await page.click('text=Unmapped')
 
     // All visible rows should have unmapped status
-    const statusBadges = await page.locator('[class*="bg-amber"]').all()
+    const statusBadges = await page.locator('[class*='bg-amber']').all()
     expect(statusBadges.length).toBeGreaterThan(0)
   })
 })
@@ -1307,38 +1308,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/system-administration/system-integrations)"]
-    CreatePage["Create Page<br/>(/system-administration/system-integrations/new)"]
-    DetailPage["Detail Page<br/>(/system-administration/system-integrations/[id])"]
-    EditPage["Edit Page<br/>(/system-administration/system-integrations/[id]/edit)"]
+    ListPage['List Page<br>(/system-administration/system-integrations)']
+    CreatePage['Create Page<br>(/system-administration/system-integrations/new)']
+    DetailPage["Detail Page<br>(/system-administration/system-integrations/[id])"]
+    EditPage["Edit Page<br>(/system-administration/system-integrations/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage

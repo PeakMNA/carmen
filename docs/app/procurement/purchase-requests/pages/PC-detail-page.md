@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|-----------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-10-31 | Content Team | Initial version from TS specification |
 
 ---
@@ -34,7 +35,7 @@
 
 ### Page Title
 **Text**: Purchase Request {PR Number}
-**Example**: Purchase Request PR-2024-000123
+**Example**: Purchase Request PR-2401-0123
 **Style**: H1, bold, text-gray-900
 **Location**: Top left of page
 
@@ -101,7 +102,7 @@ This purchase request was rejected. Reason: {Rejection reason}. You can edit and
 
 | Field Label | Display Format | Example |
 |-------------|----------------|---------|
-| PR Number | PR-YYYY-NNNNNN | PR-2024-000123 |
+| PR Number | PR-YYMM-NNNN | PR-2401-0123 |
 | PR Type | Badge with icon | General, Market List, Asset |
 | Date Created | DD MMM YYYY, HH:mm | 15 Jan 2024, 14:30 |
 | Status | Badge with color coding | Draft (gray), Pending Approval (blue), etc. |
@@ -139,7 +140,7 @@ This purchase request was rejected. Reason: {Rejection reason}. You can edit and
 | Column | Display Format | Example |
 |--------|----------------|---------|
 | # | Sequence number | 1, 2, 3 |
-| Item Name | Product name<br/>(Product code) | Fresh Tomatoes<br/>(VEG-001) |
+| Item Name | Product name<br>(Product code) | Fresh Tomatoes<br>(VEG-001) |
 | Description | Specification text | Red, Firm, Grade A |
 | Quantity | Number + Unit abbreviation | 10 kg |
 | Unit Price | $X,XXX.XX or CURRENCY X,XXX.XX | $5.50 |
@@ -399,14 +400,14 @@ Related purchase orders and templates will appear here.
 **Document Link Format**:
 | Document Type | Display Format | Example |
 |---------------|----------------|---------|
-| Created PO | PO-YYYY-NNNNNN • Created {date} | PO-2024-000456 • Created 16 Jan 2024 |
+| Created PO | PO-YYMM-NNNN • Created {date} | PO-2401-0456 • Created 16 Jan 2024 |
 | Source Template | Template: {Template Name} | Template: Weekly Produce Order |
 | Created Template | Saved as Template: {Template Name} | Saved as Template: Market List Standard |
 
 **Example**:
 ```
 Purchase Orders:
-  🔗 PO-2024-000456 • Created 16 Jan 2024 • Status: Approved
+  🔗 PO-2401-0456 • Created 16 Jan 2024 • Status: Approved
 
 Templates:
   🔗 Source: Weekly Produce Order template
@@ -431,7 +432,7 @@ You are about to approve this purchase request. Please review the details and ad
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Requestor**: {Requestor name}
 - **Total Amount**: {$X,XXX.XX}
 - **Items**: {X} item(s)
@@ -464,7 +465,7 @@ You are about to reject this purchase request. Please provide a reason for rejec
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Requestor**: {Requestor name}
 - **Total Amount**: {$X,XXX.XX}
 
@@ -534,7 +535,7 @@ You are about to recall this purchase request from the approval process. It will
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Current Approver**: {Approver name} ({Role})
 - **Total Amount**: {$X,XXX.XX}
 
@@ -566,7 +567,7 @@ You are about to cancel this purchase request. This action cannot be undone. Can
 ```
 
 **Details Display**:
-- **PR Number**: {PR-YYYY-NNNNNN}
+- **PR Number**: {PR-YYMM-NNNN}
 - **Total Amount**: {$X,XXX.XX}
 - **Items**: {X} item(s)
 
@@ -721,8 +722,8 @@ Save this purchase request as a reusable template for recurring orders. Template
 ### Link Text
 | Link | Text | Destination |
 |------|------|-------------|
-| PR number link | {PR-YYYY-NNNNNN} | PR detail page (self) |
-| PO link | PO-{YYYY-NNNNNN} | PO detail page |
+| PR number link | {PR-YYMM-NNNN} | PR detail page (self) |
+| PO link | PO-{YYMM-NNNN} | PO detail page |
 | Template link | Template: {Template name} | Template detail/edit |
 | Breadcrumb - Purchase Requests | Purchase Requests | Purchase requests list page |
 
@@ -787,8 +788,8 @@ Save this purchase request as a reusable template for recurring orders. Template
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| PR-YYYY-NNNNNN | System-generated reference format |
-| PO-YYYY-NNNNNN | System-generated reference format |
+| PR-YYMM-NNNN | System-generated reference format |
+| PO-YYMM-NNNN | System-generated reference format |
 | $, USD, EUR | Currency symbols and codes |
 | DD MMM YYYY | Standardized date format |
 | Timestamps | System-generated times |

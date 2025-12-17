@@ -1,13 +1,38 @@
+/**
+ * Store Requisition Detail Component
+ *
+ * Displays and manages individual store requisition records with full workflow support.
+ *
+ * LOCATION TYPE AWARE ISSUE PROCESSING:
+ * The issue process handles items differently based on the destination location type:
+ *
+ * - INVENTORY: Standard issue process
+ *   - Creates inventory transaction with FIFO costing
+ *   - Updates stock balance
+ *   - GL: Debit Department Expense, Credit Inventory Asset
+ *
+ * - DIRECT: Simplified issue (items already expensed)
+ *   - No stock movement created (items expensed on receipt)
+ *   - Records for operational metrics only
+ *   - GL: No additional journal entry needed
+ *
+ * - CONSIGNMENT: Vendor-owned issue
+ *   - Creates inventory transaction
+ *   - Updates vendor-owned stock balance
+ *   - Triggers vendor notification
+ *   - GL: Debit Department Expense, Credit Consignment Liability
+ */
+
 'use client'
 
 import React, { useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { 
-  ChevronLeft, 
-  Printer, 
-  Edit2, 
+import {
+  ChevronLeft,
+  Printer,
+  Edit2,
   XCircle,
   MessageSquarePlus,
   Calendar,
@@ -34,11 +59,22 @@ import {
   PanelRightClose,
   CheckCircle,
   UserCheck,
+  User,
   Clock,
   Undo2,
-  Copy,
-  MoreHorizontal
+  MoreHorizontal,
+  Package,
+  DollarSign,
+  Truck
 } from 'lucide-react'
+import { InventoryLocationType } from '@/lib/types/location-management'
+import {
+  shouldRecordStockMovement,
+  getIssueProcessBehavior,
+  requiresVendorNotification,
+  getLocationTypeLabel,
+} from '@/lib/utils/location-type-helpers'
+import { LocationTypeBadge, LocationTypeAlert } from '@/components/location-type-badge'
 import { useRouter } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -54,20 +90,128 @@ import { Input } from '@/components/ui/input'
 import { ApprovalLogDialog } from './approval-log-dialog'
 import { JournalEntriesTab } from './tabs/journal-entries-tab'
 import { ApprovalWorkflow } from './approval-workflow'
+import { formatNumber, formatCurrency } from '@/lib/utils/formatters'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from '@/components/ui/command'
+import { mockProducts } from '@/lib/mock-data/products'
+import { mockDepartments } from '@/lib/mock-data'
+import { ChevronsUpDown, Search } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
+import { Label } from '@/components/ui/label'
+
+/**
+ * Convert string location type to InventoryLocationType enum
+ *
+ * Maps legacy string values (used in mock data) to the standardized enum.
+ * This helper ensures backward compatibility with existing data structures.
+ *
+ * @param locationType - String location type ('inventory', 'direct', 'consignment')
+ * @returns InventoryLocationType enum value
+ */
+function parseLocationType(locationType: string): InventoryLocationType {
+  switch (locationType.toLowerCase()) {
+    case 'inventory':
+    case 'inv':
+      return InventoryLocationType.INVENTORY
+    case 'direct':
+    case 'dir':
+      return InventoryLocationType.DIRECT
+    case 'consignment':
+    case 'con':
+      return InventoryLocationType.CONSIGNMENT
+    default:
+      // Default to INVENTORY for unknown types
+      return InventoryLocationType.INVENTORY
+  }
+}
+
+/**
+ * Get location type icon component
+ *
+ * Returns the appropriate Lucide icon for the location type.
+ *
+ * @param locationType - String location type
+ * @returns JSX element with the appropriate icon
+ */
+function getLocationTypeIcon(locationType: string) {
+  const enumType = parseLocationType(locationType)
+  switch (enumType) {
+    case InventoryLocationType.INVENTORY:
+      return <Package className="h-4 w-4" />
+    case InventoryLocationType.DIRECT:
+      return <DollarSign className="h-4 w-4" />
+    case InventoryLocationType.CONSIGNMENT:
+      return <Truck className="h-4 w-4" />
+  }
+}
+
+// Mock Job Codes
+interface JobCode {
+  id: string
+  code: string
+  name: string
+  description: string
+  isActive: boolean
+}
+
+const initialJobCodes: JobCode[] = [
+  { id: 'job-001', code: 'N/A', name: 'Not Available', description: 'No specific job code assigned', isActive: true },
+  { id: 'job-002', code: 'EVT-001', name: 'Monthly Event', description: 'Regular monthly events and functions', isActive: true },
+  { id: 'job-003', code: 'EVT-002', name: 'Special Occasion', description: 'Special events like weddings, conferences', isActive: true },
+  { id: 'job-004', code: 'MAINT-001', name: 'Routine Maintenance', description: 'Regular maintenance activities', isActive: true },
+  { id: 'job-005', code: 'MAINT-002', name: 'Emergency Repair', description: 'Urgent repair and maintenance', isActive: true },
+  { id: 'job-006', code: 'PROJ-001', name: 'Renovation 2024', description: 'Property renovation project', isActive: true },
+  { id: 'job-007', code: 'PROJ-002', name: 'Kitchen Upgrade', description: 'Kitchen equipment upgrade project', isActive: true },
+]
+
+// Mock Projects
+interface Project {
+  id: string
+  code: string
+  name: string
+  description: string
+  isActive: boolean
+}
+
+const initialProjects: Project[] = [
+  { id: 'proj-001', code: 'GEN', name: 'General Operations', description: 'Day-to-day operational expenses', isActive: true },
+  { id: 'proj-002', code: 'REN-2024', name: 'Renovation 2024', description: '2024 property renovation project', isActive: true },
+  { id: 'proj-003', code: 'EXP-Q1', name: 'Q1 Expansion', description: 'First quarter expansion initiative', isActive: true },
+  { id: 'proj-004', code: 'SUST', name: 'Sustainability', description: 'Green and sustainability initiatives', isActive: true },
+  { id: 'proj-005', code: 'TECH', name: 'Technology Upgrade', description: 'IT and technology improvements', isActive: true },
+  { id: 'proj-006', code: 'TRAIN', name: 'Staff Training', description: 'Training and development programs', isActive: true },
+]
 
 interface StoreRequisitionDetailProps {
   id: string
 }
 
 interface ItemInfo {
-  location: string
-  locationCode: string
+  // location and locationCode removed - now at document level (sourceLocationName, sourceLocationCode)
   itemName: string
   category: string
   subCategory: string
   itemGroup: string
   barCode: string
-  locationType: string
 }
 
 interface InventoryInfo {
@@ -92,6 +236,9 @@ interface RequisitionItem {
   taxRate: number  // Tax rate as percentage (e.g., 7 for 7%)
   discountRate: number  // Discount rate as percentage (e.g., 5 for 5%)
   approvalStatus: 'Pending' | 'Approved' | 'Reject' | 'Review'
+  // Business Dimensions - item level
+  jobCodeId: string
+  projectId: string
 }
 
 // This would come from your API/database
@@ -102,18 +249,28 @@ const mockRequisition: {
   movementType: string
   description: string
   requestedFrom: string
+  sourceLocationId: string
+  sourceLocationCode: string
+  sourceLocationName: string
+  sourceLocationType: InventoryLocationType
+  requestedBy: string
   department: string
   jobCode: string
   process: string
   status: string
   items: RequisitionItem[]
 } & Record<string, any> = {
-  refNo: 'SR-2024-001',
+  refNo: 'SR-2410-001',
   date: '2024-01-15',
   expectedDeliveryDate: '2024-01-20',
   movementType: 'Issue',
   description: 'Monthly supplies request',
   requestedFrom: 'M01 : Main Store',
+  sourceLocationId: 'loc-001',
+  sourceLocationCode: 'M01',
+  sourceLocationName: 'Main Store',
+  sourceLocationType: InventoryLocationType.INVENTORY,
+  requestedBy: 'Chef Maria Rodriguez',
   department: 'F&B Operations',
   jobCode: 'N/A : Not Available',
   process: '',
@@ -135,19 +292,18 @@ const mockRequisition: {
         lastVendor: 'Thai Beverages Co.'
       },
       itemInfo: {
-        location: 'Central Kitchen',
-        locationCode: 'CK001',
         itemName: 'Thai Milk Tea',
         category: 'Beverage',
         subCategory: 'Tea',
         itemGroup: 'Packaged Drinks',
-        barCode: '8851234567890',
-        locationType: 'direct'
+        barCode: '8851234567890'
       },
       qtyIssued: 5,
       taxRate: 7, // 7% tax
       discountRate: 2, // 2% discount
-      approvalStatus: 'Approved' as const
+      approvalStatus: 'Approved' as const,
+      jobCodeId: 'job-001',
+      projectId: 'proj-001'
     },
     {
       id: 2,
@@ -165,19 +321,18 @@ const mockRequisition: {
         lastVendor: 'Premium Coffee Supply'
       },
       itemInfo: {
-        location: 'Roastery Store',
-        locationCode: 'RS001',
         itemName: 'Premium Coffee Beans',
         category: 'Beverage',
         subCategory: 'Coffee',
         itemGroup: 'Raw Materials',
-        barCode: '8851234567891',
-        locationType: 'inventory'
+        barCode: '8851234567891'
       },
       qtyIssued: 10,
       taxRate: 7, // 7% tax
       discountRate: 5, // 5% discount
-      approvalStatus: 'Reject' as const
+      approvalStatus: 'Reject' as const,
+      jobCodeId: 'job-002',
+      projectId: 'proj-002'
     },
     {
       id: 3,
@@ -195,19 +350,18 @@ const mockRequisition: {
         lastVendor: 'Packaging Solutions'
       },
       itemInfo: {
-        location: 'Main Warehouse',
-        locationCode: 'MW001',
         itemName: 'Paper Cup 16oz',
         category: 'Packaging',
         subCategory: 'Cups',
         itemGroup: 'Disposables',
-        barCode: '8851234567892',
-        locationType: 'direct'
+        barCode: '8851234567892'
       },
       qtyIssued: 15,
       taxRate: 10, // 10% tax
       discountRate: 3, // 3% discount
-      approvalStatus: 'Approved' as const
+      approvalStatus: 'Approved' as const,
+      jobCodeId: 'job-001',
+      projectId: 'proj-003'
     },
     {
       id: 4,
@@ -225,19 +379,18 @@ const mockRequisition: {
         lastVendor: 'Sweet Supplies Co.'
       },
       itemInfo: {
-        location: 'Central Kitchen',
-        locationCode: 'CK001',
         itemName: 'Chocolate Syrup',
         category: 'Ingredients',
         subCategory: 'Syrups',
         itemGroup: 'Flavorings',
-        barCode: '8851234567893',
-        locationType: 'direct'
+        barCode: '8851234567893'
       },
       qtyIssued: 4,
       taxRate: 7, // 7% tax
       discountRate: 0, // No discount
-      approvalStatus: 'Review' as const
+      approvalStatus: 'Review' as const,
+      jobCodeId: 'job-003',
+      projectId: 'proj-001'
     },
     {
       id: 5,
@@ -255,19 +408,18 @@ const mockRequisition: {
         lastVendor: 'Packaging Solutions'
       },
       itemInfo: {
-        location: 'Main Warehouse',
-        locationCode: 'MW001',
         itemName: 'Plastic Straw',
         category: 'Packaging',
         subCategory: 'Straws',
         itemGroup: 'Disposables',
-        barCode: '8851234567894',
-        locationType: 'direct'
+        barCode: '8851234567894'
       },
       qtyIssued: 20,
       taxRate: 8, // 8% tax
       discountRate: 1, // 1% discount
-      approvalStatus: 'Approved' as const
+      approvalStatus: 'Approved' as const,
+      jobCodeId: 'job-004',
+      projectId: 'proj-001'
     },
     {
       id: 6,
@@ -285,19 +437,18 @@ const mockRequisition: {
         lastVendor: 'Tea Suppliers Inc.'
       },
       itemInfo: {
-        location: 'Central Kitchen',
-        locationCode: 'CK001',
         itemName: 'Green Tea Powder',
         category: 'Beverage',
         subCategory: 'Tea',
         itemGroup: 'Raw Materials',
-        barCode: '8851234567895',
-        locationType: 'direct'
+        barCode: '8851234567895'
       },
       qtyIssued: 3,
       taxRate: 7, // 7% tax
       discountRate: 4, // 4% discount
-      approvalStatus: 'Reject' as const
+      approvalStatus: 'Reject' as const,
+      jobCodeId: 'job-002',
+      projectId: 'proj-004'
     },
     {
       id: 7,
@@ -315,19 +466,18 @@ const mockRequisition: {
         lastVendor: 'Flavor Essentials Ltd.'
       },
       itemInfo: {
-        location: 'Central Kitchen',
-        locationCode: 'CK001',
         itemName: 'Vanilla Extract',
         category: 'Ingredients',
         subCategory: 'Extracts',
         itemGroup: 'Flavorings',
-        barCode: '8851234567896',
-        locationType: 'direct'
+        barCode: '8851234567896'
       },
       qtyIssued: 0,
       taxRate: 6, // 6% tax
       discountRate: 0, // No discount
-      approvalStatus: 'Pending' as const
+      approvalStatus: 'Pending' as const,
+      jobCodeId: 'job-001',
+      projectId: 'proj-001'
     }
   ],
   comments: [
@@ -406,7 +556,7 @@ const mockStockMovements = [
     toLocation: 'Central Kitchen',
     itemName: 'Thai Milk Tea',
     itemDescription: 'Thai Milk Tea (12 pack)',
-    lotNumber: 'LOT-2024-001',
+    lotNumber: 'LOT-2410-001',
     unit: 'Box',
     quantity: 8,
     cost: 120.00,
@@ -419,7 +569,7 @@ const mockStockMovements = [
     toLocation: 'Roastery Store',
     itemName: 'Premium Coffee Beans',
     itemDescription: 'Coffee Beans (1kg)',
-    lotNumber: 'LOT-2024-002',
+    lotNumber: 'LOT-2410-002',
     unit: 'Bag',
     quantity: 15,
     cost: 250.00,
@@ -432,7 +582,7 @@ const mockStockMovements = [
     toLocation: 'Main Warehouse',
     itemName: 'Paper Cup 16oz',
     itemDescription: 'Paper Cups (16oz)',
-    lotNumber: 'LOT-2024-003',
+    lotNumber: 'LOT-2410-003',
     unit: 'Pack',
     quantity: 20,
     cost: 85.00,
@@ -647,10 +797,10 @@ const movements: StockMovement[] = [
       unitCost: item.costPerUnit,
       totalCost: (item.qtyIssued || 0) * item.costPerUnit,
       location: {
-        type: item.itemInfo.locationType === 'inventory' ? 'INV' : 'DIR',
-        code: item.itemInfo.locationCode,
-        name: item.itemInfo.location,
-        displayType: item.itemInfo.locationType === 'inventory' ? 'Inventory' : 'Direct'
+        type: mockRequisition.sourceLocationType === InventoryLocationType.INVENTORY ? 'INV' : 'DIR',
+        code: mockRequisition.sourceLocationCode,
+        name: mockRequisition.sourceLocationName,
+        displayType: mockRequisition.sourceLocationType === InventoryLocationType.INVENTORY ? 'Inventory' : 'Direct'
       },
       lots: [
         {
@@ -684,6 +834,115 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
   const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
   const [sidePanelTab, setSidePanelTab] = useState('comments')
   const [expandedItems, setExpandedItems] = useState<number[]>([])
+
+  // State for adding new item inline
+  const [isAddingItem, setIsAddingItem] = useState(false)
+  const [newItemProductId, setNewItemProductId] = useState<string>('')
+  const [newItemQtyRequired, setNewItemQtyRequired] = useState<number>(1)
+  const [productSearchOpen, setProductSearchOpen] = useState(false)
+  const [newItemJobCodeId, setNewItemJobCodeId] = useState<string>('job-001')
+  const [newItemProjectId, setNewItemProjectId] = useState<string>('proj-001')
+
+  // State for department (header level)
+  const [departmentId, setDepartmentId] = useState<string>('dept-003') // F&B Operations
+
+  // Lookup dropdown open states
+  const [departmentOpen, setDepartmentOpen] = useState(false)
+
+  // CRUD state for Job Codes
+  const [jobCodes, setJobCodes] = useState<JobCode[]>(initialJobCodes)
+  const [showAddJobCodeDialog, setShowAddJobCodeDialog] = useState(false)
+  const [showEditJobCodeDialog, setShowEditJobCodeDialog] = useState(false)
+  const [editingJobCode, setEditingJobCode] = useState<JobCode | null>(null)
+  const [newJobCode, setNewJobCode] = useState({ code: '', name: '', description: '' })
+
+  // CRUD state for Projects
+  const [projects, setProjects] = useState<Project[]>(initialProjects)
+  const [showAddProjectDialog, setShowAddProjectDialog] = useState(false)
+  const [showEditProjectDialog, setShowEditProjectDialog] = useState(false)
+  const [editingProject, setEditingProject] = useState<Project | null>(null)
+  const [newProject, setNewProject] = useState({ code: '', name: '', description: '' })
+
+  // Get display value for department
+  const selectedDepartment = mockDepartments.find(d => d.id === departmentId)
+
+  // CRUD handlers for Job Codes
+  const handleAddJobCode = () => {
+    if (newJobCode.code && newJobCode.name) {
+      const newItem: JobCode = {
+        id: `job-${Date.now()}`,
+        code: newJobCode.code,
+        name: newJobCode.name,
+        description: newJobCode.description,
+        isActive: true
+      }
+      setJobCodes([...jobCodes, newItem])
+      setNewJobCode({ code: '', name: '', description: '' })
+      setShowAddJobCodeDialog(false)
+    }
+  }
+
+  const handleEditJobCode = (job: JobCode) => {
+    setEditingJobCode({ ...job })
+    setShowEditJobCodeDialog(true)
+  }
+
+  const handleSaveJobCode = () => {
+    if (editingJobCode && editingJobCode.code && editingJobCode.name) {
+      setJobCodes(jobCodes.map(j => j.id === editingJobCode.id ? editingJobCode : j))
+      setShowEditJobCodeDialog(false)
+      setEditingJobCode(null)
+    }
+  }
+
+  const handleDeleteJobCode = (jobId: string) => {
+    // Reset any items using this job code to default
+    setItems(items.map(item =>
+      item.jobCodeId === jobId
+        ? { ...item, jobCodeId: 'job-001' }
+        : item
+    ))
+    setJobCodes(jobCodes.filter(j => j.id !== jobId))
+  }
+
+  // CRUD handlers for Projects
+  const handleAddProject = () => {
+    if (newProject.code && newProject.name) {
+      const newItem: Project = {
+        id: `proj-${Date.now()}`,
+        code: newProject.code,
+        name: newProject.name,
+        description: newProject.description,
+        isActive: true
+      }
+      setProjects([...projects, newItem])
+      setNewProject({ code: '', name: '', description: '' })
+      setShowAddProjectDialog(false)
+    }
+  }
+
+  const handleEditProject = (proj: Project) => {
+    setEditingProject({ ...proj })
+    setShowEditProjectDialog(true)
+  }
+
+  const handleSaveProject = () => {
+    if (editingProject && editingProject.code && editingProject.name) {
+      setProjects(projects.map(p => p.id === editingProject.id ? editingProject : p))
+      setShowEditProjectDialog(false)
+      setEditingProject(null)
+    }
+  }
+
+  const handleDeleteProject = (projId: string) => {
+    // Reset any items using this project to default
+    setItems(items.map(item =>
+      item.projectId === projId
+        ? { ...item, projectId: 'proj-001' }
+        : item
+    ))
+    setProjects(projects.filter(p => p.id !== projId))
+  }
 
   const toggleItemExpansion = (itemId: number) => {
     setExpandedItems(prev => 
@@ -752,12 +1011,92 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
   }
 
   const handleQuantityUpdate = (itemId: number, field: 'qtyRequired' | 'qtyApproved' | 'qtyIssued', value: number) => {
-    setItems(items.map(item => 
-      item.id === itemId 
+    setItems(items.map(item =>
+      item.id === itemId
         ? { ...item, [field]: value }
         : item
     ))
   }
+
+  // Handler to update item-level job code
+  const handleUpdateItemJobCode = (itemId: number, newJobCodeId: string) => {
+    setItems(items.map(item =>
+      item.id === itemId
+        ? { ...item, jobCodeId: newJobCodeId }
+        : item
+    ))
+  }
+
+  // Handler to update item-level project
+  const handleUpdateItemProject = (itemId: number, newProjectId: string) => {
+    setItems(items.map(item =>
+      item.id === itemId
+        ? { ...item, projectId: newProjectId }
+        : item
+    ))
+  }
+
+  // Handler to start adding a new item
+  const handleStartAddItem = () => {
+    setIsAddingItem(true)
+    setNewItemProductId('')
+    setNewItemQtyRequired(1)
+  }
+
+  // Handler to cancel adding item
+  const handleCancelAddItem = () => {
+    setIsAddingItem(false)
+    setNewItemProductId('')
+    setNewItemQtyRequired(1)
+  }
+
+  // Handler to confirm and add new item
+  const handleConfirmAddItem = () => {
+    const selectedProduct = mockProducts.find(p => p.id === newItemProductId)
+    if (!selectedProduct) return
+
+    const newId = Math.max(...items.map(i => i.id), 0) + 1
+    const newItem: RequisitionItem = {
+      id: newId,
+      description: selectedProduct.description || selectedProduct.productName,
+      unit: selectedProduct.baseUnit,
+      qtyRequired: newItemQtyRequired,
+      qtyApproved: 0,
+      costPerUnit: selectedProduct.standardCost?.amount || 0,
+      total: (selectedProduct.standardCost?.amount || 0) * newItemQtyRequired,
+      requestDate: new Date().toISOString().split('T')[0],
+      inventory: {
+        onHand: 0,
+        onOrder: 0,
+        lastPrice: selectedProduct.standardCost?.amount || 0,
+        lastVendor: 'N/A'
+      },
+      itemInfo: {
+        // location and locationCode now at document level (sourceLocationName, sourceLocationCode)
+        itemName: selectedProduct.productName,
+        category: selectedProduct.categoryId || 'General',
+        subCategory: 'General',
+        itemGroup: 'General',
+        barCode: selectedProduct.productCode
+      },
+      qtyIssued: 0,
+      taxRate: 7,
+      discountRate: 0,
+      approvalStatus: 'Pending' as const,
+      jobCodeId: newItemJobCodeId,
+      projectId: newItemProjectId
+    }
+
+    setItems([...items, newItem])
+    setIsAddingItem(false)
+    setNewItemProductId('')
+    setNewItemQtyRequired(1)
+    setNewItemJobCodeId('job-001')
+    setNewItemProjectId('proj-001')
+  }
+
+  // Get selected product for display
+  const selectedProduct = mockProducts.find(p => p.id === newItemProductId)
 
   // Dynamic workflow action - single primary action based on status and items
   const getWorkflowActions = () => {
@@ -792,10 +1131,43 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
       }
     }
 
-    // In Process - single action based on item states priority
+    /**
+     * WORKFLOW ACTION DECISION ENGINE
+     * ================================
+     * Determines the primary action button based on item approval statuses.
+     *
+     * Decision Priority (evaluated in order):
+     * ┌────────┬─────────────────────────────┬─────────────────────────────────────┐
+     * │ Priority│ Condition                   │ Action                              │
+     * ├────────┼─────────────────────────────┼─────────────────────────────────────┤
+     * │   1    │ pending > 0                 │ Waiting (disabled) - must review    │
+     * │   2    │ rejected === total          │ Reject Requisition                  │
+     * │   3    │ approved === total          │ Approve All                         │
+     * │   4    │ review > 0                  │ Return for Review                   │
+     * │   5    │ rejected > 0 && approved > 0│ Partial Approve (exclude rejected)  │
+     * │   6    │ approved === 0              │ Reject Requisition                  │
+     * └────────┴─────────────────────────────┴─────────────────────────────────────┘
+     *
+     * Note: "Return for Review" only appears when items have "Review" status,
+     * NOT when items are "Rejected". Rejected items can be excluded via partial approval.
+     */
     else if (requisitionStatus === 'In Process' && canUserApprove) {
-      // Priority 1: If ALL items are rejected, reject the entire requisition
-      if (rejectedItems === totalItems && totalItems > 0) {
+      // Priority 1: Pending items exist - approver must wait for all items to be reviewed first
+      // Rationale: Cannot make approval decision until all items have been evaluated
+      if (pendingItems > 0) {
+        primaryAction = {
+          type: 'waiting',
+          label: `Waiting for Item Review (${pendingItems} pending)`,
+          variant: 'outline',
+          className: 'cursor-not-allowed opacity-60',
+          icon: 'Clock',
+          disabled: true,
+          tooltip: `${pendingItems} items are still pending review. Please review individual items first.`
+        }
+      }
+      // Priority 2: ALL items rejected - only option is to reject entire requisition
+      // Rationale: No items can be fulfilled, requisition cannot proceed
+      else if (rejectedItems === totalItems && totalItems > 0) {
         primaryAction = {
           type: 'reject',
           label: `Reject Requisition (${rejectedItems} items rejected)`,
@@ -806,19 +1178,8 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
           tooltip: `All ${rejectedItems} items have been rejected. Reject the entire requisition.`
         }
       }
-      // Priority 2: If there are rejected or review items (but not all rejected), must return first
-      else if (rejectedItems > 0 || reviewItems > 0) {
-        primaryAction = {
-          type: 'return',
-          label: `Return for Review (${reviewItems + rejectedItems} items)`,
-          variant: 'default',
-          className: 'bg-orange-600 hover:bg-orange-700',
-          icon: 'ArrowLeft',
-          disabled: false,
-          tooltip: `Return ${reviewItems + rejectedItems} items for review and modifications`
-        }
-      }
-      // Priority 3: If all items are approved, can proceed with approval
+      // Priority 3: ALL items approved - proceed with full approval
+      // Rationale: All items passed review, requisition can move to next stage
       else if (approvedItems === totalItems && totalItems > 0) {
         primaryAction = {
           type: 'approve',
@@ -830,19 +1191,35 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
           tooltip: `Approve all ${approvedItems} items and proceed to next stage`
         }
       }
-      // Priority 4: If there are pending items, waiting for item-level decisions
-      else if (pendingItems > 0) {
+      // Priority 4: Items marked for "Review" - return to requester for modifications
+      // Rationale: Review status means items need changes/clarification before approval decision
+      // Note: This does NOT trigger for "Rejected" items - only "Review" status
+      else if (reviewItems > 0) {
         primaryAction = {
-          type: 'waiting',
-          label: `Waiting for Item Review (${pendingItems} pending)`,
-          variant: 'outline',
-          className: 'cursor-not-allowed opacity-60',
-          icon: 'Clock',
-          disabled: true,
-          tooltip: `${pendingItems} items are still pending review. Please review individual items first.`
+          type: 'return',
+          label: `Return for Review (${reviewItems} items)`,
+          variant: 'default',
+          className: 'bg-orange-600 hover:bg-orange-700',
+          icon: 'ArrowLeft',
+          disabled: false,
+          tooltip: `Return ${reviewItems} items for review and modifications`
         }
       }
-      // Priority 5: If no approved items and mixed states, cannot proceed
+      // Priority 5: Mixed state (some approved, some rejected) - allow partial approval
+      // Rationale: Approved items can proceed; rejected items will be excluded from fulfillment
+      else if (rejectedItems > 0 && approvedItems > 0) {
+        primaryAction = {
+          type: 'partial-approve',
+          label: `Approve ${approvedItems} Items`,
+          variant: 'default',
+          className: 'bg-green-600 hover:bg-green-700',
+          icon: 'Check',
+          disabled: false,
+          tooltip: `Approve ${approvedItems} items (${rejectedItems} rejected items will be excluded)`
+        }
+      }
+      // Priority 6: No approved items - reject requisition
+      // Rationale: Nothing to fulfill, requisition cannot proceed
       else if (approvedItems === 0 && totalItems > 0) {
         primaryAction = {
           type: 'reject',
@@ -916,18 +1293,21 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
               <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
               {isEditMode ? (
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <Button 
+                  <Button
                     variant="outline"
                     className="flex items-center justify-center gap-2 border-muted-foreground/20 hover:bg-muted/50"
-                    onClick={() => setIsEditMode(false)}
+                    onClick={() => {
+                      handleCancelAddItem()
+                      setIsEditMode(false)
+                    }}
                   >
                     <X className="w-4 h-4" />
                     <span className="sm:inline">Cancel</span>
                   </Button>
-                  <Button 
+                  <Button
                     className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary/20"
                     onClick={() => {
-                      // Save changes
+                      handleCancelAddItem()
                       setIsEditMode(false)
                     }}
                   >
@@ -1048,17 +1428,74 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                 <Building2 className="w-4 h-4" />
                 <span>Department</span>
               </div>
-              <p className="font-semibold">{mockRequisition.department}</p>
+              {isEditMode ? (
+                <Popover open={departmentOpen} onOpenChange={setDepartmentOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={departmentOpen}
+                      className="w-full justify-between h-8 text-sm font-semibold"
+                    >
+                      {selectedDepartment?.name || 'Select department...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[280px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search department..." />
+                      <CommandList>
+                        <CommandEmpty>No department found.</CommandEmpty>
+                        <CommandGroup>
+                          {mockDepartments.filter(d => d.status === 'active').map((dept) => (
+                            <CommandItem
+                              key={dept.id}
+                              value={`${dept.name} ${dept.code}`}
+                              onSelect={() => {
+                                setDepartmentId(dept.id)
+                                setDepartmentOpen(false)
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  departmentId === dept.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium">{dept.name}</span>
+                                <span className="text-xs text-muted-foreground">{dept.code}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <p className="font-semibold">{selectedDepartment?.name || mockRequisition.department}</p>
+              )}
             </div>
           </div>
           
-          {/* Third Row - 3/3 (Full Width) */}
-          <div className="space-y-2">
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <FileText className="w-4 h-4" />
-              <span>Description</span>
+          {/* Third Row - 1/3, 2/3 */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+            <div className="space-y-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <User className="w-4 h-4" />
+                <span>Requested By</span>
+              </div>
+              <p className="font-semibold">{mockRequisition.requestedBy}</p>
             </div>
-            <p className="font-semibold">{mockRequisition.description}</p>
+
+            <div className="space-y-2 sm:col-span-2">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <FileText className="w-4 h-4" />
+                <span>Description</span>
+              </div>
+              <p className="font-semibold">{mockRequisition.description}</p>
+            </div>
           </div>
         </div>
 
@@ -1101,13 +1538,15 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h3 className="text-xl font-semibold">Items Details</h3>
-                <Button
-                  className="flex items-center gap-2 bg-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary/20"
-                  onClick={() => console.log('Add new item')}
-                >
-                  <Plus className="w-4 h-4" />
-                  Add Item
-                </Button>
+                {isEditMode && !isAddingItem && (
+                  <Button
+                    className="flex items-center gap-2 bg-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary/20"
+                    onClick={handleStartAddItem}
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Item
+                  </Button>
+                )}
               </div>
 
               {/* Selected items info and bulk actions */}
@@ -1183,6 +1622,8 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                       <th className="text-right p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[80px]">Required</th>
                       <th className="text-right p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[80px]">Approved</th>
                       <th className="text-right p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[80px]">Issued</th>
+                      <th className="text-left p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[100px]">Job Code</th>
+                      <th className="text-left p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[100px]">Project</th>
                       <th className="text-right p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[80px]">Total</th>
                       <th className="text-center p-2 sm:p-4 text-xs font-medium text-gray-500 min-w-[80px]">Status</th>
                       <th className="text-right p-2 sm:p-4 text-xs font-medium text-gray-500 w-[100px]">Actions</th>
@@ -1233,7 +1674,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                                 className="w-16 sm:w-20 h-8 text-right text-sm"
                               />
                             ) : (
-                              <p className="text-sm">{item.qtyRequired}</p>
+                              <p className="text-sm tabular-nums">{formatNumber(item.qtyRequired)}</p>
                             )}
                           </td>
                           <td className="p-2 sm:p-4 text-right">
@@ -1245,7 +1686,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                                 className="w-16 sm:w-20 h-8 text-right text-sm"
                               />
                             ) : (
-                              <p className="text-sm">{item.qtyApproved}</p>
+                              <p className="text-sm tabular-nums">{formatNumber(item.qtyApproved)}</p>
                             )}
                           </td>
                           <td className="p-2 sm:p-4 text-right">
@@ -1257,11 +1698,103 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                                 className="w-16 sm:w-20 h-8 text-right text-sm"
                               />
                             ) : (
-                              <p className="text-sm">{item.qtyIssued || 0}</p>
+                              <p className="text-sm tabular-nums">{formatNumber(item.qtyIssued || 0)}</p>
+                            )}
+                          </td>
+                          {/* Job Code Cell */}
+                          <td className="p-2 sm:p-4">
+                            {isEditMode ? (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between h-8 text-xs"
+                                  >
+                                    <span className="truncate">
+                                      {jobCodes.find(j => j.id === item.jobCodeId)?.code || 'Select...'}
+                                    </span>
+                                    <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search..." className="h-8" />
+                                    <CommandList>
+                                      <CommandEmpty>No job code found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {jobCodes.filter(j => j.isActive).map((job) => (
+                                          <CommandItem
+                                            key={job.id}
+                                            value={`${job.code} ${job.name}`}
+                                            onSelect={() => handleUpdateItemJobCode(item.id, job.id)}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-3 w-3",
+                                                item.jobCodeId === job.id ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            <span className="text-xs">{job.code}</span>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <p className="text-sm">{jobCodes.find(j => j.id === item.jobCodeId)?.code || '-'}</p>
+                            )}
+                          </td>
+                          {/* Project Cell */}
+                          <td className="p-2 sm:p-4">
+                            {isEditMode ? (
+                              <Popover>
+                                <PopoverTrigger asChild>
+                                  <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    className="w-full justify-between h-8 text-xs"
+                                  >
+                                    <span className="truncate">
+                                      {projects.find(p => p.id === item.projectId)?.code || 'Select...'}
+                                    </span>
+                                    <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                                  </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-[200px] p-0" align="start">
+                                  <Command>
+                                    <CommandInput placeholder="Search..." className="h-8" />
+                                    <CommandList>
+                                      <CommandEmpty>No project found.</CommandEmpty>
+                                      <CommandGroup>
+                                        {projects.filter(p => p.isActive).map((proj) => (
+                                          <CommandItem
+                                            key={proj.id}
+                                            value={`${proj.code} ${proj.name}`}
+                                            onSelect={() => handleUpdateItemProject(item.id, proj.id)}
+                                          >
+                                            <Check
+                                              className={cn(
+                                                "mr-2 h-3 w-3",
+                                                item.projectId === proj.id ? "opacity-100" : "opacity-0"
+                                              )}
+                                            />
+                                            <span className="text-xs">{proj.code}</span>
+                                          </CommandItem>
+                                        ))}
+                                      </CommandGroup>
+                                    </CommandList>
+                                  </Command>
+                                </PopoverContent>
+                              </Popover>
+                            ) : (
+                              <p className="text-sm">{projects.find(p => p.id === item.projectId)?.code || '-'}</p>
                             )}
                           </td>
                           <td className="p-2 sm:p-4 text-right">
-                            <p className="font-medium text-sm">{item.total.toFixed(2)}</p>
+                            <p className="font-medium text-sm tabular-nums">{formatNumber(item.total)}</p>
                           </td>
                           <td className="p-2 sm:p-4 text-center">
                             <ApprovalLogDialog 
@@ -1288,12 +1821,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-
-                                  <DropdownMenuItem onClick={() => console.log('Duplicate item', item.id)}>
-                                    <Copy className="mr-2 h-4 w-4" />
-                                    Duplicate
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
+                                  <DropdownMenuItem
                                     onClick={() => setItems(items.filter(i => i.id !== item.id))}
                                     className="text-red-600 focus:text-red-600"
                                   >
@@ -1309,7 +1837,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                         {/* Expandable Details Row */}
                         {expandedItems.includes(item.id) && (
                           <tr className="bg-gray-50">
-                            <td colSpan={9} className="px-2 sm:px-4 py-4">
+                            <td colSpan={11} className="px-2 sm:px-4 py-4">
                               <div className="space-y-6">
                                 {/* Inventory Information Section - Full Width */}
                                 <div className="space-y-4">
@@ -1318,27 +1846,53 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                                     Inventory Information
                                   </h4>
                                   <div className="bg-white rounded-lg p-4 space-y-4 border border-gray-200">
+                                    {/* Location Type Alert - Shows special handling instructions */}
+                                    {mockRequisition.sourceLocationType !== InventoryLocationType.INVENTORY && (
+                                      <LocationTypeAlert
+                                        locationType={mockRequisition.sourceLocationType}
+                                        operationContext="issue"
+                                        className="mb-4"
+                                      />
+                                    )}
                                     <div className="grid grid-cols-2 gap-4">
-                                      <div>
-                                        <label className="text-xs font-medium text-gray-500">Current Stock</label>
-                                        <p className="text-sm font-medium text-gray-900">{item.inventory.onHand} {item.unit}</p>
-                                      </div>
-                                      <div>
-                                        <label className="text-xs font-medium text-gray-500">On Order</label>
-                                        <p className="text-sm font-medium text-gray-900">{item.inventory.onOrder} {item.unit}</p>
-                                      </div>
-                                      <div>
-                                        <label className="text-xs font-medium text-gray-500">Available</label>
-                                        <p className="text-sm font-medium text-gray-900">
-                                          {item.inventory.onHand + item.inventory.onOrder} {item.unit}
-                                        </p>
-                                      </div>
-                                      <div>
-                                        <label className="text-xs font-medium text-gray-500">After Issue</label>
-                                        <p className="text-sm font-medium text-gray-900">
-                                          {item.inventory.onHand - (item.qtyIssued || 0)} {item.unit}
-                                        </p>
-                                      </div>
+                                      {/* Location and Location Type removed - now at document level only */}
+                                      {/*
+                                        LOCATION TYPE AWARE STOCK DISPLAY:
+                                        - INVENTORY: Show all stock fields (tracked inventory)
+                                        - DIRECT: Stock fields not applicable (items expensed on receipt)
+                                        - CONSIGNMENT: Show stock fields (vendor-owned tracked inventory)
+                                      */}
+                                      {shouldRecordStockMovement(mockRequisition.sourceLocationType) ? (
+                                        <>
+                                          <div>
+                                            <label className="text-xs font-medium text-gray-500">Current Stock</label>
+                                            <p className="text-sm font-medium text-gray-900">{item.inventory.onHand} {item.unit}</p>
+                                          </div>
+                                          <div>
+                                            <label className="text-xs font-medium text-gray-500">On Order</label>
+                                            <p className="text-sm font-medium text-gray-900">{item.inventory.onOrder} {item.unit}</p>
+                                          </div>
+                                          <div>
+                                            <label className="text-xs font-medium text-gray-500">Available</label>
+                                            <p className="text-sm font-medium text-gray-900">
+                                              {item.inventory.onHand + item.inventory.onOrder} {item.unit}
+                                            </p>
+                                          </div>
+                                          <div>
+                                            <label className="text-xs font-medium text-gray-500">After Issue</label>
+                                            <p className="text-sm font-medium text-gray-900">
+                                              {item.inventory.onHand - (item.qtyIssued || 0)} {item.unit}
+                                            </p>
+                                          </div>
+                                        </>
+                                      ) : (
+                                        /* DIRECT location - no stock tracking */
+                                        <div className="col-span-2">
+                                          <p className="text-xs text-amber-600 italic">
+                                            Stock tracking not applicable - items are expensed immediately on receipt
+                                          </p>
+                                        </div>
+                                      )}
                                     </div>
                                     <Separator />
                                     <div className="grid grid-cols-2 gap-4">
@@ -1358,25 +1912,212 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                                   </div>
                                 </div>
 
-                                {/* Business Dimensions Section - Full Width */}
+                                {/* Business Dimensions Section - Item Level */}
                                 <div className="space-y-4">
                                   <h4 className="font-semibold text-gray-800 text-sm flex items-center gap-2">
                                     <Building2 className="h-4 w-4 text-gray-600" />
                                     Business Dimensions
                                   </h4>
                                   <div className="bg-white rounded-lg p-4 space-y-4 border border-gray-200">
-                                    <div className="grid grid-cols-2 gap-4">
+                                    <div className="grid grid-cols-3 gap-4">
+                                      {/* Job Code - Item Level */}
                                       <div>
                                         <label className="text-xs font-medium text-gray-500">Job Code</label>
-                                        <p className="text-sm font-medium text-gray-900">{mockRequisition.jobCode}</p>
+                                        {isEditMode ? (
+                                          <div className="flex gap-1 mt-1">
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <Button
+                                                  variant="outline"
+                                                  role="combobox"
+                                                  className="flex-1 justify-between h-8 text-sm"
+                                                >
+                                                  <span className="truncate">
+                                                    {(() => {
+                                                      const itemJobCode = jobCodes.find(j => j.id === item.jobCodeId)
+                                                      return itemJobCode ? `${itemJobCode.code} : ${itemJobCode.name}` : 'Select...'
+                                                    })()}
+                                                  </span>
+                                                  <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-[320px] p-0" align="start">
+                                                <Command>
+                                                  <CommandInput placeholder="Search job code..." />
+                                                  <CommandList>
+                                                    <CommandEmpty>No job code found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                      {jobCodes.filter(j => j.isActive).map((job) => (
+                                                        <CommandItem
+                                                          key={job.id}
+                                                          value={`${job.code} ${job.name}`}
+                                                          onSelect={() => handleUpdateItemJobCode(item.id, job.id)}
+                                                          className="flex items-center justify-between"
+                                                        >
+                                                          <div className="flex items-center flex-1">
+                                                            <Check
+                                                              className={cn(
+                                                                "mr-2 h-4 w-4 shrink-0",
+                                                                item.jobCodeId === job.id ? "opacity-100" : "opacity-0"
+                                                              )}
+                                                            />
+                                                            <div className="flex flex-col min-w-0">
+                                                              <span className="font-medium truncate">{job.code} : {job.name}</span>
+                                                              <span className="text-xs text-muted-foreground truncate">{job.description}</span>
+                                                            </div>
+                                                          </div>
+                                                          <div className="flex items-center gap-1 ml-2 shrink-0">
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-6 w-6"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleEditJobCode(job)
+                                                              }}
+                                                            >
+                                                              <Edit2 className="h-3 w-3" />
+                                                            </Button>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-6 w-6 text-destructive hover:text-destructive"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleDeleteJobCode(job.id)
+                                                              }}
+                                                            >
+                                                              <Trash2 className="h-3 w-3" />
+                                                            </Button>
+                                                          </div>
+                                                        </CommandItem>
+                                                      ))}
+                                                    </CommandGroup>
+                                                  </CommandList>
+                                                </Command>
+                                              </PopoverContent>
+                                            </Popover>
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              className="h-8 w-8 shrink-0"
+                                              onClick={() => setShowAddJobCodeDialog(true)}
+                                            >
+                                              <Plus className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <p className="text-sm font-medium text-gray-900">
+                                            {(() => {
+                                              const itemJobCode = jobCodes.find(j => j.id === item.jobCodeId)
+                                              return itemJobCode ? `${itemJobCode.code} : ${itemJobCode.name}` : '-'
+                                            })()}
+                                          </p>
+                                        )}
                                       </div>
+
+                                      {/* Department (read-only in this section, editable in header) */}
                                       <div>
                                         <label className="text-xs font-medium text-gray-500">Department</label>
-                                        <p className="text-sm font-medium text-gray-900">{mockRequisition.department}</p>
+                                        <p className="text-sm font-medium text-gray-900 mt-1">
+                                          {selectedDepartment?.name || mockRequisition.department}
+                                        </p>
                                       </div>
+
+                                      {/* Project - Item Level */}
                                       <div>
                                         <label className="text-xs font-medium text-gray-500">Project</label>
-                                        <p className="text-sm font-medium text-gray-900">General Operations</p>
+                                        {isEditMode ? (
+                                          <div className="flex gap-1 mt-1">
+                                            <Popover>
+                                              <PopoverTrigger asChild>
+                                                <Button
+                                                  variant="outline"
+                                                  role="combobox"
+                                                  className="flex-1 justify-between h-8 text-sm"
+                                                >
+                                                  <span className="truncate">
+                                                    {(() => {
+                                                      const itemProject = projects.find(p => p.id === item.projectId)
+                                                      return itemProject ? `${itemProject.code} : ${itemProject.name}` : 'Select...'
+                                                    })()}
+                                                  </span>
+                                                  <ChevronsUpDown className="ml-1 h-4 w-4 shrink-0 opacity-50" />
+                                                </Button>
+                                              </PopoverTrigger>
+                                              <PopoverContent className="w-[320px] p-0" align="start">
+                                                <Command>
+                                                  <CommandInput placeholder="Search project..." />
+                                                  <CommandList>
+                                                    <CommandEmpty>No project found.</CommandEmpty>
+                                                    <CommandGroup>
+                                                      {projects.filter(p => p.isActive).map((proj) => (
+                                                        <CommandItem
+                                                          key={proj.id}
+                                                          value={`${proj.code} ${proj.name}`}
+                                                          onSelect={() => handleUpdateItemProject(item.id, proj.id)}
+                                                          className="flex items-center justify-between"
+                                                        >
+                                                          <div className="flex items-center flex-1">
+                                                            <Check
+                                                              className={cn(
+                                                                "mr-2 h-4 w-4 shrink-0",
+                                                                item.projectId === proj.id ? "opacity-100" : "opacity-0"
+                                                              )}
+                                                            />
+                                                            <div className="flex flex-col min-w-0">
+                                                              <span className="font-medium truncate">{proj.code} : {proj.name}</span>
+                                                              <span className="text-xs text-muted-foreground truncate">{proj.description}</span>
+                                                            </div>
+                                                          </div>
+                                                          <div className="flex items-center gap-1 ml-2 shrink-0">
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-6 w-6"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleEditProject(proj)
+                                                              }}
+                                                            >
+                                                              <Edit2 className="h-3 w-3" />
+                                                            </Button>
+                                                            <Button
+                                                              variant="ghost"
+                                                              size="icon"
+                                                              className="h-6 w-6 text-destructive hover:text-destructive"
+                                                              onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                handleDeleteProject(proj.id)
+                                                              }}
+                                                            >
+                                                              <Trash2 className="h-3 w-3" />
+                                                            </Button>
+                                                          </div>
+                                                        </CommandItem>
+                                                      ))}
+                                                    </CommandGroup>
+                                                  </CommandList>
+                                                </Command>
+                                              </PopoverContent>
+                                            </Popover>
+                                            <Button
+                                              variant="outline"
+                                              size="icon"
+                                              className="h-8 w-8 shrink-0"
+                                              onClick={() => setShowAddProjectDialog(true)}
+                                            >
+                                              <Plus className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                        ) : (
+                                          <p className="text-sm font-medium text-gray-900">
+                                            {(() => {
+                                              const itemProject = projects.find(p => p.id === item.projectId)
+                                              return itemProject ? `${itemProject.code} : ${itemProject.name}` : '-'
+                                            })()}
+                                          </p>
+                                        )}
                                       </div>
                                     </div>
                                     <Separator />
@@ -1402,6 +2143,211 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                         )}
                       </React.Fragment>
                     ))}
+                    {/* New Item Row - Inline Add (only in Edit mode) */}
+                    {isEditMode && isAddingItem && (
+                      <tr className="bg-blue-50/50 border-t-2 border-blue-200">
+                        <td className="p-2 sm:p-4">
+                          {/* Empty checkbox column */}
+                        </td>
+                        <td className="p-2 sm:p-4">
+                          {/* Searchable Product Dropdown */}
+                          <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={productSearchOpen}
+                                className="w-full justify-between min-w-[200px] h-9"
+                              >
+                                {selectedProduct ? (
+                                  <div className="flex flex-col items-start">
+                                    <span className="text-sm font-medium truncate max-w-[180px]">{selectedProduct.productName}</span>
+                                    <span className="text-xs text-muted-foreground">{selectedProduct.productCode}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground flex items-center gap-2">
+                                    <Search className="h-4 w-4" />
+                                    Search products...
+                                  </span>
+                                )}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[350px] p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search by name or code..." />
+                                <CommandList>
+                                  <CommandEmpty>No product found.</CommandEmpty>
+                                  <CommandGroup heading="Products">
+                                    {mockProducts.filter(p => p.isActive && p.status === 'active').map((product) => (
+                                      <CommandItem
+                                        key={product.id}
+                                        value={`${product.productName} ${product.productCode}`}
+                                        onSelect={() => {
+                                          setNewItemProductId(product.id)
+                                          setProductSearchOpen(false)
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{product.productName}</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {product.productCode} · {product.baseUnit} · ${product.standardCost?.amount?.toFixed(2) || '0.00'}
+                                          </span>
+                                        </div>
+                                        <Check
+                                          className={cn(
+                                            "ml-auto h-4 w-4",
+                                            newItemProductId === product.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </td>
+                        <td className="p-2 sm:p-4">
+                          <p className="text-sm text-muted-foreground">
+                            {selectedProduct?.baseUnit || '-'}
+                          </p>
+                        </td>
+                        <td className="p-2 sm:p-4 text-right">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={newItemQtyRequired}
+                            onChange={(e) => setNewItemQtyRequired(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-20 h-8 text-right text-sm"
+                          />
+                        </td>
+                        <td className="p-2 sm:p-4 text-right">
+                          <p className="text-sm text-muted-foreground">-</p>
+                        </td>
+                        <td className="p-2 sm:p-4 text-right">
+                          <p className="text-sm text-muted-foreground">-</p>
+                        </td>
+                        {/* Job Code for new item */}
+                        <td className="p-2 sm:p-4">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between h-8 text-xs"
+                              >
+                                <span className="truncate">
+                                  {jobCodes.find(j => j.id === newItemJobCodeId)?.code || 'Select...'}
+                                </span>
+                                <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[200px] p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search..." className="h-8" />
+                                <CommandList>
+                                  <CommandEmpty>No job code found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {jobCodes.filter(j => j.isActive).map((job) => (
+                                      <CommandItem
+                                        key={job.id}
+                                        value={`${job.code} ${job.name}`}
+                                        onSelect={() => setNewItemJobCodeId(job.id)}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-3 w-3",
+                                            newItemJobCodeId === job.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        <span className="text-xs">{job.code}</span>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </td>
+                        {/* Project for new item */}
+                        <td className="p-2 sm:p-4">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                className="w-full justify-between h-8 text-xs"
+                              >
+                                <span className="truncate">
+                                  {projects.find(p => p.id === newItemProjectId)?.code || 'Select...'}
+                                </span>
+                                <ChevronsUpDown className="ml-1 h-3 w-3 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[200px] p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search..." className="h-8" />
+                                <CommandList>
+                                  <CommandEmpty>No project found.</CommandEmpty>
+                                  <CommandGroup>
+                                    {projects.filter(p => p.isActive).map((proj) => (
+                                      <CommandItem
+                                        key={proj.id}
+                                        value={`${proj.code} ${proj.name}`}
+                                        onSelect={() => setNewItemProjectId(proj.id)}
+                                      >
+                                        <Check
+                                          className={cn(
+                                            "mr-2 h-3 w-3",
+                                            newItemProjectId === proj.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                        <span className="text-xs">{proj.code}</span>
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </td>
+                        <td className="p-2 sm:p-4 text-right">
+                          <p className="text-sm tabular-nums font-medium">
+                            {selectedProduct
+                              ? formatNumber((selectedProduct.standardCost?.amount || 0) * newItemQtyRequired)
+                              : '-'
+                            }
+                          </p>
+                        </td>
+                        <td className="p-2 sm:p-4 text-center">
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            New
+                          </span>
+                        </td>
+                        <td className="p-2 sm:p-4">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleConfirmAddItem}
+                              disabled={!newItemProductId}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleCancelAddItem}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
                   </tbody>
                 </table>
               </div>
@@ -1550,6 +2496,13 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
               currentStatus={mockRequisition.status}
               approvalSteps={mockRequisition.approvalSteps}
               currentUserRole="store-manager" // This would come from user context/auth
+              itemStatusSummary={{
+                total: items.length,
+                pending: items.filter(item => item.approvalStatus === 'Pending').length,
+                approved: items.filter(item => item.approvalStatus === 'Approved').length,
+                rejected: items.filter(item => item.approvalStatus === 'Reject').length,
+                review: items.filter(item => item.approvalStatus === 'Review').length
+              }}
               onApprove={(stepId, comments) => {
                 console.log('Approve:', stepId, comments)
                 // This would call your API to approve the step
@@ -1573,29 +2526,29 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
       <div className="border-t">
         <div className="p-6">
           <h3 className="text-sm font-semibold mb-4">Transaction Summary</h3>
-          
+
           {/* Quantity Summary Row */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6 mb-6">
-            <div className="text-center sm:text-left">
+            <div className="text-right">
               <div className="text-sm text-gray-500 mb-1">Total Items</div>
-              <div className="text-lg font-medium">{items.length}</div>
+              <div className="text-lg font-medium tabular-nums">{formatNumber(items.length)}</div>
             </div>
-            <div className="text-center sm:text-left">
+            <div className="text-right">
               <div className="text-sm text-gray-500 mb-1">Total Quantity</div>
-              <div className="text-lg font-medium">
-                {items.reduce((sum, item) => sum + item.qtyRequired, 0)}
+              <div className="text-lg font-medium tabular-nums">
+                {formatNumber(items.reduce((sum, item) => sum + item.qtyRequired, 0))}
               </div>
             </div>
-            <div className="text-center sm:text-left">
+            <div className="text-right">
               <div className="text-sm text-gray-500 mb-1">Total Approved</div>
-              <div className="text-lg font-medium">
-                {items.reduce((sum, item) => sum + item.qtyApproved, 0)}
+              <div className="text-lg font-medium tabular-nums">
+                {formatNumber(items.reduce((sum, item) => sum + item.qtyApproved, 0))}
               </div>
             </div>
-            <div className="text-center sm:text-left">
+            <div className="text-right">
               <div className="text-sm text-gray-500 mb-1">Total Issued</div>
-              <div className="text-lg font-medium">
-                {items.reduce((sum, item) => sum + (item.qtyIssued || 0), 0)}
+              <div className="text-lg font-medium tabular-nums">
+                {formatNumber(items.reduce((sum, item) => sum + (item.qtyIssued || 0), 0))}
               </div>
             </div>
           </div>
@@ -1604,56 +2557,38 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
           <div className="border-t pt-4">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Subtotal */}
-              <div className="text-center sm:text-left">
+              <div className="text-right">
                 <div className="text-sm text-gray-500 mb-1">Subtotal</div>
-                <div className="text-lg font-medium">
-                  {(() => {
-                    const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-                    return subtotal.toFixed(2);
-                  })()} BHT
+                <div className="text-lg font-medium tabular-nums">
+                  {formatNumber(items.reduce((sum, item) => sum + item.total, 0))} BHT
                 </div>
               </div>
 
               {/* Total Tax */}
-              <div className="text-center sm:text-left">
+              <div className="text-right">
                 <div className="text-sm text-gray-500 mb-1">Total Tax</div>
-                <div className="text-lg font-medium text-orange-600">
-                  {(() => {
-                    const totalTax = items.reduce((sum, item) => {
-                      return sum + (item.total * item.taxRate / 100);
-                    }, 0);
-                    return totalTax.toFixed(2);
-                  })()} BHT
+                <div className="text-lg font-medium text-orange-600 tabular-nums">
+                  {formatNumber(items.reduce((sum, item) => sum + (item.total * item.taxRate / 100), 0))} BHT
                 </div>
               </div>
 
               {/* Total Discount */}
-              <div className="text-center sm:text-left">
+              <div className="text-right">
                 <div className="text-sm text-gray-500 mb-1">Total Discount</div>
-                <div className="text-lg font-medium text-green-600">
-                  -{(() => {
-                    const totalDiscount = items.reduce((sum, item) => {
-                      return sum + (item.total * item.discountRate / 100);
-                    }, 0);
-                    return totalDiscount.toFixed(2);
-                  })()} BHT
+                <div className="text-lg font-medium text-green-600 tabular-nums">
+                  -{formatNumber(items.reduce((sum, item) => sum + (item.total * item.discountRate / 100), 0))} BHT
                 </div>
               </div>
 
               {/* Final Total */}
-              <div className="text-center sm:text-left">
+              <div className="text-right">
                 <div className="text-sm text-gray-500 mb-1">Final Total</div>
-                <div className="text-xl font-bold text-blue-600">
+                <div className="text-xl font-bold text-blue-600 tabular-nums">
                   {(() => {
                     const subtotal = items.reduce((sum, item) => sum + item.total, 0);
-                    const totalTax = items.reduce((sum, item) => {
-                      return sum + (item.total * item.taxRate / 100);
-                    }, 0);
-                    const totalDiscount = items.reduce((sum, item) => {
-                      return sum + (item.total * item.discountRate / 100);
-                    }, 0);
-                    const finalTotal = subtotal + totalTax - totalDiscount;
-                    return finalTotal.toFixed(2);
+                    const totalTax = items.reduce((sum, item) => sum + (item.total * item.taxRate / 100), 0);
+                    const totalDiscount = items.reduce((sum, item) => sum + (item.total * item.discountRate / 100), 0);
+                    return formatNumber(subtotal + totalTax - totalDiscount);
                   })()} BHT
                 </div>
               </div>
@@ -1945,6 +2880,230 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
           </div>
         )}
       </div>
+
+      {/* Add Job Code Dialog */}
+      <Dialog open={showAddJobCodeDialog} onOpenChange={setShowAddJobCodeDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Job Code</DialogTitle>
+            <DialogDescription>
+              Create a new job code for tracking requisitions against specific jobs or events.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="jobCode">Code *</Label>
+              <Input
+                id="jobCode"
+                value={newJobCode.code}
+                onChange={(e) => setNewJobCode({ ...newJobCode, code: e.target.value.toUpperCase() })}
+                placeholder="e.g., EVT-003"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="jobName">Name *</Label>
+              <Input
+                id="jobName"
+                value={newJobCode.name}
+                onChange={(e) => setNewJobCode({ ...newJobCode, name: e.target.value })}
+                placeholder="e.g., Corporate Event"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="jobDescription">Description</Label>
+              <Input
+                id="jobDescription"
+                value={newJobCode.description}
+                onChange={(e) => setNewJobCode({ ...newJobCode, description: e.target.value })}
+                placeholder="Brief description of the job"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setNewJobCode({ code: '', name: '', description: '' })
+              setShowAddJobCodeDialog(false)
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddJobCode}
+              disabled={!newJobCode.code || !newJobCode.name}
+            >
+              Add Job Code
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add Project Dialog */}
+      <Dialog open={showAddProjectDialog} onOpenChange={setShowAddProjectDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Project</DialogTitle>
+            <DialogDescription>
+              Create a new project for tracking requisitions against specific initiatives.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="projectCode">Code *</Label>
+              <Input
+                id="projectCode"
+                value={newProject.code}
+                onChange={(e) => setNewProject({ ...newProject, code: e.target.value.toUpperCase() })}
+                placeholder="e.g., PROJ-003"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="projectName">Name *</Label>
+              <Input
+                id="projectName"
+                value={newProject.name}
+                onChange={(e) => setNewProject({ ...newProject, name: e.target.value })}
+                placeholder="e.g., New Initiative"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="projectDescription">Description</Label>
+              <Input
+                id="projectDescription"
+                value={newProject.description}
+                onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
+                placeholder="Brief description of the project"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setNewProject({ code: '', name: '', description: '' })
+              setShowAddProjectDialog(false)
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAddProject}
+              disabled={!newProject.code || !newProject.name}
+            >
+              Add Project
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Job Code Dialog */}
+      <Dialog open={showEditJobCodeDialog} onOpenChange={setShowEditJobCodeDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Job Code</DialogTitle>
+            <DialogDescription>
+              Update the job code details.
+            </DialogDescription>
+          </DialogHeader>
+          {editingJobCode && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="editJobCode">Code *</Label>
+                <Input
+                  id="editJobCode"
+                  value={editingJobCode.code}
+                  onChange={(e) => setEditingJobCode({ ...editingJobCode, code: e.target.value.toUpperCase() })}
+                  placeholder="e.g., EVT-003"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="editJobName">Name *</Label>
+                <Input
+                  id="editJobName"
+                  value={editingJobCode.name}
+                  onChange={(e) => setEditingJobCode({ ...editingJobCode, name: e.target.value })}
+                  placeholder="e.g., Corporate Event"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="editJobDescription">Description</Label>
+                <Input
+                  id="editJobDescription"
+                  value={editingJobCode.description}
+                  onChange={(e) => setEditingJobCode({ ...editingJobCode, description: e.target.value })}
+                  placeholder="Brief description of the job"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setEditingJobCode(null)
+              setShowEditJobCodeDialog(false)
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveJobCode}
+              disabled={!editingJobCode?.code || !editingJobCode?.name}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Project Dialog */}
+      <Dialog open={showEditProjectDialog} onOpenChange={setShowEditProjectDialog}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Project</DialogTitle>
+            <DialogDescription>
+              Update the project details.
+            </DialogDescription>
+          </DialogHeader>
+          {editingProject && (
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="editProjectCode">Code *</Label>
+                <Input
+                  id="editProjectCode"
+                  value={editingProject.code}
+                  onChange={(e) => setEditingProject({ ...editingProject, code: e.target.value.toUpperCase() })}
+                  placeholder="e.g., PROJ-003"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="editProjectName">Name *</Label>
+                <Input
+                  id="editProjectName"
+                  value={editingProject.name}
+                  onChange={(e) => setEditingProject({ ...editingProject, name: e.target.value })}
+                  placeholder="e.g., New Initiative"
+                />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="editProjectDescription">Description</Label>
+                <Input
+                  id="editProjectDescription"
+                  value={editingProject.description}
+                  onChange={(e) => setEditingProject({ ...editingProject, description: e.target.value })}
+                  placeholder="Brief description of the project"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => {
+              setEditingProject(null)
+              setShowEditProjectDialog(false)
+            }}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveProject}
+              disabled={!editingProject?.code || !editingProject?.name}
+            >
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 } 

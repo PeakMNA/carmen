@@ -624,7 +624,7 @@ N/A - Not Applicable
 | Field | Desktop (BR) | Mobile | Notes |
 |-------|--------------|--------|-------|
 | Business Unit | Not explicitly required | ✅ Required | Mobile-first field |
-| GRN Number | Auto-generated GRN-YYYY-NNNN | Not generated (temp ID) | Mobile uses temp IDs |
+| GRN Number | Auto-generated GRN-YYMM-NNNN | Not generated (temp ID) | Mobile uses temp IDs |
 | Delivery Note | Not captured | Not captured | Both missing |
 | Vehicle Number | Not captured | Not captured | Both missing |
 | Driver Name | Not captured | Not captured | Both missing |
@@ -672,7 +672,7 @@ N/A - Not Applicable
 ### 5.3 Business Rules Differences
 
 #### BR-GRN-001: GRN Numbering
-- **Desktop (BR)**: Auto-generated GRN-YYYY-NNNN, sequential, no gaps
+- **Desktop (BR)**: Auto-generated GRN-YYMM-NNNN, sequential, no gaps
 - **Mobile**: Uses temporary UUID (`new-{uuid}`), no final GRN number
 - **Gap**: Mobile doesn't generate final GRN numbers
 

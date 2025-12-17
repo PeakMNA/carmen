@@ -1,3 +1,14 @@
+/**
+ * Purchase Request Items API Route
+ *
+ * Transaction Code Format: PREFIX-YYMM-NNNN
+ * - PREFIX: Document type (PL = Pricelist, PR = Purchase Request, etc.)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: PL-2410-001 = Pricelist #001 from October 2024
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { EnhancedPRItem, DocumentStatus, WorkflowStageStatus, WorkflowStageType, UserRole, WorkflowStage } from '@/app/(main)/procurement/purchase-requests/components/tabs/UpdatedEnhancedItemsTab';
 
@@ -5,6 +16,7 @@ import { EnhancedPRItem, DocumentStatus, WorkflowStageStatus, WorkflowStageType,
 type EnhancedItemStatus = string;
 
 // Mock database - In real implementation, this would be your database
+// Transaction codes use format: PL-YYMM-NNNN (e.g., PL-2410-001 = Pricelist #001, October 2024)
 let mockItems: any[] = [
   {
     id: "item-001",
@@ -57,7 +69,7 @@ let mockItems: any[] = [
     discountRate: 0,
     taxRate: 7,
     vendor: "ABC Supplies Inc.",
-    pricelistNumber: "PL-2024-001",
+    pricelistNumber: "PL-2410-001",
     itemCategory: "Office Supplies",
     itemSubcategory: "Paper Products",
     status: "Pending" as DocumentStatus,
@@ -124,7 +136,7 @@ let mockItems: any[] = [
     discountRate: 0,
     taxRate: 7,
     vendor: "Tech Solutions Ltd.",
-    pricelistNumber: "PL-2024-002",
+    pricelistNumber: "PL-2410-002",
     itemCategory: "Computer Equipment",
     itemSubcategory: "Peripherals",
     status: "Approved" as DocumentStatus,
@@ -182,7 +194,7 @@ let mockItems: any[] = [
     discountRate: 0,
     taxRate: 7,
     vendor: "Safety First Co.",
-    pricelistNumber: "PL-2024-003",
+    pricelistNumber: "PL-2410-003",
     itemCategory: "Safety Equipment",
     itemSubcategory: "Personal Protective Equipment",
     status: "Review" as DocumentStatus,
@@ -251,7 +263,7 @@ let mockItems: any[] = [
     discountRate: 0,
     taxRate: 7,
     vendor: "Print Pro Services",
-    pricelistNumber: "PL-2024-004",
+    pricelistNumber: "PL-2410-004",
     itemCategory: "Marketing Materials",
     itemSubcategory: "Promotional Items",
     status: "Approved" as DocumentStatus,

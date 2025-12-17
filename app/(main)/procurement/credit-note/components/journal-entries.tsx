@@ -13,7 +13,7 @@ const mockEntries = [
         department: { code: 'PUR', name: 'Purchasing' },
         costCenter: 'CC001',
         description: 'CN Vendor Adjustment',
-        reference: 'CN-2024-001',
+        reference: 'CN-2410-001',
         debit: 4720.00,
         orderNo: 1
       },
@@ -22,7 +22,7 @@ const mockEntries = [
         department: { code: 'WHS', name: 'Warehouse' },
         costCenter: 'CC002',
         description: 'Inventory Value Adjustment',
-        reference: 'GRN-2024-001',
+        reference: 'GRN-2410-001',
         credit: 4000.00,
         orderNo: 2
       },
@@ -31,7 +31,7 @@ const mockEntries = [
         department: { code: 'ACC', name: 'Accounting' },
         costCenter: 'CC003',
         description: 'Tax Adjustment',
-        reference: 'CN-2024-001',
+        reference: 'CN-2410-001',
         credit: 720.00,
         tax: { code: 'VAT', rate: 18 },
         orderNo: 3
@@ -47,7 +47,7 @@ const mockEntries = [
         department: { code: 'WHS', name: 'Warehouse' },
         costCenter: 'CC002',
         description: 'Cost Variance Recording',
-        reference: 'GRN-2024-001',
+        reference: 'GRN-2410-001',
         debit: 4000.00,
         orderNo: 4
       },
@@ -56,7 +56,7 @@ const mockEntries = [
         department: { code: 'WHS', name: 'Warehouse' },
         costCenter: 'CC002',
         description: 'Cost Adjustment',
-        reference: 'GRN-2024-001',
+        reference: 'GRN-2410-001',
         credit: 4000.00,
         orderNo: 5
       }
@@ -104,7 +104,7 @@ export default function JournalEntries() {
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-medium">Journal Entries</h2>
           <div className="px-2 py-1 text-sm text-blue-600 bg-blue-50 rounded-full">
-            CN-2024-001
+            CN-2410-001
           </div>
         </div>
         <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -132,7 +132,7 @@ export default function JournalEntries() {
         </div>
         <div>
           <div className="text-sm text-gray-500">Journal Reference</div>
-          <div className="font-medium">CN-2024-001</div>
+          <div className="font-medium">CN-2410-001</div>
         </div>
         <div>
           <div className="text-sm text-gray-500">Source</div>

@@ -26,7 +26,7 @@ This document details the core API endpoints for the Inventory Adjustment module
 
 ```typescript
 interface InventoryAdjustment {
-  id: string;                   // Unique identifier (e.g., "ADJ-2024-001")
+  id: string;                   // Unique identifier (e.g., "ADJ-2401-0001")
   date: string;                 // ISO 8601 format (e.g., "2024-03-27T10:00:00Z")
   type: "IN" | "OUT";           // Adjustment type
   status: "Draft" | "Posted" | "Void"; // Adjustment status
@@ -168,7 +168,7 @@ GET /inventory/adjustments
 {
   "data": [
     {
-      "id": "ADJ-2024-001",
+      "id": "ADJ-2401-0001",
       "date": "2024-03-27T10:00:00Z",
       "type": "IN",
       "status": "Draft",
@@ -233,7 +233,7 @@ GET /inventory/adjustments/{id}
 ```json
 {
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "date": "2024-03-27T10:00:00Z",
     "type": "IN",
     "status": "Draft",
@@ -364,7 +364,7 @@ POST /inventory/adjustments
 ```json
 {
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "date": "2024-03-27T10:00:00Z",
     "type": "IN",
     "status": "Draft",
@@ -410,7 +410,7 @@ PUT /inventory/adjustments/{id}
 ```json
 {
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "date": "2024-03-27T10:00:00Z",
     "type": "IN",
     "status": "Draft",
@@ -467,7 +467,7 @@ POST /inventory/adjustments/{id}/post
   "success": true,
   "message": "Adjustment successfully posted",
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "status": "Posted",
     "postedBy": {
       "id": "USR-001",
@@ -510,7 +510,7 @@ POST /inventory/adjustments/{id}/void
   "success": true,
   "message": "Adjustment successfully voided",
   "data": {
-    "id": "ADJ-2024-001",
+    "id": "ADJ-2401-0001",
     "status": "Void"
   }
 }
@@ -547,7 +547,7 @@ POST /inventory/adjustments/{id}/void
     "code": "NOT_FOUND",
     "message": "Adjustment not found",
     "details": {
-      "id": "ADJ-2024-999"
+      "id": "ADJ-2401-0999"
     }
   }
 }

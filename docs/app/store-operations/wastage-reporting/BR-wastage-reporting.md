@@ -4,8 +4,8 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Route**: `/app/(main)/store-operations/wastage-reporting`
-- **Version**: 1.2.0
-- **Last Updated**: 2025-12-09
+- **Version**: 1.3.0
+- **Last Updated**: 2025-12-13
 - **Owner**: Store Operations Team
 - **Status**: Active
 - **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2025-12-13 | Documentation Team | Added workflow enhancements: dashboard sorting, per-item attachments, review decision workflow, status transitions |
 | 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend UI with 6 pages |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status (Section 1.4), backend requirements (Section 9), inventory valuation integration |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
@@ -26,16 +27,18 @@
 The Wastage Reporting module frontend has been fully implemented with comprehensive UI pages. Backend integration is pending.
 
 **Implemented Pages**:
-- ✅ **Dashboard** (`/store-operations/wastage-reporting/`) - KPI cards (total wastage, items wasted, pending reviews, wastage rate), monthly trend chart, wastage by reason pie chart, wastage by location bar chart, recent reports table with search/filters
-- ✅ **New Report** (`/store-operations/wastage-reporting/new/`) - Location selection, item search/add, quantity input, reason selection (7 categories), notes per item, photo attachments upload, summary sidebar with total loss calculation
+- ✅ **Dashboard** (`/store-operations/wastage-reporting/`) - KPI cards (total wastage, items wasted, pending reviews, wastage rate), monthly trend chart, wastage by reason pie chart, wastage by location bar chart, recent reports table with search/filters, **sortable by date/loss value/item name/quantity**
+- ✅ **New Report** (`/store-operations/wastage-reporting/new/`) - Location selection, item search/add with combobox, quantity input, **two-level Category → Reason selection** (defaults to Wastage), notes per item, photo attachments upload, summary sidebar with total loss calculation
 - ✅ **Reports List** (`/store-operations/wastage-reporting/reports/`) - Status summary cards (all/pending/under_review/approved/rejected), full reports table with bulk selection, filters by location/reason/date, bulk approve/reject actions
-- ✅ **Report Detail** (`/store-operations/wastage-reporting/reports/[id]/`) - Complete item details (batch number, expiry date, cost), wastage reason with description, attachments gallery, activity timeline, review decision section, related reports sidebar
+- ✅ **Report Detail** (`/store-operations/wastage-reporting/reports/[id]/`) - **Expandable item panels** with batch number, expiry date, cost, **per-item evidence attachments**, wastage reason with description, **Review Decision component** for managers, audit information, Post to Stock Out action
 - ✅ **Analytics** (`/store-operations/wastage-reporting/analytics/`) - Monthly trend with target line, wastage by reason breakdown, weekly stacked bar chart, location comparison with progress bars, category breakdown, top wasted items table, insights & recommendations
 - ✅ **Categories** (`/store-operations/wastage-reporting/categories/`) - Category management with color coding, approval thresholds, usage statistics, approval rules configuration, add/edit/delete categories
 
-**Status Values Implemented**: `pending`, `under_review`, `approved`, `rejected`
+**Status Values Implemented**: `Draft`, `Submitted`, `Under Review`, `Approved`, `Rejected`, `Posted`
 
-**Reason Categories Implemented**: `expiration`, `damage`, `quality`, `spoilage`, `overproduction`, `contamination`, `other`
+**Wastage Categories (Stock OUT)**: WST (Wastage), DMG (Damaged Goods), THEFT (Theft/Loss), SAMPLE (Samples), WRITE (Write-Off)
+
+**Reason Categories per Wastage**: EXP (Expired), SPOIL (Spoiled), QUAL (Quality Issue), DMG (Damaged), CONT (Contaminated), OVERPROD (Overproduction), PREP (Prep Waste), PLATE (Plate Waste), SPILL (Spill/Accident)
 
 **Pending Backend Implementation**:
 - ⏳ Database schema and tables
@@ -418,6 +421,138 @@ The system must integrate with financial modules to ensure wastage is properly a
 
 ---
 
+### FR-WAST-016: Dashboard Sorting and Filtering
+**Priority**: High
+**Implementation Status**: ✅ IMPLEMENTED
+
+The system must provide comprehensive sorting and filtering capabilities on the wastage reporting dashboard to enable users to quickly find and prioritize wastage records based on various criteria.
+
+**Acceptance Criteria**:
+- User can sort recent wastage reports by multiple fields: date, total loss value, item name, quantity
+- Sort direction is clearly indicated (ascending/descending) with toggle functionality
+- Default sort is by date descending (most recent first)
+- Sort configuration persists within the user session
+- Dashboard displays sort dropdown with clear field labels
+- Sorting applies to all visible records in the recent reports table
+- Performance remains responsive with up to 1,000 records in view
+- Sort by total loss value enables quick identification of high-value wastage
+- Sort by item name groups related wastage for pattern identification
+- Sort by quantity helps identify bulk wastage incidents
+
+**Related Requirements**: FR-WAST-009, FR-WAST-010
+
+**Implementation Evidence**:
+- File: `app/(main)/store-operations/wastage-reporting/page.tsx`
+- Sort configuration: `{ field: 'date' | 'totalLoss' | 'itemName' | 'quantity', direction: 'asc' | 'desc' }`
+
+---
+
+### FR-WAST-017: Per-Item Evidence Attachments
+**Priority**: High
+**Implementation Status**: ✅ IMPLEMENTED
+
+The system must support attaching photographic evidence to individual wastage line items, enabling granular documentation for each wasted product rather than only at the report level.
+
+**Acceptance Criteria**:
+- User can attach photos to each individual line item within a wastage report
+- Each line item can have multiple attachments (up to 5 per item)
+- Attachments display in expandable/collapsible item detail panels
+- System shows thumbnail previews of attached photos
+- User can view full-resolution photos by clicking thumbnails
+- Attachments support common image formats: JPG, PNG, HEIC
+- Per-item attachments are separate from report-level attachments
+- Attachments are linked to specific line items for audit trail
+- Attachment count is displayed on collapsed item panels
+- Attachments are preserved when editing draft reports
+
+**Related Requirements**: FR-WAST-006, BR-WAST-003
+
+**Implementation Evidence**:
+- Type: `WastageItem.attachments?: WastageAttachment[]` in `lib/types/wastage.ts`
+- UI: Expandable item panels in `app/(main)/store-operations/wastage-reporting/reports/[id]/page.tsx`
+
+---
+
+### FR-WAST-018: Review Decision Workflow
+**Priority**: Critical
+**Implementation Status**: ✅ IMPLEMENTED
+
+The system must provide a dedicated review decision interface for managers to approve or reject wastage reports, capturing decision rationale and enabling post-decision visibility.
+
+**Acceptance Criteria**:
+- Review decision component displays for reports in 'Submitted' or 'Under Review' status
+- Component shows only to users with review/approval permissions
+- Approver can enter review notes before making decision (optional for approval, required for rejection)
+- Approve action moves report to 'Approved' status and enables "Post to Stock Out" action
+- Reject action moves report to 'Rejected' status with mandatory rejection reason
+- After decision, system displays review status with decision details (approver, date, notes)
+- Loading states prevent duplicate submissions during processing
+- Decision actions are disabled while processing to prevent race conditions
+- Review notes are preserved in audit trail for future reference
+- Status badge updates immediately after decision
+
+**Related Requirements**: FR-WAST-003, FR-WAST-004, BR-WAST-007, BR-WAST-008
+
+**Implementation Evidence**:
+- Component: `app/(main)/store-operations/wastage-reporting/components/review-decision.tsx`
+- Props: `ReviewDecisionProps { report, onApprove, onReject, isLoading }`
+- Display: `ReviewStatusDisplay` component for post-decision view
+
+---
+
+### FR-WAST-019: Two-Level Category Classification
+**Priority**: Critical
+**Implementation Status**: ✅ IMPLEMENTED
+
+The system must support a two-level wastage classification system with Category (header-level) and Reason (item-level), defaulting to "Wastage" category for new reports while allowing selection from other Stock OUT transaction categories.
+
+**Acceptance Criteria**:
+- Header-level category selection from Stock OUT transaction categories (WST, DMG, THEFT, SAMPLE, WRITE)
+- Default category is "WST" (Wastage) for new reports
+- Item-level reason selection within the selected category
+- Reasons are filtered based on the selected header category
+- Category selection triggers update of available reasons
+- Both category and reason are required fields for form submission
+- Category codes map to proper GL accounts for financial posting
+- System maintains consistency between header category and item reasons
+- Category and reason are displayed in report detail views
+- Analytics can aggregate by both category and reason dimensions
+
+**Related Requirements**: FR-WAST-002, BR-WAST-002
+
+**Implementation Evidence**:
+- File: `app/(main)/store-operations/wastage-reporting/new/page.tsx`
+- Uses: `getCategoryOptionsForType("OUT")` for Stock OUT categories
+- Default: `wastageCategory: "WST"`
+
+---
+
+### FR-WAST-020: Post to Stock Out Adjustment
+**Priority**: Critical
+**Implementation Status**: ✅ IMPLEMENTED (UI Complete)
+
+The system must enable approved wastage reports to be posted as Stock Out inventory adjustments, creating the necessary inventory transactions to reduce stock quantities and record financial impact.
+
+**Acceptance Criteria**:
+- "Post to Stock Out" action button displays only for 'Approved' status reports
+- Action triggers creation of inventory adjustment transaction
+- Adjustment reduces stock quantity at the specified location
+- Adjustment is linked to original wastage report for audit trail
+- Adjustment applies appropriate costing method (FIFO/FEFO/Weighted Average)
+- Status changes to 'Posted' after successful adjustment creation
+- Posted reports cannot be edited or reversed (new transaction required for corrections)
+- Adjustment reference number is displayed on posted report
+- Financial posting to appropriate GL accounts occurs with adjustment
+- User receives confirmation of successful posting with adjustment reference
+
+**Related Requirements**: FR-WAST-005, BR-WAST-006, BR-WAST-007
+
+**Implementation Evidence**:
+- Status: 'Posted' in `WastageReportStatus` type
+- Workflow: `canPostWastageReport()` helper function in `lib/types/wastage.ts`
+
+---
+
 ## Business Rules
 
 ### General Rules
@@ -460,6 +595,74 @@ The system must integrate with financial modules to ensure wastage is properly a
 - **BR-WAST-015**: Only users with "Wastage Approver" permission can approve wastage. Approval permissions are role-based and cannot be granted at individual user level (except by System Administrator).
 
 - **BR-WAST-016**: Wastage transaction history can only be viewed by users with access to the location where wastage occurred, or users with "View All Wastage" permission (typically Finance and Operations Managers).
+
+### Location Type Business Rules
+
+Wastage reporting behavior varies based on the **location type** where wastage occurs. The system supports three location types that determine inventory adjustment, GL posting, and vendor notification behavior.
+
+#### Location Type Definitions
+
+| Location Type | Code | Purpose | Examples |
+|---------------|------|---------|----------|
+| **INVENTORY** | INV | Standard tracked warehouse locations | Main Warehouse, Central Kitchen Store |
+| **DIRECT** | DIR | Direct expense locations (no stock balance) | Restaurant Bar Direct, Kitchen Direct |
+| **CONSIGNMENT** | CON | Vendor-owned inventory locations | Beverage Consignment, Linen Consignment |
+
+#### BR-WAST-017: Location Type Processing Rules
+
+**INVENTORY Locations (INV)**:
+- ✅ Full wastage tracking with inventory adjustment
+- ✅ Creates negative inventory transaction
+- ✅ FIFO cost layer consumption for accurate costing
+- ✅ GL: Debit Wastage Expense, Credit Inventory Asset
+- ✅ Value-based approval thresholds apply
+- ✅ Complete audit trail with lot tracking
+
+**DIRECT Locations (DIR)**:
+- ⚠️ Wastage recorded for metrics and analytics only
+- ❌ No inventory adjustment (no stock balance exists)
+- ❌ No cost layer consumption
+- ✅ GL: No posting (items already expensed at receipt)
+- ✅ Simplified approval workflow
+- ✅ Metrics tracking for operational insights
+
+**CONSIGNMENT Locations (CON)**:
+- ✅ Full wastage tracking with inventory adjustment
+- ✅ Creates negative inventory transaction
+- ✅ FIFO cost layer consumption
+- ✅ GL: Debit Wastage Expense, Credit Vendor Liability
+- ✅ Automatic vendor charge-back notification
+- ✅ Value-based approval thresholds apply
+- ✅ Complete audit trail with vendor reference
+
+#### BR-WAST-018: Location Type Feature Matrix
+
+| Feature | INVENTORY | DIRECT | CONSIGNMENT |
+|---------|-----------|--------|-------------|
+| **Wastage Tracking** | ✅ Full | ⚠️ Metrics only | ✅ Full |
+| **Inventory Adjustment** | ✅ Creates adjustment | ❌ None | ✅ Creates adjustment |
+| **Cost Layer Consumption** | ✅ FIFO | ❌ None | ✅ FIFO |
+| **GL Impact** | Expense + Asset reduction | None (pre-expensed) | Expense + Liability reduction |
+| **Approval Workflow** | Value-based | Simplified | Value-based + Vendor |
+| **Vendor Notification** | ❌ N/A | ❌ N/A | ✅ Charge-back |
+| **Analytics Inclusion** | ✅ Full | ✅ Metrics | ✅ Full |
+| **Photo Requirements** | Value-based | Optional | Value-based |
+
+#### BR-WAST-019: Location Type Validation Rules
+
+1. **Location Selection**:
+   - User must have access to selected location
+   - Location type determines available workflow options
+   - DIRECT locations show informational banner about metrics-only tracking
+
+2. **Quantity Validation**:
+   - INVENTORY/CONSIGNMENT: Cannot exceed current stock-on-hand
+   - DIRECT: No quantity validation (no stock balance to check)
+
+3. **UI Indicators**:
+   - Location type badge displayed in location selection
+   - Alert banner for DIRECT locations explaining limited tracking
+   - Vendor information displayed for CONSIGNMENT wastage
 
 ---
 

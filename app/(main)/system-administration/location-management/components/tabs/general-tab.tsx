@@ -175,58 +175,14 @@ export function GeneralTab({ location, isEditing }: GeneralTabProps) {
         </CardContent>
       </Card>
 
-      {/* Organization */}
+      {/* Assignments */}
       <Card>
         <CardHeader>
-          <CardTitle>Organization</CardTitle>
-          <CardDescription>Department and cost center assignments</CardDescription>
+          <CardTitle>Assignments</CardTitle>
+          <CardDescription>Delivery point and vendor assignments</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="department">Department</Label>
-              {isEditing ? (
-                <Select defaultValue={location.departmentId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select department" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="dept-kitchen">Central Kitchen</SelectItem>
-                    <SelectItem value="dept-warehouse">Warehouse</SelectItem>
-                    <SelectItem value="dept-fnb">Food & Beverage</SelectItem>
-                    <SelectItem value="dept-maintenance">Maintenance</SelectItem>
-                    <SelectItem value="dept-housekeeping">Housekeeping</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm p-2 bg-muted rounded-md">
-                  {location.departmentName || 'Not assigned'}
-                </p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="costCenter">Cost Center</Label>
-              {isEditing ? (
-                <Select defaultValue={location.costCenterId}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select cost center" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="cc-001">F&B Operations</SelectItem>
-                    <SelectItem value="cc-002">Logistics</SelectItem>
-                    <SelectItem value="cc-003">Bar Operations</SelectItem>
-                    <SelectItem value="cc-004">Facilities</SelectItem>
-                    <SelectItem value="cc-005">Consignment</SelectItem>
-                  </SelectContent>
-                </Select>
-              ) : (
-                <p className="text-sm p-2 bg-muted rounded-md">
-                  {location.costCenterName || 'Not assigned'}
-                </p>
-              )}
-            </div>
-
             <div className="space-y-2">
               <Label htmlFor="deliveryPoint">Delivery Point</Label>
               {isEditing ? (
@@ -237,12 +193,7 @@ export function GeneralTab({ location, isEditing }: GeneralTabProps) {
                   <SelectContent>
                     {deliveryPoints.map((dp) => (
                       <SelectItem key={dp.id} value={dp.id}>
-                        <div>
-                          <div className="font-medium">{dp.name}</div>
-                          <div className="text-xs text-muted-foreground">
-                            {dp.code} - {dp.address.city}
-                          </div>
-                        </div>
+                        {dp.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -256,7 +207,7 @@ export function GeneralTab({ location, isEditing }: GeneralTabProps) {
 
             {/* Consignment Vendor - Only shown for consignment type */}
             {location.type === InventoryLocationType.CONSIGNMENT && (
-              <div className="space-y-2 md:col-span-2">
+              <div className="space-y-2">
                 <Label htmlFor="consignmentVendor">Consignment Vendor</Label>
                 {isEditing ? (
                   <Select defaultValue={location.consignmentVendorId}>
@@ -278,89 +229,6 @@ export function GeneralTab({ location, isEditing }: GeneralTabProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Address */}
-      {location.address && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Address</CardTitle>
-            <CardDescription>Physical location address</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="addressLine1">Address Line 1</Label>
-                {isEditing ? (
-                  <Input
-                    id="addressLine1"
-                    defaultValue={location.address.addressLine1}
-                  />
-                ) : (
-                  <p className="text-sm p-2 bg-muted rounded-md">
-                    {location.address.addressLine1}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="addressLine2">Address Line 2</Label>
-                {isEditing ? (
-                  <Input
-                    id="addressLine2"
-                    defaultValue={location.address.addressLine2}
-                  />
-                ) : (
-                  <p className="text-sm p-2 bg-muted rounded-md">
-                    {location.address.addressLine2 || '-'}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="city">City</Label>
-                {isEditing ? (
-                  <Input
-                    id="city"
-                    defaultValue={location.address.city}
-                  />
-                ) : (
-                  <p className="text-sm p-2 bg-muted rounded-md">
-                    {location.address.city}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="postalCode">Postal Code</Label>
-                {isEditing ? (
-                  <Input
-                    id="postalCode"
-                    defaultValue={location.address.postalCode}
-                  />
-                ) : (
-                  <p className="text-sm p-2 bg-muted rounded-md">
-                    {location.address.postalCode}
-                  </p>
-                )}
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="country">Country</Label>
-                {isEditing ? (
-                  <Input
-                    id="country"
-                    defaultValue={location.address.country}
-                  />
-                ) : (
-                  <p className="text-sm p-2 bg-muted rounded-md">
-                    {location.address.country}
-                  </p>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Audit Information */}
       <Card>

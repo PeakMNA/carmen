@@ -8,6 +8,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Last Updated**: 2025-11-03
 
@@ -376,17 +377,17 @@ POST /api/v1/inventory/consume
 
 Response:
 {
-  "consumption_id": "CONS-2025-0001",
+  "consumption_id": "CONS-2501-0001",
   "total_quantity": 120.00000,
   "adjustment_layers": [
     {
-      "adjustment_id": "ADJ-2025-0010",
+      "adjustment_id": "ADJ-2501-0010",
       "parent_lot_number": "MK-250115-0001",  // ⭐ Auto-linked
       "quantity": 100.00000,
       "unit_cost": 12.50000
     },
     {
-      "adjustment_id": "ADJ-2025-0011",
+      "adjustment_id": "ADJ-2501-0011",
       "parent_lot_number": "MK-250116-0001",  // ⭐ Auto-linked
       "quantity": 20.00000,
       "unit_cost": 13.00000
@@ -643,7 +644,7 @@ Response:
   "user": {
     "id": "USER-001",
     "role": "financial-manager",
-    "permissions": ["inventory.read", "inventory.write", "period.manage"]
+    "permissions": ['inventory.read', 'inventory.write', 'period.manage']
   }
 }
 ```
@@ -709,7 +710,7 @@ All responses follow this structure:
   "receipt_quantity": 100.00000,
   "unit_cost": 12.50000,
   "transaction_type": "GRN",
-  "transaction_id": "GRN-2025-0001",
+  "transaction_id": "GRN-2501-0001",
   "landed_costs": {
     "freight": 50.00,
     "duties": 25.00,
@@ -733,7 +734,7 @@ All responses follow this structure:
     "unit_cost": 12.50000,
     "total_cost": 1250.00000,
     "transaction_type": "GRN",
-    "transaction_id": "GRN-2025-0001",
+    "transaction_id": "GRN-2501-0001",
     "created_at": "2025-01-15T14:30:00Z",
     "created_by": "USER-001"
   },
@@ -779,13 +780,13 @@ All responses follow this structure:
     "total_cost": 1250.00000,
     "remaining_value": 937.50000,
     "transaction_type": "GRN",
-    "transaction_id": "GRN-2025-0001",
+    "transaction_id": "GRN-2501-0001",
     "status": "ACTIVE",
     "adjustments": [
       {
-        "adjustment_id": "ADJ-LAYER-2025-0001",
+        "adjustment_id": "ADJ-LAYER-2501-0001",
         "transaction_type": "ISSUE",
-        "transaction_id": "SR-2025-0001",
+        "transaction_id": "SR-2501-0001",
         "transaction_date": "2025-01-20",
         "quantity": 25.00000,
         "total_cost": 312.50000
@@ -853,7 +854,7 @@ All responses follow this structure:
   "location_id": "LOC-KITCHEN",
   "quantity": 120.00000,
   "transaction_type": "ISSUE",
-  "transaction_id": "SR-2025-0001",
+  "transaction_id": "SR-2501-0001",
   "transaction_date": "2025-01-20",
   "reason_code": "PRODUCTION",
   "notes": "Recipe: Chicken Curry - Batch 001"
@@ -865,7 +866,7 @@ All responses follow this structure:
 {
   "success": true,
   "data": {
-    "consumption_id": "CONS-2025-0001",
+    "consumption_id": "CONS-2501-0001",
     "item_id": "ITEM-12345",
     "location_id": "LOC-KITCHEN",
     "total_quantity": 120.00000,
@@ -873,14 +874,14 @@ All responses follow this structure:
     "weighted_average_cost": 12.58333,
     "adjustment_layers": [
       {
-        "adjustment_id": "ADJ-LAYER-2025-0010",
+        "adjustment_id": "ADJ-LAYER-2501-0010",
         "parent_lot_number": "MK-250115-0001",  // Format: {LOCATION}-{YYMMDD}-{SEQ}
         "quantity": 100.00000,
         "unit_cost": 12.50000,
         "total_cost": 1250.00000
       },
       {
-        "adjustment_id": "ADJ-LAYER-2025-0011",
+        "adjustment_id": "ADJ-LAYER-2501-0011",
         "parent_lot_number": "MK-250116-0001",
         "quantity": 20.00000,
         "unit_cost": 13.00000,
@@ -931,7 +932,7 @@ All responses follow this structure:
   "destination_location_id": "LOC-BAR",
   "quantity": 50.00000,
   "transfer_date": "2025-01-20",
-  "transfer_id": "TRANSFER-2025-0001",
+  "transfer_id": "TRANSFER-2501-0001",
   "reason": "Stock redistribution",
   "authorized_by": "USER-002"
 }
@@ -942,7 +943,7 @@ All responses follow this structure:
 {
   "success": true,
   "data": {
-    "transfer_id": "TRANSFER-2025-0001",
+    "transfer_id": "TRANSFER-2501-0001",
     "item_id": "ITEM-12345",
     "quantity": 50.00000,
     "total_cost": 625.00000,
@@ -953,7 +954,7 @@ All responses follow this structure:
       "location_code": "MK",
       "adjustment_layers": [
         {
-          "adjustment_id": "ADJ-LAYER-2025-0009",
+          "adjustment_id": "ADJ-LAYER-2501-0009",
           "parent_lot_number": "MK-250115-0001",  // Format: {LOCATION}-{YYMMDD}-{SEQ}
           "quantity": 50.00000,
           "total_cost": 625.00000
@@ -1081,7 +1082,7 @@ Response:
       "open_transactions_created": 248,
       "total_diff_variance": 2785.50,
       "diff_variance_posted_to": "Account-5100-Revaluation-Variance",
-      "revaluation_journal_entry": "JE-2025-0234"
+      "revaluation_journal_entry": "JE-2501-0234"
     },
     "reports_generated": [
       "inventory-valuation-2025-01.pdf",
@@ -1105,7 +1106,7 @@ Response:
 **Request Body**:
 ```json
 {
-  "reason": "Missed GRN transaction from January 28th. Need to post receipt for PO-2025-0156 (50 units of ITEM-789 @ $15.25). Transaction was approved but not entered in system before period close."
+  "reason": "Missed GRN transaction from January 28th. Need to post receipt for PO-2501-0156 (50 units of ITEM-789 @ $15.25). Transaction was approved but not entered in system before period close."
 }
 ```
 
@@ -1202,7 +1203,7 @@ Response:
         "unit_cost_after": 11.11,          // Period average cost
 
         "variance_account": "Account-5100-Revaluation-Variance",
-        "journal_entry_id": "JE-2025-0234"
+        "journal_entry_id": "JE-2501-0234"
       },
       {
         "transaction_id": "OPEN-25-02-ITEM-001",
@@ -1596,7 +1597,7 @@ Response:
     "period_id": "25-01",  // Format: YY-MM
     "movements": [
       {
-        "transaction_id": "GRN-2025-0001",
+        "transaction_id": "GRN-2501-0001",
         "transaction_type": "GRN",
         "transaction_date": "2025-01-15",
         "item_id": "ITEM-12345",
@@ -1610,7 +1611,7 @@ Response:
         "movement_type": "RECEIPT"
       },
       {
-        "transaction_id": "SR-2025-0001",
+        "transaction_id": "SR-2501-0001",
         "transaction_type": "ISSUE",
         "transaction_date": "2025-01-20",
         "item_id": "ITEM-12345",
@@ -1802,7 +1803,7 @@ Subscribe to real-time notifications:
 ```json
 {
   "url": "https://your-server.com/webhooks/carmen",
-  "events": ["lot.created", "lot.exhausted", "period.closed"],
+  "events": ['lot.created', 'lot.exhausted', 'period.closed'],
   "secret": "your_webhook_secret",
   "active": true
 }

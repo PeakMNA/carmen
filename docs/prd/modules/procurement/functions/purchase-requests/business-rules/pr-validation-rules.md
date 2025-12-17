@@ -75,7 +75,7 @@ interface PRRequiredFields {
 ```
 
 **Validation Rules**:
-- **PR Number**: Auto-generated, format `PR-YYYY-NNN` (e.g., PR-2024-001)
+- **PR Number**: Auto-generated, format `PR-YYYY-NNN` (e.g., PR-2401-0001)
 - **Date**: Must be today or past date, cannot be future dated
 - **Type**: Must be one of: GeneralPurchase, MarketList, AssetPurchase, CapitalExpenditure
 - **Description**: 10-500 characters, no special characters except basic punctuation

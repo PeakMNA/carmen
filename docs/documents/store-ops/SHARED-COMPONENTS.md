@@ -582,7 +582,7 @@ flowchart LR
 
 **Structure**:
 ```
-Store Operations > Store Requisitions > SR-2024-001
+Store Operations > Store Requisitions > SR-2401-0001
 ```
 
 ---

@@ -19,6 +19,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.5.0 | 2025-12-03 | System | Converted ASCII use case diagram to Mermaid format with three diagrams: Primary Actor Use Cases, System/Integration Use Cases, and Use Case Relationships |
 | 2.4.0 | 2025-12-02 | System Analyst | Added UC-PO-020: Download QR Code for Mobile Receiving, updated UC-PO-006 to include QR Code section display |
 | 2.3.0 | 2025-12-01 | System | Added PO Item Details Dialog to UC-PO-006 with inventory status indicators (On Hand, On Order, Received), related PR links, and financial summary; Added sub-dialogs for On Hand Breakdown, Pending POs, and GRN History |
@@ -78,13 +79,13 @@ graph TB
     end
 
     subgraph User_Use_Cases[User Use Cases]
-        UC001[UC-PO-001<br/>Create PO from PR]
-        UC002[UC-PO-002<br/>Create Manual PO]
-        UC003[UC-PO-003<br/>Send PO to Vendor]
-        UC004[UC-PO-004<br/>Modify PO - Change Order]
-        UC005[UC-PO-005<br/>Cancel PO]
-        UC006[UC-PO-006<br/>View and Track PO]
-        UC020[UC-PO-020<br/>Download QR Code]
+        UC001[UC-PO-001<br>Create PO from PR]
+        UC002[UC-PO-002<br>Create Manual PO]
+        UC003[UC-PO-003<br>Send PO to Vendor]
+        UC004[UC-PO-004<br>Modify PO - Change Order]
+        UC005[UC-PO-005<br>Cancel PO]
+        UC006[UC-PO-006<br>View and Track PO]
+        UC020[UC-PO-020<br>Download QR Code]
     end
 
     PS --> UC001
@@ -117,20 +118,20 @@ graph TB
     end
 
     subgraph System_Use_Cases[System Use Cases]
-        UC101[UC-PO-101<br/>Generate PO Number]
-        UC102[UC-PO-102<br/>Calculate PO Totals]
-        UC103[UC-PO-103<br/>Validate Budget]
-        UC104[UC-PO-104<br/>Auto-Update from GRN]
-        UC105[UC-PO-105<br/>Send Delivery Reminder]
+        UC101[UC-PO-101<br>Generate PO Number]
+        UC102[UC-PO-102<br>Calculate PO Totals]
+        UC103[UC-PO-103<br>Validate Budget]
+        UC104[UC-PO-104<br>Auto-Update from GRN]
+        UC105[UC-PO-105<br>Send Delivery Reminder]
     end
 
     subgraph Integration_Use_Cases[Integration Use Cases]
-        UC201[UC-PO-201<br/>Budget Integration]
-        UC202[UC-PO-202<br/>Vendor Integration]
+        UC201[UC-PO-201<br>Budget Integration]
+        UC202[UC-PO-202<br>Vendor Integration]
     end
 
     subgraph Background_Jobs[Background Jobs]
-        UC301[UC-PO-301<br/>Daily Status Cleanup]
+        UC301[UC-PO-301<br>Daily Status Cleanup]
     end
 
     SYS --> UC101
@@ -150,12 +151,12 @@ graph TB
 ```mermaid
 graph LR
     subgraph PO_Lifecycle[Purchase Order Lifecycle]
-        Create[Create PO<br/>UC-001/002]
-        Send[Send to Vendor<br/>UC-003]
-        Modify[Modify/Change<br/>UC-004]
-        Track[Track Status<br/>UC-006]
-        Cancel[Cancel PO<br/>UC-005]
-        Complete[Auto-Complete<br/>UC-301]
+        Create[Create PO<br>UC-001/002]
+        Send[Send to Vendor<br>UC-003]
+        Modify[Modify/Change<br>UC-004]
+        Track[Track Status<br>UC-006]
+        Cancel[Cancel PO<br>UC-005]
+        Complete[Auto-Complete<br>UC-301]
     end
 
     Create --> Send
@@ -166,11 +167,11 @@ graph LR
     Track --> Complete
 
     subgraph Supporting[Supporting Processes]
-        GenNum[Generate Number<br/>UC-101]
-        CalcTotal[Calculate Totals<br/>UC-102]
-        ValidBudget[Validate Budget<br/>UC-103]
-        UpdateGRN[Update from GRN<br/>UC-104]
-        Reminder[Delivery Reminder<br/>UC-105]
+        GenNum[Generate Number<br>UC-101]
+        CalcTotal[Calculate Totals<br>UC-102]
+        ValidBudget[Validate Budget<br>UC-103]
+        UpdateGRN[Update from GRN<br>UC-104]
+        Reminder[Delivery Reminder<br>UC-105]
     end
 
     Create -.-> GenNum
@@ -592,7 +593,7 @@ This table provides a quick reference of all 14 use cases in the Purchase Orders
 13. If no re-approval needed:
     - System applies changes immediately
     - System creates change order revision
-14. System assigns revision number (e.g., PO-2024-001234 Rev 1)
+14. System assigns revision number (e.g., PO-2401-001234 Rev 1)
 15. If PO was already sent:
     - System prepares vendor notification
     - System displays "Send Change Notice to Vendor" prompt
@@ -994,7 +995,7 @@ This table provides a quick reference of all 14 use cases in the Purchase Orders
 **Main Flow**:
 1. User navigates to PO detail page
 2. System displays QRCodeSection component with QR code image
-3. System displays QR code containing value: `PO:{orderNumber}` (e.g., "PO:PO-2025-0001")
+3. System displays QR code containing value: `PO:{orderNumber}` (e.g., "PO:PO-2501-0001")
 4. System displays action buttons: Download QR Code, Copy PO Number
 5. System displays mobile scanning instructions (5-step guide)
 6. **Download QR Code Flow**:
@@ -1079,10 +1080,11 @@ This table provides a quick reference of all 14 use cases in the Purchase Orders
 **Main Flow**:
 1. System detects new PO creation request
 2. System queries sequence table for next PO number
-3. System generates PO number using format: PO-{YEAR}-{SEQUENCE}
-   - {YEAR}: Current fiscal year (4 digits)
+3. System generates PO number using format: PO-{YYMM}-{SEQUENCE}
+   - {YY}: 2-digit year
+   - {MM}: 2-digit month
    - {SEQUENCE}: Sequential number with leading zeros (6 digits)
-   - Example: PO-2024-000123
+   - Example: PO-2401-000123
 4. System increments sequence counter in database
 5. System assigns generated PO number to new purchase order record
 6. System validates number is unique (collision check)

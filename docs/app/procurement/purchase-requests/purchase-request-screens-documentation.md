@@ -4,6 +4,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-20 | System Documentation | Initial documentation with basic page structure and components |
 | 2.0.0 | 2025-11-20 | System Documentation | Updated all screenshots with hidden sidebar, added comprehensive UI States and Interactions section, documented hover states/menus/interactive elements, added 15+ new screenshots, documented loading/empty/error states |
 
@@ -171,7 +172,7 @@ Opens a comprehensive filter builder panel with advanced query capabilities:
 
 #### Table Columns
 1. **PR Number**
-   - Format: PR-YYYY-NNN (e.g., PR-2023-001)
+   - Format: PR-YYMM-NNNN (e.g., PR-2501-0042)
    - Clickable link to detail page
    - Primary identifier
 
@@ -287,7 +288,7 @@ Opens a comprehensive filter builder panel with advanced query capabilities:
 #### PR Header Component (`PRHeader.tsx`)
 
 **Left Section:**
-- **PR Number:** Large, prominent display (e.g., PR-2023-001)
+- **PR Number:** Large, prominent display (e.g., PR-2501-0042)
 - **Status Badge:** Current workflow status with color coding
 - **Priority Badge:** Priority level indicator
 
@@ -549,7 +550,7 @@ Opens a comprehensive filter builder panel with advanced query capabilities:
 #### Budget Information Display
 1. **Budget Code**
    - Unique budget identifier
-   - Format: DEPT-YYYY-NNN
+   - Format: DEPT-YYMM-NNNN
 
 2. **Budget Name**
    - Descriptive name of budget line

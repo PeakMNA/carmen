@@ -4,14 +4,15 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Inventory Adjustments
 - **Route**: `/inventory-management/inventory-adjustments`
-- **Version**: 1.1.0
-- **Last Updated**: 2025-12-09
+- **Version**: 2.0.0
+- **Last Updated**: 2025-12-17
 - **Owner**: Development Team
 - **Status**: Active
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.0.0 | 2025-12-17 | Development Team | Updated UI: removed tabs, added Stock-in/Stock-out header buttons; Two-Level Category/Reason with GL mapping |
 | 1.1.0 | 2025-12-09 | Development Team | Updated to match implementation: type-specific adjustment reasons, costing rules, GL account mapping |
 | 1.0.0 | 2025-01-10 | Development Team | Initial technical specification based on source code analysis |
 
@@ -25,17 +26,27 @@ The Inventory Adjustments module provides comprehensive functionality for record
 
 **Key Capabilities**:
 - Create and manage inventory adjustment transactions (IN/OUT types)
-- Record adjustments with TYPE-SPECIFIC reason codes:
-  - **Stock OUT (7 reasons)**: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
-  - **Stock IN (5 reasons)**: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
-- Track lot-level stock movements for traceability
+- **Two-Level Category/Reason Classification**:
+  - **Header-Level Category**: Selected once per adjustment, maps to GL accounts
+  - **Item-Level Reason**: Selected per item, filtered by the header-level category
+- **Stock OUT Categories** (with GL mapping):
+  - Wastage (5200 Waste Expense): Damaged Goods, Expired Items, Spoilage
+  - Loss (5210 Inventory Loss): Theft/Loss, Shrinkage, Count Variance
+  - Quality (5100 COGS): QC Rejection, Customer Return
+  - Consumption (5100 COGS): Production Use, Transfer Out
+- **Stock IN Categories** (with GL mapping):
+  - Found (1310 Raw Materials): Count Variance, Found Items
+  - Return (1310 Raw Materials): Return to Stock, Vendor Return
+  - Correction (1310 Raw Materials): System Correction, Data Fix
+- Track lot-level stock movements for traceability (FIFO consumption for Stock OUT)
 - Generate automated balanced journal entries for general ledger
 - Workflow management: Draft → Posted → Voided status transitions
 - Multi-location and multi-department support
+- **Consolidated List View**: Single list with Stock-in/Stock-out create buttons in header (tabs removed)
 - Search, filter, and sort functionality for adjustment list
 - Three-tab detail view: Items, Stock Movement, Journal Entries
 - **Costing Rules**:
-  - Stock OUT: Uses system average cost automatically (no price entry)
+  - Stock OUT: Uses system average cost automatically (read-only field)
   - Stock IN: Requires manual unit cost entry (affects inventory valuation)
 
 **Related Documents**:
@@ -59,33 +70,33 @@ The Inventory Adjustments module provides comprehensive functionality for record
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         Browser[Web Browser]
         Mobile[Mobile Browser]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         NextJS[Next.js 14+ App Router]
         React[React Components]
         ReactHookForm[React Hook Form]
         Zod[Zod Validation]
     end
 
-    subgraph "State Management"
+    subgraph 'State Management'
         UserContext[User Context Provider]
         LocalState[Component Local State]
         SearchState[Search/Filter State]
         FormState[Form State Management]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         MockData[Mock Adjustment Data]
         ItemData[Inventory Item Data]
         LocationData[Location Data]
         JournalData[Journal Entry Data]
     end
 
-    subgraph "Business Logic"
+    subgraph 'Business Logic'
         StatusWorkflow[Status State Machine]
         JournalGeneration[Journal Entry Generator]
         LotTracking[Lot-Level Tracking]
@@ -93,7 +104,7 @@ graph TB
         ValidationRules[Business Rule Validator]
     end
 
-    subgraph "Integration Points"
+    subgraph 'Integration Points'
         StockBalance[Stock Balance Update]
         GeneralLedger[GL Integration]
         AuditLog[Audit Trail Logger]
@@ -216,15 +227,19 @@ graph TD
 **Purpose**: Display searchable, filterable list of all inventory adjustments with summary information
 
 **Layout Components**:
-- **Page Header**: "Inventory Adjustments" title with "New Adjustment" action button
+- **Page Header**: "Inventory Adjustments" title with two action buttons:
+  - "Stock-in" button (green) → navigates to `/inventory-management/inventory-adjustments/new?type=in`
+  - "Stock-out" button (red) → navigates to `/inventory-management/inventory-adjustments/new?type=out`
+- **No Tabs**: Single consolidated list view (former Adjustment/Stock In/Stock Out tabs removed)
 - **Search Bar**: Full-text search across all adjustment fields
-- **Filter Popover**: Multi-select filters for Status, Type, Location, Reason
+- **Filter Popover**: Multi-select filters for Status, Type, Location, Category
+  - **Type Filter**: Use to filter by Stock IN or Stock OUT (replaces former tab functionality)
 - **Sort Menu**: Sortable columns (Date, ID, Type, Status, Location, Value)
-- **Data Table**: Paginated table with 8 adjustments per page
+- **Data Table**: Paginated table with all adjustments visible
 - **Row Actions**: Click row to navigate to detail view
 
 **Table Columns**:
-1. **Adjustment ID**: Unique identifier (e.g., ADJ-2024-001)
+1. **Adjustment ID**: Unique identifier (e.g., ADJ-2401-001)
 2. **Date**: Transaction date in MM/DD/YYYY format
 3. **Type**: Badge indicator (IN = green, OUT = red)
 4. **Status**: Badge indicator (Draft = gray, Posted = green, Voided = red)
@@ -233,14 +248,17 @@ graph TD
 7. **Items**: Count of line items
 8. **Total Value**: Formatted currency amount
 
-**Mock Data Structure** (8 sample adjustments):
-- IDs: ADJ-2024-001 to ADJ-2024-008
-- Types: Mix of IN (5) and OUT (3)
-- Statuses: Posted (5), Draft (2), Voided (1)
+**Mock Data Structure** (sample adjustments):
+- IDs: ADJ-YYMM-NNNN format (e.g., ADJ-2401-001)
+- Types: Mix of IN and OUT
+- Statuses: Posted, Draft, Voided
 - Locations: Main Warehouse, Kitchen, Bar, Housekeeping, Engineering
-- Reasons: Type-specific (Stock OUT: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Count Variance, Quality Rejection, Other; Stock IN: Count Variance, Found Items, Return to Stock, System Correction, Other)
-- Date Range: January 2024
-- Value Range: $245.00 to $2,845.50
+- **Categories**: Type-specific with GL mapping:
+  - Stock OUT: Wastage (5200), Loss (5210), Quality (5100), Consumption (5100)
+  - Stock IN: Found (1310), Return (1310), Correction (1310)
+- **Reasons**: Filtered by selected Category (see Two-Level Category/Reason Classification)
+- Date Range: Variable
+- Value Range: Variable based on items
 
 **Key Features**:
 - Real-time search with debouncing for performance
@@ -296,7 +314,7 @@ graph TD
 
 **Summary Section** (Card):
 - **Adjustment Information**:
-  - Adjustment ID (e.g., ADJ-2024-001)
+  - Adjustment ID (e.g., ADJ-2401-001)
   - Date (MM/DD/YYYY format)
   - Type badge (IN/OUT with color coding)
   - Status badge (Draft/Posted/Voided with color coding)
@@ -332,7 +350,7 @@ graph TD
 
 **Journal Header Section**:
 - Status badge (Draft/Posted/Voided)
-- Journal Number (e.g., JNL-2024-001)
+- Journal Number (e.g., JNL-2501-001)
 - Posting Date and Period
 - Description and Reference
 - Created By and Created At
@@ -400,9 +418,9 @@ graph TD
 
 ```mermaid
 flowchart TD
-    Start([User accesses<br/>Adjustment List]) --> LoadData[Load all adjustments<br/>from mock data]
+    Start([User accesses<br>Adjustment List]) --> LoadData[Load all adjustments<br>from mock data]
 
-    LoadData --> DisplayTable[Display table with<br/>default sort: Date desc]
+    LoadData --> DisplayTable[Display table with<br>default sort: Date desc]
 
     DisplayTable --> UserAction{User action}
 
@@ -412,20 +430,20 @@ flowchart TD
     UserAction -->|Click row| NavDetail[Navigate to detail page]
 
     SearchInput --> Debounce[Debounce 300ms]
-    Debounce --> ApplySearch[Filter records<br/>matching query]
-    ApplySearch --> UpdateTable[Update table<br/>with results]
+    Debounce --> ApplySearch[Filter records<br>matching query]
+    ApplySearch --> UpdateTable[Update table<br>with results]
     UpdateTable --> UserAction
 
-    OpenFilter --> SelectFilters[Select status,<br/>type, location,<br/>reason filters]
-    SelectFilters --> ApplyFilters[Apply AND logic<br/>between filter types]
-    ApplyFilters --> ShowChips[Show active<br/>filter chips]
+    OpenFilter --> SelectFilters[Select status,<br>type, location,<br>reason filters]
+    SelectFilters --> ApplyFilters[Apply AND logic<br>between filter types]
+    ApplyFilters --> ShowChips[Show active<br>filter chips]
     ShowChips --> UpdateTable
 
-    OpenSort --> SelectSort[Select column<br/>and direction]
-    SelectSort --> ApplySorting[Sort filtered<br/>results]
+    OpenSort --> SelectSort[Select column<br>and direction]
+    SelectSort --> ApplySorting[Sort filtered<br>results]
     ApplySorting --> UpdateTable
 
-    NavDetail --> DetailPage[Show Adjustment<br/>Detail Page]
+    NavDetail --> DetailPage[Show Adjustment<br>Detail Page]
     DetailPage --> End([End])
 ```
 
@@ -433,60 +451,60 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User navigates to<br/>Adjustment Detail]) --> LoadAdjustment[Load adjustment<br/>by ID]
+    Start([User navigates to<br>Adjustment Detail]) --> LoadAdjustment[Load adjustment<br>by ID]
 
-    LoadAdjustment --> CheckExists{Adjustment<br/>exists?}
+    LoadAdjustment --> CheckExists{Adjustment<br>exists?}
 
-    CheckExists -->|No| Show404[Show 404<br/>Not Found]
-    CheckExists -->|Yes| DisplaySummary[Display header<br/>and summary section]
+    CheckExists -->|No| Show404[Show 404<br>Not Found]
+    CheckExists -->|Yes| DisplaySummary[Display header<br>and summary section]
 
     Show404 --> End([End])
 
-    DisplaySummary --> DefaultTab[Default to<br/>Stock Movement tab]
+    DisplaySummary --> DefaultTab[Default to<br>Stock Movement tab]
 
-    DefaultTab --> DisplayStockTable[Display lot-level<br/>stock movement table]
+    DefaultTab --> DisplayStockTable[Display lot-level<br>stock movement table]
 
     DisplayStockTable --> UserAction{User action}
 
-    UserAction -->|Switch to Items| ShowItems[Display item<br/>summary table]
-    UserAction -->|Switch to Journal| ShowJournal[Display journal<br/>header and entries]
-    UserAction -->|Click Post| CheckPermission{User has<br/>permission?}
-    UserAction -->|Click Void| VoidCheck{Status is<br/>Posted?}
-    UserAction -->|Click Edit| EditCheck{Status is<br/>Draft?}
-    UserAction -->|Click Back| BackToList[Navigate to<br/>list page]
+    UserAction -->|Switch to Items| ShowItems[Display item<br>summary table]
+    UserAction -->|Switch to Journal| ShowJournal[Display journal<br>header and entries]
+    UserAction -->|Click Post| CheckPermission{User has<br>permission?}
+    UserAction -->|Click Void| VoidCheck{Status is<br>Posted?}
+    UserAction -->|Click Edit| EditCheck{Status is<br>Draft?}
+    UserAction -->|Click Back| BackToList[Navigate to<br>list page]
 
     ShowItems --> UserAction
     ShowJournal --> UserAction
     BackToList --> End
 
-    CheckPermission -->|No| ShowError[Show permission<br/>error]
-    CheckPermission -->|Yes| ValidatePost{Adjustment<br/>valid?}
+    CheckPermission -->|No| ShowError[Show permission<br>error]
+    CheckPermission -->|Yes| ValidatePost{Adjustment<br>valid?}
 
     ShowError --> UserAction
 
-    ValidatePost -->|No| ShowValidation[Show validation<br/>errors]
-    ValidatePost -->|Yes| PostAdjustment[Update status<br/>to Posted]
+    ValidatePost -->|No| ShowValidation[Show validation<br>errors]
+    ValidatePost -->|Yes| PostAdjustment[Update status<br>to Posted]
 
     ShowValidation --> UserAction
 
-    PostAdjustment --> GenerateJournal[Generate journal<br/>entries]
-    GenerateJournal --> UpdateStock[Update stock<br/>balances]
-    UpdateStock --> LogAudit[Create audit<br/>trail entry]
-    LogAudit --> Reload[Reload adjustment<br/>detail page]
+    PostAdjustment --> GenerateJournal[Generate journal<br>entries]
+    GenerateJournal --> UpdateStock[Update stock<br>balances]
+    UpdateStock --> LogAudit[Create audit<br>trail entry]
+    LogAudit --> Reload[Reload adjustment<br>detail page]
     Reload --> DisplaySummary
 
     VoidCheck -->|No| ShowError
-    VoidCheck -->|Yes| ConfirmVoid{User confirms<br/>void action?}
+    VoidCheck -->|Yes| ConfirmVoid{User confirms<br>void action?}
 
     ConfirmVoid -->|No| UserAction
-    ConfirmVoid -->|Yes| VoidAdjustment[Update status<br/>to Voided]
+    ConfirmVoid -->|Yes| VoidAdjustment[Update status<br>to Voided]
 
-    VoidAdjustment --> ReverseJournal[Create reversing<br/>journal entries]
-    ReverseJournal --> ReverseStock[Reverse stock<br/>balance changes]
+    VoidAdjustment --> ReverseJournal[Create reversing<br>journal entries]
+    ReverseJournal --> ReverseStock[Reverse stock<br>balance changes]
     ReverseStock --> LogAudit
 
     EditCheck -->|No| ShowError
-    EditCheck -->|Yes| NavEdit[Navigate to<br/>edit form]
+    EditCheck -->|Yes| NavEdit[Navigate to<br>edit form]
     NavEdit --> End
 ```
 
@@ -494,20 +512,20 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([New Adjustment<br/>Created]) --> Draft[Status: Draft]
+    Start([New Adjustment<br>Created]) --> Draft[Status: Draft]
 
     Draft --> EditDraft{User action}
 
-    EditDraft -->|Edit| ModifyDraft[Modify adjustment<br/>details]
-    EditDraft -->|Delete| DeleteDraft[Soft delete<br/>adjustment]
-    EditDraft -->|Post| ValidatePost{Validation<br/>passes?}
+    EditDraft -->|Edit| ModifyDraft[Modify adjustment<br>details]
+    EditDraft -->|Delete| DeleteDraft[Soft delete<br>adjustment]
+    EditDraft -->|Post| ValidatePost{Validation<br>passes?}
 
     ModifyDraft --> Draft
     DeleteDraft --> Deleted[Status: Deleted]
     Deleted --> End([End])
 
-    ValidatePost -->|No| ShowErrors[Display validation<br/>errors]
-    ValidatePost -->|Yes| ProcessPost[Generate journals,<br/>update stock]
+    ValidatePost -->|No| ShowErrors[Display validation<br>errors]
+    ValidatePost -->|Yes| ProcessPost[Generate journals,<br>update stock]
 
     ShowErrors --> Draft
 
@@ -519,11 +537,11 @@ flowchart TD
     PostActions -->|Void| ConfirmVoid{User confirms?}
 
     ConfirmVoid -->|No| Posted
-    ConfirmVoid -->|Yes| ProcessVoid[Reverse journals,<br/>reverse stock]
+    ConfirmVoid -->|Yes| ProcessVoid[Reverse journals,<br>reverse stock]
 
     ProcessVoid --> Voided[Status: Voided]
 
-    Voided --> ViewOnly[View Only<br/>No actions allowed]
+    Voided --> ViewOnly[View Only<br>No actions allowed]
     ViewOnly --> End
 
     style Draft fill:#d1d5db,stroke:#6b7280,stroke-width:2px,color:#000
@@ -536,53 +554,53 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Post button<br/>clicked]) --> CheckStatus{Status is<br/>Draft?}
+    Start([Post button<br>clicked]) --> CheckStatus{Status is<br>Draft?}
 
-    CheckStatus -->|No| Error[Show error:<br/>Only Draft can<br/>be posted]
+    CheckStatus -->|No| Error[Show error:<br>Only Draft can<br>be posted]
     CheckStatus -->|Yes| ValidateItems{Has items?}
 
     Error --> End([End])
 
     ValidateItems -->|No| Error
-    ValidateItems -->|Yes| CreateHeader[Create journal<br/>header record]
+    ValidateItems -->|Yes| CreateHeader[Create journal<br>header record]
 
-    CreateHeader --> SetNumber[Set journal number<br/>JNL-YYYY-NNN]
-    SetNumber --> SetDate[Set posting date<br/>and period]
-    SetDate --> SetUser[Set created by<br/>user info]
+    CreateHeader --> SetNumber[Set journal number<br>JNL-YYMM-NNNN]
+    SetNumber --> SetDate[Set posting date<br>and period]
+    SetDate --> SetUser[Set created by<br>user info]
 
-    SetUser --> LoopItems[For each<br/>adjustment item]
+    SetUser --> LoopItems[For each<br>adjustment item]
 
-    LoopItems --> CheckType{Adjustment<br/>type?}
+    LoopItems --> CheckType{Adjustment<br>type?}
 
-    CheckType -->|IN| CreateDebit[Create debit entry:<br/>1100 Inventory Asset]
-    CheckType -->|OUT| CreateCredit1[Create credit entry:<br/>1100 Inventory Asset]
+    CheckType -->|IN| CreateDebit[Create debit entry:<br>1100 Inventory Asset]
+    CheckType -->|OUT| CreateCredit1[Create credit entry:<br>1100 Inventory Asset]
 
-    CreateDebit --> CreateCredit2[Create credit entry:<br/>Expense account<br/>based on reason]
-    CreateCredit1 --> CreateDebit2[Create debit entry:<br/>Expense account<br/>based on reason]
+    CreateDebit --> CreateCredit2[Create credit entry:<br>Expense account<br>based on reason]
+    CreateCredit1 --> CreateDebit2[Create debit entry:<br>Expense account<br>based on reason]
 
-    CreateCredit2 --> SetAmount[Set amounts:<br/>Qty × Unit Cost]
+    CreateCredit2 --> SetAmount[Set amounts:<br>Qty × Unit Cost]
     CreateDebit2 --> SetAmount
 
-    SetAmount --> SetDept[Set department<br/>from adjustment]
-    SetDept --> SetRef[Set reference:<br/>Adjustment ID]
+    SetAmount --> SetDept[Set department<br>from adjustment]
+    SetDept --> SetRef[Set reference:<br>Adjustment ID]
 
     SetRef --> MoreItems{More items?}
 
     MoreItems -->|Yes| LoopItems
-    MoreItems -->|No| CalcTotals[Calculate total<br/>debits and credits]
+    MoreItems -->|No| CalcTotals[Calculate total<br>debits and credits]
 
-    CalcTotals --> Validate{Debits =<br/>Credits?}
+    CalcTotals --> Validate{Debits =<br>Credits?}
 
-    Validate -->|No| ErrorBalance[Show error:<br/>Unbalanced entries]
-    Validate -->|Yes| SaveJournal[Save journal<br/>header and entries]
+    Validate -->|No| ErrorBalance[Show error:<br>Unbalanced entries]
+    Validate -->|Yes| SaveJournal[Save journal<br>header and entries]
 
     ErrorBalance --> End
 
-    SaveJournal --> UpdateStatus[Update adjustment<br/>status to Posted]
-    UpdateStatus --> PostGL[Post to General<br/>Ledger module]
-    PostGL --> UpdateStock[Update stock<br/>balance records]
-    UpdateStock --> LogAudit[Create audit<br/>trail entry]
-    LogAudit --> Success[Show success<br/>message]
+    SaveJournal --> UpdateStatus[Update adjustment<br>status to Posted]
+    UpdateStatus --> PostGL[Post to General<br>Ledger module]
+    PostGL --> UpdateStock[Update stock<br>balance records]
+    UpdateStock --> LogAudit[Create audit<br>trail entry]
+    LogAudit --> Success[Show success<br>message]
     Success --> End
 ```
 
@@ -597,45 +615,45 @@ This section provides the complete navigation structure of all pages, tabs, and 
 
 ```mermaid
 graph TD
-    ListPage["Adjustment List Page<br/>(/inventory-management/inventory-adjustments)"]
-    DetailPage["Adjustment Detail Page<br/>(/inventory-management/inventory-adjustments/[id])"]
+    ListPage['Adjustment List Page<br>(/inventory-management/inventory-adjustments)']
+    DetailPage["Adjustment Detail Page<br>(/inventory-management/inventory-adjustments/[id])"]
 
     %% List Page Components
-    ListPage --> SearchComp["Component: Search Input"]
-    ListPage --> FilterComp["Component: Filter Popover"]
-    ListPage --> SortComp["Component: Sort Menu"]
-    ListPage --> TableComp["Component: Data Table"]
-    ListPage --> NewBtn["Action: New Adjustment"]
+    ListPage --> SearchComp['Component: Search Input']
+    ListPage --> FilterComp['Component: Filter Popover']
+    ListPage --> SortComp['Component: Sort Menu']
+    ListPage --> TableComp['Component: Data Table']
+    ListPage --> NewBtn['Action: New Adjustment']
 
     %% Detail Page Tabs
-    DetailPage --> Tab1["Tab: Items"]
-    DetailPage --> Tab2["Tab: Stock Movement"]
-    DetailPage --> Tab3["Tab: Journal Entries"]
+    DetailPage --> Tab1['Tab: Items']
+    DetailPage --> Tab2['Tab: Stock Movement']
+    DetailPage --> Tab3['Tab: Journal Entries']
 
     %% Tab 1 Components
-    Tab1 --> Tab1Comp1["Component: Item Summary Table"]
-    Tab1 --> Tab1Comp2["Component: Totals Footer"]
+    Tab1 --> Tab1Comp1['Component: Item Summary Table']
+    Tab1 --> Tab1Comp2['Component: Totals Footer']
 
     %% Tab 2 Components
-    Tab2 --> Tab2Comp1["Component: Stock Movement Table"]
-    Tab2 --> Tab2Comp2["Component: Lot-Level Details"]
-    Tab2 --> Tab2Comp3["Component: Location Breakdown"]
+    Tab2 --> Tab2Comp1['Component: Stock Movement Table']
+    Tab2 --> Tab2Comp2['Component: Lot-Level Details']
+    Tab2 --> Tab2Comp3['Component: Location Breakdown']
 
     %% Tab 3 Components
-    Tab3 --> Tab3Comp1["Component: Journal Header"]
-    Tab3 --> Tab3Comp2["Component: Journal Entry Lines"]
-    Tab3 --> Tab3Comp3["Component: Balance Validation"]
+    Tab3 --> Tab3Comp1['Component: Journal Header']
+    Tab3 --> Tab3Comp2['Component: Journal Entry Lines']
+    Tab3 --> Tab3Comp3['Component: Balance Validation']
 
     %% Action Buttons
-    DetailPage --> Actions["Status Action Buttons"]
-    Actions --> PostAction["Action: Post Adjustment"]
-    Actions --> VoidAction["Action: Void Adjustment"]
-    Actions --> EditAction["Action: Edit Adjustment"]
+    DetailPage --> Actions['Status Action Buttons']
+    Actions --> PostAction['Action: Post Adjustment']
+    Actions --> VoidAction['Action: Void Adjustment']
+    Actions --> EditAction['Action: Edit Adjustment']
 
     %% Navigation
     TableComp -.-> DetailPage
-    NewBtn -.-> CreatePage["Create Adjustment Form<br/>(future)"]
-    EditAction -.-> EditPage["Edit Adjustment Form<br/>(future)"]
+    NewBtn -.-> CreatePage['Create Adjustment Form<br>(future)']
+    EditAction -.-> EditPage['Edit Adjustment Form<br>(future)']
 
     style ListPage fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style DetailPage fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -672,7 +690,7 @@ graph TD
 **Entry Point**: Inventory Adjustments list page
 
 **Steps**:
-1. Use search to find adjustment ID (e.g., "ADJ-2024-001")
+1. Use search to find adjustment ID (e.g., "ADJ-2401-0001")
 2. Search results filter to matching adjustment
 3. Click row to open detail page
 4. Review summary section (location, reason, totals)
@@ -704,7 +722,7 @@ graph TD
 7. Click high-value adjustment to investigate
 8. Review summary section for reason justification
 9. Switch to Journal Entries tab
-10. Verify journal number generated (JNL-YYYY-NNN)
+10. Verify journal number generated (JNL-YYMM-NNNN)
 11. Check posting date and period correct
 12. Verify GL accounts match adjustment reason
 13. Confirm debits equal credits
@@ -818,19 +836,20 @@ This section provides high-level descriptions of key components without implemen
 **Responsibility**: Display multi-select filter options in popover overlay
 
 **Key Features**:
-- Four filter categories: Status, Type, Location, Reason
+- Four filter categories: Status, Type, Location, Category
 - Multi-select checkboxes within each category
 - Active filter chips below search bar
 - Clear individual filters or clear all
 - AND logic between categories, OR within category
+- **Type Filter**: Replaces former tab functionality for filtering by IN or OUT
 
 **Filter Options**:
 - **Status**: Draft, Posted, Voided
-- **Type**: IN, OUT
+- **Type**: IN, OUT (use this to filter by Stock IN or Stock OUT)
 - **Location**: All accessible locations from user permissions
-- **Reason**: Type-specific reasons (filtered based on selected Type):
-  - **Stock OUT**: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
-  - **Stock IN**: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
+- **Category**: Type-specific categories with GL mapping:
+  - **Stock OUT**: Wastage, Loss, Quality, Consumption
+  - **Stock IN**: Found, Return, Correction
 
 **Inputs**: Available filter options based on user permissions
 **Outputs**: Array of active filter objects
@@ -917,7 +936,7 @@ This section provides high-level descriptions of key components without implemen
 
 **Key Features**:
 - Status badge (Draft/Posted/Voided)
-- Journal Number (e.g., JNL-2024-001)
+- Journal Number (e.g., JNL-2401-0001)
 - Posting Date and Posting Period
 - Description and Reference
 - Created By, Created At timestamps
@@ -995,7 +1014,7 @@ This section describes key algorithms and calculation methods without implementa
 
 **Process**:
 1. Create journal header:
-   - Generate unique journal number: JNL-YYYY-NNN
+   - Generate unique journal number: JNL-YYMM-NNNN
    - Set posting date (current date)
    - Set posting period (YYYY-MM)
    - Set description: "Inventory Adjustment: [Reason]"
@@ -1097,7 +1116,7 @@ This section describes key algorithms and calculation methods without implementa
    - Update lot balances
 
 3. Store lot-level detail for each item:
-   - Lot number (e.g., LOT-2024-001)
+   - Lot number (e.g., LOT-2401-0001)
    - Quantity allocated from/to lot
    - Expiry date (if applicable)
    - Location within facility
@@ -1166,11 +1185,11 @@ This section describes key algorithms and calculation methods without implementa
 
 **Mock Data Structure**:
 - **mockAdjustments**: Array of 8 sample adjustments with varied scenarios
-- **mockAdjustmentDetail**: Full detail for single adjustment (ADJ-2024-001)
+- **mockAdjustmentDetail**: Full detail for single adjustment (ADJ-2401-0001)
 - **mockJournalEntries**: Complete journal header and entry lines
 
 **Data Characteristics**:
-- IDs: Sequential ADJ-2024-001 to ADJ-2024-008
+- IDs: Sequential ADJ-2401-0001 to ADJ-2401-0008
 - Types: Mix of IN (5) and OUT (3)
 - Statuses: Posted (5), Draft (2), Voided (1)
 - Locations: Main Warehouse, Kitchen, Bar, Housekeeping, Engineering
@@ -1266,7 +1285,7 @@ This section describes key algorithms and calculation methods without implementa
 - "Inventory Management" menu item with sub-items
 - "Inventory Adjustments" submenu → `/inventory-management/inventory-adjustments`
 - Breadcrumb navigation: Home → Inventory Management → Inventory Adjustments
-- Detail page breadcrumb: ... → Inventory Adjustments → ADJ-2024-001
+- Detail page breadcrumb: ... → Inventory Adjustments → ADJ-2401-0001
 
 **Context Preservation**:
 - Maintain selected filters when navigating back from detail
@@ -1442,46 +1461,61 @@ Key interfaces defined in `components/types.ts`:
 - **Medium**: Yellow background
 - **Low**: Gray background
 
-### Appendix D: Adjustment Reasons
+### Appendix D: Two-Level Category/Reason Classification
 
-**Type-specific reason codes** (reason dropdown dynamically changes based on selected adjustment type):
+**Two-Level Structure**:
+- **Header-Level Category**: Selected once per adjustment, maps to GL accounts
+- **Item-Level Reason**: Selected per item, filtered by the header-level category
 
-**Stock OUT Reasons (7 options)** - For decreasing inventory:
-1. **Damaged Goods** (`damaged`): Items damaged during storage or handling
-2. **Expired Items** (`expired`): Perishable items past expiration date
-3. **Theft / Loss** (`theft_loss`): Missing items due to theft or unknown loss
-4. **Spoilage** (`spoilage`): Perishable items spoiled before expiration
-5. **Physical Count Variance** (`count_variance`): Discrepancy found during physical count (decrease)
-6. **Quality Control Rejection** (`quality_rejection`): Items rejected during QC inspection
-7. **Other** (`other`): Free-text reason required
+**Stock OUT Categories** (for decreasing inventory):
 
-**Stock IN Reasons (5 options)** - For increasing inventory:
-1. **Physical Count Variance** (`count_variance`): Discrepancy found during physical count (increase)
-2. **Found Items** (`found_items`): Previously missing items located
-3. **Return to Stock** (`return_to_stock`): Items returned from production or service
-4. **System Correction** (`system_correction`): Correction of data entry errors
-5. **Other** (`other`): Free-text reason required
+| Code | Category | GL Account | GL Account Name | Reasons |
+|------|----------|------------|-----------------|---------|
+| WST | Wastage | 5200 | Waste Expense | Damaged Goods (DMG), Expired Items (EXP), Spoilage (SPL) |
+| LSS | Loss | 5210 | Inventory Loss | Theft/Loss (THF), Shrinkage (SHR), Count Variance (CNV) |
+| QLT | Quality | 5100 | Cost of Goods Sold | QC Rejection (QCR), Customer Return (CRT) |
+| CON | Consumption | 5100 | Cost of Goods Sold | Production Use (PRD), Transfer Out (TRO) |
+
+**Stock IN Categories** (for increasing inventory):
+
+| Code | Category | GL Account | GL Account Name | Reasons |
+|------|----------|------------|-----------------|---------|
+| FND | Found | 1310 | Raw Materials Inventory | Count Variance (CNV), Found Items (FIT) |
+| RTN | Return | 1310 | Raw Materials Inventory | Return to Stock (RTS), Vendor Return (VRT) |
+| COR | Correction | 1310 | Raw Materials Inventory | System Correction (SYC), Data Fix (DFX) |
+
+**Cascading Reset Behavior**:
+- When type (IN/OUT) changes → Category resets → All item reasons reset
+- When category changes → All item reasons reset
 
 **Costing Rules by Type**:
-- **Stock OUT**: Unit cost automatically uses product's average cost (no manual entry)
+- **Stock OUT**: Unit cost automatically uses product's system average cost (read-only field)
 - **Stock IN**: Unit cost must be manually entered (affects inventory valuation)
 
-### Appendix E: GL Account Mapping
+**Source Data**: `lib/mock-data/transaction-categories.ts` - Helper functions:
+- `getCategoryOptionsForType(type: AdjustmentType)` - Get categories for dropdown
+- `getReasonsByCategoryCode(categoryCode: string)` - Get reasons filtered by category
 
-| Reason | Type | Debit Account | Credit Account |
-|--------|------|---------------|----------------|
-| Physical Count Variance | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
-| Found Items | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
-| Return to Stock | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
-| System Correction | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
-| Other | IN | 1310 Raw Materials Inventory | 5110 Inventory Variance |
-| Damaged Goods | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
-| Expired Items | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
-| Theft / Loss | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
-| Spoilage | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
-| Physical Count Variance | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
-| Quality Control Rejection | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
-| Other | OUT | 5110 Inventory Variance | 1310 Raw Materials Inventory |
+### Appendix E: GL Account Mapping (Category-Based)
+
+GL accounts are mapped at the **Category level** (not Reason level), providing consistent financial reporting:
+
+**Stock IN Categories** (Inventory Increase):
+| Category Code | Category | Debit Account | Credit Account |
+|---------------|----------|---------------|----------------|
+| FND | Found | 1310 Raw Materials Inventory | Inventory Variance |
+| RTN | Return | 1310 Raw Materials Inventory | Inventory Variance |
+| COR | Correction | 1310 Raw Materials Inventory | Inventory Variance |
+
+**Stock OUT Categories** (Inventory Decrease):
+| Category Code | Category | Debit Account | Credit Account |
+|---------------|----------|---------------|----------------|
+| WST | Wastage | 5200 Waste Expense | 1310 Raw Materials Inventory |
+| LSS | Loss | 5210 Inventory Loss | 1310 Raw Materials Inventory |
+| QLT | Quality | 5100 Cost of Goods Sold | 1310 Raw Materials Inventory |
+| CON | Consumption | 5100 Cost of Goods Sold | 1310 Raw Materials Inventory |
+
+**Note**: GL account mapping is determined by the header-level Category selection, not the item-level Reason. This ensures consistent financial categorization across all items within an adjustment.
 
 ---
 

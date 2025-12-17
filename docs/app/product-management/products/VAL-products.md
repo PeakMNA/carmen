@@ -262,7 +262,7 @@ conversionFactor: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 5
-  }, "Conversion factor cannot have more than 5 decimal places")
+  }, 'Conversion factor cannot have more than 5 decimal places')
 ```
 
 **Error Messages**:
@@ -301,7 +301,7 @@ standardCost: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 5
-  }, "Standard cost cannot have more than 5 decimal places")
+  }, 'Standard cost cannot have more than 5 decimal places')
   .optional()
   .or(z.literal(null))
 ```
@@ -338,7 +338,7 @@ basePrice: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 5
-  }, "Base price cannot have more than 5 decimal places")
+  }, 'Base price cannot have more than 5 decimal places')
   .optional()
   .or(z.literal(null))
 ```
@@ -377,7 +377,7 @@ taxRate: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 2
-  }, "Tax rate cannot have more than 2 decimal places")
+  }, 'Tax rate cannot have more than 2 decimal places')
   .optional()
   .or(z.literal(null))
 ```
@@ -389,7 +389,7 @@ taxRate: z.number()
     return data.taxRate !== null && data.taxRate !== undefined
   }
   return true
-}, "Tax rate is required when tax type is specified")
+}, 'Tax rate is required when tax type is specified')
 ```
 
 **Error Messages**:
@@ -426,7 +426,7 @@ priceDeviationLimit: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 2
-  }, "Price deviation limit cannot have more than 2 decimal places")
+  }, 'Price deviation limit cannot have more than 2 decimal places')
   .optional()
   .or(z.literal(null))
 ```
@@ -461,7 +461,7 @@ quantityDeviationLimit: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 2
-  }, "Quantity deviation limit cannot have more than 2 decimal places")
+  }, 'Quantity deviation limit cannot have more than 2 decimal places')
   .optional()
   .or(z.literal(null))
 ```
@@ -496,7 +496,7 @@ minimumStockLevel: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 3
-  }, "Minimum stock level cannot have more than 3 decimal places")
+  }, 'Minimum stock level cannot have more than 3 decimal places')
 ```
 
 **Error Messages**:
@@ -528,7 +528,7 @@ maximumStockLevel: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 3
-  }, "Maximum stock level cannot have more than 3 decimal places")
+  }, 'Maximum stock level cannot have more than 3 decimal places')
 ```
 
 **Cross-Field Validation**:
@@ -538,7 +538,7 @@ maximumStockLevel: z.number()
     return data.maximumStockLevel >= data.minimumStockLevel
   }
   return true
-}, "Maximum stock level must be greater than or equal to minimum stock level")
+}, 'Maximum stock level must be greater than or equal to minimum stock level')
 ```
 
 **Error Messages**:
@@ -575,7 +575,7 @@ weight: z.number()
   .refine(val => {
     const decimals = val.toString().split('.')[1]?.length || 0
     return decimals <= 3
-  }, "Weight cannot have more than 3 decimal places")
+  }, 'Weight cannot have more than 3 decimal places')
   .optional()
   .or(z.literal(null))
 ```
@@ -944,7 +944,7 @@ if (newStatus === 'ACTIVE') {
   return true
 }, {
   message: "Tax rate is required when tax type is specified",
-  path: ["taxRate"]
+  path: ['taxRate']
 })
 ```
 
@@ -971,7 +971,7 @@ if (newStatus === 'ACTIVE') {
   return true
 }, {
   message: "Maximum stock level must be greater than or equal to minimum stock level",
-  path: ["maximumStockLevel"]
+  path: ['maximumStockLevel']
 })
 ```
 

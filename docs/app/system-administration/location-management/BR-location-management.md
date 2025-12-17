@@ -2,8 +2,8 @@
 
 ## Document Information
 - **Module**: System Administration / Location Management
-- **Version**: 1.2
-- **Last Updated**: 2025-11-28
+- **Version**: 1.3
+- **Last Updated**: 2025-12-15
 - **Status**: Active
 
 ## Document History
@@ -13,6 +13,7 @@
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 | 1.1.0 | 2025-11-26 | Documentation Team | Code compliance review - removed fictional features, added missing features |
 | 1.2.0 | 2025-11-28 | Documentation Team | Delivery Points moved to separate maintenance page, Users Tab updated with checkboxes |
+| 1.3.0 | 2025-12-15 | Documentation Team | Simplified data model - removed department, cost center, and address fields |
 
 ## Overview
 
@@ -39,7 +40,7 @@ Location Management enables operations managers to define and manage physical an
 - Set location type: Inventory, Direct, or Consignment
 - Configure physical count enabled (yes/no)
 - Set status: active, inactive, closed, or pending_setup
-- Optional: description, department, cost center, address
+- Optional: description
 - For consignment locations: assign consignment vendor
 
 **Acceptance Criteria**:
@@ -170,7 +171,7 @@ Location Management enables operations managers to define and manage physical an
 **User Story**: As an Operations Manager, I want to search and filter locations so that I can quickly find specific sites.
 
 **Requirements**:
-- Search by name, code, description, department name
+- Search by name, code, description
 - Filter by type: All, Inventory, Direct, Consignment
 - Filter by status: All, Active, Inactive, Closed, Pending Setup
 - Filter by physical count: All, Count Enabled, Count Disabled
@@ -222,40 +223,6 @@ Location Management enables operations managers to define and manage physical an
 
 ---
 
-### FR-LOC-011: Organization Assignment
-**Priority**: Medium
-**User Story**: As a Financial Controller, I want to assign locations to departments and cost centers so that expenses can be properly tracked.
-
-**Requirements**:
-- Assign department to location
-- Assign cost center to location
-- For consignment locations: assign consignment vendor
-
-**Acceptance Criteria**:
-- Department dropdown with available departments
-- Cost Center dropdown with available cost centers
-- Vendor dropdown appears only for consignment type locations
-- Department name displayed in location list
-
----
-
-### FR-LOC-012: Location Address
-**Priority**: Low
-**User Story**: As a Logistics Coordinator, I want to record location addresses so that deliveries can be properly routed.
-
-**Requirements**:
-- Record address: line 1, line 2, city, postal code, country
-- Display formatted address in view mode
-- Edit address fields in edit mode
-
-**Acceptance Criteria**:
-- Address card section in General tab
-- All fields displayed as read-only text in view mode
-- Input fields in edit mode
-- Default country: Thailand
-
----
-
 ## Business Rules
 
 ### BR-001: Location Code Format
@@ -303,12 +270,9 @@ Users are assigned to locations using a dual-panel transfer list with checkbox s
 - type (inventory | direct | consignment)
 - status (active | inactive | closed | pending_setup)
 - physicalCountEnabled
-- departmentId, departmentName
-- costCenterId, costCenterName
 - consignmentVendorId, consignmentVendorName
 - deliveryPointId, deliveryPointName
 - shelvesCount, assignedUsersCount, assignedProductsCount
-- address (optional)
 - createdAt, createdBy, updatedAt, updatedBy
 
 ### Shelf
@@ -330,11 +294,7 @@ Users are assigned to locations using a dual-panel transfer list with checkbox s
 - assignedAt, assignedBy
 
 ### DeliveryPoint (Reference Only - See Delivery Points Module)
-- id, name, code
-- address, contactName, contactPhone, contactEmail
-- deliveryInstructions, operatingHours
-- maxVehicleSize, hasDockLeveler, hasForklift
-- isActive
-- createdAt, createdBy
+- id, name, isActive
+- createdAt, createdBy, updatedAt, updatedBy
 
-**Note**: DeliveryPoint entity is now managed in the standalone Delivery Points maintenance page. Locations reference delivery points via deliveryPointId field.
+**Note**: DeliveryPoint entity is now managed in the standalone Delivery Points maintenance page. Locations reference delivery points via deliveryPointId field. See `/docs/app/system-administration/delivery-points/BR-delivery-points.md` for full requirements.

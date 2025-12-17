@@ -2,7 +2,14 @@
  * Stock Replenishment Mock Data
  *
  * Mock data for stock replenishment module, including items below par level,
- * replenishment requests, and helper functions.
+ * transfer requests (transfers), and helper functions.
+ *
+ * Transaction Code Format: TRF-YYMM-NNNN
+ * - TRF: Transfer prefix (used for all stock transfers/replenishments)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: TRF-2410-001 = Transfer #001 from October 2024
  */
 
 import { mockProductLocationAssignments, mockInventoryLocations } from './inventory-locations'
@@ -10,11 +17,11 @@ import { InventoryLocationType } from '../types/location-management'
 
 // ====== TYPES ======
 
-export type ReplenishmentUrgency = 'critical' | 'warning' | 'low'
-export type ReplenishmentStatus = 'draft' | 'pending' | 'approved' | 'in_transit' | 'completed' | 'rejected'
-export type ReplenishmentPriority = 'standard' | 'urgent' | 'emergency'
+export type TransferUrgency = 'critical' | 'warning' | 'low'
+export type TransferStatus = 'draft' | 'pending' | 'approved' | 'in_transit' | 'completed' | 'rejected'
+export type TransferPriority = 'standard' | 'urgent' | 'emergency'
 
-export interface ReplenishmentItem {
+export interface TransferItem {
   id: string
   productId: string
   productCode: string
@@ -28,18 +35,18 @@ export interface ReplenishmentItem {
   reorderPoint: number
   minimumLevel: number
   recommendedQty: number  // parLevel - currentStock
-  urgency: ReplenishmentUrgency
+  urgency: TransferUrgency
   // Source location availability (populated when source is selected)
   sourceLocationId?: string
   sourceLocationName?: string
   sourceAvailable?: number
 }
 
-export interface ReplenishmentRequest {
+export interface TransferRequest {
   id: string
   requestNumber: string
-  status: ReplenishmentStatus
-  priority: ReplenishmentPriority
+  status: TransferStatus
+  priority: TransferPriority
   // Requestor info
   requestorId: string
   requestorName: string
@@ -53,7 +60,7 @@ export interface ReplenishmentRequest {
   toLocationId: string
   toLocationName: string
   // Items
-  items: ReplenishmentRequestItem[]
+  items: TransferRequestItem[]
   // Totals
   totalItems: number
   totalQuantity: number
@@ -67,7 +74,7 @@ export interface ReplenishmentRequest {
   approvedBy?: string
 }
 
-export interface ReplenishmentRequestItem {
+export interface TransferRequestItem {
   id: string
   productId: string
   productCode: string
@@ -88,7 +95,7 @@ export interface ReplenishmentRequestItem {
 /**
  * Calculate urgency based on current stock vs par level thresholds
  */
-function calculateUrgency(currentStock: number, parLevel: number, reorderPoint?: number, minLevel?: number): ReplenishmentUrgency {
+function calculateUrgency(currentStock: number, parLevel: number, reorderPoint?: number, minLevel?: number): TransferUrgency {
   const minimumLevel = minLevel || parLevel * 0.3
   const reorder = reorderPoint || parLevel * 0.4
 
@@ -105,7 +112,7 @@ function calculateUrgency(currentStock: number, parLevel: number, reorderPoint?:
  * Get items below par level for a specific location
  * This is the main function for the replenishment dashboard
  */
-export function getItemsBelowParLevel(locationId: string): ReplenishmentItem[] {
+export function getItemsBelowParLevel(locationId: string): TransferItem[] {
   const location = mockInventoryLocations.find(loc => loc.id === locationId)
   if (!location) return []
 
@@ -113,7 +120,7 @@ export function getItemsBelowParLevel(locationId: string): ReplenishmentItem[] {
     pa => pa.locationId === locationId && pa.isActive && pa.isStocked
   )
 
-  const itemsBelowPar: ReplenishmentItem[] = []
+  const itemsBelowPar: TransferItem[] = []
 
   for (const pa of productAssignments) {
     const currentStock = pa.currentQuantity || 0
@@ -146,7 +153,7 @@ export function getItemsBelowParLevel(locationId: string): ReplenishmentItem[] {
   }
 
   // Sort by urgency (critical first, then warning, then low)
-  const urgencyOrder: Record<ReplenishmentUrgency, number> = {
+  const urgencyOrder: Record<TransferUrgency, number> = {
     'critical': 0,
     'warning': 1,
     'low': 2
@@ -159,9 +166,9 @@ export function getItemsBelowParLevel(locationId: string): ReplenishmentItem[] {
  * Get items grouped by urgency
  */
 export function getItemsBelowParLevelGrouped(locationId: string): {
-  critical: ReplenishmentItem[]
-  warning: ReplenishmentItem[]
-  low: ReplenishmentItem[]
+  critical: TransferItem[]
+  warning: TransferItem[]
+  low: TransferItem[]
 } {
   const items = getItemsBelowParLevel(locationId)
 
@@ -200,9 +207,9 @@ export function getSourceLocations(): Array<{ id: string; code: string; name: st
  * Enrich replenishment items with source availability
  */
 export function enrichItemsWithSourceAvailability(
-  items: ReplenishmentItem[],
+  items: TransferItem[],
   sourceLocationId: string
-): ReplenishmentItem[] {
+): TransferItem[] {
   const sourceLocation = mockInventoryLocations.find(loc => loc.id === sourceLocationId)
 
   return items.map(item => ({
@@ -214,11 +221,12 @@ export function enrichItemsWithSourceAvailability(
 }
 
 // ====== MOCK REPLENISHMENT REQUESTS ======
+// Transaction codes use format: TRF-YYMM-NNNN (e.g., TRF-2410-001 = October 2024, Request #001)
 
-export const mockReplenishmentRequests: ReplenishmentRequest[] = [
+export const mockTransferRequests: TransferRequest[] = [
   {
     id: 'rep-001',
-    requestNumber: 'REP-2024-001',
+    requestNumber: 'TRF-2410-001', // Transfer #001, October 2024
     status: 'completed',
     priority: 'standard',
     requestorId: 'user-chef-001',
@@ -259,7 +267,7 @@ export const mockReplenishmentRequests: ReplenishmentRequest[] = [
   },
   {
     id: 'rep-002',
-    requestNumber: 'REP-2024-002',
+    requestNumber: 'TRF-2410-002',
     status: 'pending',
     priority: 'urgent',
     requestorId: 'user-chef-001',
@@ -313,7 +321,7 @@ export const mockReplenishmentRequests: ReplenishmentRequest[] = [
   },
   {
     id: 'rep-003',
-    requestNumber: 'REP-2024-003',
+    requestNumber: 'TRF-2410-003',
     status: 'draft',
     priority: 'standard',
     requestorId: 'user-bar-001',
@@ -351,39 +359,94 @@ export const mockReplenishmentRequests: ReplenishmentRequest[] = [
 ]
 
 /**
- * Get replenishment requests for a location
+ * Get items below par level for multiple locations, grouped by location
+ * This is used when displaying items across user's assigned locations
  */
-export function getReplenishmentRequestsByLocation(toLocationId: string): ReplenishmentRequest[] {
-  return mockReplenishmentRequests.filter(req => req.toLocationId === toLocationId)
+export function getItemsBelowParLevelByLocations(locationIds: string[]): {
+  locationId: string
+  locationName: string
+  locationType?: string
+  items: TransferItem[]
+  summary: {
+    critical: number
+    warning: number
+    low: number
+    total: number
+  }
+}[] {
+  const result: {
+    locationId: string
+    locationName: string
+    locationType?: string
+    items: TransferItem[]
+    summary: {
+      critical: number
+      warning: number
+      low: number
+      total: number
+    }
+  }[] = []
+
+  for (const locationId of locationIds) {
+    const location = mockInventoryLocations.find(loc => loc.id === locationId)
+    if (!location) continue
+
+    const items = getItemsBelowParLevel(locationId)
+
+    if (items.length > 0 || location.type === InventoryLocationType.INVENTORY) {
+      result.push({
+        locationId: location.id,
+        locationName: location.name,
+        locationType: location.type,
+        items,
+        summary: {
+          critical: items.filter(i => i.urgency === 'critical').length,
+          warning: items.filter(i => i.urgency === 'warning').length,
+          low: items.filter(i => i.urgency === 'low').length,
+          total: items.length
+        }
+      })
+    }
+  }
+
+  // Sort by total items below par (highest first)
+  return result.sort((a, b) => b.summary.total - a.summary.total)
 }
 
 /**
- * Get replenishment requests by status
+ * Get transfer requests for a location
  */
-export function getReplenishmentRequestsByStatus(status: ReplenishmentStatus): ReplenishmentRequest[] {
-  return mockReplenishmentRequests.filter(req => req.status === status)
+export function getTransferRequestsByLocation(toLocationId: string): TransferRequest[] {
+  return mockTransferRequests.filter(req => req.toLocationId === toLocationId)
 }
 
 /**
- * Get all replenishment requests
+ * Get transfer requests by status
  */
-export function getAllReplenishmentRequests(): ReplenishmentRequest[] {
-  return mockReplenishmentRequests
+export function getTransferRequestsByStatus(status: TransferStatus): TransferRequest[] {
+  return mockTransferRequests.filter(req => req.status === status)
+}
+
+/**
+ * Get all transfer requests
+ */
+export function getAllTransferRequests(): TransferRequest[] {
+  return mockTransferRequests
 }
 
 /**
  * Get replenishment summary for a location
  */
-export function getReplenishmentSummary(locationId: string): {
+export function getTransferSummary(locationId: string): {
   totalItemsBelowPar: number
   criticalCount: number
   warningCount: number
   lowCount: number
   pendingRequests: number
-  lastReplenishmentDate: string | null
+  lastTransferDate: string | null
 } {
   const grouped = getItemsBelowParLevelGrouped(locationId)
-  const requests = getReplenishmentRequestsByLocation(locationId)
+  const requests = getTransferRequestsByLocation(locationId)
   const pendingRequests = requests.filter(r => r.status === 'pending' || r.status === 'approved' || r.status === 'in_transit')
   const completedRequests = requests.filter(r => r.status === 'completed').sort((a, b) =>
     new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
@@ -395,6 +458,6 @@ export function getReplenishmentSummary(locationId: string): {
     warningCount: grouped.warning.length,
     lowCount: grouped.low.length,
     pendingRequests: pendingRequests.length,
-    lastReplenishmentDate: completedRequests[0]?.createdAt || null
+    lastTransferDate: completedRequests[0]?.createdAt || null
   }
 }

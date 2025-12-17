@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-11-25 | System | Updated to match actual code implementation - 2 tabs instead of 6 |
 | 1.0.0 | 2025-11-23 | System | Initial version |
 
@@ -80,7 +81,7 @@
 ### Template Number Display
 **Location**: Top of card content with border-b pb-4
 **Label**: Template #
-**Value**: Template ID or fallback "TPL-2024-001"
+**Value**: Template ID or fallback "TPL-2401-0001"
 **Style**: font-mono text-sm font-semibold text-blue-600
 
 ---

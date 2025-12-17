@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial validations specification document created for Recipe Management |
 
 ---
@@ -159,7 +160,7 @@ export const recipeSchema = z.object({
     },
     {
       message: "Fractional sales type is required when fractional sales is enabled",
-      path: ["fractionalSalesType"]
+      path: ['fractionalSalesType']
     }
   )
   .refine(
@@ -169,7 +170,7 @@ export const recipeSchema = z.object({
     },
     {
       message: "Total time (prep + cook) cannot exceed 96 hours",
-      path: ["cookTime"]
+      path: ['cookTime']
     }
   )
 
@@ -237,7 +238,7 @@ export const ingredientSchema = z.object({
     },
     {
       message: "Product ID or Sub-Recipe ID must be provided based on ingredient type",
-      path: ["productId"]
+      path: ['productId']
     }
   )
 
@@ -402,7 +403,7 @@ export const yieldVariantSchema = z.object({
     },
     {
       message: "Minimum order quantity cannot exceed maximum order quantity",
-      path: ["maxOrderQuantity"]
+      path: ['maxOrderQuantity']
     }
   )
 
@@ -448,7 +449,7 @@ export const createRecipeSchema = recipeSchema.extend({
     },
     {
       message: "At least 2 yield variants required when fractional sales is enabled",
-      path: ["yieldVariants"]
+      path: ['yieldVariants']
     }
   )
   .refine(
@@ -462,7 +463,7 @@ export const createRecipeSchema = recipeSchema.extend({
     },
     {
       message: "Exactly one yield variant must be marked as default",
-      path: ["yieldVariants"]
+      path: ['yieldVariants']
     }
   )
   .refine(
@@ -480,7 +481,7 @@ export const createRecipeSchema = recipeSchema.extend({
     },
     {
       message: "Preparation steps must be numbered sequentially starting from 1",
-      path: ["steps"]
+      path: ['steps']
     }
   )
 
@@ -1284,8 +1285,8 @@ describe("Create Recipe Validation", () => {
     const input = {
       ...validInput,
       steps: [
-        { stepNumber: 1, description: "Step 1" },
-        { stepNumber: 3, description: "Step 3" } // Missing step 2
+        { stepNumber: 1, description: 'Step 1' },
+        { stepNumber: 3, description: 'Step 3' } // Missing step 2
       ]
     }
     const result = createRecipeSchema.safeParse(input)
@@ -1309,8 +1310,8 @@ describe("Create Recipe Validation", () => {
       ...validInput,
       allowsFractionalSales: true,
       yieldVariants: [
-        { variantName: "Half", conversionRate: 0.5, isDefault: false },
-        { variantName: "Whole", conversionRate: 1.0, isDefault: false }
+        { variantName: 'Half', conversionRate: 0.5, isDefault: false },
+        { variantName: 'Whole', conversionRate: 1.0, isDefault: false }
       ]
     }
     const result = createRecipeSchema.safeParse(input)

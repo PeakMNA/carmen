@@ -14,7 +14,7 @@ import StatusBadge from "@/components/ui/custom-status-badge"
 
 const mockGRNData = [
   {
-    grnReference: "GRN-2024-001",
+    grnReference: "GRN-2410-001",
     date: "2024-03-15",
     location: "Main Warehouse",
     receiver: "John Doe",
@@ -23,7 +23,7 @@ const mockGRNData = [
     units: "pcs",
   },
   {
-    grnReference: "GRN-2024-002",
+    grnReference: "GRN-2410-002",
     date: "2024-03-16",
     location: "IT Department",
     receiver: "Jane Smith",
@@ -32,7 +32,7 @@ const mockGRNData = [
     units: "boxes",
   },
   {
-    grnReference: "GRN-2024-003",
+    grnReference: "GRN-2410-003",
     date: "2024-03-17",
     location: "Branch Office",
     receiver: "Bob Johnson",

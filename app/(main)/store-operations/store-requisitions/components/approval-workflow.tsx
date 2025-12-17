@@ -30,24 +30,34 @@ interface ApprovalStep {
   isRequired: boolean
 }
 
+interface ItemStatusSummary {
+  total: number
+  pending: number
+  approved: number
+  rejected: number
+  review: number
+}
+
 interface ApprovalWorkflowProps {
   requisitionId: string
   currentStatus: string
   approvalSteps: ApprovalStep[]
   currentUserRole: string
+  itemStatusSummary: ItemStatusSummary
   onApprove: (stepId: string, comments: string) => void
   onReject: (stepId: string, comments: string) => void
   onSendBack: (stepId: string, comments: string) => void
 }
 
-export function ApprovalWorkflow({ 
-  requisitionId, 
+export function ApprovalWorkflow({
+  requisitionId,
   currentStatus,
-  approvalSteps, 
+  approvalSteps,
   currentUserRole,
+  itemStatusSummary,
   onApprove,
   onReject,
-  onSendBack 
+  onSendBack
 }: ApprovalWorkflowProps) {
   const [comments, setComments] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -59,47 +69,136 @@ export function ApprovalWorkflow({
     currentUserRole === 'admin'
   )
 
-  // Workflow Decision Engine - analyzes current state and determines available actions
+  /**
+   * WORKFLOW DECISION ENGINE
+   * ========================
+   * Analyzes current approval state and determines available actions for the Approval tab.
+   *
+   * Decision Priority (evaluated in order):
+   * ┌────────┬─────────────────────────────┬─────────────────────────────────────┐
+   * │ Priority│ Condition                   │ Action                              │
+   * ├────────┼─────────────────────────────┼─────────────────────────────────────┤
+   * │   1    │ pending > 0                 │ Waiting (disabled) - must review    │
+   * │   2    │ rejected === total          │ Reject                              │
+   * │   3    │ approved === total          │ Approve                             │
+   * │   4    │ review > 0                  │ Return (sendback)                   │
+   * │   5    │ rejected > 0 && approved > 0│ Approve X Items + Reject All option │
+   * │   6    │ approved === 0              │ Reject                              │
+   * └────────┴─────────────────────────────┴─────────────────────────────────────┘
+   *
+   * Note: "Return" only appears when items have "Review" status,
+   * NOT when items are "Rejected". Rejected items can be excluded via partial approval.
+   */
   const getWorkflowDecision = () => {
     if (!currentStep) return { actions: [], blocked: true, reason: 'No current approval step' }
-    
-    // For Store Requisition workflow - simplified decision engine
-    const actions = []
-    
-    // Basic approval actions always available for authorized users
+
+    const { total, pending, approved, rejected, review } = itemStatusSummary
+    const actions: Array<{
+      type: string
+      label: string
+      variant: string
+      className: string
+      icon: string
+      description: string
+      disabled?: boolean
+    }> = []
+
+    // If user can approve, determine available actions based on item statuses
     if (canApprove) {
-      actions.push({
-        type: 'approve',
-        label: 'Approve',
-        variant: 'default',
-        className: 'bg-green-600 hover:bg-green-700',
-        icon: 'CheckCircle2',
-        description: 'Approve and move to next stage'
-      })
-      
-      actions.push({
-        type: 'sendback',
-        label: 'Return',
-        variant: 'outline',
-        className: 'border-amber-300 text-amber-700 hover:bg-amber-50',
-        icon: 'ChevronRight',
-        description: 'Return for review and modifications'
-      })
-      
-      actions.push({
-        type: 'reject',
-        label: 'Reject',
-        variant: 'destructive',
-        className: '',
-        icon: 'XCircle',
-        description: 'Reject with comments'
-      })
+      // Priority 1: Pending items exist - approver must wait for all items to be reviewed first
+      // Rationale: Cannot make approval decision until all items have been evaluated
+      if (pending > 0) {
+        actions.push({
+          type: 'waiting',
+          label: `Waiting (${pending} items pending)`,
+          variant: 'outline',
+          className: 'cursor-not-allowed opacity-60',
+          icon: 'Clock',
+          description: `${pending} items are still pending review. Please review all items first.`,
+          disabled: true
+        })
+      }
+      // Priority 2: ALL items rejected - only option is to reject entire requisition
+      // Rationale: No items can be fulfilled, requisition cannot proceed
+      else if (rejected === total && total > 0) {
+        actions.push({
+          type: 'reject',
+          label: 'Reject',
+          variant: 'destructive',
+          className: '',
+          icon: 'XCircle',
+          description: `All ${rejected} items rejected. Reject entire requisition.`
+        })
+      }
+      // Priority 3: ALL items approved - proceed with full approval
+      // Rationale: All items passed review, requisition can move to next stage
+      else if (approved === total && total > 0) {
+        actions.push({
+          type: 'approve',
+          label: 'Approve',
+          variant: 'default',
+          className: 'bg-green-600 hover:bg-green-700',
+          icon: 'CheckCircle2',
+          description: `All ${approved} items approved. Approve and move to next stage.`
+        })
+      }
+      // Priority 4: Items marked for "Review" - return to requester for modifications
+      // Rationale: Review status means items need changes/clarification before approval decision
+      // Note: This does NOT trigger for "Rejected" items - only "Review" status
+      else if (review > 0) {
+        actions.push({
+          type: 'sendback',
+          label: 'Return',
+          variant: 'outline',
+          className: 'border-amber-300 text-amber-700 hover:bg-amber-50',
+          icon: 'ChevronRight',
+          description: `Return ${review} items for review and modifications`
+        })
+      }
+      // Priority 5: Mixed state (some approved, some rejected) - allow partial approval
+      // Rationale: Approved items can proceed; rejected items will be excluded from fulfillment
+      else if (rejected > 0 && approved > 0) {
+        actions.push({
+          type: 'approve',
+          label: `Approve ${approved} Items`,
+          variant: 'default',
+          className: 'bg-green-600 hover:bg-green-700',
+          icon: 'CheckCircle2',
+          description: `Approve ${approved} items (${rejected} rejected items will be excluded)`
+        })
+
+        // Also allow reject if user wants to reject entirely
+        actions.push({
+          type: 'reject',
+          label: 'Reject All',
+          variant: 'destructive',
+          className: '',
+          icon: 'XCircle',
+          description: 'Reject entire requisition'
+        })
+      }
+      // Priority 6: No approved items - reject requisition
+      // Rationale: Nothing to fulfill, requisition cannot proceed
+      else if (approved === 0 && total > 0) {
+        actions.push({
+          type: 'reject',
+          label: 'Reject',
+          variant: 'destructive',
+          className: '',
+          icon: 'XCircle',
+          description: 'No items approved. Reject entire requisition.'
+        })
+      }
     }
-    
+
     return {
       actions,
-      blocked: false,
-      reason: actions.length > 0 ? 'Actions available' : 'No actions available for current user'
+      blocked: actions.length === 0 || (actions.length === 1 && actions[0].disabled),
+      reason: pending > 0
+        ? `${pending} items pending review`
+        : actions.length > 0
+          ? 'Actions available'
+          : 'No actions available for current user'
     }
   }
 
@@ -344,90 +443,131 @@ export function ApprovalWorkflow({
           <>
             <Separator />
             <div className="space-y-4">
-              <div className="flex items-center gap-2 text-amber-600">
-                <AlertTriangle className="w-4 h-4" />
-                <span className="text-sm font-medium">Action Required</span>
-              </div>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium">
-                    Comments 
-                    <span className="text-xs text-muted-foreground ml-1">
-                      (Required for rejection and return actions)
-                    </span>
-                  </label>
-                  <Textarea 
-                    value={comments}
-                    onChange={(e) => setComments(e.target.value)}
-                    placeholder="Add your comments here... (Required for rejection/return)"
-                    className="mt-1"
-                    rows={3}
-                  />
+              {/* Show waiting state when pending items exist */}
+              {itemStatusSummary.pending > 0 ? (
+                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <Clock className="w-5 h-5 text-amber-600" />
+                    <div>
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
+                        Waiting for Item Review
+                      </p>
+                      <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                        {itemStatusSummary.pending} of {itemStatusSummary.total} items are pending review.
+                        Please review all items before taking action on the requisition.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-3 flex gap-2 text-xs">
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                      {itemStatusSummary.approved} Approved
+                    </Badge>
+                    <Badge variant="outline" className="bg-red-50 text-red-700 border-red-200">
+                      {itemStatusSummary.rejected} Rejected
+                    </Badge>
+                    <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-200">
+                      {itemStatusSummary.review} Review
+                    </Badge>
+                    <Badge variant="outline" className="bg-gray-50 text-gray-700 border-gray-200">
+                      {itemStatusSummary.pending} Pending
+                    </Badge>
+                  </div>
                 </div>
-                
-                {/* Action Guide */}
-                <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs">
-                  <div className="font-medium mb-2">Action Guidelines:</div>
-                  <ul className="space-y-1 text-muted-foreground">
-                    <li>• <strong>Approve:</strong> Move requisition to next approval stage</li>
-                    <li>• <strong>Return:</strong> Return to requester for modifications (requires comments)</li>
-                    <li>• <strong>Reject:</strong> Permanently reject requisition (requires comments)</li>
-                  </ul>
-                </div>
-                
-                <div className="flex flex-wrap gap-2">
-                  {workflowDecision.actions.map((action) => {
-                    const handleClick = () => {
-                      // Validate action before proceeding
-                      if (!validateAction(action.type)) {
-                        return
-                      }
+              ) : (
+                <>
+                  <div className="flex items-center gap-2 text-amber-600">
+                    <AlertTriangle className="w-4 h-4" />
+                    <span className="text-sm font-medium">Action Required</span>
+                  </div>
 
-                      switch (action.type) {
-                        case 'approve':
-                          handleApprove()
-                          break
-                        case 'sendback':
-                          handleSendBack()
-                          break
-                        case 'reject':
-                          handleReject()
-                          break
-                        default:
-                          break
-                      }
-                    }
+                  <div className="space-y-3">
+                    <div>
+                      <label className="text-sm font-medium">
+                        Comments
+                        <span className="text-xs text-muted-foreground ml-1">
+                          (Required for rejection and return actions)
+                        </span>
+                      </label>
+                      <Textarea
+                        value={comments}
+                        onChange={(e) => setComments(e.target.value)}
+                        placeholder="Add your comments here... (Required for rejection/return)"
+                        className="mt-1"
+                        rows={3}
+                      />
+                    </div>
 
-                    const IconComponent = action.icon === 'CheckCircle2' ? CheckCircle2 :
-                                        action.icon === 'ChevronRight' ? ChevronRight :
-                                        action.icon === 'XCircle' ? XCircle : CheckCircle2
+                        {/* Action Guide */}
+                    <div className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-xs">
+                      <div className="font-medium mb-2">Action Guidelines:</div>
+                      <ul className="space-y-1 text-muted-foreground">
+                        <li>• <strong>Approve:</strong> Move requisition to next approval stage</li>
+                        <li>• <strong>Return:</strong> Return to requester for modifications (requires comments)</li>
+                        <li>• <strong>Reject:</strong> Permanently reject requisition (requires comments)</li>
+                      </ul>
+                    </div>
 
-                    const needsComments = requiresComments(action.type)
-                    const hasComments = comments.trim().length > 0
+                    <div className="flex flex-wrap gap-2">
+                      {workflowDecision.actions.map((action) => {
+                        const handleClick = () => {
+                          // Skip if action is disabled (e.g., waiting state)
+                          if (action.disabled) return
 
-                    return (
-                      <Button 
-                        key={action.type}
-                        onClick={handleClick}
-                        disabled={isSubmitting || (needsComments && !hasComments)}
-                        variant={action.variant as any}
-                        className={`${action.className} ${needsComments && !hasComments ? 'opacity-60' : ''}`}
-                        title={needsComments ? 
-                          (hasComments ? action.description : `${action.description} (Comments required)`) : 
-                          action.description
+                          // Validate action before proceeding
+                          if (!validateAction(action.type)) {
+                            return
+                          }
+
+                          switch (action.type) {
+                            case 'approve':
+                              handleApprove()
+                              break
+                            case 'sendback':
+                              handleSendBack()
+                              break
+                            case 'reject':
+                              handleReject()
+                              break
+                            default:
+                              break
+                          }
                         }
-                      >
-                        <IconComponent className={`w-4 h-4 mr-2 ${action.icon === 'ChevronRight' ? 'rotate-180' : ''}`} />
-                        {action.label}
-                        {needsComments && !hasComments && (
-                          <AlertTriangle className="w-3 h-3 ml-1" />
-                        )}
-                      </Button>
-                    )
-                  })}
-                </div>
-              </div>
+
+                        const IconComponent = action.icon === 'CheckCircle2' ? CheckCircle2 :
+                                            action.icon === 'ChevronRight' ? ChevronRight :
+                                            action.icon === 'XCircle' ? XCircle :
+                                            action.icon === 'Clock' ? Clock : CheckCircle2
+
+                        const needsComments = requiresComments(action.type)
+                        const hasComments = comments.trim().length > 0
+                        const isDisabled = action.disabled || isSubmitting || (needsComments && !hasComments)
+
+                        return (
+                          <Button
+                            key={action.type}
+                            onClick={handleClick}
+                            disabled={isDisabled}
+                            variant={action.variant as any}
+                            className={`${action.className} ${isDisabled ? 'opacity-60' : ''}`}
+                            title={action.disabled
+                              ? action.description
+                              : needsComments
+                                ? (hasComments ? action.description : `${action.description} (Comments required)`)
+                                : action.description
+                            }
+                          >
+                            <IconComponent className={`w-4 h-4 mr-2 ${action.icon === 'ChevronRight' ? 'rotate-180' : ''}`} />
+                            {action.label}
+                            {needsComments && !hasComments && !action.disabled && (
+                              <AlertTriangle className="w-3 h-3 ml-1" />
+                            )}
+                          </Button>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </>
         )}

@@ -1049,7 +1049,7 @@ Data Stored
 - is_supplier_quality_issue: true
 - supplier_id: "ABC Seafood Suppliers"
 - quality_issue_type: "damaged_in_transit"
-- grn_reference: "GRN-2025-0110-0015"
+- grn_reference: "GRN-2501-0110-0015"
 - Result: ✅ Valid (all required fields provided)
 
 **Invalid Scenario**:
@@ -1408,7 +1408,7 @@ export const wastageHeaderSchema = z.object({
   },
   {
     message: "Vendor selection is required for supplier quality issues",
-    path: ["supplier_id"]
+    path: ['supplier_id']
   }
 ).refine(
   (data) => {
@@ -1420,7 +1420,7 @@ export const wastageHeaderSchema = z.object({
   },
   {
     message: "Quality issue type is required for supplier quality issues",
-    path: ["quality_issue_type"]
+    path: ['quality_issue_type']
   }
 );
 
@@ -1461,7 +1461,7 @@ export const wastageLineItemSchema = z.object({
   },
   {
     message: "Quantity can have at most 3 decimal places",
-    path: ["quantity"]
+    path: ['quantity']
   }
 );
 
@@ -1498,7 +1498,7 @@ export const wastageSubmissionSchema = z.object({
   },
   {
     message: "Batch wastage requires at least 2 line items. Single product wastage must have exactly 1 line item.",
-    path: ["line_items"]
+    path: ['line_items']
   }
 ).refine(
   (data) => {
@@ -1509,7 +1509,7 @@ export const wastageSubmissionSchema = z.object({
   },
   {
     message: "Duplicate products not allowed in wastage. Each product can only appear once.",
-    path: ["line_items"]
+    path: ['line_items']
   }
 );
 
@@ -1561,7 +1561,7 @@ export const approvalActionSchema = z.object({
   },
   {
     message: "Rejection reason is required when rejecting wastage",
-    path: ["rejection_reason"]
+    path: ['rejection_reason']
   }
 ).refine(
   (data) => {
@@ -1573,7 +1573,7 @@ export const approvalActionSchema = z.object({
   },
   {
     message: "Adjustment reason is required for partial approvals",
-    path: ["adjustment_reason"]
+    path: ['adjustment_reason']
   }
 ).refine(
   (data) => {
@@ -1587,7 +1587,7 @@ export const approvalActionSchema = z.object({
   },
   {
     message: "Approved value must be greater than zero for partial approvals",
-    path: ["approved_value"]
+    path: ['approved_value']
   }
 );
 
@@ -1714,10 +1714,10 @@ All validation error messages follow this format:
 **Pass Criteria**:
 - No validation errors displayed
 - Wastage saved with status "pending_approval"
-- Wastage number generated: WST-2025-0112-NNNN
+- Wastage number generated: WST-2501-0112-NNNN
 - Approval level determined: Level 1 (value $31.25)
 - Department Manager notified via email
-- Success message: "Wastage WST-2025-0112-NNNN submitted successfully"
+- Success message: "Wastage WST-2501-0112-NNNN submitted successfully"
 - User redirected to wastage detail page
 
 ---
@@ -1788,12 +1788,12 @@ All validation error messages follow this format:
 
 **Preconditions**:
 - User is Department Manager (has approve-wastage permission)
-- User created wastage WST-2025-0112-0023 yesterday
+- User created wastage WST-2501-0112-0023 yesterday
 - Wastage status: pending_approval, Level 1 required
 
 **Test Steps**:
 1. Navigate to Approval Queue
-2. Find own wastage WST-2025-0112-0023
+2. Find own wastage WST-2501-0112-0023
 3. Click to view details
 4. Click "Approve" button
 5. Enter comments: "Approved"

@@ -589,7 +589,7 @@ The main Purchase Request list view shows:
 - **Bulk selection** capability with checkboxes
 
 ### Purchase Request Detail View
-*Screenshot captured: Purchase Request detail interface (PR-2024-002)*
+*Screenshot captured: Purchase Request detail interface (PR-2401-0002)*
 
 ![Purchase Request Detail View](./purchase-request-detail-view.png)
 
@@ -611,7 +611,7 @@ The Purchase Request detail view displays:
 - **Activity Log** showing complete history of all actions performed on the PR
 
 ### Purchase Request Creation Form
-*Screenshot captured: Purchase Request creation/editing interface (PR-2023-001 Draft)*
+*Screenshot captured: Purchase Request creation/editing interface (PR-2301-0001 Draft)*
 
 ![Purchase Request Creation Form](./purchase-request-creation-form.png)
 

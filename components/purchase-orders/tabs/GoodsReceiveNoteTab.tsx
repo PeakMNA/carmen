@@ -32,7 +32,7 @@ interface GoodsReceiveNoteItem {
 const mockItemsReceived: GoodsReceiveNoteItem[] = [
   {
     id: "GRN001",
-    ref: "GRN-2023-001",
+    ref: "GRN-2310-001",
     date: new Date("2023-05-15"),
     status: GRNStatus.RECEIVED,
     receivedQuantity: 50,
@@ -41,7 +41,7 @@ const mockItemsReceived: GoodsReceiveNoteItem[] = [
   },
   {
     id: "GRN002",
-    ref: "GRN-2023-002",
+    ref: "GRN-2310-002",
     date: new Date("2023-05-20"),
     status: GRNStatus.COMMITTED,
     receivedQuantity: 30,
@@ -50,7 +50,7 @@ const mockItemsReceived: GoodsReceiveNoteItem[] = [
   },
   {
     id: "GRN003",
-    ref: "GRN-2023-003",
+    ref: "GRN-2310-003",
     date: new Date("2023-05-25"),
     status: GRNStatus.COMMITTED,
     receivedQuantity: 0,

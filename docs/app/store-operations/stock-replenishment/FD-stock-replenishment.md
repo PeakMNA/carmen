@@ -61,8 +61,8 @@ This document provides comprehensive flow diagrams for the Stock Replenishment m
 | [High-Level Process Flow](#high-level-process-flow) | Process | End-to-end replenishment lifecycle | Medium |
 | [Par Level Configuration](#par-level-configuration-flow) | Process | Configure and adjust par levels | Low |
 | [Automated Monitoring](#automated-inventory-monitoring-flow) | Process | Real-time stock monitoring | Medium |
-| [Replenishment Request Creation](#replenishment-request-creation-flow) | Process | Create from recommendations | Medium |
-| [Manual Request Creation](#manual-replenishment-request-flow) | Process | Ad-hoc replenishment requests | Low |
+| [Transfer Request Creation](#replenishment-request-creation-flow) | Process | Create from recommendations | Medium |
+| [Manual Request Creation](#manual-replenishment-request-flow) | Process | Ad-hoc transfer requests | Low |
 | [Request Approval](#replenishment-request-approval-flow) | Process | Warehouse manager approval | High |
 | [Stock Transfer Execution](#stock-transfer-execution-flow) | Process | Pick, pack, and dispatch | Medium |
 | [Transfer Receipt](#stock-transfer-receipt-flow) | Process | Receive and confirm items | Medium |
@@ -92,47 +92,47 @@ This document provides comprehensive flow diagrams for the Stock Replenishment m
 
 ```mermaid
 flowchart TD
-    Start([Continuous Monitoring]) --> Monitor[System Monitors<br/>Inventory Levels]
-    Monitor --> CheckLevel{Stock Level vs<br/>Reorder Point?}
+    Start([Continuous Monitoring]) --> Monitor[System Monitors<br>Inventory Levels]
+    Monitor --> CheckLevel{Stock Level vs<br>Reorder Point?}
 
     CheckLevel -->|Above Reorder| Monitor
-    CheckLevel -->|Below Reorder| Alert[Generate Alert &<br/>Recommendation]
+    CheckLevel -->|Below Reorder| Alert[Generate Alert &<br>Recommendation]
 
-    Alert --> Review[Store Manager<br/>Reviews Recommendation]
-    Review --> Decision1{Accept<br/>Recommendation?}
+    Alert --> Review[Store Manager<br>Reviews Recommendation]
+    Review --> Decision1{Accept<br>Recommendation?}
 
     Decision1 -->|No| Defer[Defer or Reject]
     Defer --> Monitor
-    Decision1 -->|Yes| CreateReq[Create Replenishment<br/>Request]
+    Decision1 -->|Yes| CreateReq[Create Replenishment<br>Request]
 
     Manual([Manual Request]) --> CreateReq
 
     CreateReq --> Submit[Submit for Approval]
-    Submit --> WH[Warehouse Manager<br/>Reviews Request]
-    WH --> CheckStock{Stock<br/>Available?}
+    Submit --> WH[Warehouse Manager<br>Reviews Request]
+    WH --> CheckStock{Stock<br>Available?}
 
     CheckStock -->|No| Reject[Reject Request]
     Reject --> NotifyReject[Notify Store Manager]
     NotifyReject --> Monitor
 
-    CheckStock -->|Partial| Partial[Approve Partial<br/>Quantity]
+    CheckStock -->|Partial| Partial[Approve Partial<br>Quantity]
     CheckStock -->|Yes| Approve[Approve Request]
 
     Partial --> CreateTransfer
-    Approve --> CreateTransfer[Create Stock<br/>Transfer Document]
+    Approve --> CreateTransfer[Create Stock<br>Transfer Document]
 
-    CreateTransfer --> Pick[Warehouse Picks<br/>& Packs Items]
+    CreateTransfer --> Pick[Warehouse Picks<br>& Packs Items]
     Pick --> Dispatch[Dispatch Transfer]
     Dispatch --> Transit[Items In Transit]
 
-    Transit --> Receive[Store Manager<br/>Receives Items]
-    Receive --> Verify{All Items<br/>Correct?}
+    Transit --> Receive[Store Manager<br>Receives Items]
+    Receive --> Verify{All Items<br>Correct?}
 
     Verify -->|Issues| Report[Report Discrepancy]
     Report --> Investigate[Investigation]
     Verify -->|Yes| Confirm[Confirm Receipt]
 
-    Confirm --> UpdateInv[Update Inventory<br/>Both Locations]
+    Confirm --> UpdateInv[Update Inventory<br>Both Locations]
     UpdateInv --> Complete[Transfer Complete]
     Complete --> Monitor
 
@@ -151,7 +151,7 @@ flowchart TD
 2. **Check Level**: Compare current stock against reorder point threshold
 3. **Generate Alert**: Create recommendation when below reorder point
 4. **Review**: Store Manager evaluates system recommendation
-5. **Create Request**: Formal replenishment request generated
+5. **Create Request**: Formal transfer request generated
 6. **Submit**: Request sent to Warehouse Manager for approval
 7. **Check Stock**: Verify warehouse inventory availability
 8. **Approve/Reject**: Warehouse Manager makes approval decision
@@ -180,41 +180,41 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Store Manager<br/>Initiates Configuration]) --> Search[Search for Item]
+    Start([Store Manager<br>Initiates Configuration]) --> Search[Search for Item]
     Search --> SelectItem[Select Item]
-    SelectItem --> GetDetails[System Retrieves:<br/>- Current stock<br/>- Historical consumption<br/>- Category averages]
+    SelectItem --> GetDetails[System Retrieves:<br>- Current stock<br>- Historical consumption<br>- Category averages]
 
-    GetDetails --> Suggest[System Suggests<br/>Initial Par Level]
-    Suggest --> Display[Display Suggestion<br/>with Rationale]
+    GetDetails --> Suggest[System Suggests<br>Initial Par Level]
+    Suggest --> Display[Display Suggestion<br>with Rationale]
 
-    Display --> Review[Store Manager<br/>Reviews Suggestion]
-    Review --> Decision{Accept or<br/>Modify?}
+    Display --> Review[Store Manager<br>Reviews Suggestion]
+    Review --> Decision{Accept or<br>Modify?}
 
-    Decision -->|Accept| EnterPar[Enter Par Level<br/>as Suggested]
-    Decision -->|Modify| CustomPar[Enter Custom<br/>Par Level]
+    Decision -->|Accept| EnterPar[Enter Par Level<br>as Suggested]
+    Decision -->|Modify| CustomPar[Enter Custom<br>Par Level]
 
     EnterPar --> EnterDetails
-    CustomPar --> CheckChange{Change > 20%<br/>from Suggestion?}
+    CustomPar --> CheckChange{Change > 20%<br>from Suggestion?}
 
-    CheckChange -->|No| EnterDetails[Enter Additional Details:<br/>- Lead time<br/>- Special notes<br/>- Seasonal config]
+    CheckChange -->|No| EnterDetails[Enter Additional Details:<br>- Lead time<br>- Special notes<br>- Seasonal config]
     CheckChange -->|Yes| RequireJustify[Require Justification]
     RequireJustify --> EnterJustify[Enter Justification]
     EnterJustify --> EnterDetails
 
-    EnterDetails --> Validate{Validation<br/>Passes?}
+    EnterDetails --> Validate{Validation<br>Passes?}
 
-    Validate -->|Fail| ShowError[Show Validation<br/>Errors]
+    Validate -->|Fail| ShowError[Show Validation<br>Errors]
     ShowError --> Review
 
-    Validate -->|Pass| Calculate[System Calculates:<br/>- Reorder Point = Par × 0.4<br/>- Minimum Level = Par × 0.3<br/>- Maximum = Par]
+    Validate -->|Pass| Calculate[System Calculates:<br>- Reorder Point = Par × 0.4<br>- Minimum Level = Par × 0.3<br>- Maximum = Par]
 
-    Calculate --> NeedApproval{Requires<br/>Approval?}
+    Calculate --> NeedApproval{Requires<br>Approval?}
 
     NeedApproval -->|No| Save[Save Configuration]
-    NeedApproval -->|Yes| PendingApproval[Save as<br/>"Pending Approval"]
+    NeedApproval -->|Yes| PendingApproval[Save as<br>'Pending Approval']
 
-    PendingApproval --> NotifyMgr[Notify Department<br/>Manager]
-    NotifyMgr --> MgrReview[Department Manager<br/>Reviews Request]
+    PendingApproval --> NotifyMgr[Notify Department<br>Manager]
+    NotifyMgr --> MgrReview[Department Manager<br>Reviews Request]
     MgrReview --> MgrDecision{Approve?}
 
     MgrDecision -->|No| Rejected[Reject with Feedback]
@@ -224,7 +224,7 @@ flowchart TD
     MgrDecision -->|Yes| Approved[Approve Configuration]
     Approved --> Save
 
-    Save --> Activate[Activate Monitoring<br/>with New Levels]
+    Save --> Activate[Activate Monitoring<br>with New Levels]
     Activate --> AuditLog[Record in Audit Log]
     AuditLog --> Success([End: Configured])
 
@@ -259,43 +259,43 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Trigger([Inventory Transaction<br/>or Scheduled Check]) --> Receive[Receive Transaction Event]
-    Receive --> GetConfig[Retrieve Item<br/>Par Level Configuration]
+    Trigger([Inventory Transaction<br>or Scheduled Check]) --> Receive[Receive Transaction Event]
+    Receive --> GetConfig[Retrieve Item<br>Par Level Configuration]
 
-    GetConfig --> HasConfig{Par Level<br/>Configured?}
+    GetConfig --> HasConfig{Par Level<br>Configured?}
 
     HasConfig -->|No| Skip[Skip Monitoring]
     Skip --> EndSkip([End: Not Monitored])
 
-    HasConfig -->|Yes| Calculate[Calculate Stock Position:<br/>Current = On-hand + On-order - Reserved]
+    HasConfig -->|Yes| Calculate[Calculate Stock Position:<br>Current = On-hand + On-order - Reserved]
 
-    Calculate --> Compare[Compare to Thresholds:<br/>- Minimum Level 30%<br/>- Reorder Point 40%<br/>- Par Level 100%]
+    Calculate --> Compare[Compare to Thresholds:<br>- Minimum Level 30%<br>- Reorder Point 40%<br>- Par Level 100%]
 
-    Compare --> CheckMin{Below<br/>Minimum?}
+    Compare --> CheckMin{Below<br>Minimum?}
 
     CheckMin -->|Yes| Critical[Generate CRITICAL Alert]
-    Critical --> CalcDays[Calculate Days<br/>Until Stockout]
-    CalcDays --> CalcQty[Calculate Required<br/>Quantity to Par]
-    CalcQty --> CreateCritical[Create High-Priority<br/>Recommendation]
-    CreateCritical --> NotifyCritical[Send Immediate<br/>Notifications:<br/>- Dashboard<br/>- Email<br/>- SMS]
-    NotifyCritical --> EscCheck{Maria Response<br/>in 4 hours?}
-    EscCheck -->|No| Escalate[Escalate to<br/>Department Manager]
+    Critical --> CalcDays[Calculate Days<br>Until Stockout]
+    CalcDays --> CalcQty[Calculate Required<br>Quantity to Par]
+    CalcQty --> CreateCritical[Create High-Priority<br>Recommendation]
+    CreateCritical --> NotifyCritical[Send Immediate<br>Notifications:<br>- Dashboard<br>- Email<br>- SMS]
+    NotifyCritical --> EscCheck{Maria Response<br>in 4 hours?}
+    EscCheck -->|No| Escalate[Escalate to<br>Department Manager]
     EscCheck -->|Yes| Log
     Escalate --> Log[Log Alert Event]
 
-    CheckMin -->|No| CheckReorder{Below<br/>Reorder Point?}
+    CheckMin -->|No| CheckReorder{Below<br>Reorder Point?}
 
     CheckReorder -->|Yes| Standard[Generate Standard Alert]
-    Standard --> CalcDaysStd[Calculate Days<br/>Until Reorder]
-    CalcDaysStd --> CalcQtyStd[Calculate Suggested<br/>Quantity]
-    CalcQtyStd --> CreateStd[Create Standard<br/>Recommendation]
-    CreateStd --> NotifyStd[Send Notifications:<br/>- Dashboard<br/>- Email]
+    Standard --> CalcDaysStd[Calculate Days<br>Until Reorder]
+    CalcDaysStd --> CalcQtyStd[Calculate Suggested<br>Quantity]
+    CalcQtyStd --> CreateStd[Create Standard<br>Recommendation]
+    CreateStd --> NotifyStd[Send Notifications:<br>- Dashboard<br>- Email]
     NotifyStd --> Log
 
-    CheckReorder -->|No| CheckPattern{Consumption<br/>Pattern Changed?}
+    CheckReorder -->|No| CheckPattern{Consumption<br>Pattern Changed?}
 
-    CheckPattern -->|Yes| PatternAlert[Generate Pattern<br/>Change Alert]
-    PatternAlert --> SuggestReview[Suggest Par Level<br/>Review]
+    CheckPattern -->|Yes| PatternAlert[Generate Pattern<br>Change Alert]
+    PatternAlert --> SuggestReview[Suggest Par Level<br>Review]
     SuggestReview --> NotifyPattern[Notify Store Manager]
     NotifyPattern --> Log
 
@@ -325,9 +325,9 @@ flowchart TD
 
 ---
 
-### Replenishment Request Creation Flow
+### Transfer Request Creation Flow
 
-**Purpose**: Create replenishment request from system recommendations
+**Purpose**: Create transfer request from system recommendations
 
 **Actor**: Store Manager Maria
 
@@ -335,52 +335,52 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Store Manager<br/>Reviews Dashboard]) --> ViewRec[View Replenishment<br/>Recommendations]
-    ViewRec --> Display[System Displays:<br/>- Critical items red<br/>- Standard items yellow<br/>- Suggested quantities<br/>- Priority ranking]
+    Start([Store Manager<br>Reviews Dashboard]) --> ViewRec[View Replenishment<br>Recommendations]
+    ViewRec --> Display[System Displays:<br>- Critical items red<br>- Standard items yellow<br>- Suggested quantities<br>- Priority ranking]
 
-    Display --> Select[Select Items<br/>to Include]
-    Select --> HasItems{Any Items<br/>Selected?}
+    Display --> Select[Select Items<br>to Include]
+    Select --> HasItems{Any Items<br>Selected?}
 
     HasItems -->|No| Cancel([Cancel])
     HasItems -->|Yes| CreateReq[Create Request Form]
 
-    CreateReq --> PreFill[System Pre-fills:<br/>- Request number auto<br/>- From: Warehouse<br/>- To: Maria's location<br/>- Date: Today<br/>- Required by: +2 days<br/>- Items with suggested qty]
+    CreateReq --> PreFill[System Pre-fills:<br>- Request number auto<br>- From: Warehouse<br>- To: Maria's location<br>- Date: Today<br>- Required by: +2 days<br>- Items with suggested qty]
 
-    PreFill --> Review[Maria Reviews<br/>Pre-filled Request]
-    Review --> Modify{Modify<br/>Quantities?}
+    PreFill --> Review[Maria Reviews<br>Pre-filled Request]
+    Review --> Modify{Modify<br>Quantities?}
 
     Modify -->|Yes| AdjustQty[Adjust Quantities]
-    AdjustQty --> CheckChange{Change > 20%<br/>from Suggested?}
-    CheckChange -->|Yes| AddReason[Add Reason<br/>for Change]
+    AdjustQty --> CheckChange{Change > 20%<br>from Suggested?}
+    CheckChange -->|Yes| AddReason[Add Reason<br>for Change]
     CheckChange -->|No| AddNotes
-    AddReason --> AddNotes[Add Notes<br/>Change Date if Needed]
+    AddReason --> AddNotes[Add Notes<br>Change Date if Needed]
 
     Modify -->|No| AddNotes
 
-    AddNotes --> Validate{Validation<br/>OK?}
+    AddNotes --> Validate{Validation<br>OK?}
 
-    Validate -->|Fail| ShowErrors[Show Validation<br/>Errors]
+    Validate -->|Fail| ShowErrors[Show Validation<br>Errors]
     ShowErrors --> Review
 
-    Validate -->|Pass| CheckStock[System Checks<br/>Warehouse Availability]
-    CheckStock --> StockStatus{All Items<br/>Available?}
+    Validate -->|Pass| CheckStock[System Checks<br>Warehouse Availability]
+    CheckStock --> StockStatus{All Items<br>Available?}
 
     StockStatus -->|Yes| Submit[Submit Request]
-    StockStatus -->|Partial| WarnPartial[Warn: Partial<br/>Availability]
-    WarnPartial --> AcceptPartial{Accept<br/>Partial?}
-    AcceptPartial -->|No| RemoveItem[Remove or<br/>Adjust Items]
+    StockStatus -->|Partial| WarnPartial[Warn: Partial<br>Availability]
+    WarnPartial --> AcceptPartial{Accept<br>Partial?}
+    AcceptPartial -->|No| RemoveItem[Remove or<br>Adjust Items]
     RemoveItem --> Review
     AcceptPartial -->|Yes| Submit
 
-    StockStatus -->|None| WarnNoStock[Warn: Items<br/>Not Available]
-    WarnNoStock --> Decision{Continue<br/>Anyway?}
+    StockStatus -->|None| WarnNoStock[Warn: Items<br>Not Available]
+    WarnNoStock --> Decision{Continue<br>Anyway?}
     Decision -->|No| Cancel
     Decision -->|Yes| Submit
 
-    Submit --> SetStatus[Set Status:<br/>Pending Approval]
-    SetStatus --> Reserve[Reserve Stock<br/>in Warehouse]
-    Reserve --> NotifyWH[Notify Warehouse<br/>Manager]
-    NotifyWH --> RemoveRec[Remove from<br/>Recommendations List]
+    Submit --> SetStatus[Set Status:<br>Pending Approval]
+    SetStatus --> Reserve[Reserve Stock<br>in Warehouse]
+    Reserve --> NotifyWH[Notify Warehouse<br>Manager]
+    NotifyWH --> RemoveRec[Remove from<br>Recommendations List]
     RemoveRec --> Confirm[Display Confirmation]
     Confirm --> Success([End: Request Submitted])
 
@@ -394,9 +394,9 @@ flowchart TD
 
 ---
 
-### Manual Replenishment Request Flow
+### Manual Transfer Request Flow
 
-**Purpose**: Create ad-hoc replenishment request without system recommendation
+**Purpose**: Create ad-hoc transfer request without system recommendation
 
 **Actor**: Store Manager Maria
 
@@ -404,59 +404,59 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Store Manager<br/>Initiates Manual Request]) --> BlankForm[Display Blank<br/>Request Form]
-    BlankForm --> EnterDate[Enter Required Date<br/>& Priority]
-    EnterDate --> EnterReason[Enter Justification/<br/>Reason for Request]
+    Start([Store Manager<br>Initiates Manual Request]) --> BlankForm[Display Blank<br>Request Form]
+    BlankForm --> EnterDate[Enter Required Date<br>& Priority]
+    EnterDate --> EnterReason[Enter Justification/<br>Reason for Request]
 
-    EnterReason --> AddItems[Click "Add Items"]
+    EnterReason --> AddItems[Click 'Add Items']
     AddItems --> SearchItem[Search for Product]
     SearchItem --> SelectProd[Select Product]
 
-    SelectProd --> ShowStock[System Shows:<br/>- Current stock<br/>- Par level if configured<br/>- Warehouse availability]
+    SelectProd --> ShowStock[System Shows:<br>- Current stock<br>- Par level if configured<br>- Warehouse availability]
 
-    ShowStock --> EnterQty[Enter Requested<br/>Quantity]
-    EnterQty --> ItemNotes[Add Item-level<br/>Notes optional]
+    ShowStock --> EnterQty[Enter Requested<br>Quantity]
+    EnterQty --> ItemNotes[Add Item-level<br>Notes optional]
     ItemNotes --> AddToList[Add to Request List]
 
-    AddToList --> MoreItems{Add More<br/>Items?}
+    AddToList --> MoreItems{Add More<br>Items?}
     MoreItems -->|Yes| SearchItem
-    MoreItems -->|No| ReviewList[Review Complete<br/>Request]
+    MoreItems -->|No| ReviewList[Review Complete<br>Request]
 
-    ReviewList --> HasItems{Has at Least<br/>1 Item?}
-    HasItems -->|No| Error1[Error: Minimum<br/>1 item required]
+    ReviewList --> HasItems{Has at Least<br>1 Item?}
+    HasItems -->|No| Error1[Error: Minimum<br>1 item required]
     Error1 --> AddItems
 
-    HasItems -->|Yes| ValidateReq{Validation<br/>Passes?}
+    HasItems -->|Yes| ValidateReq{Validation<br>Passes?}
 
-    ValidateReq -->|Fail| ShowErrors[Show Errors:<br/>- Quantities > 0<br/>- Future date<br/>- Justification provided]
+    ValidateReq -->|Fail| ShowErrors[Show Errors:<br>- Quantities > 0<br>- Future date<br>- Justification provided]
     ShowErrors --> ReviewList
 
-    ValidateReq -->|Pass| CalcValue[Calculate Total<br/>Estimated Value]
-    CalcValue --> DetermineApproval[Determine Approval<br/>Requirements]
+    ValidateReq -->|Pass| CalcValue[Calculate Total<br>Estimated Value]
+    CalcValue --> DetermineApproval[Determine Approval<br>Requirements]
 
-    DetermineApproval --> CheckValue{Total<br/>Value?}
+    DetermineApproval --> CheckValue{Total<br>Value?}
 
-    CheckValue -->|< $1,000| Tier1[Tier 1:<br/>Warehouse Manager Only]
-    CheckValue -->|$1K - $5K| Tier2[Tier 2:<br/>Warehouse + Store Manager]
-    CheckValue -->|> $5,000| Tier3[Tier 3:<br/>+ Department Manager]
+    CheckValue -->|< $1,000| Tier1[Tier 1:<br>Warehouse Manager Only]
+    CheckValue -->|$1K - $5K| Tier2[Tier 2:<br>Warehouse + Store Manager]
+    CheckValue -->|> $5,000| Tier3[Tier 3:<br>+ Department Manager]
 
     Tier1 --> CheckPriority
     Tier2 --> CheckPriority
-    Tier3 --> CheckPriority{Priority =<br/>Urgent?}
+    Tier3 --> CheckPriority{Priority =<br>Urgent?}
 
-    CheckPriority -->|Yes| RequireMgrApproval[Require Dept Manager<br/>Pre-approval]
-    RequireMgrApproval --> NotifyMgr[Notify Department<br/>Manager]
-    NotifyMgr --> WaitMgr[Wait for Manager<br/>Pre-approval]
-    WaitMgr --> MgrApproved{Manager<br/>Approved?}
+    CheckPriority -->|Yes| RequireMgrApproval[Require Dept Manager<br>Pre-approval]
+    RequireMgrApproval --> NotifyMgr[Notify Department<br>Manager]
+    NotifyMgr --> WaitMgr[Wait for Manager<br>Pre-approval]
+    WaitMgr --> MgrApproved{Manager<br>Approved?}
 
     MgrApproved -->|No| Rejected([End: Rejected])
     MgrApproved -->|Yes| Submit
 
     CheckPriority -->|No| Submit[Submit Request]
 
-    Submit --> SetPending[Set Status:<br/>Pending Approval]
-    SetPending --> NotifyWH[Notify Appropriate<br/>Approvers]
-    NotifyWH --> Confirm[Display Confirmation<br/>& Tracking Info]
+    Submit --> SetPending[Set Status:<br>Pending Approval]
+    SetPending --> NotifyWH[Notify Appropriate<br>Approvers]
+    NotifyWH --> Confirm[Display Confirmation<br>& Tracking Info]
     Confirm --> Success([End: Submitted])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -469,75 +469,75 @@ flowchart TD
 
 ---
 
-### Replenishment Request Approval Flow
+### Transfer Request Approval Flow
 
-**Purpose**: Warehouse Manager reviews and approves/rejects replenishment requests
+**Purpose**: Warehouse Manager reviews and approves/rejects transfer requests
 
 **Actor**: Warehouse Manager William
 
-**Trigger**: New pending replenishment request
+**Trigger**: New pending transfer request
 
 ```mermaid
 flowchart TD
-    Trigger([New Request<br/>Notification]) --> Queue[View Approval<br/>Queue]
-    Queue --> Sort[Sort by:<br/>- Priority<br/>- Required date<br/>- Age]
+    Trigger([New Request<br>Notification]) --> Queue[View Approval<br>Queue]
+    Queue --> Sort[Sort by:<br>- Priority<br>- Required date<br>- Age]
 
-    Sort --> SelectReq[Select Request<br/>to Review]
-    SelectReq --> ViewDetails[View Request Details:<br/>- Requestor & location<br/>- Items and quantities<br/>- Required by date<br/>- Justification]
+    Sort --> SelectReq[Select Request<br>to Review]
+    SelectReq --> ViewDetails[View Request Details:<br>- Requestor & location<br>- Items and quantities<br>- Required by date<br>- Justification]
 
-    ViewDetails --> CheckAvail[Check Real-time<br/>Warehouse Availability]
-    CheckAvail --> ReviewItems[Review Each<br/>Line Item]
+    ViewDetails --> CheckAvail[Check Real-time<br>Warehouse Availability]
+    CheckAvail --> ReviewItems[Review Each<br>Line Item]
 
-    ReviewItems --> Item1{Item 1<br/>Stock Status?}
+    ReviewItems --> Item1{Item 1<br>Stock Status?}
 
-    Item1 -->|Sufficient| Approve1[Approve Full<br/>Quantity]
-    Item1 -->|Partial| ApprovePartial1[Approve Partial<br/>Quantity]
+    Item1 -->|Sufficient| Approve1[Approve Full<br>Quantity]
+    Item1 -->|Partial| ApprovePartial1[Approve Partial<br>Quantity]
     Item1 -->|None| Reject1[Reject Item]
 
     Approve1 --> NextItem
-    ApprovePartial1 --> AddComment1[Add Comment<br/>Explaining Partial]
-    AddComment1 --> AlertPurch1[Create Alert<br/>for Purchasing]
-    AlertPurch1 --> NextItem{More<br/>Items?}
+    ApprovePartial1 --> AddComment1[Add Comment<br>Explaining Partial]
+    AddComment1 --> AlertPurch1[Create Alert<br>for Purchasing]
+    AlertPurch1 --> NextItem{More<br>Items?}
 
-    Reject1 --> AddReason1[Add Rejection<br/>Reason]
+    Reject1 --> AddReason1[Add Rejection<br>Reason]
     AddReason1 --> AlertPurch1
 
     NextItem -->|Yes| ReviewItems
-    NextItem -->|No| Evaluate[Evaluate Overall<br/>Request]
+    NextItem -->|No| Evaluate[Evaluate Overall<br>Request]
 
-    Evaluate --> CalcFulfill[Calculate Fulfillment<br/>Percentage]
-    CalcFulfill --> FulfillCheck{Fulfillment<br/>Rate?}
+    Evaluate --> CalcFulfill[Calculate Fulfillment<br>Percentage]
+    CalcFulfill --> FulfillCheck{Fulfillment<br>Rate?}
 
-    FulfillCheck -->|100%| FullApprove[Status:<br/>Fully Approved]
-    FulfillCheck -->|50-99%| PartialApprove[Status:<br/>Partially Approved]
-    FulfillCheck -->|< 50%| ConsiderReject[Consider Full<br/>Rejection]
+    FulfillCheck -->|100%| FullApprove[Status:<br>Fully Approved]
+    FulfillCheck -->|50-99%| PartialApprove[Status:<br>Partially Approved]
+    FulfillCheck -->|< 50%| ConsiderReject[Consider Full<br>Rejection]
 
-    ConsiderReject --> ContactStore{Contact Store<br/>Manager?}
-    ContactStore -->|Yes| CallStore[Discuss Options:<br/>- Accept partial<br/>- Wait for stock<br/>- Alternative items]
-    CallStore --> StoreDecision{Store Manager<br/>Decision?}
+    ConsiderReject --> ContactStore{Contact Store<br>Manager?}
+    ContactStore -->|Yes| CallStore[Discuss Options:<br>- Accept partial<br>- Wait for stock<br>- Alternative items]
+    CallStore --> StoreDecision{Store Manager<br>Decision?}
     StoreDecision -->|Accept| PartialApprove
-    StoreDecision -->|Reject| FullReject[Reject Entire<br/>Request]
+    StoreDecision -->|Reject| FullReject[Reject Entire<br>Request]
     ContactStore -->|No| FullReject
 
     FullApprove --> AddComments
-    PartialApprove --> AddComments[Add Overall<br/>Comments]
+    PartialApprove --> AddComments[Add Overall<br>Comments]
 
-    AddComments --> FinalValidate{Validation<br/>OK?}
-    FinalValidate -->|Fail| Error[Show Validation<br/>Errors]
+    AddComments --> FinalValidate{Validation<br>OK?}
+    FinalValidate -->|Fail| Error[Show Validation<br>Errors]
     Error --> AddComments
 
-    FinalValidate -->|Pass| ReserveStock[Reserve Approved<br/>Stock in Warehouse]
-    ReserveStock --> CreateTransfer[Create Stock<br/>Transfer Document]
-    CreateTransfer --> ScheduleDate[Set Scheduled<br/>Transfer Date]
-    ScheduleDate --> NotifyParties[Notify:<br/>- Store Manager<br/>- Warehouse team<br/>- Purchasing if needed]
-    NotifyParties --> UpdateQueue[Remove from<br/>Approval Queue]
-    UpdateQueue --> AuditLog[Record Approval<br/>in Audit Log]
-    AuditLog --> Metrics[Update Performance<br/>Metrics]
+    FinalValidate -->|Pass| ReserveStock[Reserve Approved<br>Stock in Warehouse]
+    ReserveStock --> CreateTransfer[Create Stock<br>Transfer Document]
+    CreateTransfer --> ScheduleDate[Set Scheduled<br>Transfer Date]
+    ScheduleDate --> NotifyParties[Notify:<br>- Store Manager<br>- Warehouse team<br>- Purchasing if needed]
+    NotifyParties --> UpdateQueue[Remove from<br>Approval Queue]
+    UpdateQueue --> AuditLog[Record Approval<br>in Audit Log]
+    AuditLog --> Metrics[Update Performance<br>Metrics]
     Metrics --> ApprovedEnd([End: Approved])
 
-    FullReject --> AddRejectReason[Add Comprehensive<br/>Rejection Reason]
-    AddRejectReason --> SuggestAlt[Suggest Alternatives:<br/>- Wait for stock<br/>- Inter-location transfer<br/>- Emergency purchase]
-    SuggestAlt --> NotifyReject[Notify Store<br/>Manager]
+    FullReject --> AddRejectReason[Add Comprehensive<br>Rejection Reason]
+    AddRejectReason --> SuggestAlt[Suggest Alternatives:<br>- Wait for stock<br>- Inter-location transfer<br>- Emergency purchase]
+    SuggestAlt --> NotifyReject[Notify Store<br>Manager]
     NotifyReject --> LogReject[Log Rejection]
     LogReject --> RejectedEnd([End: Rejected])
 
@@ -567,74 +567,74 @@ flowchart TD
 
 **Actor**: Warehouse Staff, Driver
 
-**Trigger**: Approved replenishment request with scheduled transfer date
+**Trigger**: Approved transfer request with scheduled transfer date
 
 ```mermaid
 flowchart TD
-    Start([Scheduled Transfer<br/>Date Reached]) --> PickList[Generate Daily<br/>Picking List]
-    PickList --> SelectTransfer[Staff Selects<br/>Transfer to Prepare]
+    Start([Scheduled Transfer<br>Date Reached]) --> PickList[Generate Daily<br>Picking List]
+    PickList --> SelectTransfer[Staff Selects<br>Transfer to Prepare]
 
-    SelectTransfer --> ViewItems[View Detailed<br/>Picking List:<br/>- Items<br/>- Quantities<br/>- Locations<br/>- Batch/Lot info]
+    SelectTransfer --> ViewItems[View Detailed<br>Picking List:<br>- Items<br>- Quantities<br>- Locations<br>- Batch/Lot info]
 
-    ViewItems --> StartPick[Begin Picking<br/>Process]
-    StartPick --> PickItem[Navigate to<br/>Item Location]
+    ViewItems --> StartPick[Begin Picking<br>Process]
+    StartPick --> PickItem[Navigate to<br>Item Location]
 
-    PickItem --> FindItem{Item Found<br/>at Location?}
+    PickItem --> FindItem{Item Found<br>at Location?}
 
-    FindItem -->|No| SearchNearby[Search Nearby<br/>Locations]
-    SearchNearby --> FoundElse{Found<br/>Elsewhere?}
-    FoundElse -->|Yes| UpdateLoc[Update Location<br/>in System]
+    FindItem -->|No| SearchNearby[Search Nearby<br>Locations]
+    SearchNearby --> FoundElse{Found<br>Elsewhere?}
+    FoundElse -->|Yes| UpdateLoc[Update Location<br>in System]
     UpdateLoc --> PickPhysical
-    FoundElse -->|No| LogDiscrepancy[Log Inventory<br/>Discrepancy]
+    FoundElse -->|No| LogDiscrepancy[Log Inventory<br>Discrepancy]
     LogDiscrepancy --> NotifySup[Notify Supervisor]
-    NotifySup --> FindAlt[Find Alternative<br/>Batch or Item]
+    NotifySup --> FindAlt[Find Alternative<br>Batch or Item]
 
-    FindItem -->|Yes| PickPhysical[Pick Physical<br/>Items]
-    PickPhysical --> ScanBarcode[Scan Barcode<br/>to Confirm]
-    ScanBarcode --> VerifyBatch{Batch/Lot<br/>Correct?}
+    FindItem -->|Yes| PickPhysical[Pick Physical<br>Items]
+    PickPhysical --> ScanBarcode[Scan Barcode<br>to Confirm]
+    ScanBarcode --> VerifyBatch{Batch/Lot<br>Correct?}
 
     VerifyBatch -->|No| CheckExp[Check Expiry Date]
-    CheckExp --> ExpOK{Expiry<br/>Acceptable?}
+    CheckExp --> ExpOK{Expiry<br>Acceptable?}
     ExpOK -->|No| RejectBatch[Reject Batch]
     RejectBatch --> FindAlt
-    ExpOK -->|Yes| UpdateDoc[Update Packing Doc<br/>with Actual Batch]
+    ExpOK -->|Yes| UpdateDoc[Update Packing Doc<br>with Actual Batch]
     UpdateDoc --> QualCheck
 
-    VerifyBatch -->|Yes| QualCheck[Perform Quality<br/>Check]
-    QualCheck --> QualOK{Quality<br/>Acceptable?}
+    VerifyBatch -->|Yes| QualCheck[Perform Quality<br>Check]
+    QualCheck --> QualOK{Quality<br>Acceptable?}
 
-    QualOK -->|No| RejectQual[Reject Item<br/>for Quality Issue]
-    RejectQual --> DocQual[Document Quality<br/>Issue]
+    QualOK -->|No| RejectQual[Reject Item<br>for Quality Issue]
+    RejectQual --> DocQual[Document Quality<br>Issue]
     DocQual --> FindAlt
 
-    QualOK -->|Yes| MarkPicked[Mark Item<br/>as Picked]
-    MarkPicked --> MoreItems{More Items<br/>to Pick?}
+    QualOK -->|Yes| MarkPicked[Mark Item<br>as Picked]
+    MarkPicked --> MoreItems{More Items<br>to Pick?}
 
     MoreItems -->|Yes| PickItem
     MoreItems -->|No| AllPicked[All Items Picked]
 
-    AllPicked --> PackItems[Pack Items by<br/>Temperature Zone]
-    PackItems --> Label[Label Boxes:<br/>- Transfer number<br/>- Destination<br/>- Special handling]
+    AllPicked --> PackItems[Pack Items by<br>Temperature Zone]
+    PackItems --> Label[Label Boxes:<br>- Transfer number<br>- Destination<br>- Special handling]
 
-    Label --> FinalQC[Final Quality<br/>Check]
-    FinalQC --> QCPass{QC<br/>Passes?}
+    Label --> FinalQC[Final Quality<br>Check]
+    FinalQC --> QCPass{QC<br>Passes?}
 
-    QCPass -->|No| RepackFix[Repack or Fix<br/>Issues]
+    QCPass -->|No| RepackFix[Repack or Fix<br>Issues]
     RepackFix --> FinalQC
 
-    QCPass -->|Yes| GenSlip[Generate Packing<br/>Slip 2 copies]
-    GenSlip --> InsertSlip[Insert 1 Copy<br/>in Shipment]
-    InsertSlip --> ReadyDispatch[Update Status:<br/>Ready for Dispatch]
+    QCPass -->|Yes| GenSlip[Generate Packing<br>Slip 2 copies]
+    GenSlip --> InsertSlip[Insert 1 Copy<br>in Shipment]
+    InsertSlip --> ReadyDispatch[Update Status:<br>Ready for Dispatch]
 
     ReadyDispatch --> NotifyDriver[Notify Driver]
-    NotifyDriver --> DriverLoad[Driver Loads<br/>Items on Vehicle]
-    DriverLoad --> ScanLoad[Driver Scans<br/>Transfer Barcode]
-    ScanLoad --> UpdateTransit[Update Status:<br/>In Transit]
+    NotifyDriver --> DriverLoad[Driver Loads<br>Items on Vehicle]
+    DriverLoad --> ScanLoad[Driver Scans<br>Transfer Barcode]
+    ScanLoad --> UpdateTransit[Update Status:<br>In Transit]
 
-    UpdateTransit --> CreateIssue[Create Inventory<br/>Issue Transaction]
-    CreateIssue --> ReduceWH[Reduce Warehouse<br/>Inventory]
-    ReduceWH --> NotifyStore[Notify Store Manager:<br/>- ETA<br/>- Driver info<br/>- Tracking]
-    NotifyStore --> Deliver[Driver Delivers<br/>to Location]
+    UpdateTransit --> CreateIssue[Create Inventory<br>Issue Transaction]
+    CreateIssue --> ReduceWH[Reduce Warehouse<br>Inventory]
+    ReduceWH --> NotifyStore[Notify Store Manager:<br>- ETA<br>- Driver info<br>- Tracking]
+    NotifyStore --> Deliver[Driver Delivers<br>to Location]
     Deliver --> Complete([End: Dispatched])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -666,78 +666,78 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Arrive([Driver Arrives<br/>with Transfer]) --> Notify[System Notifies<br/>Store Manager]
-    Notify --> OpenApp[Open Mobile App<br/>Receipt Function]
+    Arrive([Driver Arrives<br>with Transfer]) --> Notify[System Notifies<br>Store Manager]
+    Notify --> OpenApp[Open Mobile App<br>Receipt Function]
 
-    OpenApp --> ViewPending[View Pending<br/>Receipts]
-    ViewPending --> SelectTrans[Select Transfer<br/>to Receive]
-    SelectTrans --> ViewItems[View Items<br/>to Receive]
+    OpenApp --> ViewPending[View Pending<br>Receipts]
+    ViewPending --> SelectTrans[Select Transfer<br>to Receive]
+    SelectTrans --> ViewItems[View Items<br>to Receive]
 
     ViewItems --> OpenBox[Open First Box]
     OpenBox --> VerifyItem[Verify Item]
-    VerifyItem --> VisualCheck[Visual Inspection:<br/>- Condition<br/>- No damage<br/>- Quality]
+    VerifyItem --> VisualCheck[Visual Inspection:<br>- Condition<br>- No damage<br>- Quality]
 
-    VisualCheck --> VisualOK{Visual<br/>OK?}
+    VisualCheck --> VisualOK{Visual<br>OK?}
 
-    VisualOK -->|No| TakePhoto[Take Photo<br/>of Issue]
+    VisualOK -->|No| TakePhoto[Take Photo<br>of Issue]
     TakePhoto --> RejectItem[Reject Item]
-    RejectItem --> AddRejectReason[Add Rejection<br/>Reason]
-    AddRejectReason --> ReturnDriver[Return Item<br/>to Driver]
+    RejectItem --> AddRejectReason[Add Rejection<br>Reason]
+    AddRejectReason --> ReturnDriver[Return Item<br>to Driver]
     ReturnDriver --> NextItem
 
-    VisualOK -->|Yes| WeightCheck[Check Weight/<br/>Count]
-    WeightCheck --> WeightMatch{Quantity<br/>Matches?}
+    VisualOK -->|Yes| WeightCheck[Check Weight/<br>Count]
+    WeightCheck --> WeightMatch{Quantity<br>Matches?}
 
-    WeightMatch -->|No| EnterActual[Enter Actual<br/>Quantity]
+    WeightMatch -->|No| EnterActual[Enter Actual<br>Quantity]
     EnterActual --> Discrepancy[Flag Discrepancy]
-    Discrepancy --> DiscrepReason[Add Reason for<br/>Difference]
+    Discrepancy --> DiscrepReason[Add Reason for<br>Difference]
     DiscrepReason --> ScanItem
 
-    WeightMatch -->|Yes| ScanItem[Scan Item<br/>Barcode]
-    ScanItem --> VerifyBatch{Batch/Lot<br/>Matches?}
+    WeightMatch -->|Yes| ScanItem[Scan Item<br>Barcode]
+    ScanItem --> VerifyBatch{Batch/Lot<br>Matches?}
 
-    VerifyBatch -->|No| WarnBatch[Warn: Different<br/>Batch than Expected]
-    WarnBatch --> CheckExpiry[Check Expiry<br/>Date]
-    CheckExpiry --> ExpiryOK{Expiry<br/>Acceptable?}
-    ExpiryOK -->|No| RejectExpiry[Reject: Short<br/>Shelf Life]
+    VerifyBatch -->|No| WarnBatch[Warn: Different<br>Batch than Expected]
+    WarnBatch --> CheckExpiry[Check Expiry<br>Date]
+    CheckExpiry --> ExpiryOK{Expiry<br>Acceptable?}
+    ExpiryOK -->|No| RejectExpiry[Reject: Short<br>Shelf Life]
     RejectExpiry --> AddRejectReason
-    ExpiryOK -->|Yes| AcceptDiff[Accept Different<br/>Batch]
-    AcceptDiff --> UpdateBatch[Update System<br/>with Actual Batch]
+    ExpiryOK -->|Yes| AcceptDiff[Accept Different<br>Batch]
+    AcceptDiff --> UpdateBatch[Update System<br>with Actual Batch]
     UpdateBatch --> TempCheck
 
-    VerifyBatch -->|Yes| TempCheck{Temperature-<br/>Sensitive?}
+    VerifyBatch -->|Yes| TempCheck{Temperature-<br>Sensitive?}
 
     TempCheck -->|Yes| CheckTemp[Check Temperature]
-    CheckTemp --> TempOK{Temperature<br/>Acceptable?}
-    TempOK -->|No| RejectTemp[Reject: Temperature<br/>Control Failure]
+    CheckTemp --> TempOK{Temperature<br>Acceptable?}
+    TempOK -->|No| RejectTemp[Reject: Temperature<br>Control Failure]
     RejectTemp --> TakePhoto
     TempOK -->|Yes| ConfirmItem
 
-    TempCheck -->|No| ConfirmItem[Confirm Item<br/>Receipt]
-    ConfirmItem --> NextItem{More<br/>Items?}
+    TempCheck -->|No| ConfirmItem[Confirm Item<br>Receipt]
+    ConfirmItem --> NextItem{More<br>Items?}
 
     NextItem -->|Yes| OpenBox
-    NextItem -->|No| ReviewAll[Review All<br/>Items]
+    NextItem -->|No| ReviewAll[Review All<br>Items]
 
-    ReviewAll --> Summary[View Receipt<br/>Summary:<br/>- Ordered<br/>- Received<br/>- Rejected<br/>- Discrepancies]
+    ReviewAll --> Summary[View Receipt<br>Summary:<br>- Ordered<br>- Received<br>- Rejected<br>- Discrepancies]
 
-    Summary --> AllOK{All Items<br/>Acceptable?}
+    Summary --> AllOK{All Items<br>Acceptable?}
 
     AllOK -->|No| PartialReceipt[Partial Receipt]
-    PartialReceipt --> DocIssues[Document All<br/>Issues]
-    DocIssues --> NotifyWH[Notify Warehouse<br/>of Issues]
+    PartialReceipt --> DocIssues[Document All<br>Issues]
+    DocIssues --> NotifyWH[Notify Warehouse<br>of Issues]
     NotifyWH --> Signature
 
     AllOK -->|Yes| FullReceipt[Complete Receipt]
     FullReceipt --> Signature[Digital Signature]
 
     Signature --> Confirm[Confirm Receipt]
-    Confirm --> UpdateStatus[Update Transfer<br/>Status: Completed]
-    UpdateStatus --> CreateReceipt[Create Inventory<br/>Receipt Transaction]
-    CreateReceipt --> IncreaseInv[Increase Location<br/>Inventory]
-    IncreaseInv --> UpdateDash[Update Dashboard:<br/>- Remove from alerts<br/>- Update stock levels]
-    UpdateDash --> NotifyComplete[Notify Warehouse<br/>of Completion]
-    NotifyComplete --> Archive[Archive Transfer<br/>Documents]
+    Confirm --> UpdateStatus[Update Transfer<br>Status: Completed]
+    UpdateStatus --> CreateReceipt[Create Inventory<br>Receipt Transaction]
+    CreateReceipt --> IncreaseInv[Increase Location<br>Inventory]
+    IncreaseInv --> UpdateDash[Update Dashboard:<br>- Remove from alerts<br>- Update stock levels]
+    UpdateDash --> NotifyComplete[Notify Warehouse<br>of Completion]
+    NotifyComplete --> Archive[Archive Transfer<br>Documents]
     Archive --> Success([End: Received])
 
     style Arrive fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -771,75 +771,75 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Crisis([Critical Stockout<br/>Discovered]) --> Assess[Store Manager<br/>Assesses Situation]
-    Assess --> Evaluate[Evaluate:<br/>- Impact on service<br/>- Time sensitivity<br/>- Alternative options<br/>- Customer commitments]
+    Crisis([Critical Stockout<br>Discovered]) --> Assess[Store Manager<br>Assesses Situation]
+    Assess --> Evaluate[Evaluate:<br>- Impact on service<br>- Time sensitivity<br>- Alternative options<br>- Customer commitments]
 
-    Evaluate --> Critical{Genuinely<br/>Critical?}
+    Evaluate --> Critical{Genuinely<br>Critical?}
 
-    Critical -->|No| UseStandard[Use Standard<br/>Replenishment Process]
+    Critical -->|No| UseStandard[Use Standard<br>Replenishment Process]
     UseStandard --> EndStd([End: Standard Process])
 
-    Critical -->|Yes| CheckHistory[System Checks<br/>Emergency History]
-    CheckHistory --> HistoryOK{Within<br/>Limit?}
+    Critical -->|Yes| CheckHistory[System Checks<br>Emergency History]
+    CheckHistory --> HistoryOK{Within<br>Limit?}
 
-    HistoryOK -->|No| WarnLimit[Warn: Exceeded<br/>Emergency Limit]
-    WarnLimit --> ReqDeptMgr[Require Department<br/>Manager Pre-approval]
-    ReqDeptMgr --> DeptReview[Dept Manager<br/>Reviews]
-    DeptReview --> DeptDecision{Dept Mgr<br/>Approves?}
-    DeptDecision -->|No| DenyEmg[Deny Emergency<br/>Status]
-    DenyEmg --> Feedback[Provide Feedback<br/>& Alternatives]
+    HistoryOK -->|No| WarnLimit[Warn: Exceeded<br>Emergency Limit]
+    WarnLimit --> ReqDeptMgr[Require Department<br>Manager Pre-approval]
+    ReqDeptMgr --> DeptReview[Dept Manager<br>Reviews]
+    DeptReview --> DeptDecision{Dept Mgr<br>Approves?}
+    DeptDecision -->|No| DenyEmg[Deny Emergency<br>Status]
+    DenyEmg --> Feedback[Provide Feedback<br>& Alternatives]
     Feedback --> EndDeny([End: Denied])
     DeptDecision -->|Yes| CreateEmg
 
-    HistoryOK -->|Yes| CreateEmg[Create Emergency<br/>Request]
-    CreateEmg --> EnterDetails[Enter:<br/>- Item & quantity<br/>- Required timeframe<br/>- Urgency reason<br/>- Business impact<br/>- Alternatives tried]
+    HistoryOK -->|Yes| CreateEmg[Create Emergency<br>Request]
+    CreateEmg --> EnterDetails[Enter:<br>- Item & quantity<br>- Required timeframe<br>- Urgency reason<br>- Business impact<br>- Alternatives tried]
 
-    EnterDetails --> ValidateEmg{Valid Emergency<br/>Criteria?}
-    ValidateEmg -->|No| RejectEmg[Reject: Not<br/>Legitimate Emergency]
+    EnterDetails --> ValidateEmg{Valid Emergency<br>Criteria?}
+    ValidateEmg -->|No| RejectEmg[Reject: Not<br>Legitimate Emergency]
     RejectEmg --> Feedback
 
-    ValidateEmg -->|Yes| SubmitEmg[Submit Emergency<br/>Request]
-    SubmitEmg --> ImmediateAlert[Send IMMEDIATE<br/>Alerts:<br/>- SMS to Warehouse Mgr<br/>- SMS to Dept Mgr<br/>- App notifications]
+    ValidateEmg -->|Yes| SubmitEmg[Submit Emergency<br>Request]
+    SubmitEmg --> ImmediateAlert[Send IMMEDIATE<br>Alerts:<br>- SMS to Warehouse Mgr<br>- SMS to Dept Mgr<br>- App notifications]
 
-    ImmediateAlert --> WHReceive[Warehouse Manager<br/>Receives Alert]
-    WHReceive --> Timer[Start 30-min<br/>Response Timer]
-    Timer --> WHReview[WH Manager<br/>Reviews Request]
+    ImmediateAlert --> WHReceive[Warehouse Manager<br>Receives Alert]
+    WHReceive --> Timer[Start 30-min<br>Response Timer]
+    Timer --> WHReview[WH Manager<br>Reviews Request]
 
-    WHReview --> CheckWHStock{WH Stock<br/>Available?}
+    WHReview --> CheckWHStock{WH Stock<br>Available?}
 
     CheckWHStock -->|No| ExploreAlt[Explore Alternatives]
-    ExploreAlt --> AltOptions{Alternative<br/>Found?}
+    ExploreAlt --> AltOptions{Alternative<br>Found?}
 
-    AltOptions -->|Transfer| InterLocation[Arrange Inter-<br/>Location Transfer]
-    AltOptions -->|Purchase| EmgPurchase[Emergency Local<br/>Purchase]
-    AltOptions -->|None| RejectEmgReq[Reject: Cannot<br/>Fulfill]
+    AltOptions -->|Transfer| InterLocation[Arrange Inter-<br>Location Transfer]
+    AltOptions -->|Purchase| EmgPurchase[Emergency Local<br>Purchase]
+    AltOptions -->|None| RejectEmgReq[Reject: Cannot<br>Fulfill]
 
-    RejectEmgReq --> SuggestBackup[Suggest Backup<br/>Options to Store]
-    SuggestBackup --> NotifyReject[Notify Store<br/>Manager]
-    NotifyReject --> StoreContingency[Store Implements<br/>Contingency Plan]
+    RejectEmgReq --> SuggestBackup[Suggest Backup<br>Options to Store]
+    SuggestBackup --> NotifyReject[Notify Store<br>Manager]
+    NotifyReject --> StoreContingency[Store Implements<br>Contingency Plan]
     StoreContingency --> EndReject([End: Rejected])
 
-    CheckWHStock -->|Yes| ApproveEmg[Approve Emergency<br/>Request]
+    CheckWHStock -->|Yes| ApproveEmg[Approve Emergency<br>Request]
     InterLocation --> ApproveEmg
     EmgPurchase --> ApproveEmg
 
-    ApproveEmg --> AssignExpress[Assign Express<br/>Delivery Method]
-    AssignExpress --> PriorityPick[Priority Warehouse<br/>Pick]
-    PriorityPick --> ExpressPrep[Expedited Packing<br/>& Quality Check]
+    ApproveEmg --> AssignExpress[Assign Express<br>Delivery Method]
+    AssignExpress --> PriorityPick[Priority Warehouse<br>Pick]
+    PriorityPick --> ExpressPrep[Expedited Packing<br>& Quality Check]
     ExpressPrep --> DispatchNow[Immediate Dispatch]
-    DispatchNow --> TrackExpress[Real-time Tracking<br/>& Updates]
+    DispatchNow --> TrackExpress[Real-time Tracking<br>& Updates]
 
-    TrackExpress --> StoreReady[Store Prepares<br/>for Receipt]
-    StoreReady --> ExpressDeliver[Express Delivery<br/>Arrives]
-    ExpressDeliver --> QuickReceipt[Quick Receipt<br/>Verification]
-    QuickReceipt --> UseImmediately[Items to Operations<br/>Immediately]
+    TrackExpress --> StoreReady[Store Prepares<br>for Receipt]
+    StoreReady --> ExpressDeliver[Express Delivery<br>Arrives]
+    ExpressDeliver --> QuickReceipt[Quick Receipt<br>Verification]
+    QuickReceipt --> UseImmediately[Items to Operations<br>Immediately]
 
-    UseImmediately --> PostEvent[Post-Event<br/>Documentation]
-    PostEvent --> IncidentReport[Generate Incident<br/>Report:<br/>- Cause<br/>- Response time<br/>- Outcome<br/>- Cost<br/>- Prevention]
+    UseImmediately --> PostEvent[Post-Event<br>Documentation]
+    PostEvent --> IncidentReport[Generate Incident<br>Report:<br>- Cause<br>- Response time<br>- Outcome<br>- Cost<br>- Prevention]
 
-    IncidentReport --> RootCause[Root Cause<br/>Analysis]
-    RootCause --> FlagReview[Flag for Review:<br/>- Supplier issues<br/>- Process gaps<br/>- Par level adequacy]
-    FlagReview --> TrackUsage[Track Emergency<br/>Usage Count]
+    IncidentReport --> RootCause[Root Cause<br>Analysis]
+    RootCause --> FlagReview[Flag for Review:<br>- Supplier issues<br>- Process gaps<br>- Par level adequacy]
+    FlagReview --> TrackUsage[Track Emergency<br>Usage Count]
     TrackUsage --> Success([End: Resolved])
 
     style Crisis fill:#ffcccc,stroke:#cc0000,stroke-width:2px,color:#000
@@ -873,75 +873,75 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Daily Scheduled<br/>Analysis Job]) --> SelectPeriod[Select Analysis<br/>Period: 30 days]
-    SelectPeriod --> RetrieveTx[Retrieve Inventory<br/>Transactions:<br/>- Issues only<br/>- Group by item<br/>- Group by location]
+    Start([Daily Scheduled<br>Analysis Job]) --> SelectPeriod[Select Analysis<br>Period: 30 days]
+    SelectPeriod --> RetrieveTx[Retrieve Inventory<br>Transactions:<br>- Issues only<br>- Group by item<br>- Group by location]
 
-    RetrieveTx --> FilterData[Filter & Clean Data:<br/>- Remove outliers<br/>- Exclude special events<br/>- Validate quantities]
+    RetrieveTx --> FilterData[Filter & Clean Data:<br>- Remove outliers<br>- Exclude special events<br>- Validate quantities]
 
-    FilterData --> ForEachItem[For Each Item<br/>with Par Level]
+    FilterData --> ForEachItem[For Each Item<br>with Par Level]
     ForEachItem --> CalcMetrics[Calculate Metrics]
 
-    CalcMetrics --> AvgDaily[Average Daily<br/>Consumption:<br/>Total / Days]
-    AvgDaily --> PeakDaily[Peak Daily<br/>Consumption:<br/>Maximum day]
-    PeakDaily --> CalcTrend[Calculate Trend:<br/>Linear Regression]
-    CalcTrend --> CalcVar[Calculate Variability:<br/>Standard Deviation]
-    CalcVar --> CalcDays[Days of Supply:<br/>Current Stock / Avg Daily]
+    CalcMetrics --> AvgDaily[Average Daily<br>Consumption:<br>Total / Days]
+    AvgDaily --> PeakDaily[Peak Daily<br>Consumption:<br>Maximum day]
+    PeakDaily --> CalcTrend[Calculate Trend:<br>Linear Regression]
+    CalcTrend --> CalcVar[Calculate Variability:<br>Standard Deviation]
+    CalcVar --> CalcDays[Days of Supply:<br>Current Stock / Avg Daily]
 
     CalcDays --> UpdateFormulas[Update Formulas]
-    UpdateFormulas --> CalcSafety[Safety Stock =<br/>Peak - Avg × Lead Factor]
-    CalcSafety --> CalcReorder[Reorder Point =<br/>Avg Daily × Lead Days + Safety]
-    CalcReorder --> CalcNewPar[Suggested Par =<br/>Reorder + Avg Daily × Review]
+    UpdateFormulas --> CalcSafety[Safety Stock =<br>Peak - Avg × Lead Factor]
+    CalcSafety --> CalcReorder[Reorder Point =<br>Avg Daily × Lead Days + Safety]
+    CalcReorder --> CalcNewPar[Suggested Par =<br>Reorder + Avg Daily × Review]
 
-    CalcNewPar --> CompareChange[Compare to<br/>Current Par Level]
-    CompareChange --> ChangePercent[Calculate Change<br/>Percentage]
+    CalcNewPar --> CompareChange[Compare to<br>Current Par Level]
+    CompareChange --> ChangePercent[Calculate Change<br>Percentage]
 
-    ChangePercent --> SignificantChange{Change<br/>> 25%?}
+    ChangePercent --> SignificantChange{Change<br>> 25%?}
 
-    SignificantChange -->|Yes| GenAlert[Generate Alert:<br/>Pattern Changed]
-    GenAlert --> SuggestReview[Suggest Par Level<br/>Review]
-    SuggestReview --> CreateRec[Create Recommendation:<br/>- Current vs Suggested<br/>- Trend data<br/>- Impact analysis]
-    CreateRec --> NotifyMgr[Notify Store<br/>Manager]
+    SignificantChange -->|Yes| GenAlert[Generate Alert:<br>Pattern Changed]
+    GenAlert --> SuggestReview[Suggest Par Level<br>Review]
+    SuggestReview --> CreateRec[Create Recommendation:<br>- Current vs Suggested<br>- Trend data<br>- Impact analysis]
+    CreateRec --> NotifyMgr[Notify Store<br>Manager]
     NotifyMgr --> SavePattern
 
-    SignificantChange -->|No| CheckTrend{Trend<br/>Direction?}
+    SignificantChange -->|No| CheckTrend{Trend<br>Direction?}
 
     CheckTrend -->|Increasing| IncreasingTrend[Flag: Upward Trend]
     IncreasingTrend --> MonitorClose[Monitor Closely]
     MonitorClose --> SavePattern
 
     CheckTrend -->|Decreasing| DecreasingTrend[Flag: Downward Trend]
-    DecreasingTrend --> ConsiderReduce[Consider Par<br/>Level Reduction]
+    DecreasingTrend --> ConsiderReduce[Consider Par<br>Level Reduction]
     ConsiderReduce --> SavePattern
 
     CheckTrend -->|Stable| StableTrend[Flag: Stable]
-    StableTrend --> SavePattern[Save Pattern<br/>to Database]
+    StableTrend --> SavePattern[Save Pattern<br>to Database]
 
-    SavePattern --> UpdatePar[(Update Consumption<br/>Pattern Table)]
-    UpdatePar --> CheckSlow{Turn Ratio<br/>< 2?}
+    SavePattern --> UpdatePar[(Update Consumption<br>Pattern Table)]
+    UpdatePar --> CheckSlow{Turn Ratio<br>< 2?}
 
-    CheckSlow -->|Yes| SlowMover[Flag as<br/>Slow-Moving Item]
-    SlowMover --> CalcCarrying[Calculate Carrying<br/>Cost]
-    CalcCarrying --> SuggestDisc[Suggest Review<br/>for Discontinuation]
+    CheckSlow -->|Yes| SlowMover[Flag as<br>Slow-Moving Item]
+    SlowMover --> CalcCarrying[Calculate Carrying<br>Cost]
+    CalcCarrying --> SuggestDisc[Suggest Review<br>for Discontinuation]
     SuggestDisc --> NextItem
 
-    CheckSlow -->|No| CheckFast{Turn Ratio<br/>> 8?}
+    CheckSlow -->|No| CheckFast{Turn Ratio<br>> 8?}
 
-    CheckFast -->|Yes| FastMover[Flag as<br/>Fast-Moving Item]
-    FastMover --> EnsurePar[Ensure Adequate<br/>Par Level]
-    EnsurePar --> NextItem{More<br/>Items?}
+    CheckFast -->|Yes| FastMover[Flag as<br>Fast-Moving Item]
+    FastMover --> EnsurePar[Ensure Adequate<br>Par Level]
+    EnsurePar --> NextItem{More<br>Items?}
 
     CheckFast -->|No| NextItem
 
     NextItem -->|Yes| ForEachItem
     NextItem -->|No| GenReports[Generate Reports]
 
-    GenReports --> MonthlyReport[Monthly Consumption<br/>Report by Location]
-    MonthlyReport --> TrendReport[Trending Analysis<br/>Report]
-    TrendReport --> SlowFastReport[Slow/Fast Movers<br/>Report]
-    SlowFastReport --> ParAdjustReport[Par Level Adjustment<br/>Recommendations]
+    GenReports --> MonthlyReport[Monthly Consumption<br>Report by Location]
+    MonthlyReport --> TrendReport[Trending Analysis<br>Report]
+    TrendReport --> SlowFastReport[Slow/Fast Movers<br>Report]
+    SlowFastReport --> ParAdjustReport[Par Level Adjustment<br>Recommendations]
 
-    ParAdjustReport --> DistributeReports[Distribute Reports:<br/>- Store Managers<br/>- Dept Managers<br/>- Purchasing]
-    DistributeReports --> Complete([End: Analysis<br/>Complete])
+    ParAdjustReport --> DistributeReports[Distribute Reports:<br>- Store Managers<br>- Dept Managers<br>- Purchasing]
+    DistributeReports --> Complete([End: Analysis<br>Complete])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style GenAlert fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
@@ -966,11 +966,11 @@ flowchart TD
 
 ## State Diagrams
 
-### Replenishment Request State Diagram
+### Transfer Request State Diagram
 
-**Purpose**: Document all possible states and transitions for replenishment requests
+**Purpose**: Document all possible states and transitions for transfer requests
 
-**Entity**: Replenishment Request
+**Entity**: Transfer Request
 
 ```mermaid
 stateDiagram-v2
@@ -1092,23 +1092,23 @@ stateDiagram-v2
 
 ```mermaid
 flowchart LR
-    StoreMgr([Store Manager]) -->|Creates requests| System{Stock<br/>Replenishment<br/>System}
+    StoreMgr([Store Manager]) -->|Creates requests| System{Stock<br>Replenishment<br>System}
     System -->|Alerts & recommendations| StoreMgr
 
-    WHMgr([Warehouse<br/>Manager]) -->|Approves requests| System
+    WHMgr([Warehouse<br>Manager]) -->|Approves requests| System
     System -->|Approval notifications| WHMgr
 
-    System <-->|Stock levels & transactions| InvDB[(Inventory<br/>Database)]
+    System <-->|Stock levels & transactions| InvDB[(Inventory<br>Database)]
 
-    System -->|Replenishment requests| DeptMgr([Department<br/>Manager])
+    System -->|Replenishment requests| DeptMgr([Department<br>Manager])
     DeptMgr -->|Approvals & configuration| System
 
-    System <-->|Workflow routing| WorkflowEng[Workflow<br/>Engine]
+    System <-->|Workflow routing| WorkflowEng[Workflow<br>Engine]
 
-    System -->|Purchase alerts| PurchMgr([Purchasing<br/>Manager])
+    System -->|Purchase alerts| PurchMgr([Purchasing<br>Manager])
     PurchMgr -->|Stock arrival updates| System
 
-    System -->|Transfer notifications| WHStaff([Warehouse<br/>Staff])
+    System -->|Transfer notifications| WHStaff([Warehouse<br>Staff])
     WHStaff -->|Dispatch confirmations| System
 
     style StoreMgr fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1138,30 +1138,30 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "Stock Replenishment System"
-        P1[1.0<br/>Monitor Inventory Levels]
-        P2[2.0<br/>Generate Recommendations]
-        P3[3.0<br/>Manage Par Levels]
-        P4[4.0<br/>Process Requests]
-        P5[5.0<br/>Manage Approvals]
-        P6[6.0<br/>Execute Transfers]
-        P7[7.0<br/>Analyze Consumption]
-        P8[8.0<br/>Send Notifications]
+    subgraph 'Stock Replenishment System'
+        P1[1.0<br>Monitor Inventory Levels]
+        P2[2.0<br>Generate Recommendations]
+        P3[3.0<br>Manage Par Levels]
+        P4[4.0<br>Process Requests]
+        P5[5.0<br>Manage Approvals]
+        P6[6.0<br>Execute Transfers]
+        P7[7.0<br>Analyze Consumption]
+        P8[8.0<br>Send Notifications]
 
-        DS1[(D1: Par Level<br/>Config)]
-        DS2[(D2: Replenishment<br/>Requests)]
-        DS3[(D3: Stock<br/>Transfers)]
-        DS4[(D4: Consumption<br/>Patterns)]
+        DS1[(D1: Par Level<br>Config)]
+        DS2[(D2: Replenishment<br>Requests)]
+        DS3[(D3: Stock<br>Transfers)]
+        DS4[(D4: Consumption<br>Patterns)]
         DS5[(D5: Audit Log)]
     end
 
-    InvSys([Inventory<br/>System]) -->|Stock levels| P1
+    InvSys([Inventory<br>System]) -->|Stock levels| P1
     P1 -->|Below threshold| P2
-    P2 -->|Recommendations| StoreMgr([Store<br/>Manager])
+    P2 -->|Recommendations| StoreMgr([Store<br>Manager])
 
     StoreMgr -->|Configure| P3
     P3 <-->|Read/Write| DS1
-    P3 -->|Change >20%| DeptMgr([Dept<br/>Manager])
+    P3 -->|Change >20%| DeptMgr([Dept<br>Manager])
     DeptMgr -->|Approval| P3
 
     StoreMgr -->|Create request| P4
@@ -1169,14 +1169,14 @@ flowchart TD
     P4 <-->|Save| DS2
     P4 -->|Submit| P5
 
-    P5 <-->|Workflow| WorkflowEng[Workflow<br/>Engine]
+    P5 <-->|Workflow| WorkflowEng[Workflow<br>Engine]
     P5 -->|Approved| P6
     P5 <-->|Status| DS2
-    WHMgr([Warehouse<br/>Manager]) -->|Review| P5
+    WHMgr([Warehouse<br>Manager]) -->|Review| P5
 
     P6 -->|Create| DS3
     P6 -->|Issue| InvSys
-    DS3 -->|Pick list| WHStaff([Warehouse<br/>Staff])
+    DS3 -->|Pick list| WHStaff([Warehouse<br>Staff])
     WHStaff -->|Dispatch| P6
     P6 -->|Receipt| StoreMgr
 
@@ -1216,7 +1216,7 @@ flowchart TD
 
 **Data Stores**:
 - **D1: Par Level Config**: Target inventory levels and calculation parameters
-- **D2: Replenishment Requests**: All replenishment requests and their status
+- **D2: Transfer Requests**: All transfer requests and their status
 - **D3: Stock Transfers**: Transfer documents and execution details
 - **D4: Consumption Patterns**: Historical consumption analysis and trends
 - **D5: Audit Log**: All system events and changes for compliance
@@ -1237,7 +1237,7 @@ flowchart TD
 
 ### Request Approval Sequence Diagram
 
-**Purpose**: Show time-ordered interaction for replenishment request approval
+**Purpose**: Show time-ordered interaction for transfer request approval
 
 **Scenario**: Store Manager creates request from recommendation through approval
 
@@ -1269,7 +1269,7 @@ sequenceDiagram
     API->>DB: Reserve stock quantities
     API->>DB: INSERT audit_log
     API->>DB: COMMIT
-    DB-->>API: Request REP-2025-0123 created
+    DB-->>API: Request TRF-2501-0123 created
 
     API->>Workflow: Route request for approval
     Workflow->>Workflow: Determine approvers based on value
@@ -1280,20 +1280,20 @@ sequenceDiagram
     NotifSvc->>NotifSvc: Compose notification
     NotifSvc-->>William: Send email & app notification
 
-    API-->>UI: 201 Created (Request REP-2025-0123)
-    UI-->>Maria: "Request submitted successfully"
+    API-->>UI: 201 Created (Request TRF-2501-0123)
+    UI-->>Maria: 'Request submitted successfully'
 
     Note over Maria,William: 2 hours elapsed
 
     William->>UI: Opens pending approvals
     UI->>API: GET /replenishment/approvals/pending
     API->>DB: Query requests pending approval
-    DB-->>API: Return REP-2025-0123
+    DB-->>API: Return TRF-2501-0123
     API-->>UI: Display request details
     UI-->>William: Show request with real-time stock
 
     William->>UI: Reviews items, clicks "Approve All"
-    UI->>API: POST /replenishment/approvals/approve/REP-2025-0123
+    UI->>API: POST /replenishment/approvals/approve/TRF-2501-0123
     API->>API: Validate approval authority
     API->>DB: BEGIN TRANSACTION
     API->>DB: UPDATE tb_replenishment_request SET status='approved'
@@ -1302,17 +1302,17 @@ sequenceDiagram
     API->>DB: INSERT tb_stock_transfer_detail (4 items)
     API->>DB: INSERT audit_log
     API->>DB: COMMIT
-    DB-->>API: Transfer TRF-2025-0456 created
+    DB-->>API: Transfer TRF-2501-0456 created
 
     API->>Workflow: Update workflow status
     Workflow-->>API: Workflow completed
 
     API->>NotifSvc: Notify relevant parties
-    NotifSvc-->>Maria: "Request approved, transfer scheduled"
-    NotifSvc-->>William: "Transfer TRF-2025-0456 created"
+    NotifSvc-->>Maria: 'Request approved, transfer scheduled'
+    NotifSvc-->>William: 'Transfer TRF-2501-0456 created'
 
     API-->>UI: 200 OK
-    UI-->>William: "Request approved successfully"
+    UI-->>William: 'Request approved successfully'
 ```
 
 **Key Interactions**:
@@ -1354,7 +1354,7 @@ sequenceDiagram
     WHStaff->>UI: Views daily picking list
     UI->>API: GET /transfers/picking-list/today
     API->>DB: Query scheduled transfers
-    DB-->>API: Return TRF-2025-0456
+    DB-->>API: Return TRF-2501-0456
     API-->>UI: Display transfer details
     UI-->>WHStaff: Show 4 items to pick
 
@@ -1364,23 +1364,23 @@ sequenceDiagram
     DB-->>API: Item valid
     API->>DB: UPDATE transfer_detail SET picked=true
     API-->>UI: Item confirmed
-    UI-->>WHStaff: "Item 1 of 4 picked ✓"
+    UI-->>WHStaff: 'Item 1 of 4 picked ✓'
 
     Note over WHStaff,UI: Repeat for remaining 3 items
 
     WHStaff->>UI: All items picked, click "Ready for Dispatch"
-    UI->>API: POST /transfers/ready-dispatch/TRF-2025-0456
+    UI->>API: POST /transfers/ready-dispatch/TRF-2501-0456
     API->>DB: UPDATE tb_stock_transfer SET status='ready_for_dispatch'
     API->>DB: Generate packing slip
     API->>NotifSvc: Notify driver
-    NotifSvc-->>UI: "Notify driver of ready transfer"
+    NotifSvc-->>UI: 'Notify driver of ready transfer'
     API-->>UI: Packing slip generated
     UI-->>WHStaff: Display/print packing slip
 
     Note over WHStaff,UI: Driver loads items
 
     WHStaff->>UI: Driver scans transfer barcode
-    UI->>API: POST /transfers/dispatch/TRF-2025-0456
+    UI->>API: POST /transfers/dispatch/TRF-2501-0456
     API->>DB: BEGIN TRANSACTION
     API->>DB: UPDATE tb_stock_transfer SET status='in_transit'
     API->>InvSvc: Create issue transaction
@@ -1390,17 +1390,17 @@ sequenceDiagram
     DB-->>API: Transfer dispatched
 
     API->>NotifSvc: Notify store manager
-    NotifSvc-->>Maria: "Transfer TRF-2025-0456 en route, ETA 9:00 AM"
+    NotifSvc-->>Maria: 'Transfer TRF-2501-0456 en route, ETA 9:00 AM'
 
     API-->>UI: Transfer in transit
-    UI-->>WHStaff: "Transfer dispatched successfully"
+    UI-->>WHStaff: 'Transfer dispatched successfully'
 
     Note over Maria,UI: Transfer in transit (45 min)
 
     Maria->>UI: Opens pending receipts
     UI->>API: GET /transfers/pending-receipt
     API->>DB: Query transfers in_transit to Maria's location
-    DB-->>API: Return TRF-2025-0456
+    DB-->>API: Return TRF-2501-0456
     API-->>UI: Display transfer
     UI-->>Maria: Show 4 items to receive
 
@@ -1409,12 +1409,12 @@ sequenceDiagram
     API->>API: Verify item and quantity
     API->>DB: UPDATE transfer_detail SET received=true
     API-->>UI: Item confirmed
-    UI-->>Maria: "Item 1 of 4 received ✓"
+    UI-->>Maria: 'Item 1 of 4 received ✓'
 
     Note over Maria,UI: Repeat for remaining 3 items
 
     Maria->>UI: All items verified, digital signature
-    UI->>API: POST /transfers/complete-receipt/TRF-2025-0456
+    UI->>API: POST /transfers/complete-receipt/TRF-2501-0456
     API->>DB: BEGIN TRANSACTION
     API->>DB: UPDATE tb_stock_transfer SET status='completed'
     API->>InvSvc: Create receipt transaction
@@ -1425,10 +1425,10 @@ sequenceDiagram
     DB-->>API: Receipt complete
 
     API->>NotifSvc: Notify warehouse
-    NotifSvc-->>WHStaff: "Transfer TRF-2025-0456 received successfully"
+    NotifSvc-->>WHStaff: 'Transfer TRF-2501-0456 received successfully'
 
     API-->>UI: Receipt confirmed
-    UI-->>Maria: "Transfer completed, inventory updated"
+    UI-->>Maria: 'Transfer completed, inventory updated'
 ```
 
 ---
@@ -1446,7 +1446,7 @@ sequenceDiagram
 
 ```mermaid
 flowchart TD
-    subgraph "Replenishment System"
+    subgraph 'Replenishment System'
         A[Inventory Monitor] --> B[Check Par Levels]
         B --> C[Generate Recommendations]
         C --> D[Create Request]
@@ -1454,8 +1454,8 @@ flowchart TD
         E --> F[Execute Transfer]
     end
 
-    subgraph "Inventory System"
-        G[(Inventory Tables:<br/>- tb_inventory<br/>- tb_inventory_transaction<br/>- tb_product<br/>- tb_location)]
+    subgraph 'Inventory System'
+        G[(Inventory Tables:<br>- tb_inventory<br>- tb_inventory_transaction<br>- tb_product<br>- tb_location)]
         H[Transaction Processor]
         I[Stock Calculator]
         J[Event Publisher]
@@ -1523,19 +1523,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph "Replenishment System"
-        A[Submit Request] --> B[Extract Parameters:<br/>- Type template<br/>- Total value<br/>- Department]
+    subgraph 'Replenishment System'
+        A[Submit Request] --> B[Extract Parameters:<br>- Type template<br>- Total value<br>- Department]
     end
 
-    subgraph "Workflow Engine"
+    subgraph 'Workflow Engine'
         C[Query Workflow Rules]
-        D[(Approval Rules<br/>Configuration)]
+        D[(Approval Rules<br>Configuration)]
         E[Determine Route]
         F[Create Workflow Instance]
         G[Notify Approvers]
     end
 
-    subgraph "Replenishment System"
+    subgraph 'Replenishment System'
         H[Track Approval Status]
         I[Receive Approval Decision]
         J[Update Request Status]
@@ -1545,7 +1545,7 @@ flowchart TD
     B -->|POST /workflow/query| C
     C <-->|Lookup rules| D
     C --> E
-    E --> F{Workflow<br/>Type?}
+    E --> F{Workflow<br>Type?}
 
     F -->|Auto-Approve| AA[Immediate Approval]
     AA --> CB1[Callback: Approved]
@@ -1613,27 +1613,27 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    subgraph "Replenishment System"
-        A[Monitor Warehouse<br/>Stock Levels]
-        B{Warehouse Stock<br/>Below Reorder?}
-        C[Calculate Required<br/>Purchase Quantity]
-        D[Generate Purchase<br/>Alert]
+    subgraph 'Replenishment System'
+        A[Monitor Warehouse<br>Stock Levels]
+        B{Warehouse Stock<br>Below Reorder?}
+        C[Calculate Required<br>Purchase Quantity]
+        D[Generate Purchase<br>Alert]
     end
 
-    subgraph "Purchase Request System"
+    subgraph 'Purchase Request System'
         E[Receive Purchase Alert]
-        F[Create Purchase<br/>Request Draft]
-        G[Purchasing Manager<br/>Reviews]
+        F[Create Purchase<br>Request Draft]
+        G[Purchasing Manager<br>Reviews]
         H[Submit to Vendor]
         I[Track PO Status]
         J[Goods Receipt]
     end
 
-    subgraph "Replenishment System"
-        K[Receive GRN<br/>Notification]
-        L[Update Expected<br/>Arrival Dates]
-        M[Factor into Stock<br/>Calculations]
-        N[Resume Normal<br/>Replenishment]
+    subgraph 'Replenishment System'
+        K[Receive GRN<br>Notification]
+        L[Update Expected<br>Arrival Dates]
+        M[Factor into Stock<br>Calculations]
+        N[Resume Normal<br>Replenishment]
     end
 
     A --> B

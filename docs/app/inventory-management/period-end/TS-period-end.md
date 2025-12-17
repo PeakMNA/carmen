@@ -2769,9 +2769,9 @@ test.describe('Period End Closure Workflow', () => {
   test.beforeEach(async ({ page }) => {
     // Login as Inventory Manager
     await page.goto('/login')
-    await page.fill('input[name="email"]', 'manager@example.com')
-    await page.fill('input[name="password"]', 'password')
-    await page.click('button[type="submit"]')
+    await page.fill('input[name='email']', 'manager@example.com')
+    await page.fill('input[name='password']', 'password')
+    await page.click('button[type='submit']')
 
     // Navigate to Period End page
     await page.goto('/inventory-management/period-end')
@@ -2779,15 +2779,15 @@ test.describe('Period End Closure Workflow', () => {
 
   test('should complete period closure workflow', async ({ page }) => {
     // Click on "Closing" period
-    await page.click('tr[data-status="closing"]')
+    await page.click('tr[data-status='closing']')
 
     // Navigate to Checklist tab
-    await page.click('button[data-tab="checklist"]')
+    await page.click('button[data-tab='checklist']')
 
     // Mark all tasks as complete
     const taskRows = await page.locator('.task-row').all()
     for (const row of taskRows) {
-      await row.locator('button[aria-label="Mark Complete"]').click()
+      await row.locator('button[aria-label='Mark Complete']').click()
       await expect(row.locator('.status-badge')).toHaveText('Completed')
     }
 
@@ -2812,15 +2812,15 @@ test.describe('Period End Closure Workflow', () => {
 
   test('should prevent closure with incomplete tasks', async ({ page }) => {
     // Click on "Closing" period
-    await page.click('tr[data-status="closing"]')
+    await page.click('tr[data-status='closing']')
 
     // Navigate to Checklist tab
-    await page.click('button[data-tab="checklist"]')
+    await page.click('button[data-tab='checklist']')
 
     // Mark only 2 out of 4 tasks complete
     const taskRows = await page.locator('.task-row').all()
-    await taskRows[0].locator('button[aria-label="Mark Complete"]').click()
-    await taskRows[1].locator('button[aria-label="Mark Complete"]').click()
+    await taskRows[0].locator('button[aria-label='Mark Complete']').click()
+    await taskRows[1].locator('button[aria-label='Mark Complete']').click()
 
     // Click "Complete Period End" button
     await page.click('button:has-text("Complete Period End")')
@@ -2837,14 +2837,14 @@ test.describe('Period End Closure Workflow', () => {
 
   test('should complete re-open workflow', async ({ page }) => {
     // Click on most recent "Closed" period
-    await page.click('tr[data-status="closed"]:first-child')
+    await page.click('tr[data-status='closed']:first-child')
 
     // Click "Re-open Period" button
     await page.click('button:has-text("Re-open Period")')
 
     // Enter reason (100+ characters)
     await page.fill(
-      'textarea[name="reason"]',
+      'textarea[name='reason']',
       'Re-opening this period to correct inventory adjustment errors discovered during audit review. ' +
       'Multiple discrepancies identified that require correction before finalizing period close.'
     )
@@ -3342,38 +3342,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/inventory-management/period-end)"]
-    CreatePage["Create Page<br/>(/inventory-management/period-end/new)"]
-    DetailPage["Detail Page<br/>(/inventory-management/period-end/[id])"]
-    EditPage["Edit Page<br/>(/inventory-management/period-end/[id]/edit)"]
+    ListPage['List Page<br>(/inventory-management/period-end)']
+    CreatePage['Create Page<br>(/inventory-management/period-end/new)']
+    DetailPage["Detail Page<br>(/inventory-management/period-end/[id])"]
+    EditPage["Edit Page<br>(/inventory-management/period-end/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage

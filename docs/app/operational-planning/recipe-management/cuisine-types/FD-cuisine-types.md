@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial flow diagrams document created |
 
 ---
@@ -21,7 +22,7 @@ flowchart TD
     Start([User clicks New Cuisine]) --> OpenDialog[Open Create Dialog]
     OpenDialog --> InitForm[Initialize blank form with defaults]
 
-    InitForm --> UserInput{User enters<br/>cuisine data}
+    InitForm --> UserInput{User enters<br>cuisine data}
     UserInput -->|typing| ClientVal[Client-side validation]
     ClientVal --> ShowFeedback[Show validation feedback]
     ShowFeedback --> UserInput
@@ -37,11 +38,11 @@ flowchart TD
     ReturnError --> DisplayError[Display error toast]
     DisplayError --> UserInput
 
-    ServerVal -->|Valid| CheckCode{Check code<br/>uniqueness}
+    ServerVal -->|Valid| CheckCode{Check code<br>uniqueness}
     CheckCode -->|Duplicate| DupCode[Return duplicate code error]
     DupCode --> DisplayError
 
-    CheckCode -->|Unique| CheckName{Check name<br/>uniqueness}
+    CheckCode -->|Unique| CheckName{Check name<br>uniqueness}
     CheckName -->|Duplicate| DupName[Return duplicate name error]
     DupName --> DisplayError
 
@@ -74,12 +75,12 @@ flowchart TD
     FetchData --> OpenDialog[Open edit dialog]
     OpenDialog --> PreFill[Pre-fill form with current values]
 
-    PreFill --> UserMod{User modifies<br/>fields}
+    PreFill --> UserMod{User modifies<br>fields}
     UserMod -->|typing| ClientVal[Real-time validation]
     ClientVal --> ShowFeedback[Show feedback]
     ShowFeedback --> UserMod
 
-    UserMod -->|clicks Save| CheckChanges{Any changes<br/>made?}
+    UserMod -->|clicks Save| CheckChanges{Any changes<br>made?}
     CheckChanges -->|No| InfoMsg[Show 'No changes' message]
     InfoMsg --> CloseNoSave[Close dialog]
     CloseNoSave --> End([End])
@@ -88,8 +89,8 @@ flowchart TD
     ValidateAll -->|Invalid| ShowError[Show validation errors]
     ShowError --> UserMod
 
-    ValidateAll -->|Valid| CheckStatus{Status changed<br/>to inactive?}
-    CheckStatus -->|Yes| CheckRecipes{Has active<br/>recipes?}
+    ValidateAll -->|Valid| CheckStatus{Status changed<br>to inactive?}
+    CheckStatus -->|Yes| CheckRecipes{Has active<br>recipes?}
     CheckRecipes -->|Yes| ShowWarning[Show warning about active recipes]
     ShowWarning --> UserConfirm{User confirms?}
     UserConfirm -->|No| UserMod
@@ -104,7 +105,7 @@ flowchart TD
     DisplayError --> UserMod
 
     ServerVal -->|Valid| CheckCodeChange{Code changed?}
-    CheckCodeChange -->|Yes| ValidateCode[Check code uniqueness<br/>excluding current]
+    CheckCodeChange -->|Yes| ValidateCode[Check code uniqueness<br>excluding current]
     ValidateCode -->|Duplicate| ReturnError
     ValidateCode -->|Unique| UpdateDB[UPDATE cuisine record]
 
@@ -132,14 +133,14 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks Delete]) --> CheckActive{Count active<br/>recipes}
+    Start([User clicks Delete]) --> CheckActive{Count active<br>recipes}
 
     CheckActive -->|>0 active| BlockDialog[Show blocking error dialog]
     BlockDialog --> ListRecipes[List affected recipes]
     ListRecipes --> ShowActions[Show 'View Recipes' or 'Close' buttons]
     ShowActions --> End([End - Deletion Blocked])
 
-    CheckActive -->|0 active| CheckInactive{Count inactive<br/>recipes}
+    CheckActive -->|0 active| CheckInactive{Count inactive<br>recipes}
 
     CheckInactive -->|>0 inactive| WarnDialog[Show warning dialog]
     WarnDialog --> ShowWarning[Show reassignment warning]
@@ -156,7 +157,7 @@ flowchart TD
     ForceDelete --> Transaction[Begin DB transaction]
     CallDelete --> SimpleDelete[DELETE cuisine record]
 
-    Transaction --> ReassignRecipes[UPDATE inactive recipes<br/>set cuisine='Uncategorized']
+    Transaction --> ReassignRecipes[UPDATE inactive recipes<br>set cuisine='Uncategorized']
     ReassignRecipes --> DeleteCuisine[DELETE cuisine record]
     DeleteCuisine --> Commit[Commit transaction]
     Commit --> Success{Success?}
@@ -196,8 +197,8 @@ flowchart TD
 
     InputType -->|Advanced filter| OpenAdvanced[Open advanced filter popover]
     OpenAdvanced --> AddCondition[User adds/modifies conditions]
-    AddCondition --> UserApply{User clicks<br/>Apply?}
-    UserApply -->|No| UserContinue{Continue editing<br/>or close?}
+    AddCondition --> UserApply{User clicks<br>Apply?}
+    UserApply -->|No| UserContinue{Continue editing<br>or close?}
     UserContinue -->|Continue| AddCondition
     UserContinue -->|Close| End([End - No changes])
     UserApply -->|Yes| AdvancedFilter[Apply advanced filters]
@@ -232,12 +233,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User selects cuisines]) --> SelectCheck{Selection<br/>valid?}
+    Start([User selects cuisines]) --> SelectCheck{Selection<br>valid?}
     SelectCheck -->|<2 selected| ShowMsg[Show 'Select at least 2' message]
     ShowMsg --> End([End])
 
     SelectCheck -->|≥2 selected| ShowToolbar[Show bulk actions toolbar]
-    ShowToolbar --> UserAction{User clicks<br/>bulk action}
+    ShowToolbar --> UserAction{User clicks<br>bulk action}
 
     UserAction -->|Activate| ValidateActivate[Identify already-active cuisines]
     ValidateActivate --> ShowActivateDialog[Show confirmation dialog]
@@ -300,11 +301,11 @@ flowchart TD
 stateDiagram-v2
     [*] --> Draft: Create new cuisine
     Draft --> Active: Activate cuisine
-    Active --> Inactive: Deactivate<br/>(no active recipes)
+    Active --> Inactive: Deactivate<br>(no active recipes)
     Inactive --> Active: Reactivate cuisine
     Active --> Active: Update properties
     Inactive --> Inactive: Update properties
-    Inactive --> [*]: Delete<br/>(no active recipes)
+    Inactive --> [*]: Delete<br>(no active recipes)
 
     note right of Active
         Can have recipes
@@ -331,17 +332,17 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([User attempts action]) --> CheckAuth{User<br/>authenticated?}
+    Start([User attempts action]) --> CheckAuth{User<br>authenticated?}
     CheckAuth -->|No| DenyAuth[Show login required]
     DenyAuth --> End([End - Access Denied])
 
-    CheckAuth -->|Yes| CheckPerm{Has required<br/>permission?}
+    CheckAuth -->|Yes| CheckPerm{Has required<br>permission?}
 
-    CheckPerm -->|cuisine.create<br/>for create| AllowCreate[Allow create action]
-    CheckPerm -->|cuisine.update<br/>for edit| AllowEdit[Allow edit action]
-    CheckPerm -->|cuisine.delete<br/>for delete| AllowDelete[Allow delete action]
-    CheckPerm -->|cuisine.view<br/>for view| AllowView[Allow view action]
-    CheckPerm -->|cuisine.export<br/>for export| AllowExport[Allow export action]
+    CheckPerm -->|cuisine.create<br>for create| AllowCreate[Allow create action]
+    CheckPerm -->|cuisine.update<br>for edit| AllowEdit[Allow edit action]
+    CheckPerm -->|cuisine.delete<br>for delete| AllowDelete[Allow delete action]
+    CheckPerm -->|cuisine.view<br>for view| AllowView[Allow view action]
+    CheckPerm -->|cuisine.export<br>for export| AllowExport[Allow export action]
 
     CheckPerm -->|No permission| DenyPerm[Show permission denied]
     DenyPerm --> End
@@ -376,7 +377,7 @@ flowchart TD
     UserFix --> RetryAction[Retry action]
     RetryAction --> Success([Success])
 
-    ErrorType -->|Network error| DetectNetwork{Network<br/>available?}
+    ErrorType -->|Network error| DetectNetwork{Network<br>available?}
     DetectNetwork -->|No| ShowOffline[Show offline message]
     ShowOffline --> WaitNetwork[Wait for connection]
     WaitNetwork --> DetectNetwork
@@ -384,7 +385,7 @@ flowchart TD
     RetryRequest --> RequestSuccess{Success?}
     RequestSuccess -->|Yes| Success
     RequestSuccess -->|No| ShowRetryButton[Show retry button]
-    ShowRetryButton --> UserRetry{User clicks<br/>retry?}
+    ShowRetryButton --> UserRetry{User clicks<br>retry?}
     UserRetry -->|Yes| RetryRequest
     UserRetry -->|No| Cancel([Cancel operation])
 
@@ -401,7 +402,7 @@ flowchart TD
 
     ErrorType -->|Business rule violation| ShowRuleError[Show specific business rule error]
     ShowRuleError --> ExplainRule[Explain rule and required action]
-    ExplainRule --> UserFixRule{User takes<br/>required action?}
+    ExplainRule --> UserFixRule{User takes<br>required action?}
     UserFixRule -->|Yes| RetryAction
     UserFixRule -->|No| Cancel
 

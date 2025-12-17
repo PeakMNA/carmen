@@ -64,7 +64,7 @@ GET /goods-received-notes
   "data": [
     {
       "id": "grn-uuid-123",
-      "ref": "GRN-2023-001",
+      "ref": "GRN-2301-0001",
       "vendor_id": "vendor-uuid-456",
       "vendor_name": "Global Foods Inc.",
       "date": "2023-06-15",
@@ -96,7 +96,7 @@ GET /goods-received-notes/{grn_id}
 ```json
 {
   "id": "grn-uuid-123",
-  "ref": "GRN-2023-001",
+  "ref": "GRN-2301-0001",
   "vendor_id": "vendor-uuid-456",
   "vendor": {
     "id": "vendor-uuid-456",
@@ -140,7 +140,7 @@ GET /goods-received-notes/{grn_id}
       "tax_amount": 30.26,
       "total_amount": 462.51,
       "status": "FullyReceived",
-      "po_reference": "PO-2023-001",
+      "po_reference": "PO-2301-0001",
       "po_item_id": "po-item-uuid-303"
     }
   ],
@@ -190,7 +190,7 @@ GET /goods-received-notes/{grn_id}
       "user_id": "user-uuid-789",
       "user_name": "John Warehouse",
       "activity_type": "Creation",
-      "description": "GRN created from PO-2023-001",
+      "description": "GRN created from PO-2301-0001",
       "timestamp": "2023-06-15T10:30:00Z"
     }
   ]
@@ -246,7 +246,7 @@ POST /goods-received-notes
 ```json
 {
   "id": "grn-uuid-123",
-  "ref": "GRN-2023-001",
+  "ref": "GRN-2301-0001",
   "status": "Draft",
   "created_at": "2023-06-15T10:30:00Z",
   "message": "Goods Received Note created successfully"
@@ -264,7 +264,7 @@ PUT /goods-received-notes/{grn_id}
 ```json
 {
   "id": "grn-uuid-123",
-  "ref": "GRN-2023-001",
+  "ref": "GRN-2301-0001",
   "updated_at": "2023-06-15T15:45:00Z",
   "message": "Goods Received Note updated successfully"
 }
@@ -300,7 +300,7 @@ PATCH /goods-received-notes/{grn_id}/status
 ```json
 {
   "id": "grn-uuid-123",
-  "ref": "GRN-2023-001",
+  "ref": "GRN-2301-0001",
   "old_status": "Received",
   "new_status": "Verified",
   "updated_at": "2023-06-15T15:45:00Z",
@@ -440,7 +440,7 @@ GET /goods-received-notes/available-pos
   "data": [
     {
       "po_id": "po-uuid-123",
-      "po_number": "PO-2023-001",
+      "po_number": "PO-2301-0001",
       "vendor_name": "Global Foods Inc.",
       "order_date": "2023-06-10",
       "delivery_date": "2023-06-15",
@@ -727,7 +727,7 @@ X-RateLimit-Reset: 1640995200
   "timestamp": "2023-06-15T15:45:00Z",
   "data": {
     "grn_id": "grn-uuid-123",
-    "ref": "GRN-2023-001",
+    "ref": "GRN-2301-0001",
     "old_status": "Received",
     "new_status": "Verified",
     "user_id": "user-uuid-789",

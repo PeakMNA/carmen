@@ -791,7 +791,7 @@ The PR API supports webhooks for real-time notifications:
   "event": "pr.status_changed",
   "timestamp": "2024-03-20T09:00:00Z",
   "data": {
-    "prId": "PR-2024-001",
+    "prId": "PR-2401-0001",
     "previousStatus": "Draft",
     "newStatus": "Submitted",
     "userId": "USER123"
@@ -822,7 +822,7 @@ GET /api/purchase-requests?status=Draft&type=GeneralPurchase&department=IT&fromD
 {
   "data": [
     {
-      "id": "PR-2024-001",
+      "id": "PR-2401-0001",
       "refNumber": "PR/2024/03/001",
       "date": "2024-03-20T09:00:00Z",
       "type": "GeneralPurchase",
@@ -865,11 +865,11 @@ GET /api/purchase-requests?status=Draft&type=GeneralPurchase&department=IT&fromD
 #### Get Purchase Request by ID
 ```typescript
 // Request
-GET /api/purchase-requests/PR-2024-001
+GET /api/purchase-requests/PR-2401-0001
 
 // Response
 {
-  "id": "PR-2024-001",
+  "id": "PR-2401-0001",
   // ... PR details as above ...
   "items": [
     {
@@ -900,7 +900,7 @@ GET /api/purchase-requests/PR-2024-001
       "fileSize": 245760,
       "uploadedBy": "USER123",
       "uploadedAt": "2024-03-20T09:05:00Z",
-      "url": "/attachments/PR-2024-001/quotation.pdf"
+      "url": "/attachments/PR-2401-0001/quotation.pdf"
     }
   ],
   "comments": [
@@ -968,7 +968,7 @@ POST /api/purchase-requests
 
 // Response
 {
-  "id": "PR-2024-001",
+  "id": "PR-2401-0001",
   // ... full PR details ...
 }
 ```
@@ -978,7 +978,7 @@ POST /api/purchase-requests
 #### Add PR Item
 ```typescript
 // Request
-POST /api/purchase-requests/PR-2024-001/items
+POST /api/purchase-requests/PR-2401-0001/items
 {
   "location": "HQ",
   "name": "Monitor Dell U2419H",
@@ -1007,7 +1007,7 @@ POST /api/purchase-requests/PR-2024-001/items
 #### Submit for Approval
 ```typescript
 // Request
-POST /api/purchase-requests/PR-2024-001/submit
+POST /api/purchase-requests/PR-2401-0001/submit
 
 // Response
 {
@@ -1021,7 +1021,7 @@ POST /api/purchase-requests/PR-2024-001/submit
 #### Process Workflow Action
 ```typescript
 // Request
-POST /api/purchase-requests/PR-2024-001/workflow/action
+POST /api/purchase-requests/PR-2401-0001/workflow/action
 {
   "action": "approve",
   "comments": "Equipment specifications and budget are appropriate",
@@ -1051,7 +1051,7 @@ POST /api/purchase-requests/PR-2024-001/workflow/action
 #### Add Comment
 ```typescript
 // Request
-POST /api/purchase-requests/PR-2024-001/comments
+POST /api/purchase-requests/PR-2401-0001/comments
 {
   "content": "Please attach vendor quotation",
   "type": "general",
@@ -1069,7 +1069,7 @@ POST /api/purchase-requests/PR-2024-001/comments
 // Response
 {
   "id": "CMT-002",
-  "prId": "PR-2024-001",
+  "prId": "PR-2401-0001",
   "userId": "USER456",
   "userName": "Jane Smith",
   "userRole": "Department Manager",
@@ -1082,7 +1082,7 @@ POST /api/purchase-requests/PR-2024-001/comments
       "fileName": "vendor_comparison.xlsx",
       "fileType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       "fileSize": 15360,
-      "url": "/attachments/PR-2024-001/vendor_comparison.xlsx"
+      "url": "/attachments/PR-2401-0001/vendor_comparison.xlsx"
     }
   ],
   "mentions": [
@@ -1101,14 +1101,14 @@ POST /api/purchase-requests/PR-2024-001/comments
 #### Get Activity Log
 ```typescript
 // Request
-GET /api/purchase-requests/PR-2024-001/activity-log?fromDate=2024-03-20&type=workflow,modification
+GET /api/purchase-requests/PR-2401-0001/activity-log?fromDate=2024-03-20&type=workflow,modification
 
 // Response
 {
   "data": [
     {
       "id": "ACT-001",
-      "prId": "PR-2024-001",
+      "prId": "PR-2401-0001",
       "type": "workflow",
       "action": "submit",
       "description": "Purchase request submitted for approval",
@@ -1155,7 +1155,7 @@ GET /api/purchase-requests/PR-2024-001/activity-log?fromDate=2024-03-20&type=wor
 #### Check Budget Availability
 ```typescript
 // Request
-POST /api/purchase-requests/PR-2024-001/validate-budget
+POST /api/purchase-requests/PR-2401-0001/validate-budget
 
 // Response
 {

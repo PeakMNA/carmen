@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import SummaryPRTable from "./tabs/Summary-pr-table";
 import { PurchaseRequestItem } from "@/lib/types";
+import { mockCurrencies } from "@/lib/mock-data";
 import { Package, XIcon } from "lucide-react";
 
 // Summary interface for pricing calculations
@@ -60,8 +61,11 @@ import VendorComparison from "./vendor-comparison";
 
 type FormMode = "add" | "edit" | "view";
 
+// Get base currency from mock data
+const baseCurrency = mockCurrencies.find(c => c.isBaseCurrency)?.code || 'USD';
+
 const initialFormData: Partial<ExtendedPurchaseRequestItem> = {
-  currency: "USD",
+  currency: baseCurrency,
   currencyRate: 1,
   price: 3.99,
   adjustments: {
@@ -240,9 +244,11 @@ export function PricingFormComponent({
                     <SelectValue placeholder="Select currency" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="GBP">GBP</SelectItem>
+                    {mockCurrencies.filter(c => c.isActive).map((currency) => (
+                      <SelectItem key={currency.code} value={currency.code}>
+                        {currency.code} {currency.isBaseCurrency && "(Base)"}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -7,6 +7,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 **Implementation Status**: Planned (Mock Data Currently)
 
@@ -75,7 +76,7 @@ model tb_role {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "System Administrator",
   "description": "Full system access",
-  "permissions": ["*"],
+  "permissions": ['*'],
   "hierarchy": 1,
   "is_system": true
 }
@@ -374,7 +375,7 @@ FROM role_tree;
 -- Find all roles that have a specific permission
 SELECT r.id, r.name, r.hierarchy
 FROM tb_role r
-WHERE r.permissions::jsonb @> '["purchase_request:approve"]'::jsonb
+WHERE r.permissions::jsonb @> '['purchase_request:approve']'::jsonb
   AND r.deleted_at IS NULL
 ORDER BY r.hierarchy;
 ```
@@ -428,8 +429,8 @@ SELECT EXISTS (
     )
   )
   SELECT 1 FROM role_tree
-  WHERE permissions::jsonb @> $2::jsonb -- e.g., '["purchase_request:create"]'
-     OR permissions::jsonb @> '["*"]'::jsonb
+  WHERE permissions::jsonb @> $2::jsonb -- e.g., '['purchase_request:create']'
+     OR permissions::jsonb @> '['*']'::jsonb
 );
 ```
 

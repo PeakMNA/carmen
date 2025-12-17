@@ -1,535 +1,948 @@
-'use client'
+/**
+ * ============================================================================
+ * NEW WASTAGE REPORT PAGE
+ * ============================================================================
+ *
+ * Form page for creating new wastage reports. Based on the Inventory Adjustment
+ * Stock Out form pattern with two-level Category → Reason classification.
+ *
+ * PAGE STRUCTURE:
+ * 1. Header - Title, Cancel, Save as Draft, Submit for Review buttons
+ * 2. Report Details - Date, Location, Category (header-level)
+ * 3. Items Section - Product selector and items table with inline add
+ * 4. Attachments Section - Evidence upload
+ * 5. Summary Card - Total items, quantity, and loss value
+ *
+ * KEY BUSINESS RULES:
+ * - Category defaults to "Wastage" (WST) for Stock OUT adjustments
+ * - Uses system average cost (no manual price entry)
+ * - Location is required
+ * - Category is required
+ * - At least one item is required
+ * - Each item requires a reason within the selected category
+ *
+ * ============================================================================
+ */
 
-import { useState, useMemo } from 'react'
-import Link from 'next/link'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import { Badge } from '@/components/ui/badge'
-import { Textarea } from '@/components/ui/textarea'
-import { Separator } from '@/components/ui/separator'
+"use client"
+
+import { useState, useMemo, useCallback, useEffect } from "react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
+import { format } from "date-fns"
+import {
+  ArrowLeft,
+  Plus,
+  Trash2,
+  Save,
+  X,
+  Search,
+  Package,
+  AlertCircle,
+  Check,
+  ChevronsUpDown,
+  Send,
+  Upload,
+  FileText,
+  Image as ImageIcon,
+} from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select'
+} from "@/components/ui/select"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Alert, AlertDescription } from '@/components/ui/alert'
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import {
-  Trash2,
-  ArrowLeft,
-  Search,
-  Plus,
-  X,
-  Upload,
-  Camera,
-  AlertTriangle,
-  Package,
-  DollarSign,
-  Calendar,
-  FileText,
-  Save,
-  Send,
-  Image as ImageIcon,
-} from 'lucide-react'
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
+import { cn } from "@/lib/utils"
+import { getCategoryOptionsForType } from "@/lib/mock-data/transaction-categories"
 
-// Mock data for inventory items
-const inventoryItems = [
-  { id: '1', code: 'BEV-001', name: 'Thai Milk Tea Powder', category: 'Beverages', unit: 'Box', unitCost: 45.99, currentStock: 25, batchNumber: 'BTH-2024-001234', expiryDate: '2024-03-15' },
-  { id: '2', code: 'BEV-002', name: 'Premium Coffee Beans', category: 'Beverages', unit: 'Bag', unitCost: 28.50, currentStock: 45, batchNumber: 'BTH-2024-001235', expiryDate: '2024-06-20' },
-  { id: '3', code: 'LIQ-001', name: 'Vodka Premium', category: 'Spirits', unit: 'Bottle', unitCost: 85.00, currentStock: 18, batchNumber: 'BTH-2024-001240', expiryDate: null },
-  { id: '4', code: 'LIQ-003', name: 'Orange Juice Fresh', category: 'Beverages', unit: 'Liter', unitCost: 8.50, currentStock: 60, batchNumber: 'BTH-2024-001250', expiryDate: '2024-01-20' },
-  { id: '5', code: 'MTT-001', name: 'Wagyu Beef Premium', category: 'Meat & Poultry', unit: 'Kg', unitCost: 185.00, currentStock: 12, batchNumber: 'WGY-2024-00567', expiryDate: '2024-01-18' },
-  { id: '6', code: 'SEA-001', name: 'Fresh Salmon Fillet', category: 'Seafood', unit: 'Kg', unitCost: 45.00, currentStock: 15, batchNumber: 'BTH-2024-001260', expiryDate: '2024-01-17' },
-  { id: '7', code: 'VEG-005', name: 'Mixed Salad Greens', category: 'Vegetables', unit: 'Kg', unitCost: 12.00, currentStock: 20, batchNumber: 'BTH-2024-001270', expiryDate: '2024-01-16' },
-  { id: '8', code: 'BAK-002', name: 'Croissants Butter', category: 'Bakery', unit: 'Piece', unitCost: 3.50, currentStock: 100, batchNumber: 'BTH-2024-001280', expiryDate: '2024-01-15' },
-  { id: '9', code: 'DRY-004', name: 'Flour All Purpose', category: 'Dry Goods', unit: 'Kg', unitCost: 4.50, currentStock: 80, batchNumber: 'BTH-2024-001290', expiryDate: '2024-06-30' },
-  { id: '10', code: 'DRY-006', name: 'Sugar White', category: 'Dry Goods', unit: 'Kg', unitCost: 2.50, currentStock: 120, batchNumber: 'BTH-2024-001300', expiryDate: '2025-01-15' },
-]
-
-// Wastage reasons
-const wastageReasons = [
-  { id: 'expiration', label: 'Expiration', description: 'Product past expiry date' },
-  { id: 'spoilage', label: 'Spoilage', description: 'Product spoiled or rotted' },
-  { id: 'damage', label: 'Damage', description: 'Physical damage to product' },
-  { id: 'quality', label: 'Quality Issues', description: 'Quality not meeting standards' },
-  { id: 'contamination', label: 'Contamination', description: 'Product contaminated' },
-  { id: 'overproduction', label: 'Overproduction', description: 'Excess production waste' },
-  { id: 'other', label: 'Other', description: 'Other reasons' },
-]
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
 
 interface WastageItem {
   id: string
-  code: string
-  name: string
-  category: string
+  productId: string
+  productName: string
+  sku: string
+  category: string        // Product category (e.g., Beverages)
+  currentStock: number
+  quantity: number
   unit: string
   unitCost: number
-  quantity: number
-  batchNumber: string
-  expiryDate: string | null
-  reason: string
-  notes: string
+  totalLoss: number
+  reason: string          // Reason within the header-level wastage category
+  remarks?: string
 }
 
+interface WastageFormData {
+  date: string
+  locationId: string
+  locationName: string
+  wastageCategory: string  // Header-level category (defaults to WST)
+  description: string
+  items: WastageItem[]
+}
+
+interface Attachment {
+  id: string
+  name: string
+  size: string
+  type: string
+}
+
+// ============================================================================
+// MOCK DATA
+// ============================================================================
+
+const mockLocations = [
+  { id: "loc-001", name: "Main Kitchen", code: "MK-001", type: "INVENTORY" },
+  { id: "loc-002", name: "Pastry Kitchen", code: "PK-001", type: "INVENTORY" },
+  { id: "loc-003", name: "Rooftop Restaurant", code: "RR-001", type: "DIRECT" },
+  { id: "loc-004", name: "Pool Bar", code: "PB-001", type: "DIRECT" },
+  { id: "loc-005", name: "Main Warehouse", code: "WH-001", type: "INVENTORY" },
+]
+
+const mockProducts = [
+  { id: "prod-001", name: "Thai Milk Tea Powder", sku: "BEV-001", category: "Beverages", unit: "Box", currentStock: 25, avgCost: 45.99 },
+  { id: "prod-002", name: "Premium Coffee Beans", sku: "BEV-002", category: "Beverages", unit: "Bag", currentStock: 45, avgCost: 28.50 },
+  { id: "prod-003", name: "Vodka Premium", sku: "LIQ-001", category: "Spirits", unit: "Bottle", currentStock: 18, avgCost: 85.00 },
+  { id: "prod-004", name: "Orange Juice Fresh", sku: "LIQ-003", category: "Beverages", unit: "Liter", currentStock: 60, avgCost: 8.50 },
+  { id: "prod-005", name: "Wagyu Beef Premium", sku: "MTT-001", category: "Meat & Poultry", unit: "Kg", currentStock: 12, avgCost: 185.00 },
+  { id: "prod-006", name: "Salmon Fillet", sku: "SEA-001", category: "Seafood", unit: "Kg", currentStock: 30, avgCost: 28.00 },
+  { id: "prod-007", name: "Fresh Basil", sku: "HRB-001", category: "Herbs", unit: "Kg", currentStock: 10, avgCost: 15.00 },
+  { id: "prod-008", name: "Almond Flour", sku: "DRY-015", category: "Dry Goods", unit: "Kg", currentStock: 20, avgCost: 39.10 },
+  { id: "prod-009", name: "Vanilla Extract", sku: "DRY-022", category: "Dry Goods", unit: "Bottle", currentStock: 15, avgCost: 44.75 },
+  { id: "prod-010", name: "Olive Oil Extra Virgin", sku: "OIL-001", category: "Oils", unit: "Liter", currentStock: 50, avgCost: 18.90 },
+]
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+function generateId() {
+  return `item-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+}
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export default function NewWastageReportPage() {
-  const [location, setLocation] = useState('')
-  const [searchQuery, setSearchQuery] = useState('')
-  const [categoryFilter, setCategoryFilter] = useState('all')
-  const [wastageItems, setWastageItems] = useState<WastageItem[]>([])
-  const [uploadedFiles, setUploadedFiles] = useState<Array<{ name: string; size: string }>>([])
+  const router = useRouter()
 
-  // Filter inventory items
-  const filteredItems = useMemo(() => {
-    return inventoryItems.filter(item => {
-      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        item.code.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesCategory = categoryFilter === 'all' || item.category === categoryFilter
-      // Exclude items already added
-      const notAdded = !wastageItems.find(w => w.id === item.id)
-      return matchesSearch && matchesCategory && notAdded
-    })
-  }, [searchQuery, categoryFilter, wastageItems])
+  // ============================================================================
+  // STATE MANAGEMENT
+  // ============================================================================
 
-  // Add item to wastage list
-  const addItem = (item: typeof inventoryItems[0]) => {
-    setWastageItems([...wastageItems, {
-      ...item,
-      quantity: 1,
-      reason: '',
-      notes: '',
-    }])
-  }
+  const [isSaving, setIsSaving] = useState(false)
+  const [showDiscardDialog, setShowDiscardDialog] = useState(false)
+  const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // Remove item from wastage list
-  const removeItem = (id: string) => {
-    setWastageItems(wastageItems.filter(item => item.id !== id))
-  }
+  // Main form data with wastageCategory defaulting to WST
+  const [formData, setFormData] = useState<WastageFormData>({
+    date: format(new Date(), "yyyy-MM-dd"),
+    locationId: "",
+    locationName: "",
+    wastageCategory: "WST",  // Default to Wastage category
+    description: "",
+    items: [],
+  })
 
-  // Update item quantity
-  const updateItemQuantity = (id: string, quantity: number) => {
-    setWastageItems(wastageItems.map(item =>
-      item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
-    ))
-  }
+  // Inline Add Item state
+  const [isAddingItem, setIsAddingItem] = useState(false)
+  const [productSearchOpen, setProductSearchOpen] = useState(false)
+  const [newItemProductId, setNewItemProductId] = useState<string>("")
+  const [newItemQty, setNewItemQty] = useState(1)
+  const [newItemReason, setNewItemReason] = useState("")
+  const [newItemRemarks, setNewItemRemarks] = useState("")
 
-  // Update item reason
-  const updateItemReason = (id: string, reason: string) => {
-    setWastageItems(wastageItems.map(item =>
-      item.id === id ? { ...item, reason } : item
-    ))
-  }
+  // Bulk selection state
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
 
-  // Update item notes
-  const updateItemNotes = (id: string, notes: string) => {
-    setWastageItems(wastageItems.map(item =>
-      item.id === id ? { ...item, notes } : item
-    ))
-  }
+  // Attachments state
+  const [attachments, setAttachments] = useState<Attachment[]>([])
 
-  // Calculate totals
-  const totals = useMemo(() => {
-    return {
-      items: wastageItems.length,
-      quantity: wastageItems.reduce((sum, item) => sum + item.quantity, 0),
-      value: wastageItems.reduce((sum, item) => sum + (item.quantity * item.unitCost), 0),
+  // ============================================================================
+  // SIDE EFFECTS
+  // ============================================================================
+
+  useEffect(() => {
+    const location = mockLocations.find(l => l.id === formData.locationId)
+    if (location) {
+      setFormData(prev => ({ ...prev, locationName: location.name }))
     }
-  }, [wastageItems])
+  }, [formData.locationId])
 
-  // Get unique categories
-  const categories = [...new Set(inventoryItems.map(item => item.category))]
+  // ============================================================================
+  // COMPUTED VALUES
+  // ============================================================================
+
+  const totals = useMemo(() => {
+    const totalQty = formData.items.reduce((sum, item) => sum + item.quantity, 0)
+    const totalValue = formData.items.reduce((sum, item) => sum + item.totalLoss, 0)
+    return { totalQty, totalValue, itemCount: formData.items.length }
+  }, [formData.items])
+
+  const availableProducts = useMemo(() => {
+    const excludeIds = formData.items.map(item => item.productId)
+    return mockProducts.filter(p => !excludeIds.includes(p.id))
+  }, [formData.items])
+
+  const selectedProduct = useMemo(() => {
+    return mockProducts.find(p => p.id === newItemProductId)
+  }, [newItemProductId])
+
+  const isAllSelected = formData.items.length > 0 && selectedItems.length === formData.items.length
+
+  // Get available categories for Stock OUT (wastage is a type of stock out)
+  const availableCategories = useMemo(() => {
+    return getCategoryOptionsForType("OUT")
+  }, [])
+
+  // Get available reasons based on selected header-level category
+  const availableReasons = useMemo(() => {
+    if (!formData.wastageCategory) return []
+    const category = availableCategories.find(c => c.value === formData.wastageCategory)
+    return category?.reasons || []
+  }, [formData.wastageCategory, availableCategories])
+
+  // ============================================================================
+  // EVENT HANDLERS
+  // ============================================================================
+
+  const handleUpdateItem = useCallback((itemId: string, field: keyof WastageItem, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.map(item => {
+        if (item.id !== itemId) return item
+        const updated = { ...item, [field]: value }
+        if (field === "quantity") {
+          updated.totalLoss = updated.quantity * updated.unitCost
+        }
+        return updated
+      })
+    }))
+  }, [])
+
+  const handleRemoveItem = useCallback((itemId: string) => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.filter(item => item.id !== itemId)
+    }))
+    setSelectedItems(prev => prev.filter(id => id !== itemId))
+  }, [])
+
+  const validateForm = useCallback((): boolean => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.locationId) {
+      newErrors.location = "Location is required"
+    }
+    if (!formData.wastageCategory) {
+      newErrors.category = "Category is required"
+    }
+    if (formData.items.length === 0) {
+      newErrors.items = "At least one item is required"
+    }
+
+    formData.items.forEach((item) => {
+      if (item.quantity <= 0) {
+        newErrors[`item_${item.id}_qty`] = "Quantity must be greater than 0"
+      }
+      if (item.quantity > item.currentStock) {
+        newErrors[`item_${item.id}_qty`] = `Cannot exceed current stock (${item.currentStock})`
+      }
+      if (!item.reason) {
+        newErrors[`item_${item.id}_reason`] = "Reason is required"
+      }
+    })
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }, [formData])
+
+  const handleSave = async (action: 'draft' | 'submit') => {
+    if (action === 'submit' && !validateForm()) {
+      return
+    }
+
+    setIsSaving(true)
+
+    try {
+      await new Promise(resolve => setTimeout(resolve, 1000))
+
+      const reportNumber = `WR-${format(new Date(), "yyMM")}-${String(Math.floor(Math.random() * 1000)).padStart(4, "0")}`
+
+      console.log("Saving wastage report:", {
+        ...formData,
+        reportNumber,
+        status: action === 'draft' ? "Draft" : "Submitted",
+        attachments,
+      })
+
+      router.push("/store-operations/wastage-reporting")
+    } catch (error) {
+      console.error("Error saving report:", error)
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleCategoryChange = (value: string) => {
+    // Reset all item reasons when category changes
+    setFormData(prev => ({
+      ...prev,
+      wastageCategory: value,
+      items: prev.items.map(item => ({ ...item, reason: "" }))
+    }))
+    setNewItemReason("")
+  }
+
+  // ============================================================================
+  // INLINE ADD ITEM HANDLERS
+  // ============================================================================
+
+  const handleStartAddItem = () => {
+    setIsAddingItem(true)
+    setNewItemProductId("")
+    setNewItemQty(1)
+    setNewItemReason("")
+    setNewItemRemarks("")
+  }
+
+  const handleConfirmAddItem = () => {
+    if (!selectedProduct) return
+
+    const newItem: WastageItem = {
+      id: generateId(),
+      productId: selectedProduct.id,
+      productName: selectedProduct.name,
+      sku: selectedProduct.sku,
+      category: selectedProduct.category,
+      unit: selectedProduct.unit,
+      currentStock: selectedProduct.currentStock,
+      quantity: newItemQty,
+      unitCost: selectedProduct.avgCost,
+      totalLoss: newItemQty * selectedProduct.avgCost,
+      reason: newItemReason,
+      remarks: newItemRemarks,
+    }
+
+    setFormData(prev => ({
+      ...prev,
+      items: [...prev.items, newItem],
+    }))
+
+    setIsAddingItem(false)
+    setNewItemProductId("")
+    setNewItemQty(1)
+    setNewItemReason("")
+    setNewItemRemarks("")
+  }
+
+  const handleCancelAddItem = () => {
+    setIsAddingItem(false)
+    setNewItemProductId("")
+    setNewItemQty(1)
+    setNewItemReason("")
+    setNewItemRemarks("")
+  }
+
+  // ============================================================================
+  // BULK SELECTION HANDLERS
+  // ============================================================================
+
+  const handleSelectAll = () => {
+    if (isAllSelected) {
+      setSelectedItems([])
+    } else {
+      setSelectedItems(formData.items.map(item => item.id))
+    }
+  }
+
+  const handleSelectItem = (itemId: string) => {
+    setSelectedItems(prev =>
+      prev.includes(itemId)
+        ? prev.filter(id => id !== itemId)
+        : [...prev, itemId]
+    )
+  }
+
+  const handleRemoveSelected = () => {
+    setFormData(prev => ({
+      ...prev,
+      items: prev.items.filter(item => !selectedItems.includes(item.id))
+    }))
+    setSelectedItems([])
+  }
+
+  // ============================================================================
+  // ATTACHMENT HANDLERS
+  // ============================================================================
+
+  const handleAddAttachment = () => {
+    // Simulated file upload
+    const newAttachment: Attachment = {
+      id: generateId(),
+      name: `evidence_${Date.now()}.jpg`,
+      size: "1.2 MB",
+      type: "image",
+    }
+    setAttachments(prev => [...prev, newAttachment])
+  }
+
+  const handleRemoveAttachment = (id: string) => {
+    setAttachments(prev => prev.filter(a => a.id !== id))
+  }
+
+  const hasChanges = formData.locationId || formData.description || formData.items.length > 0 || attachments.length > 0
+
+  // ============================================================================
+  // RENDER
+  // ============================================================================
 
   return (
-    <div className="space-y-6">
-      {/* Page Header */}
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="flex items-center gap-4">
-          <Link href="/store-operations/wastage-reporting">
-            <Button variant="ghost" size="icon">
+    <div className="flex flex-col min-h-screen bg-background">
+      {/* Header */}
+      <div className="sticky top-0 z-10 bg-background border-b">
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="flex items-center gap-3">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => hasChanges ? setShowDiscardDialog(true) : router.back()}
+            >
               <ArrowLeft className="h-5 w-5" />
             </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Trash2 className="h-7 w-7 text-red-600" />
-              New Wastage Report
-            </h1>
-            <p className="text-muted-foreground">
-              Record wastage items and submit for approval
-            </p>
+            <div>
+              <h1 className="text-lg font-semibold flex items-center gap-2">
+                <Trash2 className="h-5 w-5 text-red-600" />
+                New Wastage Report
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Record wastage items and submit for approval
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              onClick={() => hasChanges ? setShowDiscardDialog(true) : router.back()}
+              disabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleSave('draft')}
+              disabled={isSaving || formData.items.length === 0}
+            >
+              <Save className="mr-2 h-4 w-4" />
+              Save as Draft
+            </Button>
+            <Button
+              className="bg-red-600 hover:bg-red-700"
+              onClick={() => handleSave('submit')}
+              disabled={isSaving || formData.items.length === 0 || !formData.locationId}
+            >
+              <Send className="mr-2 h-4 w-4" />
+              {isSaving ? "Saving..." : "Submit for Review"}
+            </Button>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        {/* Main Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Location Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Report Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div className="space-y-2">
-                  <Label htmlFor="location">Location *</Label>
-                  <Select value={location} onValueChange={setLocation}>
-                    <SelectTrigger id="location">
-                      <SelectValue placeholder="Select location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="main-kitchen">Main Kitchen</SelectItem>
-                      <SelectItem value="pool-bar">Pool Bar</SelectItem>
-                      <SelectItem value="rooftop-restaurant">Rooftop Restaurant</SelectItem>
-                      <SelectItem value="lobby-cafe">Lobby Café</SelectItem>
-                      <SelectItem value="banquet-hall">Banquet Hall</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="date">Report Date</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      id="date"
-                      type="date"
-                      className="pl-10"
-                      defaultValue={new Date().toISOString().split('T')[0]}
-                    />
-                  </div>
-                </div>
+      {/* Content */}
+      <div className="flex-1 p-4 space-y-6">
+        {/* Report Details */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Report Details</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {/* Date */}
+              <div className="space-y-2">
+                <Label htmlFor="date">Report Date</Label>
+                <Input
+                  id="date"
+                  type="date"
+                  value={formData.date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, date: e.target.value }))}
+                />
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Item Selection */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5" />
-                Add Items
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex gap-2">
-                  <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                    <Input
-                      placeholder="Search items by name or code..."
-                      className="pl-10"
-                      value={searchQuery}
-                      onChange={(e) => setSearchQuery(e.target.value)}
-                    />
-                  </div>
-                  <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Categories</SelectItem>
-                      {categories.map(category => (
-                        <SelectItem key={category} value={category}>{category}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Available Items */}
-                <div className="border rounded-lg max-h-[300px] overflow-y-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-gray-50">
-                        <TableHead>Item</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead className="text-right">Unit Cost</TableHead>
-                        <TableHead className="text-center">Stock</TableHead>
-                        <TableHead className="text-right">Action</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {filteredItems.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <div>
-                              <p className="font-medium">{item.name}</p>
-                              <p className="text-xs text-muted-foreground">{item.code}</p>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="outline">{item.category}</Badge>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            ${item.unitCost.toFixed(2)}
-                          </TableCell>
-                          <TableCell className="text-center">
-                            {item.currentStock} {item.unit}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => addItem(item)}
-                            >
-                              <Plus className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                      {filteredItems.length === 0 && (
-                        <TableRow>
-                          <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
-                            No items found
-                          </TableCell>
-                        </TableRow>
-                      )}
-                    </TableBody>
-                  </Table>
-                </div>
+              {/* Location */}
+              <div className="space-y-2">
+                <Label htmlFor="location">Location *</Label>
+                <Select
+                  value={formData.locationId}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, locationId: value }))}
+                >
+                  <SelectTrigger className={errors.location ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {mockLocations.map((loc) => (
+                      <SelectItem key={loc.id} value={loc.id}>
+                        {loc.name} ({loc.code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.location && (
+                  <p className="text-sm text-red-500">{errors.location}</p>
+                )}
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Wastage Items */}
-          {wastageItems.length > 0 && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Trash2 className="h-5 w-5 text-red-600" />
-                  Wastage Items ({wastageItems.length})
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {wastageItems.map((item, index) => (
-                    <div key={item.id} className="border rounded-lg p-4 space-y-4">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="font-medium">{item.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {item.code} • {item.category} • ${item.unitCost.toFixed(2)}/{item.unit}
-                          </p>
-                          {item.expiryDate && (
-                            <p className="text-xs text-muted-foreground mt-1">
-                              Batch: {item.batchNumber} • Expires: {item.expiryDate}
-                            </p>
-                          )}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                          onClick={() => removeItem(item.id)}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+              {/* Header-level Category */}
+              <div className="space-y-2">
+                <Label htmlFor="category">Category *</Label>
+                <Select
+                  value={formData.wastageCategory}
+                  onValueChange={handleCategoryChange}
+                >
+                  <SelectTrigger className={errors.category ? "border-red-500" : ""}>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCategories.map((cat) => (
+                      <SelectItem key={cat.value} value={cat.value}>
+                        {cat.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {errors.category && (
+                  <p className="text-sm text-red-500">{errors.category}</p>
+                )}
+              </div>
+            </div>
 
-                      <div className="grid gap-4 md:grid-cols-3">
-                        <div className="space-y-2">
-                          <Label>Quantity *</Label>
-                          <div className="flex items-center gap-2">
-                            <Input
-                              type="number"
-                              min="1"
-                              value={item.quantity}
-                              onChange={(e) => updateItemQuantity(item.id, parseInt(e.target.value) || 1)}
-                              className="w-24"
-                            />
-                            <span className="text-muted-foreground">{item.unit}</span>
-                          </div>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Reason *</Label>
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                placeholder="Enter general notes about this wastage report..."
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                rows={2}
+              />
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Items Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <div>
+              <CardTitle className="text-base">Wastage Items</CardTitle>
+              {errors.items && (
+                <p className="text-sm text-red-500 mt-1">{errors.items}</p>
+              )}
+            </div>
+            <div className="flex items-center gap-2">
+              {selectedItems.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleRemoveSelected}
+                  className="text-destructive hover:text-destructive"
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Remove ({selectedItems.length})
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleStartAddItem}
+                disabled={isAddingItem}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Item
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {formData.items.length === 0 && !isAddingItem ? (
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <Package className="h-12 w-12 mb-3" />
+                <p className="font-medium">No items added</p>
+                <p className="text-sm">Click &quot;Add Item&quot; to add products to this wastage report</p>
+              </div>
+            ) : (
+              <div className="rounded-md border overflow-hidden">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="w-[40px] p-3">
+                        <Checkbox
+                          checked={isAllSelected}
+                          onCheckedChange={handleSelectAll}
+                          aria-label="Select all items"
+                        />
+                      </th>
+                      <th className="p-3 text-left text-xs font-medium text-muted-foreground">Product</th>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Stock</th>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Quantity</th>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Unit Cost</th>
+                      <th className="w-[100px] p-3 text-right text-xs font-medium text-muted-foreground">Loss Value</th>
+                      <th className="w-[160px] p-3 text-xs font-medium text-muted-foreground">Reason</th>
+                      <th className="w-[60px] p-3"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y">
+                    {formData.items.map((item) => (
+                      <tr key={item.id} className="hover:bg-muted/30">
+                        <td className="p-3">
+                          <Checkbox
+                            checked={selectedItems.includes(item.id)}
+                            onCheckedChange={() => handleSelectItem(item.id)}
+                            aria-label={`Select ${item.productName}`}
+                          />
+                        </td>
+                        <td className="p-3">
+                          <div className="font-medium">{item.productName}</div>
+                          <div className="text-xs text-muted-foreground">{item.sku} · {item.category}</div>
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          {item.currentStock} {item.unit}
+                        </td>
+                        <td className="p-3">
+                          <Input
+                            type="number"
+                            min="1"
+                            max={item.currentStock}
+                            value={item.quantity}
+                            onChange={(e) => handleUpdateItem(item.id, "quantity", parseFloat(e.target.value) || 0)}
+                            className={cn(
+                              "w-20 h-8 text-right ml-auto",
+                              errors[`item_${item.id}_qty`] ? "border-red-500" : ""
+                            )}
+                          />
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          ${item.unitCost.toFixed(2)}
+                        </td>
+                        <td className="p-3 text-right font-medium text-red-600">
+                          ${item.totalLoss.toFixed(2)}
+                        </td>
+                        <td className="p-3">
                           <Select
                             value={item.reason}
-                            onValueChange={(value) => updateItemReason(item.id, value)}
+                            onValueChange={(value) => handleUpdateItem(item.id, "reason", value)}
+                            disabled={!formData.wastageCategory}
                           >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select reason" />
+                            <SelectTrigger className={cn(
+                              "h-8 text-xs",
+                              errors[`item_${item.id}_reason`] ? "border-red-500" : "",
+                              !formData.wastageCategory && "opacity-50"
+                            )}>
+                              <SelectValue placeholder="Select reason..." />
                             </SelectTrigger>
                             <SelectContent>
-                              {wastageReasons.map(reason => (
-                                <SelectItem key={reason.id} value={reason.id}>
+                              {availableReasons.map((reason) => (
+                                <SelectItem key={reason.value} value={reason.value}>
                                   {reason.label}
                                 </SelectItem>
                               ))}
                             </SelectContent>
                           </Select>
-                        </div>
-                        <div className="flex items-end">
-                          <div className="text-right">
-                            <p className="text-sm text-muted-foreground">Loss Value</p>
-                            <p className="text-lg font-bold text-red-600">
-                              ${(item.quantity * item.unitCost).toFixed(2)}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-
-                      <div className="space-y-2">
-                        <Label>Notes</Label>
-                        <Textarea
-                          placeholder="Add notes about this wastage..."
-                          value={item.notes}
-                          onChange={(e) => updateItemNotes(item.id, e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Attachments */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Camera className="h-5 w-5" />
-                Attachments
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="border-2 border-dashed rounded-lg p-8 text-center">
-                  <Upload className="h-10 w-10 mx-auto text-muted-foreground mb-4" />
-                  <p className="text-sm font-medium">Drag and drop files here</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    or click to browse (images, PDFs up to 10MB)
-                  </p>
-                  <Button variant="outline" className="mt-4">
-                    <Upload className="mr-2 h-4 w-4" />
-                    Upload Files
-                  </Button>
-                </div>
-
-                {uploadedFiles.length > 0 && (
-                  <div className="space-y-2">
-                    {uploadedFiles.map((file, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                        <ImageIcon className="h-5 w-5 text-muted-foreground" />
-                        <div className="flex-1">
-                          <p className="text-sm font-medium">{file.name}</p>
-                          <p className="text-xs text-muted-foreground">{file.size}</p>
-                        </div>
-                        <Button variant="ghost" size="sm" className="text-red-600">
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
+                        </td>
+                        <td className="p-3">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleRemoveItem(item.id)}
+                            className="h-8 w-8 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </td>
+                      </tr>
                     ))}
-                  </div>
-                )}
 
-                <p className="text-xs text-muted-foreground">
-                  Tip: Add photos of wasted items as evidence for approval
+                    {/* Inline Add Item Row */}
+                    {isAddingItem && (
+                      <tr className="bg-red-50/50 border-t-2 border-red-200">
+                        <td className="p-3">
+                          <span className="text-muted-foreground">-</span>
+                        </td>
+                        <td className="p-3">
+                          <Popover open={productSearchOpen} onOpenChange={setProductSearchOpen}>
+                            <PopoverTrigger asChild>
+                              <Button
+                                variant="outline"
+                                role="combobox"
+                                aria-expanded={productSearchOpen}
+                                className="w-full justify-between min-w-[200px] h-9"
+                              >
+                                {selectedProduct ? (
+                                  <div className="flex flex-col items-start">
+                                    <span className="text-sm font-medium truncate max-w-[180px]">{selectedProduct.name}</span>
+                                    <span className="text-xs text-muted-foreground">{selectedProduct.sku}</span>
+                                  </div>
+                                ) : (
+                                  <span className="text-muted-foreground flex items-center gap-2">
+                                    <Search className="h-4 w-4" />
+                                    Search products...
+                                  </span>
+                                )}
+                                <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                              </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[350px] p-0" align="start">
+                              <Command>
+                                <CommandInput placeholder="Search by name or SKU..." />
+                                <CommandList>
+                                  <CommandEmpty>No product found.</CommandEmpty>
+                                  <CommandGroup heading="Products">
+                                    {availableProducts.map((product) => (
+                                      <CommandItem
+                                        key={product.id}
+                                        value={`${product.name} ${product.sku}`}
+                                        onSelect={() => {
+                                          setNewItemProductId(product.id)
+                                          setProductSearchOpen(false)
+                                        }}
+                                      >
+                                        <div className="flex flex-col">
+                                          <span className="font-medium">{product.name}</span>
+                                          <span className="text-xs text-muted-foreground">
+                                            {product.sku} · {product.category} · Stock: {product.currentStock} {product.unit}
+                                          </span>
+                                        </div>
+                                        <Check
+                                          className={cn(
+                                            "ml-auto h-4 w-4",
+                                            newItemProductId === product.id ? "opacity-100" : "opacity-0"
+                                          )}
+                                        />
+                                      </CommandItem>
+                                    ))}
+                                  </CommandGroup>
+                                </CommandList>
+                              </Command>
+                            </PopoverContent>
+                          </Popover>
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          {selectedProduct ? `${selectedProduct.currentStock} ${selectedProduct.unit}` : '-'}
+                        </td>
+                        <td className="p-3">
+                          <Input
+                            type="number"
+                            min="1"
+                            max={selectedProduct?.currentStock}
+                            value={newItemQty}
+                            onChange={(e) => setNewItemQty(Math.max(1, parseInt(e.target.value) || 1))}
+                            className="w-20 h-8 text-right ml-auto"
+                          />
+                        </td>
+                        <td className="p-3 text-right text-muted-foreground">
+                          {selectedProduct ? `$${selectedProduct.avgCost.toFixed(2)}` : '-'}
+                        </td>
+                        <td className="p-3 text-right font-medium text-red-600">
+                          {selectedProduct
+                            ? `$${(newItemQty * selectedProduct.avgCost).toFixed(2)}`
+                            : '-'
+                          }
+                        </td>
+                        <td className="p-3">
+                          <Select
+                            value={newItemReason}
+                            onValueChange={setNewItemReason}
+                            disabled={!formData.wastageCategory}
+                          >
+                            <SelectTrigger className={cn(
+                              "h-8 text-xs",
+                              !formData.wastageCategory && "opacity-50"
+                            )}>
+                              <SelectValue placeholder="Select reason..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {availableReasons.map((reason) => (
+                                <SelectItem key={reason.value} value={reason.value}>
+                                  {reason.label}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </td>
+                        <td className="p-3">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleConfirmAddItem}
+                              disabled={!newItemProductId}
+                              className="h-8 w-8 p-0 text-green-600 hover:text-green-700 hover:bg-green-50"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={handleCancelAddItem}
+                              className="h-8 w-8 p-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Attachments Section */}
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between pb-3">
+            <CardTitle className="text-base">Evidence Attachments</CardTitle>
+            <Button variant="outline" size="sm" onClick={handleAddAttachment}>
+              <Upload className="h-4 w-4 mr-2" />
+              Upload
+            </Button>
+          </CardHeader>
+          <CardContent>
+            {attachments.length === 0 ? (
+              <div
+                className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-red-300 hover:bg-red-50/50 transition-colors"
+                onClick={handleAddAttachment}
+              >
+                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                <p className="text-sm text-muted-foreground">
+                  Click to upload or drag and drop
+                </p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  PNG, JPG, PDF up to 10MB
                 </p>
               </div>
+            ) : (
+              <div className="grid gap-3 md:grid-cols-2">
+                {attachments.map((attachment) => (
+                  <div
+                    key={attachment.id}
+                    className="flex items-center gap-3 p-3 border rounded-lg"
+                  >
+                    <div className="h-10 w-10 rounded bg-gray-100 flex items-center justify-center">
+                      {attachment.type === 'image' ? (
+                        <ImageIcon className="h-5 w-5 text-gray-600" />
+                      ) : (
+                        <FileText className="h-5 w-5 text-gray-600" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-sm truncate">{attachment.name}</p>
+                      <p className="text-xs text-muted-foreground">{attachment.size}</p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveAttachment(attachment.id)}
+                      className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Summary */}
+        {formData.items.length > 0 && (
+          <Card className="bg-red-50/30 border-red-200">
+            <CardContent className="py-4">
+              <div className="flex items-center justify-between">
+                <div className="space-y-1">
+                  <p className="text-sm text-muted-foreground">Total Items</p>
+                  <p className="text-2xl font-bold">{totals.itemCount}</p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-sm text-muted-foreground">Total Quantity</p>
+                  <p className="text-2xl font-bold">{totals.totalQty}</p>
+                </div>
+                <div className="space-y-1 text-right">
+                  <p className="text-sm text-muted-foreground">Total Loss</p>
+                  <p className="text-2xl font-bold text-red-600">
+                    ${totals.totalValue.toFixed(2)}
+                  </p>
+                </div>
+              </div>
             </CardContent>
           </Card>
-        </div>
+        )}
 
-        {/* Sidebar Summary */}
-        <div className="space-y-6">
-          {/* Summary Card */}
-          <Card className="sticky top-4">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Report Summary
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Location</span>
-                  <span className="font-medium">
-                    {location ? location.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ') : 'Not selected'}
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Items</span>
-                  <span className="font-medium">{totals.items}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Total Quantity</span>
-                  <span className="font-medium">{totals.quantity} units</span>
-                </div>
-              </div>
-
-              <Separator />
-
-              <div className="flex justify-between items-center">
-                <span className="text-lg font-medium">Total Loss</span>
-                <span className="text-2xl font-bold text-red-600">
-                  ${totals.value.toFixed(2)}
-                </span>
-              </div>
-
-              {totals.value > 100 && (
-                <Alert className="border-yellow-200 bg-yellow-50">
-                  <AlertTriangle className="h-4 w-4 text-yellow-600" />
-                  <AlertDescription className="text-yellow-800 text-xs">
-                    Reports over $100 require manager approval
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <Separator />
-
-              <div className="space-y-2">
-                <Button
-                  className="w-full bg-red-600 hover:bg-red-700"
-                  disabled={wastageItems.length === 0 || !location}
-                >
-                  <Send className="mr-2 h-4 w-4" />
-                  Submit Report
-                </Button>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  disabled={wastageItems.length === 0}
-                >
-                  <Save className="mr-2 h-4 w-4" />
-                  Save as Draft
-                </Button>
-              </div>
-
-              <p className="text-xs text-muted-foreground text-center">
-                Submitted reports will be reviewed by the manager
+        {/* High Value Warning */}
+        {totals.totalValue > 100 && (
+          <div className="flex items-start gap-3 p-4 bg-amber-50 text-amber-800 rounded-lg">
+            <AlertCircle className="h-5 w-5 mt-0.5 shrink-0" />
+            <div>
+              <p className="font-medium">High Value Wastage</p>
+              <p className="text-sm">
+                This report exceeds $100 and will require manager approval before posting to inventory.
               </p>
-            </CardContent>
-          </Card>
-
-          {/* Quick Tips */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-base">Quick Tips</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3 text-sm text-muted-foreground">
-              <p>• Select the correct location where wastage occurred</p>
-              <p>• Add all wasted items with accurate quantities</p>
-              <p>• Choose the appropriate reason for each item</p>
-              <p>• Upload photos as evidence for faster approval</p>
-              <p>• High-value items ($100+) require manager review</p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Discard Dialog */}
+      <Dialog open={showDiscardDialog} onOpenChange={setShowDiscardDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Discard Changes?</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes. Are you sure you want to leave? Your changes will be lost.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button variant="outline" onClick={() => setShowDiscardDialog(false)}>
+              Continue Editing
+            </Button>
+            <Button variant="destructive" onClick={() => router.back()}>
+              Discard Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

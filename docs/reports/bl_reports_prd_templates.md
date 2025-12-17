@@ -339,8 +339,8 @@ Comprehensive detail report showing all PO line items with order quantities, rec
 │เลขที่ PR   │สถานที่   │รหัสสินค้า   │รายละเอียด│ จำนวนสั่ง     │
 │ อ้างอิง    │จัดเก็บ   │             │           │               │
 ├────────────┼──────────┼─────────────┼──────────┼────────────────┤
-│PR-2025-001 │Main Store│F&B-001      │Rice 5kg  │      200       │
-│PR-2025-001 │Kitchen   │F&B-015      │Cooking Oil│     100       │
+│PR-2501-0001│Main Store│F&B-001      │Rice 5kg  │      200       │
+│PR-2501-0001│Kitchen   │F&B-015      │Cooking Oil│     100       │
 └────────────┴──────────┴─────────────┴──────────┴────────────────┘
 
     ┌──────┬─────┬──────┬────────┬─────────┬──────────┬─────────┐
@@ -588,7 +588,7 @@ Comprehensive detail report showing all PO line items with order quantities, rec
 │                                                               │
 ├──────────────────────────────────────────────────────────────┤
 │Receiving No: RC-20250220-001      Date: 20/02/2025          │
-│Vendor: ABC Supplies Co., Ltd      Invoice: INV-2025-001     │
+│Vendor: ABC Supplies Co., Ltd      Invoice: INV-2501-0001    │
 │PO Reference: PO-20250215-001      Status: Posted            │
 │Currency: THB                      Extra Cost: 500.00         │
 ├────────────┬──────────────┬────────────┬──────────┬─────────┤

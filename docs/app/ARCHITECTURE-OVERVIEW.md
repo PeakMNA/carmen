@@ -6,6 +6,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ---
@@ -89,26 +90,26 @@ graph LR
 
 ```mermaid
 graph TB
-    subgraph "Client Browser"
+    subgraph 'Client Browser'
         A[Next.js Frontend]
         B[React Components]
         C[State Management]
     end
 
-    subgraph "Next.js Server"
+    subgraph 'Next.js Server'
         D[App Router]
         E[Server Components]
         F[Server Actions]
         G[API Routes]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         H[Prisma ORM]
         I[(PostgreSQL)]
         J[Mock Data]
     end
 
-    subgraph "External Services"
+    subgraph 'External Services'
         K[Email Service]
         L[File Storage]
         M[Authentication]

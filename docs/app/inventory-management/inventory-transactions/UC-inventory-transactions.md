@@ -20,6 +20,7 @@ This document describes the use cases for inventory transaction management, cove
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -73,7 +74,7 @@ This document describes the use cases for inventory transaction management, cove
 6. User selects receiving location from dropdown
 7. System validates all inputs (positive quantities, location valid, item active)
 8. User clicks "Create GRN" button
-9. System generates unique GRN number (format: GRN-YYYY-NNNNNN)
+9. System generates unique GRN number (format: GRN-YYMM-NNNN)
 10. If costing method = FIFO: System creates cost layers for each line item
 11. If costing method = PERIODIC_AVERAGE: System marks period cost cache for invalidation
 12. System saves GRN with status = DRAFT

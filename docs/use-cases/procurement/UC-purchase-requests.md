@@ -184,7 +184,7 @@ Allows staff to create a new purchase request by entering header information and
 4. Resume at previous step
 
 #### Business Rules
-- BR-PR-001: Reference number auto-generated in format PR-YYYY-NNNN
+- BR-PR-001: Reference number auto-generated in format PR-YYMM-NNNN
 - BR-PR-002: Delivery date must be after PR date
 - BR-PR-003: At least one line item required before submission (not for draft)
 - BR-PR-005: Only certain statuses allow editing
@@ -1025,7 +1025,7 @@ System automatically generates unique sequential reference numbers for new purch
 - Database sequence exists
 
 #### Postconditions
-- **Success**: Unique reference number assigned in format PR-YYYY-NNNN
+- **Success**: Unique reference number assigned in format PR-YYMM-NNNN
 - **Failure**: Database error, transaction rolled back
 
 #### Main Flow
@@ -1038,7 +1038,7 @@ System automatically generates unique sequential reference numbers for new purch
    WHERE ref_number LIKE 'PR-2025-%'
    ```
 4. System formats reference number: `PR-{YEAR}-{SEQUENCE:04d}`
-   - Example: PR-2025-0042
+   - Example: PR-2501-0042
 5. System assigns reference number to PR
 6. System continues with PR creation
 
@@ -1064,7 +1064,7 @@ System automatically generates unique sequential reference numbers for new purch
 4. If still fails, transaction rolled back
 
 #### Business Rules
-- BR-PR-001: Format PR-YYYY-NNNN
+- BR-PR-001: Format PR-YYMM-NNNN
 - BR-PR-037: Sequence resets each year
 - BR-PR-038: Reference numbers are immutable
 
@@ -1328,7 +1328,7 @@ System sends notifications to relevant users when PR status changes or action is
 2. System identifies recipient users
 3. System retrieves user notification preferences
 4. System builds notification content:
-   - Subject: "[Action Required] PR-2025-0042 awaiting your approval"
+   - Subject: "[Action Required] PR-2501-0042 awaiting your approval"
    - Body: PR details, amounts, link to PR
 5. For each recipient and their preferences:
    a. If email enabled: Queue email
@@ -1402,7 +1402,7 @@ System synchronizes approved PR data to external ERP system for financial tracki
    ```json
    {
      "document_type": "PR",
-     "reference": "PR-2025-0042",
+     "reference": "PR-2501-0042",
      "date": "2025-01-30",
      "department": "F&B",
      "total_amount": 15750.00,

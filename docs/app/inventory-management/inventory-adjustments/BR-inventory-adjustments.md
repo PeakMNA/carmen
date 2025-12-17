@@ -2,13 +2,15 @@
 
 **Module**: Inventory Management
 **Sub-module**: Inventory Adjustments
-**Version**: 1.0
-**Last Updated**: 2025-01-10
+**Version**: 2.0.0
+**Last Updated**: 2025-12-17
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.0.0 | 2025-12-17 | Documentation Team | Updated UI: removed tabs, added Stock-in/Stock-out header buttons; Enhanced Two-Level Category/Reason with GL account mapping |
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ## Table of Contents
@@ -66,21 +68,27 @@ The Inventory Adjustments module provides:
 **User Story**: As a Storekeeper, I want to view all inventory adjustments in a searchable list so that I can track all stock corrections and their current status.
 
 **Requirements**:
-- Display paginated list of all adjustments
-- Show key fields: Adjustment #, Date, Type (IN/OUT), Location, Reason, Items count, Total Value, Status
+- Display paginated list of all adjustments in a single consolidated view
+- **Page Header**: Title "Inventory Adjustments" with Stock-in (green) and Stock-out (red) create buttons
+- **No Tabs**: Single list view replaces former tabbed interface (Adjustment/Stock In/Stock Out tabs removed)
+- Show key fields: Adjustment #, Date, Type (IN/OUT), Category, Location, Items count, Total Value, Status
 - Support real-time search across all fields
 - Display status badges (Posted, Draft, Voided)
 - Show type badges (IN for increases, OUT for decreases)
 - Currency formatting for total values
+- **Type Filter**: Use filter dropdown to filter by Stock IN or Stock OUT (replaces former tab functionality)
 
 **Acceptance Criteria**:
 - ✅ List loads within 2 seconds
 - ✅ Search filters results as user types
-- ✅ All adjustments visible with pagination
+- ✅ All adjustments visible in single consolidated list
 - ✅ Status and type clearly indicated with color-coded badges
 - ✅ Currency values formatted correctly (USD with 2 decimals)
+- ✅ Stock-in button (green) navigates to `/inventory-management/inventory-adjustments/new?type=in`
+- ✅ Stock-out button (red) navigates to `/inventory-management/inventory-adjustments/new?type=out`
+- ✅ Type filter in popover allows filtering by IN or OUT
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/components/inventory-adjustment-list.tsx:28-109` (mock data), lines 111-237 (list component)
+**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/page.tsx` (page layout with header buttons), `components/inventory-adjustment-list.tsx` (list component)
 
 ---
 
@@ -240,22 +248,26 @@ The Inventory Adjustments module provides:
 **User Story**: As a Storekeeper, I want to create new inventory adjustments so that I can record physical count variances and other stock corrections.
 
 **Requirements**:
-- "New Adjustment" button prominently displayed
-- Opens adjustment creation form
-- Required fields: Date, Type (IN/OUT), Location, Department, Reason
-- Optional fields: Description
+- **Two Create Buttons in Page Header**:
+  - "Stock-in" button (green) → Creates IN adjustment with pre-selected type
+  - "Stock-out" button (red) → Creates OUT adjustment with pre-selected type
+- Opens adjustment creation form with type pre-selected via URL query parameter (`?type=in` or `?type=out`)
+- Required fields: Date, Type (IN/OUT), Location, Department, **Category** (header-level), Description
+- Required per item: Product, Quantity, **Reason** (item-level, filtered by Category)
 - Status defaults to "Draft"
-- Auto-generate Adjustment # (ADJ-YYYY-NNN format)
+- Auto-generate Adjustment # (ADJ-YYMM-NNNN format)
 - Save and continue functionality
 
 **Acceptance Criteria**:
-- ✅ Button visible on list page
-- ✅ Form opens on click
+- ✅ Stock-in and Stock-out buttons visible in page header
+- ✅ Form opens with type pre-selected based on button clicked
+- ✅ Category dropdown shows type-specific options (IN categories or OUT categories)
+- ✅ Reason dropdown per item filtered by selected Category
 - ✅ All required fields validated
 - ✅ Adjustment # auto-generated
 - ✅ Saves as Draft initially
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/page.tsx:13-16` (New Adjustment button)
+**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/page.tsx` (header buttons), `new/page.tsx` (form with query parameter handling)
 
 ---
 
@@ -334,45 +346,67 @@ The Inventory Adjustments module provides:
 
 ---
 
-### Reason Code Management
+### Category/Reason Code Management
 
-#### FR-INV-ADJ-012: Type-Specific Adjustment Reasons
+#### FR-INV-ADJ-012: Two-Level Category/Reason Classification
 **Priority**: High
-**User Story**: As a Storekeeper, I want to select from predefined adjustment reasons based on the adjustment type so that adjustments are categorized consistently for reporting.
+**User Story**: As a Storekeeper, I want to select from a two-level Category → Reason structure so that adjustments are properly categorized for financial reporting and GL account mapping.
 
 **Requirements**:
-- Reason dropdown with type-specific predefined values:
+- **Two-Level Structure**:
+  - **Header-Level Category**: Selected once per adjustment, maps to GL accounts
+  - **Item-Level Reason**: Selected per item, filtered by the header-level category
 
-  **Stock IN Reasons**:
-  - Physical Count Variance - Count revealed more inventory than system
-  - Found Items - Previously unaccounted inventory discovered
-  - Return to Stock - Items returned to inventory
-  - System Correction - Correcting system errors
-  - Other - Free-text reason required
+- **Category dropdown (Header-Level)** with type-specific values and GL mapping:
 
-  **Stock OUT Reasons**:
-  - Damaged Goods - Items physically damaged and unusable
-  - Expired Items - Items past expiration date
-  - Theft/Loss - Missing items from theft or unexplained loss
-  - Spoilage - Perishable items spoiled
-  - Physical Count Variance - Count revealed less inventory than system
-  - Quality Control Rejection - Items failing quality standards
-  - Other - Free-text reason required
+  **Stock OUT Categories**:
+  | Category Code | Category Name | GL Account | GL Account Name | Reasons |
+  |---------------|---------------|------------|-----------------|---------|
+  | WST | Wastage | 5200 | Waste Expense | Damaged Goods, Expired Items, Spoilage |
+  | LSS | Loss | 5210 | Inventory Loss | Theft/Loss, Shrinkage, Count Variance |
+  | QLT | Quality | 5100 | Cost of Goods Sold | QC Rejection, Customer Return |
+  | CON | Consumption | 5100 | Cost of Goods Sold | Production Use, Transfer Out |
 
-- Allow free-text description for additional details
-- Reason required for all adjustments
-- Reason options change dynamically based on selected type
-- Reason displayed in list and detail views
+  **Stock IN Categories**:
+  | Category Code | Category Name | GL Account | GL Account Name | Reasons |
+  |---------------|---------------|------------|-----------------|---------|
+  | FND | Found | 1310 | Raw Materials Inventory | Count Variance, Found Items |
+  | RTN | Return | 1310 | Raw Materials Inventory | Return to Stock, Vendor Return |
+  | COR | Correction | 1310 | Raw Materials Inventory | System Correction, Data Fix |
+
+- **Reason dropdown (Item-Level)** filtered by header-level category
+- Category required at header level for all adjustments
+- Reason required per item within the selected category
+- **Cascading Reset Behavior**:
+  - When type (IN/OUT) changes → Category resets → All item reasons reset
+  - When category changes → All item reasons reset
+- Category and reason displayed in list and detail views
+
+**Costing Rules by Type**:
+- **Stock OUT**: Unit cost automatically uses product's system average cost (read-only field)
+- **Stock IN**: Unit cost must be manually entered (affects inventory valuation)
 
 **Acceptance Criteria**:
-- ✅ IN-specific reasons available when type is IN
-- ✅ OUT-specific reasons available when type is OUT
-- ✅ Reason dropdown updates when type changes
-- ✅ Reason selection required
-- ✅ Description field optional (required for "Other")
-- ✅ Reason displayed consistently in list and detail
+- ✅ Category dropdown at header level (Adjustment Details section)
+- ✅ IN-specific categories available when type is IN
+- ✅ OUT-specific categories available when type is OUT
+- ✅ Reason dropdown per item, filtered by selected category
+- ✅ Reason dropdown disabled until category is selected
+- ✅ All item reasons reset when category changes
+- ✅ Category and reasons reset when type changes
+- ✅ Both category and reason required for posting
+- ✅ Category maps to GL account for journal entry generation
+- ✅ Stock OUT uses average cost automatically (no manual price entry)
+- ✅ Stock IN requires manual unit cost entry
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/new/page.tsx:52-77` (adjustmentReasons object with IN/OUT specific values)
+**Source Evidence**:
+- `lib/mock-data/transaction-categories.ts` (Category/Reason master data with GL mapping)
+- `app/(main)/inventory-management/inventory-adjustments/[id]/edit/page.tsx` (edit form with cascading reset)
+- `app/(main)/inventory-management/inventory-adjustments/new/page.tsx` (create form)
+
+**API Endpoints** (mock data, to be replaced with database):
+- `GET /api/transaction-categories?type={IN|OUT}` - Fetch categories with nested reasons
+- `lib/mock-data/transaction-categories.ts` - Helper functions: `getCategoryOptionsForType()`, `getReasonsByCategoryCode()`
 
 ---
 

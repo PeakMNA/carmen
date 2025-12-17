@@ -37,7 +37,7 @@ const mockJournalEntries: JournalGroup[] = [
         department: { code: 'F&B', name: 'F&B Operations' },
         costCenter: 'CC001',
         description: 'Stock Issue Recording',
-        reference: 'SR-2024-001',
+        reference: 'SR-2410-001',
         debit: 0,
         credit: 8615.00
       },
@@ -47,7 +47,7 @@ const mockJournalEntries: JournalGroup[] = [
         department: { code: 'F&B', name: 'F&B Operations' },
         costCenter: 'CC001',
         description: 'Usage Cost Recording',
-        reference: 'SR-2024-001',
+        reference: 'SR-2410-001',
         debit: 8615.00,
         credit: 0
       }

@@ -13,7 +13,7 @@ import { MessageSquareIcon } from "lucide-react"
 const mockRelatedGRNItems = [
   {
     id: 'GRN001',
-    grnNumber: 'GRN-2024-001',
+    grnNumber: 'GRN-2410-001',
     receivedDate: '2024-10-15',
     receivedQuantity: 5,
     rejectedQuantity: 0,
@@ -23,7 +23,7 @@ const mockRelatedGRNItems = [
   },
   {
     id: 'GRN002',
-    grnNumber: 'GRN-2024-002',
+    grnNumber: 'GRN-2410-002',
     receivedDate: '2024-10-20',
     receivedQuantity: 3,
     rejectedQuantity: 2,

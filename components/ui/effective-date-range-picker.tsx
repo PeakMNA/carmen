@@ -10,7 +10,7 @@
  * - Date range validation (end >= start)
  * - Visual feedback for validation errors
  *
- * Created: 2025-11-17 - Per ARC-2024-001
+ * Created: 2025-11-17 - Per ARC-2410-001
  */
 
 import * as React from "react"

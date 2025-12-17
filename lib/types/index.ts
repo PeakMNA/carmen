@@ -6,6 +6,43 @@
  *
  * Import usage:
  * import { User, Vendor, PurchaseRequest, DocumentStatus } from '@/lib/types'
+ *
+ * ============================================================================
+ * TRANSACTION CODE FORMAT STANDARD
+ * ============================================================================
+ *
+ * All transaction codes in the Carmen ERP system follow the format:
+ *
+ *   PREFIX-YYMM-NNNN
+ *
+ * Where:
+ *   - PREFIX: Document type identifier (2-4 uppercase letters)
+ *   - YY: Two-digit year (e.g., 24 for 2024)
+ *   - MM: Two-digit month (e.g., 10 for October)
+ *   - NNNN: Sequential number (3-4 digits, e.g., 001, 0089)
+ *
+ * Standard Prefixes:
+ *   - PR:  Purchase Request
+ *   - PO:  Purchase Order
+ *   - GRN: Goods Received Note
+ *   - CN:  Credit Note
+ *   - SR:  Store Requisition
+ *   - TRF: Transfer / Stock Replenishment
+ *   - ADJ: Inventory Adjustment
+ *   - WR:  Wastage Report
+ *   - SC:  Spot Check
+ *   - PC:  Physical Count
+ *   - INV: Invoice
+ *   - PL:  Pricelist
+ *   - CNT: Contract
+ *   - TXN: Transaction
+ *
+ * Examples:
+ *   - PR-2410-001: Purchase Request #001 from October 2024
+ *   - GRN-2410-045: Goods Received Note #045 from October 2024
+ *   - SC-2410-042: Spot Check #042 from October 2024
+ *
+ * ============================================================================
  */
 
 // =============================================================================
@@ -87,7 +124,14 @@ export type {
   RecipeCostBreakdown,
   Ingredient,
   PreparationStep,
-  RecipeYieldVariant
+  RecipeYieldVariant,
+  // Equipment Management
+  Equipment,
+  EquipmentStatus,
+  EquipmentCategory,
+  // Recipe Units Management
+  RecipeUnit,
+  UnitConversion
 } from './recipe'
 
 // Finance types (PRIMARY SOURCE for Currency, CostCenter)
@@ -238,6 +282,15 @@ export * from './location-management'
 
 // Period end types
 export * from './period-end'
+
+// Transaction category types (for inventory adjustments)
+export * from './transaction-category'
+
+// Wastage report types (store operations)
+export * from './wastage'
+
+// Unit conversion and PR auto-pricing types
+export * from './unit-conversion'
 
 // Type utilities and guards
 export * from './guards'

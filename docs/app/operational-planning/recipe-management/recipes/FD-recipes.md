@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial flow diagrams document created for Recipe Management |
 
 ---
@@ -22,13 +23,13 @@ flowchart TD
     OpenDialog --> InitForm[Initialize multi-tab form]
     InitForm --> BasicTab[Display Basic Information tab]
 
-    BasicTab --> UserBasic{User enters<br/>basic info}
+    BasicTab --> UserBasic{User enters<br>basic info}
     UserBasic -->|typing| ClientVal[Client-side validation]
     ClientVal --> ShowFeedback[Show validation feedback]
     ShowFeedback --> UserBasic
 
     UserBasic -->|clicks Ingredients tab| IngredientsTab[Navigate to Ingredients tab]
-    IngredientsTab --> AddIngredient{User adds<br/>ingredients}
+    IngredientsTab --> AddIngredient{User adds<br>ingredients}
     AddIngredient -->|Add Product| ProductSearch[Search product inventory]
     ProductSearch --> ProductSelect[Select product]
     ProductSelect --> LoadProductCost[Load product cost data]
@@ -39,17 +40,17 @@ flowchart TD
 
     AddIngredient -->|Add Recipe| RecipeSearch[Search existing recipes]
     RecipeSearch --> RecipeSelect[Select recipe]
-    RecipeSelect --> CheckCircular{Check circular<br/>dependency}
+    RecipeSelect --> CheckCircular{Check circular<br>dependency}
     CheckCircular -->|Circular detected| ShowCircularError[Show circular dependency error]
     ShowCircularError --> AddIngredient
-    CheckCircular -->|Valid| CheckNesting{Check nesting<br/>depth}
+    CheckCircular -->|Valid| CheckNesting{Check nesting<br>depth}
     CheckNesting -->|>3 levels| ShowDepthError[Show max depth error]
     ShowDepthError --> AddIngredient
     CheckNesting -->|Valid| LoadSubRecipeCost[Load sub-recipe cost]
     LoadSubRecipeCost --> EnterQuantity
 
     AddIngredient -->|clicks Preparation tab| PreparationTab[Navigate to Preparation tab]
-    PreparationTab --> AddStep{User adds<br/>preparation steps}
+    PreparationTab --> AddStep{User adds<br>preparation steps}
     AddStep -->|Add Step| StepForm[Enter step details]
     StepForm --> UploadMedia[Upload image/video optional]
     UploadMedia --> AddEquipment[Add equipment and techniques]
@@ -57,27 +58,27 @@ flowchart TD
 
     AddStep -->|clicks Cost Analysis tab| CostTab[Navigate to Cost Analysis tab]
     CostTab --> ShowCostBreakdown[Display cost breakdown]
-    ShowCostBreakdown --> AdjustPercentages{User adjusts<br/>percentages}
+    ShowCostBreakdown --> AdjustPercentages{User adjusts<br>percentages}
     AdjustPercentages -->|Labor/Overhead| RecalcCosts[Recalculate all costs]
     RecalcCosts --> UpdateMargins[Update margins and suggested price]
     UpdateMargins --> ShowCostBreakdown
 
     AdjustPercentages -->|Set Selling Price| EnterPrice[Enter selling price]
     EnterPrice --> CalcFoodCost[Calculate actual food cost %]
-    CalcFoodCost --> ValidateMargin{Margin meets<br/>target?}
+    CalcFoodCost --> ValidateMargin{Margin meets<br>target?}
     ValidateMargin -->|No| ShowMarginWarning[Show margin warning]
     ShowMarginWarning --> AdjustPercentages
     ValidateMargin -->|Yes| ShowCostBreakdown
 
     AdjustPercentages -->|clicks Details tab| DetailsTab[Navigate to Details tab]
-    DetailsTab --> ConfigureYield{Configure yield<br/>variants?}
+    DetailsTab --> ConfigureYield{Configure yield<br>variants?}
     ConfigureYield -->|Yes| EnableFractional[Enable fractional sales]
     EnableFractional --> SelectType[Select fractional sales type]
     SelectType --> AddVariants[Add yield variants]
     AddVariants --> SetConversion[Set conversion rates]
     SetConversion --> SetVariantPricing[Set variant pricing]
     SetVariantPricing --> SetDefaultVariant[Mark default variant]
-    SetDefaultVariant --> ValidateVariants{Validate variant<br/>pricing logic}
+    SetDefaultVariant --> ValidateVariants{Validate variant<br>pricing logic}
     ValidateVariants -->|Invalid| ShowVariantError[Show pricing logic error]
     ShowVariantError --> AddVariants
     ValidateVariants -->|Valid| AddAllergens
@@ -86,7 +87,7 @@ flowchart TD
     AddAllergens --> SelectAllergens[Select allergens from list]
     SelectAllergens --> MarkMajorAllergens[Mark FDA major allergens]
     MarkMajorAllergens --> AddTags[Add tags with categories]
-    AddTags --> UserSubmit{User clicks<br/>Save/Publish}
+    AddTags --> UserSubmit{User clicks<br>Save/Publish}
 
     UserSubmit -->|Save as Draft| ValidateMinimum[Validate minimum requirements]
     ValidateMinimum -->|Invalid| ShowErrors[Show validation errors]
@@ -97,7 +98,7 @@ flowchart TD
     UserSubmit -->|Publish| ValidateComplete[Validate complete requirements]
     ValidateComplete -->|Invalid| ShowPublishErrors[Show publish validation errors]
     ShowPublishErrors --> UserBasic
-    ValidateComplete -->|Valid| ConfirmPublish{User confirms<br/>publish?}
+    ValidateComplete -->|Valid| ConfirmPublish{User confirms<br>publish?}
     ConfirmPublish -->|No| UserBasic
     ConfirmPublish -->|Yes| CallCreatePublish[Call createRecipe action status=published]
     CallCreatePublish --> ServerValPublish[Server-side validation]
@@ -107,12 +108,12 @@ flowchart TD
     ReturnError --> DisplayError[Display error toast]
     DisplayError --> UserBasic
 
-    ServerValDraft -->|Valid| CheckRecipeCode{Check recipe code<br/>uniqueness}
+    ServerValDraft -->|Valid| CheckRecipeCode{Check recipe code<br>uniqueness}
     ServerValPublish -->|Valid| CheckRecipeCode
     CheckRecipeCode -->|Duplicate| DupCode[Return duplicate code error]
     DupCode --> DisplayError
 
-    CheckRecipeCode -->|Unique| CheckRecipeName{Check recipe name<br/>uniqueness}
+    CheckRecipeCode -->|Unique| CheckRecipeName{Check recipe name<br>uniqueness}
     CheckRecipeName -->|Duplicate| DupName[Return duplicate name error]
     DupName --> DisplayError
 
@@ -120,12 +121,12 @@ flowchart TD
     BeginTransaction --> CreateRecipeRecord[INSERT recipe record]
     CreateRecipeRecord --> CreateIngredients[INSERT recipe ingredients]
     CreateIngredients --> CreateSteps[INSERT preparation steps]
-    CreateSteps --> CreateVariants{Has yield<br/>variants?}
+    CreateSteps --> CreateVariants{Has yield<br>variants?}
     CreateVariants -->|Yes| InsertVariants[INSERT yield variants]
     CreateVariants -->|No| CreateAllergens
     InsertVariants --> CreateAllergens[INSERT allergens]
     CreateAllergens --> CreateTags[INSERT tags]
-    CreateTags --> CheckPublished{Status =<br/>published?}
+    CreateTags --> CheckPublished{Status =<br>published?}
 
     CheckPublished -->|Yes| CreateVersion[INSERT version snapshot]
     CreateVersion --> SetPublishedAt[SET published_at timestamp]
@@ -159,10 +160,10 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks Edit Recipe]) --> CheckDraft{Recipe status<br/>= draft?}
+    Start([User clicks Edit Recipe]) --> CheckDraft{Recipe status<br>= draft?}
     CheckDraft -->|Yes| FetchData[Fetch recipe with all related data]
-    CheckDraft -->|No| CheckVersion{Create new<br/>version?}
-    CheckVersion -->|Yes| ConfirmVersion{User confirms<br/>version creation}
+    CheckDraft -->|No| CheckVersion{Create new<br>version?}
+    CheckVersion -->|Yes| ConfirmVersion{User confirms<br>version creation}
     ConfirmVersion -->|No| End([End - Cancelled])
     ConfirmVersion -->|Yes| IncrementVersion[Increment version number]
     IncrementVersion --> CreateVersionSnapshot[Create version snapshot]
@@ -176,18 +177,18 @@ flowchart TD
     LoadAllergens --> OpenDialog[Open edit dialog]
     OpenDialog --> PreFillForm[Pre-fill all form tabs]
 
-    PreFillForm --> UserMod{User modifies<br/>any tab}
+    PreFillForm --> UserMod{User modifies<br>any tab}
     UserMod -->|Basic Info| ValidateBasic[Validate basic fields]
     ValidateBasic --> RealTimeVal[Real-time validation]
     RealTimeVal --> UserMod
 
-    UserMod -->|Add/Edit Ingredient| ModifyIngredient{Modify<br/>ingredient}
+    UserMod -->|Add/Edit Ingredient| ModifyIngredient{Modify<br>ingredient}
     ModifyIngredient -->|Change Product| ProductSearch[Search new product]
     ProductSearch --> UpdateProductCost[Update cost data]
     UpdateProductCost --> RecalcAll[Recalculate all costs]
     RecalcAll --> UserMod
 
-    ModifyIngredient -->|Change Recipe| CheckCircular{Check circular<br/>dependency}
+    ModifyIngredient -->|Change Recipe| CheckCircular{Check circular<br>dependency}
     CheckCircular -->|Circular| ShowCircularError[Show circular dependency error]
     ShowCircularError --> UserMod
     CheckCircular -->|Valid| UpdateSubRecipeCost[Update sub-recipe cost]
@@ -196,7 +197,7 @@ flowchart TD
     ModifyIngredient -->|Change Quantity| RecalcIngredient[Recalculate ingredient cost]
     RecalcIngredient --> RecalcAll
 
-    ModifyIngredient -->|Remove Ingredient| ConfirmRemove{Confirm<br/>removal?}
+    ModifyIngredient -->|Remove Ingredient| ConfirmRemove{Confirm<br>removal?}
     ConfirmRemove -->|No| UserMod
     ConfirmRemove -->|Yes| RemoveIngredient[Remove ingredient]
     RemoveIngredient --> RecalcAll
@@ -210,10 +211,10 @@ flowchart TD
     RecalcCosts --> UpdateMargins[Update margins]
     UpdateMargins --> UserMod
 
-    UserMod -->|Modify Variants| ModifyVariant{Modify<br/>variant}
+    UserMod -->|Modify Variants| ModifyVariant{Modify<br>variant}
     ModifyVariant -->|Add Variant| AddVariant[Add new yield variant]
     AddVariant --> SetVariantData[Set conversion rate and pricing]
-    SetVariantData --> ValidateVariantLogic{Validate pricing<br/>logic}
+    SetVariantData --> ValidateVariantLogic{Validate pricing<br>logic}
     ValidateVariantLogic -->|Invalid| ShowVariantError[Show pricing error]
     ShowVariantError --> UserMod
     ValidateVariantLogic -->|Valid| UserMod
@@ -222,13 +223,13 @@ flowchart TD
     UpdateVariant --> RecalcVariantCost[Recalculate variant cost]
     RecalcVariantCost --> UserMod
 
-    ModifyVariant -->|Delete Variant| CheckDefault{Is default<br/>variant?}
+    ModifyVariant -->|Delete Variant| CheckDefault{Is default<br>variant?}
     CheckDefault -->|Yes| ShowDefaultError[Cannot delete default variant]
     ShowDefaultError --> UserMod
     CheckDefault -->|No| RemoveVariant[Remove variant]
     RemoveVariant --> UserMod
 
-    UserMod -->|clicks Save| CheckChanges{Any changes<br/>made?}
+    UserMod -->|clicks Save| CheckChanges{Any changes<br>made?}
     CheckChanges -->|No| InfoMsg[Show 'No changes' message]
     InfoMsg --> CloseNoSave[Close dialog]
     CloseNoSave --> End
@@ -237,7 +238,7 @@ flowchart TD
     ValidateAll -->|Invalid| ShowError[Show validation errors]
     ShowError --> UserMod
 
-    ValidateAll -->|Valid| CheckStatus{Status changed<br/>to published?}
+    ValidateAll -->|Valid| CheckStatus{Status changed<br>to published?}
     CheckStatus -->|Yes| ValidatePublish[Validate publish requirements]
     ValidatePublish -->|Invalid| ShowPublishError[Show publish validation errors]
     ShowPublishError --> UserMod
@@ -249,12 +250,12 @@ flowchart TD
     ReturnError --> DisplayError[Display error toast]
     DisplayError --> UserMod
 
-    ServerVal -->|Valid| CheckCodeChange{Recipe code<br/>changed?}
+    ServerVal -->|Valid| CheckCodeChange{Recipe code<br>changed?}
     CheckCodeChange -->|Yes| ValidateCode[Check code uniqueness]
     ValidateCode -->|Duplicate| ReturnError
     ValidateCode -->|Unique| BeginTransaction
 
-    CheckCodeChange -->|No| CheckNameChange{Recipe name<br/>changed?}
+    CheckCodeChange -->|No| CheckNameChange{Recipe name<br>changed?}
     CheckNameChange -->|Yes| ValidateName[Check name uniqueness]
     ValidateName -->|Duplicate| ReturnError
     ValidateName -->|Unique| BeginTransaction
@@ -267,7 +268,7 @@ flowchart TD
     UpdateVariants --> UpdateAllergens[UPDATE/INSERT/DELETE allergens]
     UpdateAllergens --> UpdateTags[UPDATE/INSERT/DELETE tags]
     UpdateTags --> RecalcFinalCosts[Recalculate final costs]
-    RecalcFinalCosts --> CheckNewPublish{Status changed<br/>to published?}
+    RecalcFinalCosts --> CheckNewPublish{Status changed<br>to published?}
 
     CheckNewPublish -->|Yes| CreateNewVersion[INSERT new version snapshot]
     CreateNewVersion --> SetPublishedTimestamp[SET published_at]
@@ -300,27 +301,27 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks Delete Recipe]) --> CheckStatus{Recipe<br/>status?}
+    Start([User clicks Delete Recipe]) --> CheckStatus{Recipe<br>status?}
     CheckStatus -->|Published| BlockPublished[Show blocking error]
     BlockPublished --> ExplainArchive[Explain: Must archive before delete]
     ExplainArchive --> ShowArchiveButton[Show 'Archive Recipe' button]
     ShowArchiveButton --> End([End - Deletion Blocked])
 
-    CheckStatus -->|Archived/Draft| CheckUsage{Check recipe<br/>usage}
-    CheckUsage --> CheckSubRecipe{Used as<br/>sub-recipe?}
+    CheckStatus -->|Archived/Draft| CheckUsage{Check recipe<br>usage}
+    CheckUsage --> CheckSubRecipe{Used as<br>sub-recipe?}
     CheckSubRecipe -->|Yes| CountUsage[Count recipes using this]
     CountUsage --> BlockSubRecipe[Show blocking error dialog]
     BlockSubRecipe --> ListUsingRecipes[List recipes using this as ingredient]
     ListUsingRecipes --> ShowActionsBlock[Show 'View Recipes' or 'Close']
     ShowActionsBlock --> End
 
-    CheckSubRecipe -->|No| CheckMenus{Used in<br/>active menus?}
+    CheckSubRecipe -->|No| CheckMenus{Used in<br>active menus?}
     CheckMenus -->|Yes| BlockMenus[Show blocking error]
     BlockMenus --> ListMenus[List active menus using this]
     ListMenus --> ShowActionsMenus[Show 'View Menus' or 'Close']
     ShowActionsMenus --> End
 
-    CheckMenus -->|No| CheckOrders{Has order<br/>history?}
+    CheckMenus -->|No| CheckOrders{Has order<br>history?}
     CheckOrders -->|Yes| WarnOrders[Show warning dialog]
     WarnOrders --> ExplainHistory[Explain: Order history preserved]
     ExplainHistory --> ShowOrderCount[Show count of historical orders]
@@ -336,7 +337,7 @@ flowchart TD
 
     CallDelete --> ServerVal[Server-side validation]
     ServerVal --> RecheckUsage[Recheck all usage]
-    RecheckUsage --> StillUsed{Still in<br/>use?}
+    RecheckUsage --> StillUsed{Still in<br>use?}
     StillUsed -->|Yes| ReturnBlockError[Return blocking error]
     ReturnBlockError --> ShowError[Show error toast]
     ShowError --> End
@@ -374,7 +375,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Cost Calculation Triggered]) --> TriggerSource{Trigger<br/>source?}
+    Start([Cost Calculation Triggered]) --> TriggerSource{Trigger<br>source?}
 
     TriggerSource -->|Ingredient Added| NewIngredient[New ingredient added]
     TriggerSource -->|Ingredient Modified| ModIngredient[Ingredient quantity/cost changed]
@@ -390,15 +391,15 @@ flowchart TD
     YieldChange --> GetIngredientData
     PriceChange --> GetIngredientData
 
-    GetIngredientData --> CheckType{Ingredient<br/>type?}
+    GetIngredientData --> CheckType{Ingredient<br>type?}
     CheckType -->|Product| GetProductCost[Get product cost from inventory]
     GetProductCost --> CalcProductCost[Cost = Quantity × Cost per Unit]
     CalcProductCost --> CalcWastage
 
     CheckType -->|Recipe| GetSubRecipeCost[Get sub-recipe total cost]
-    GetSubRecipeCost --> CheckNested{Sub-recipe has<br/>sub-recipes?}
+    GetSubRecipeCost --> CheckNested{Sub-recipe has<br>sub-recipes?}
     CheckNested -->|Yes| RecursiveCalc[Recursive cost calculation]
-    RecursiveCalc --> CheckDepth{Depth<br/>>3?}
+    RecursiveCalc --> CheckDepth{Depth<br>>3?}
     CheckDepth -->|Yes| ErrorMaxDepth[Error: Max nesting depth]
     ErrorMaxDepth --> End([End - Error])
     CheckDepth -->|No| CalcSubRecipeCost[Calculate nested costs]
@@ -407,7 +408,7 @@ flowchart TD
 
     CalcWastage[Calculate wastage cost] --> WastageFormula[Wastage = Net Cost × Wastage%]
     WastageFormula --> TotalIngredient[Total Ingredient = Net + Wastage]
-    TotalIngredient --> NextIngredient{More<br/>ingredients?}
+    TotalIngredient --> NextIngredient{More<br>ingredients?}
     NextIngredient -->|Yes| GetIngredientData
     NextIngredient -->|No| SumIngredients[Sum all ingredient costs]
 
@@ -415,23 +416,23 @@ flowchart TD
     CalcLabor --> CalcOverhead[Overhead = Total Ingredient × Overhead%]
     CalcOverhead --> CalcTotal[Total Cost = Ingredients + Labor + Overhead]
     CalcTotal --> CalcPortion[Cost per Portion = Total Cost / Yield]
-    CalcPortion --> CheckPrice{Selling price<br/>exists?}
+    CalcPortion --> CheckPrice{Selling price<br>exists?}
 
     CheckPrice -->|Yes| CalcFoodCost[Food Cost% = Cost per Portion / Price × 100]
     CalcFoodCost --> CalcMargin[Gross Margin = Price - Cost per Portion]
     CalcMargin --> CalcMarginPercent[Margin% = Margin / Price × 100]
-    CalcMarginPercent --> CheckTarget{Meets target<br/>food cost?}
+    CalcMarginPercent --> CheckTarget{Meets target<br>food cost?}
     CheckTarget -->|No| FlagWarning[Flag margin warning]
     FlagWarning --> CalcSuggested
     CheckTarget -->|Yes| CalcSuggested[Suggested Price = Cost / Target%]
 
     CheckPrice -->|No| CalcSuggested
-    CalcSuggested --> CheckVariants{Has yield<br/>variants?}
+    CalcSuggested --> CheckVariants{Has yield<br>variants?}
     CheckVariants -->|Yes| CalcVariantCost[For each variant]
     CalcVariantCost --> VariantCost[Variant Cost = Total Cost × Conversion Rate]
-    VariantCost --> VariantMargin{Variant price<br/>set?}
+    VariantCost --> VariantMargin{Variant price<br>set?}
     VariantMargin -->|Yes| CalcVariantMargin[Calculate variant margin]
-    CalcVariantMargin --> NextVariant{More<br/>variants?}
+    CalcVariantMargin --> NextVariant{More<br>variants?}
     VariantMargin -->|No| NextVariant
     NextVariant -->|Yes| CalcVariantCost
     NextVariant -->|No| UpdateUI
@@ -441,7 +442,7 @@ flowchart TD
     UpdateCostTab --> UpdateIngredientList[Update ingredient cost column]
     UpdateIngredientList --> UpdateVariantPrices[Update variant pricing]
     UpdateVariantPrices --> HighlightChanges[Highlight changed values]
-    HighlightChanges --> CheckWarnings{Any cost<br/>warnings?}
+    HighlightChanges --> CheckWarnings{Any cost<br>warnings?}
     CheckWarnings -->|Yes| ShowWarningBadge[Show warning badge]
     ShowWarningBadge --> EndSuccess
     CheckWarnings -->|No| EndSuccess([End - Success])
@@ -459,57 +460,57 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks Publish]) --> CheckStatus{Current<br/>status?}
+    Start([User clicks Publish]) --> CheckStatus{Current<br>status?}
     CheckStatus -->|Already Published| InfoMsg[Show 'Already published' message]
     InfoMsg --> End([End])
 
     CheckStatus -->|Draft/Archived| ShowPublishDialog[Show publish confirmation dialog]
     ShowPublishDialog --> DisplayChecklist[Display pre-publish checklist]
-    DisplayChecklist --> CheckBasic{Basic info<br/>complete?}
+    DisplayChecklist --> CheckBasic{Basic info<br>complete?}
     CheckBasic -->|No| ShowBasicError[✗ Basic information incomplete]
     ShowBasicError --> DisablePublish
     CheckBasic -->|Yes| ShowBasicOK[✓ Basic information complete]
     ShowBasicOK --> CheckIngredients
 
-    CheckIngredients{Has<br/>ingredients?}
+    CheckIngredients{Has<br>ingredients?}
     CheckIngredients -->|No| ShowIngError[✗ Must have at least 1 ingredient]
     ShowIngError --> DisablePublish
     CheckIngredients -->|Yes| ShowIngOK[✓ Ingredients added]
     ShowIngOK --> CheckSteps
 
-    CheckSteps{Has<br/>prep steps?}
+    CheckSteps{Has<br>prep steps?}
     CheckSteps -->|No| ShowStepError[✗ Must have at least 1 step]
     ShowStepError --> DisablePublish
     CheckSteps -->|Yes| ShowStepOK[✓ Preparation steps added]
     ShowStepOK --> CheckCosts
 
-    CheckCosts{Costs<br/>calculated?}
+    CheckCosts{Costs<br>calculated?}
     CheckCosts -->|No| ShowCostError[✗ Costs must be calculated]
     ShowCostError --> DisablePublish
     CheckCosts -->|Yes| ShowCostOK[✓ Costs calculated]
     ShowCostOK --> CheckPrice
 
-    CheckPrice{Selling price<br/>set?}
+    CheckPrice{Selling price<br>set?}
     CheckPrice -->|No| WarnPrice[⚠ Recommended: Set selling price]
     WarnPrice --> EnablePublish
     CheckPrice -->|Yes| ShowPriceOK[✓ Selling price set]
     ShowPriceOK --> CheckMargin
 
-    CheckMargin{Margin meets<br/>target?}
+    CheckMargin{Margin meets<br>target?}
     CheckMargin -->|No| WarnMargin[⚠ Warning: Margin below target]
     WarnMargin --> EnablePublish
     CheckMargin -->|Yes| ShowMarginOK[✓ Margin meets target]
     ShowMarginOK --> CheckVariants
 
-    CheckVariants{Has yield<br/>variants?}
-    CheckVariants -->|Yes| CheckDefault{Default variant<br/>marked?}
+    CheckVariants{Has yield<br>variants?}
+    CheckVariants -->|Yes| CheckDefault{Default variant<br>marked?}
     CheckDefault -->|No| ShowVariantError[✗ Must mark default variant]
     ShowVariantError --> DisablePublish
     CheckDefault -->|Yes| ShowVariantOK[✓ Yield variants configured]
     ShowVariantOK --> CheckImage
     CheckVariants -->|No| CheckImage
 
-    CheckImage{Has<br/>image?}
+    CheckImage{Has<br>image?}
     CheckImage -->|No| WarnImage[⚠ Recommended: Add recipe image]
     WarnImage --> EnablePublish
     CheckImage -->|Yes| ShowImageOK[✓ Recipe image added]
@@ -518,9 +519,9 @@ flowchart TD
     DisablePublish[Disable Publish button] --> ShowFixErrors[Show 'Fix errors to publish']
     ShowFixErrors --> End
 
-    EnablePublish[Enable Publish button] --> UserConfirm{User clicks<br/>Publish?}
+    EnablePublish[Enable Publish button] --> UserConfirm{User clicks<br>Publish?}
     UserConfirm -->|No| End
-    UserConfirm -->|Yes| ShowVersionDialog{First<br/>publish?}
+    UserConfirm -->|Yes| ShowVersionDialog{First<br>publish?}
 
     ShowVersionDialog -->|Yes| VersionOne[Version will be 1]
     VersionOne --> CallPublish
@@ -531,7 +532,7 @@ flowchart TD
 
     CallPublish --> ServerVal[Server-side validation]
     ServerVal --> RecheckRequirements[Revalidate all requirements]
-    RecheckRequirements --> RequirementsMet{All requirements<br/>met?}
+    RecheckRequirements --> RequirementsMet{All requirements<br>met?}
     RequirementsMet -->|No| ReturnError[Return validation error]
     ReturnError --> DisplayError[Display error toast]
     DisplayError --> End
@@ -545,7 +546,7 @@ flowchart TD
     SnapshotIngredients --> SnapshotSteps[Snapshot steps data]
     SnapshotSteps --> SnapshotVariants[Snapshot variants data]
     SnapshotVariants --> MarkVersionPublished[Mark version as published]
-    MarkVersionPublished --> CreatePricingHistory{Price<br/>changed?}
+    MarkVersionPublished --> CreatePricingHistory{Price<br>changed?}
 
     CreatePricingHistory -->|Yes| InsertPricingHistory[INSERT pricing history record]
     InsertPricingHistory --> CommitTransaction
@@ -614,7 +615,7 @@ flowchart TD
     SelectField --> SelectOperator[Select operator]
     SelectOperator --> EnterValue[Enter filter value]
     EnterValue --> AddCondition[Add filter condition]
-    AddCondition --> UserContinue{Continue editing<br/>or apply?}
+    AddCondition --> UserContinue{Continue editing<br>or apply?}
     UserContinue -->|Add more| SelectField
     UserContinue -->|Apply| ApplyAdvanced[Apply advanced filters]
     ApplyAdvanced --> AdvancedTypes{Condition type}
@@ -639,7 +640,7 @@ flowchart TD
     FilterChain --> ApplyFilters[Apply combined filter logic]
     ApplyFilters --> FilterRecipes[Filter recipe list]
     FilterRecipes --> SortResults[Sort by: name, cost, margin, created date]
-    SortResults --> CheckView{View<br/>mode?}
+    SortResults --> CheckView{View<br>mode?}
 
     CheckView -->|Grid| GridView[Display grid layout]
     CheckView -->|List| ListView[Display list layout]
@@ -673,7 +674,7 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User clicks Clone Recipe]) --> ConfirmClone{User confirms<br/>clone?}
+    Start([User clicks Clone Recipe]) --> ConfirmClone{User confirms<br>clone?}
     ConfirmClone -->|No| End([End - Cancelled])
     ConfirmClone -->|Yes| FetchSource[Fetch source recipe with all data]
 
@@ -690,7 +691,7 @@ flowchart TD
     SetDraft --> ResetMetrics[Reset: version=1, published_at=null]
     ResetMetrics --> ResetAudit[Reset audit trail to current user]
 
-    ResetAudit --> UserReview{User reviews<br/>cloned data}
+    ResetAudit --> UserReview{User reviews<br>cloned data}
     UserReview -->|Modify| EditClone[User edits any fields]
     EditClone --> RealTimeVal[Real-time validation]
     RealTimeVal --> UserReview
@@ -705,10 +706,10 @@ flowchart TD
     ReturnError --> DisplayError[Display error toast]
     DisplayError --> UserReview
 
-    ServerVal -->|Valid| CheckCodeUnique{Recipe code<br/>unique?}
+    ServerVal -->|Valid| CheckCodeUnique{Recipe code<br>unique?}
     CheckCodeUnique -->|No| RegenerateCode[Regenerate code with suffix]
     RegenerateCode --> CheckCodeUnique
-    CheckCodeUnique -->|Yes| CheckNameUnique{Recipe name<br/>unique?}
+    CheckCodeUnique -->|Yes| CheckNameUnique{Recipe name<br>unique?}
     CheckNameUnique -->|No| DupName[Return duplicate name error]
     DupName --> DisplayError
 
@@ -716,7 +717,7 @@ flowchart TD
     BeginTransaction --> CreateNewRecipe[INSERT new recipe record]
     CreateNewRecipe --> CloneIngredients[INSERT cloned ingredients]
     CloneIngredients --> CloneSteps[INSERT cloned steps]
-    CloneSteps --> CloneVariants{Has yield<br/>variants?}
+    CloneSteps --> CloneVariants{Has yield<br>variants?}
     CloneVariants -->|Yes| InsertVariants[INSERT cloned variants]
     InsertVariants --> CloneAllergens
     CloneVariants -->|No| CloneAllergens[INSERT cloned allergens]
@@ -750,12 +751,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User selects recipes]) --> SelectCheck{Selection<br/>valid?}
+    Start([User selects recipes]) --> SelectCheck{Selection<br>valid?}
     SelectCheck -->|<2 selected| ShowMsg[Show 'Select at least 2' message]
     ShowMsg --> End([End])
 
     SelectCheck -->|≥2 selected| ShowToolbar[Show bulk actions toolbar]
-    ShowToolbar --> UserAction{User clicks<br/>bulk action}
+    ShowToolbar --> UserAction{User clicks<br>bulk action}
 
     UserAction -->|Archive| ValidateArchive[Check each recipe]
     ValidateArchive --> SplitArchive[Split: can archive vs blocked]
@@ -783,7 +784,7 @@ flowchart TD
     PublishSuccess --> ClearSelection
 
     UserAction -->|Update Category| ShowCategorySelect[Show category selection dialog]
-    ShowCategorySelect --> UserSelectsCategory{User selects<br/>category?}
+    ShowCategorySelect --> UserSelectsCategory{User selects<br>category?}
     UserSelectsCategory -->|No| End
     UserSelectsCategory -->|Yes| ValidateCategoryChange[Check if change allowed]
     ValidateCategoryChange --> BulkUpdateCategory[UPDATE category_id for all]
@@ -791,14 +792,14 @@ flowchart TD
     CategorySuccess --> ClearSelection
 
     UserAction -->|Update Cuisine| ShowCuisineSelect[Show cuisine selection dialog]
-    ShowCuisineSelect --> UserSelectsCuisine{User selects<br/>cuisine?}
+    ShowCuisineSelect --> UserSelectsCuisine{User selects<br>cuisine?}
     UserSelectsCuisine -->|No| End
     UserSelectsCuisine -->|Yes| BulkUpdateCuisine[UPDATE cuisine_id for all]
     BulkUpdateCuisine --> CuisineSuccess[Show success count]
     CuisineSuccess --> ClearSelection
 
     UserAction -->|Add Tags| ShowTagInput[Show tag input dialog]
-    ShowTagInput --> UserEntersTags{User enters<br/>tags?}
+    ShowTagInput --> UserEntersTags{User enters<br>tags?}
     UserEntersTags -->|No| End
     UserEntersTags -->|Yes| BulkAddTags[INSERT tags for all recipes]
     BulkAddTags --> TagSuccess[Show success count]
@@ -807,12 +808,12 @@ flowchart TD
     UserAction -->|Export| OpenExportDialog[Open export dialog]
     OpenExportDialog --> SelectFormat[User selects format]
     SelectFormat --> SelectFields[User selects fields to export]
-    SelectFields --> IncludeRelated{Include related<br/>data?}
+    SelectFields --> IncludeRelated{Include related<br>data?}
     IncludeRelated -->|Yes| IncludeIngredients[Include ingredients option]
     IncludeIngredients --> IncludeSteps[Include steps option]
     IncludeSteps --> GenerateExport
     IncludeRelated -->|No| GenerateExport[Generate export file]
-    GenerateExport --> FormatData{Export<br/>format?}
+    GenerateExport --> FormatData{Export<br>format?}
     FormatData -->|CSV| GenerateCSV[Generate CSV file]
     FormatData -->|Excel| GenerateExcel[Generate XLSX file]
     FormatData -->|JSON| GenerateJSON[Generate JSON file]
@@ -826,7 +827,7 @@ flowchart TD
     KeepSelection --> End
 
     UserAction -->|Delete| ValidateDelete[Check each recipe]
-    ValidateDelete --> CheckPublished{Any<br/>published?}
+    ValidateDelete --> CheckPublished{Any<br>published?}
     CheckPublished -->|Yes| BlockDelete[Show blocking error]
     BlockDelete --> ExplainArchiveFirst[Explain: Must archive before delete]
     ExplainArchiveFirst --> End
@@ -903,10 +904,10 @@ stateDiagram-v2
 
 ```mermaid
 flowchart TD
-    Start([User configures yield variants]) --> CheckEnabled{Fractional sales<br/>enabled?}
+    Start([User configures yield variants]) --> CheckEnabled{Fractional sales<br>enabled?}
     CheckEnabled -->|No| EnableFractional[Enable fractional sales]
     EnableFractional --> SelectType[Select fractional sales type]
-    SelectType --> TypeOptions{Type<br/>selected}
+    SelectType --> TypeOptions{Type<br>selected}
 
     CheckEnabled -->|Yes| AddVariant[Add yield variant]
 
@@ -926,26 +927,26 @@ flowchart TD
     EnterName --> EnterUnit[Enter variant unit]
     EnterUnit --> EnterQuantity[Enter variant quantity]
     EnterQuantity --> EnterConversion[Enter conversion rate 0.01-1.0]
-    EnterConversion --> ValidateConversion{Conversion<br/>valid?}
+    EnterConversion --> ValidateConversion{Conversion<br>valid?}
     ValidateConversion -->|No| ShowConversionError[Show conversion rate error]
     ShowConversionError --> EnterConversion
     ValidateConversion -->|Yes| CalcVariantCost[Calculate variant cost]
 
     CalcVariantCost --> CostFormula[Variant Cost = Total Recipe Cost × Conversion]
-    CostFormula --> EnterPrice{Enter selling<br/>price?}
+    CostFormula --> EnterPrice{Enter selling<br>price?}
     EnterPrice -->|Yes| InputPrice[Input variant selling price]
     InputPrice --> CalcVariantMargin[Calculate variant margin]
-    CalcVariantMargin --> ValidateMargin{Margin<br/>reasonable?}
+    CalcVariantMargin --> ValidateMargin{Margin<br>reasonable?}
     ValidateMargin -->|No| WarnMargin[Warn about low margin]
     WarnMargin --> CheckLogic
     ValidateMargin -->|Yes| CheckLogic
 
-    EnterPrice -->|No| CheckLogic{Check pricing<br/>logic}
+    EnterPrice -->|No| CheckLogic{Check pricing<br>logic}
     CheckLogic --> CompareVariants[Compare all variant prices]
-    CompareVariants --> LogicCheck{8 slices cost<br/>> whole?}
+    CompareVariants --> LogicCheck{8 slices cost<br>> whole?}
     LogicCheck -->|Yes| ShowLogicWarning[Show pricing logic warning]
     ShowLogicWarning --> SuggestAdjust[Suggest price adjustments]
-    SuggestAdjust --> UserFixPrice{User adjusts<br/>prices?}
+    SuggestAdjust --> UserFixPrice{User adjusts<br>prices?}
     UserFixPrice -->|Yes| InputPrice
     UserFixPrice -->|No| ProceedWarning[Proceed with warning]
     ProceedWarning --> OptionalFields
@@ -954,10 +955,10 @@ flowchart TD
     OptionalFields[Configure optional fields] --> EnterShelfLife[Enter shelf life hours]
     EnterShelfLife --> EnterWastage[Enter wastage rate]
     EnterWastage --> EnterOrderLimits[Enter min/max order quantity]
-    EnterOrderLimits --> SetDefault{Set as<br/>default?}
+    EnterOrderLimits --> SetDefault{Set as<br>default?}
 
-    SetDefault -->|Yes| CheckExistingDefault{Existing default<br/>exists?}
-    CheckExistingDefault -->|Yes| ConfirmDefaultChange{Change<br/>default?}
+    SetDefault -->|Yes| CheckExistingDefault{Existing default<br>exists?}
+    CheckExistingDefault -->|Yes| ConfirmDefaultChange{Change<br>default?}
     ConfirmDefaultChange -->|No| SetDefault
     ConfirmDefaultChange -->|Yes| UnmarkOldDefault[Unmark old default]
     UnmarkOldDefault --> MarkNewDefault[Mark new default]
@@ -965,11 +966,11 @@ flowchart TD
     MarkNewDefault --> SaveVariant
 
     SetDefault -->|No| SaveVariant[Save variant]
-    SaveVariant --> AddMore{Add more<br/>variants?}
+    SaveVariant --> AddMore{Add more<br>variants?}
     AddMore -->|Yes| AddVariant
     AddMore -->|No| ValidateAllVariants[Validate all variants]
 
-    ValidateAllVariants --> CheckDefaultExists{Has default<br/>variant?}
+    ValidateAllVariants --> CheckDefaultExists{Has default<br>variant?}
     CheckDefaultExists -->|No| ShowDefaultError[Error: Must mark one as default]
     ShowDefaultError --> SelectDefault[Select variant to mark default]
     SelectDefault --> MarkNewDefault
@@ -979,15 +980,15 @@ flowchart TD
     DisplayConversions --> DisplayPricing[Display pricing breakdown]
     DisplayPricing --> DisplayMargins[Display margins]
     DisplayMargins --> HighlightDefault[Highlight default variant]
-    HighlightDefault --> UserComplete{User completes<br/>configuration?}
+    HighlightDefault --> UserComplete{User completes<br>configuration?}
 
     UserComplete -->|Edit| SelectVariant[Select variant to edit]
     SelectVariant --> VariantForm
     UserComplete -->|Delete| SelectDeleteVariant[Select variant to delete]
-    SelectDeleteVariant --> CheckDeleteDefault{Deleting<br/>default?}
+    SelectDeleteVariant --> CheckDeleteDefault{Deleting<br>default?}
     CheckDeleteDefault -->|Yes| ShowDeleteDefaultError[Cannot delete default variant]
     ShowDeleteDefaultError --> UserComplete
-    CheckDeleteDefault -->|No| ConfirmDelete{Confirm<br/>delete?}
+    CheckDeleteDefault -->|No| ConfirmDelete{Confirm<br>delete?}
     ConfirmDelete -->|No| UserComplete
     ConfirmDelete -->|Yes| RemoveVariant[Remove variant]
     RemoveVariant --> UserComplete
@@ -1011,27 +1012,27 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User attempts action]) --> CheckAuth{User<br/>authenticated?}
+    Start([User attempts action]) --> CheckAuth{User<br>authenticated?}
     CheckAuth -->|No| DenyAuth[Show login required]
     DenyAuth --> End([End - Access Denied])
 
-    CheckAuth -->|Yes| CheckPerm{Has required<br/>permission?}
+    CheckAuth -->|Yes| CheckPerm{Has required<br>permission?}
 
-    CheckPerm -->|recipe.create<br/>for create| AllowCreate[Allow create action]
-    CheckPerm -->|recipe.update<br/>for edit| AllowEdit[Allow edit action]
-    CheckPerm -->|recipe.delete<br/>for delete| AllowDelete[Allow delete action]
-    CheckPerm -->|recipe.publish<br/>for publish| AllowPublish[Allow publish action]
-    CheckPerm -->|recipe.view<br/>for view| AllowView[Allow view action]
-    CheckPerm -->|recipe.export<br/>for export| AllowExport[Allow export action]
-    CheckPerm -->|recipe.cost.view<br/>for cost analysis| AllowCostView[Allow cost view]
+    CheckPerm -->|recipe.create<br>for create| AllowCreate[Allow create action]
+    CheckPerm -->|recipe.update<br>for edit| AllowEdit[Allow edit action]
+    CheckPerm -->|recipe.delete<br>for delete| AllowDelete[Allow delete action]
+    CheckPerm -->|recipe.publish<br>for publish| AllowPublish[Allow publish action]
+    CheckPerm -->|recipe.view<br>for view| AllowView[Allow view action]
+    CheckPerm -->|recipe.export<br>for export| AllowExport[Allow export action]
+    CheckPerm -->|recipe.cost.view<br>for cost analysis| AllowCostView[Allow cost view]
 
     CheckPerm -->|No permission| DenyPerm[Show permission denied]
     DenyPerm --> End
 
-    AllowCreate --> CheckDeptAccess{Department<br/>access?}
-    AllowEdit --> CheckOwnership{User is<br/>creator or has<br/>admin role?}
+    AllowCreate --> CheckDeptAccess{Department<br>access?}
+    AllowEdit --> CheckOwnership{User is<br>creator or has<br>admin role?}
     AllowDelete --> CheckOwnership
-    AllowPublish --> CheckApproval{Publish approval<br/>required?}
+    AllowPublish --> CheckApproval{Publish approval<br>required?}
     AllowView --> ExecuteAction[Execute action]
     AllowExport --> ExecuteAction
     AllowCostView --> ExecuteAction
@@ -1074,7 +1075,7 @@ flowchart TD
     ErrorType -->|Validation error| FieldError[Identify invalid field]
     FieldError --> HighlightField[Highlight field with error]
     HighlightField --> ShowInlineError[Show inline error message]
-    ShowInlineError --> TabCheck{Field in<br/>current tab?}
+    ShowInlineError --> TabCheck{Field in<br>current tab?}
     TabCheck -->|No| NavigateToTab[Navigate to tab with error]
     TabCheck -->|Yes| FocusField[Focus on invalid field]
     NavigateToTab --> FocusField
@@ -1099,7 +1100,7 @@ flowchart TD
     UpdateCost --> RecalcCosts[Recalculate costs]
     FixQuantity --> RecalcCosts
     RemoveIngredient --> RecalcCosts
-    RecalcCosts --> CostSuccess{Calculation<br/>successful?}
+    RecalcCosts --> CostSuccess{Calculation<br>successful?}
     CostSuccess -->|No| ShowCostError
     CostSuccess -->|Yes| Success
 
@@ -1115,24 +1116,24 @@ flowchart TD
     StillCircular -->|Yes| ShowCircularError
     StillCircular -->|No| Success
 
-    ErrorType -->|Network error| DetectNetwork{Network<br/>available?}
+    ErrorType -->|Network error| DetectNetwork{Network<br>available?}
     DetectNetwork -->|No| ShowOffline[Show offline message]
     ShowOffline --> WaitNetwork[Wait for connection]
     WaitNetwork --> DetectNetwork
     DetectNetwork -->|Yes| RetryRequest[Retry request]
     RetryRequest --> RequestSuccess{Success?}
     RequestSuccess -->|Yes| Success
-    RequestSuccess -->|No| CountRetries{Retry count<br/><3?}
+    RequestSuccess -->|No| CountRetries{Retry count<br><3?}
     CountRetries -->|Yes| ExponentialBackoff[Wait with exponential backoff]
     ExponentialBackoff --> RetryRequest
     CountRetries -->|No| ShowRetryButton[Show manual retry button]
-    ShowRetryButton --> UserRetry{User clicks<br/>retry?}
+    ShowRetryButton --> UserRetry{User clicks<br>retry?}
     UserRetry -->|Yes| RetryRequest
     UserRetry -->|No| Cancel
 
     ErrorType -->|Database error| LogError[Log error details]
     LogError --> ShowGeneric[Show generic error message]
-    ShowGeneric --> CheckRecoverable{Error<br/>recoverable?}
+    ShowGeneric --> CheckRecoverable{Error<br>recoverable?}
     CheckRecoverable -->|Yes| ShowRetryOption[Show retry option]
     ShowRetryOption --> UserRetryDB{User retries?}
     UserRetryDB -->|Yes| RetryDB[Retry database operation]
@@ -1148,9 +1149,9 @@ flowchart TD
     IdentifyRule --> ShowRuleError[Show specific business rule error]
     ShowRuleError --> ExplainRule[Explain rule and requirement]
     ExplainRule --> ShowExample[Show example of valid data]
-    ShowExample --> UserFixRule{User takes<br/>corrective action?}
+    ShowExample --> UserFixRule{User takes<br>corrective action?}
     UserFixRule -->|Yes| RetryAction[Retry action]
-    RetryAction --> RuleSuccess{Rule<br/>satisfied?}
+    RetryAction --> RuleSuccess{Rule<br>satisfied?}
     RuleSuccess -->|No| ShowRuleError
     RuleSuccess -->|Yes| Success
     UserFixRule -->|No| Cancel
@@ -1160,17 +1161,17 @@ flowchart TD
     ExplainPermission --> SuggestContact[Suggest contacting administrator]
     SuggestContact --> Cancel
 
-    ErrorType -->|File upload error| CheckFileSize{File size<br/>>limit?}
+    ErrorType -->|File upload error| CheckFileSize{File size<br>>limit?}
     CheckFileSize -->|Yes| ShowSizeError[Show file size error]
     ShowSizeError --> ShowLimit[Show max file size]
     ShowLimit --> SuggestCompress[Suggest compressing image]
-    SuggestCompress --> UserCompresses{User compresses<br/>and retries?}
+    SuggestCompress --> UserCompresses{User compresses<br>and retries?}
     UserCompresses -->|Yes| RetryUpload[Retry upload]
     UserCompresses -->|No| Cancel
-    CheckFileSize -->|No| CheckFileType{File type<br/>invalid?}
+    CheckFileSize -->|No| CheckFileType{File type<br>invalid?}
     CheckFileType -->|Yes| ShowTypeError[Show file type error]
     ShowTypeError --> ShowAccepted[Show accepted file types]
-    ShowAccepted --> UserConverts{User converts<br/>and retries?}
+    ShowAccepted --> UserConverts{User converts<br>and retries?}
     UserConverts -->|Yes| RetryUpload
     UserConverts -->|No| Cancel
     CheckFileType -->|No| RetryUpload

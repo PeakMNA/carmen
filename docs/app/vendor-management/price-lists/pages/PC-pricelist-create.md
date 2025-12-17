@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-23 | System | Initial version based on UC-PL-001, BR-PL-001 |
 
 ---
@@ -469,7 +470,7 @@ Consider:
 │  RFQ Reference                                          │
 │  [Select RFQ ▼]                                         │
 │                                                         │
-│  Selected: RFQ-2024-001 - Fresh Produce Q1 2024        │
+│  Selected: RFQ-2401-0001 - Fresh Produce Q1 2024        │
 │  Due Date: 01/15/2024 • Vendors Invited: 12            │
 │  [View RFQ]  [Load Products from RFQ]                  │
 └─────────────────────────────────────────────────────────┘
@@ -492,7 +493,7 @@ Consider:
 │  Previous Price List                                    │
 │  [Select Previous List ▼]                               │
 │                                                         │
-│  Selected: ABC Foods - Dec 2023 (PL-2023-045)          │
+│  Selected: ABC Foods - Dec 2023 (PL-2301-0045)          │
 │  Products: 78 items • Avg Price: $2.45                 │
 │  [View Previous List]  [Clone Products & Prices]       │
 │  [Show Price Comparison After Import]                  │
@@ -2006,7 +2007,7 @@ Restocking fee: 10% for non-defective returns"
 │  ✓ Price List Submitted Successfully                    │
 │                                                         │
 │  Price List: Fresh Produce - Jan 2024 - ABC Farm       │
-│  Reference: PL-2024-001                                 │
+│  Reference: PL-2401-0001                                 │
 │  Status: Pending Approval                               │
 │                                                         │
 │  Next Steps:                                            │
@@ -2105,7 +2106,7 @@ Restocking fee: 10% for non-defective returns"
 │  Clone Price List                                [✕]   │
 │  ─────────────────────────────────────────────────────  │
 │                                                         │
-│  Source: Fresh Produce - Dec 2023 (PL-2023-045)        │
+│  Source: Fresh Produce - Dec 2023 (PL-2301-0045)        │
 │  Vendor: ABC Foods Inc.                                 │
 │  Products: 125 items                                    │
 │                                                         │
@@ -2209,7 +2210,7 @@ Restocking fee: 10% for non-defective returns"
 │  ✓ Price List Imported Successfully                     │
 │                                                         │
 │  Price List: Fresh Produce - Jan 2024 - ABC Farm       │
-│  Reference: PL-2024-001                                 │
+│  Reference: PL-2401-0001                                 │
 │  Products: 125 imported                                 │
 │  Status: Draft                                          │
 │                                                         │

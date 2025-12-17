@@ -16,10 +16,11 @@ export interface Department {
   code: string;
   description?: string;
   status: 'active' | 'inactive';
-  manager?: string;
+  managers?: string[]; // Array of user IDs who are department heads
   costCenter?: string;
   parentDepartment?: string;
   assignedUsers?: string[]; // Array of user IDs assigned to this department
+  assignedLocations?: string[]; // Array of location IDs assigned to this department
 }
 
 export interface Role {

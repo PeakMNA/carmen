@@ -13,6 +13,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial technical specification created |
 
 ---
@@ -26,19 +27,19 @@ The Cuisine Types system follows Next.js 14 App Router architecture with Server 
 
 ```mermaid
 graph TB
-    subgraph "Client Layer - Browser"
+    subgraph 'Client Layer - Browser'
         UI[Cuisine List Component]
         Dialog[Dialog Components]
         Form[Form Components]
     end
 
-    subgraph "Application Layer - Next.js Server"
+    subgraph 'Application Layer - Next.js Server'
         RSC[React Server Components]
         Actions[Server Actions]
         Validation[Validation Logic]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         Prisma[Prisma ORM]
         DB[(PostgreSQL Database)]
         Cache[React Query Cache]
@@ -1195,38 +1196,38 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/operational-planning/recipe-management/cuisine-types)"]
-    CreatePage["Create Page<br/>(/operational-planning/recipe-management/cuisine-types/new)"]
-    DetailPage["Detail Page<br/>(/operational-planning/recipe-management/cuisine-types/[id])"]
-    EditPage["Edit Page<br/>(/operational-planning/recipe-management/cuisine-types/[id]/edit)"]
+    ListPage['List Page<br>(/operational-planning/recipe-management/cuisine-types)']
+    CreatePage['Create Page<br>(/operational-planning/recipe-management/cuisine-types/new)']
+    DetailPage["Detail Page<br>(/operational-planning/recipe-management/cuisine-types/[id])"]
+    EditPage["Edit Page<br>(/operational-planning/recipe-management/cuisine-types/[id]/edit)"]
 
     %% List Page Tabs
-    ListPage --> ListTab1["Tab: All Items"]
-    ListPage --> ListTab2["Tab: Active"]
-    ListPage --> ListTab3["Tab: Archived"]
+    ListPage --> ListTab1['Tab: All Items']
+    ListPage --> ListTab2['Tab: Active']
+    ListPage --> ListTab3['Tab: Archived']
 
     %% List Page Dialogues
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: History"]
-    DetailPage --> DetailTab3["Tab: Activity Log"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: History']
+    DetailPage --> DetailTab3['Tab: Activity Log']
 
     %% Detail Page Dialogues
-    DetailPage -.-> DetailDialog1["Dialog: Edit"]
-    DetailPage -.-> DetailDialog2["Dialog: Delete Confirm"]
-    DetailPage -.-> DetailDialog3["Dialog: Status Change"]
+    DetailPage -.-> DetailDialog1['Dialog: Edit']
+    DetailPage -.-> DetailDialog2['Dialog: Delete Confirm']
+    DetailPage -.-> DetailDialog3['Dialog: Status Change']
 
     %% Create/Edit Dialogues
-    CreatePage -.-> CreateDialog1["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog2["Dialog: Save Draft"]
+    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
 
-    EditPage -.-> EditDialog1["Dialog: Discard Changes"]
-    EditPage -.-> EditDialog2["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Discard Changes']
+    EditPage -.-> EditDialog2['Dialog: Save Draft']
 
     %% Navigation Flow
     ListPage --> DetailPage

@@ -483,13 +483,13 @@ Approved At: 2025-11-12T11:00:00Z
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto-generated | Primary key identifier | 550e8400-... | Unique, Non-null |
 | transaction_id | UUID | Yes | - | GL transaction reference | 550e8400-... | Links to journal entry |
-| transaction_number | VARCHAR(50) | Yes | - | Business transaction number | INV-UK-2025-00123 | Human-readable |
+| transaction_number | VARCHAR(50) | Yes | - | Business transaction number | INV-UK-2501-00123 | Human-readable |
 | transaction_date | DATE | Yes | - | Transaction business date | 2025-11-12 | When transaction occurred |
 | posting_date | TIMESTAMPTZ | Yes | NOW() | When posted to system | 2025-11-12T10:30:00Z | When recorded |
 | accounting_period | VARCHAR(7) | Yes | - | Period for accounting | 2025-11 | Format: YYYY-MM |
 | source_document_type | VARCHAR(50) | Yes | - | Origin document type | Invoice, Payment, Receipt, GRN | Must be from enum |
 | source_document_id | UUID | Yes | - | Origin document ID | 550e8400-... | Polymorphic reference |
-| source_document_number | VARCHAR(50) | Yes | - | Origin document number | GRN-2025-00456 | For display |
+| source_document_number | VARCHAR(50) | Yes | - | Origin document number | GRN-2501-00456 | For display |
 | transaction_type | VARCHAR(50) | Yes | - | Transaction classification | Purchase, Sale, Payment, Receipt | Must be from enum |
 | transaction_currency | VARCHAR(3) | Yes | - | Original currency | GBP, EUR, JPY | Foreign key to currencies |
 | base_currency | VARCHAR(3) | Yes | - | Organization currency | USD, SGD | From organization config |
@@ -520,7 +520,7 @@ Approved At: 2025-11-12T11:00:00Z
 | location_id | UUID | No | NULL | Location | 550e8400-... | Foreign key to locations |
 | description | VARCHAR(500) | Yes | - | Transaction description | GRN posting for F&B ingredients | Non-empty |
 | notes | TEXT | No | NULL | Additional notes | Special pricing agreement | Max 2000 chars |
-| metadata | JSONB | No | {} | Flexible additional data | {"contract": "CNT-2025-001"} | Valid JSON object |
+| metadata | JSONB | No | {} | Flexible additional data | {"contract": "CNT-2501-0001"} | Valid JSON object |
 | created_at | TIMESTAMPTZ | Yes | NOW() | Creation timestamp | 2025-11-12T10:30:00Z | Immutable |
 | created_by | UUID | Yes | - | Creator user ID | 550e8400-... | Foreign key to users |
 | updated_at | TIMESTAMPTZ | Yes | NOW() | Last update timestamp | 2025-11-12T10:30:00Z | Auto-updated |
@@ -591,7 +591,7 @@ Approved At: 2025-11-12T11:00:00Z
 | total_unrealized_loss | NUMERIC(15,2) | Yes | 0.00 | Total unrealized losses | 75.00 | Positive amount |
 | net_unrealized_gain_loss | NUMERIC(15,2) | Yes | 0.00 | Net gain/(loss) | 125.00, -50.00 | Gain > 0, Loss < 0 |
 | journal_entry_id | UUID | No | NULL | Posted journal entry | 550e8400-... | Foreign key to journal_entries |
-| journal_entry_number | VARCHAR(50) | No | NULL | JE number | JE-2025-011234 | For display |
+| journal_entry_number | VARCHAR(50) | No | NULL | JE number | JE-2501-011234 | For display |
 | is_reversal | BOOLEAN | Yes | false | Whether this is reversal | false, true | Reversal of previous |
 | reversal_of_id | UUID | No | NULL | Original revaluation | 550e8400-... | Foreign key to self |
 | reversed_by_id | UUID | No | NULL | Reversal revaluation | 550e8400-... | Foreign key to self |
@@ -702,7 +702,7 @@ Approved At: 2025-11-12T11:00:00Z
 | requires_review | BOOLEAN | Yes | false | Review needed | true (unusual), false | Based on thresholds |
 | review_reason | VARCHAR(200) | No | NULL | Why review needed | Large gain >$1000 | If requires_review |
 | notes | TEXT | No | NULL | Line-specific notes | Includes 3 large invoices | Max 1000 chars |
-| metadata | JSONB | No | {} | Additional line data | {"invoices": ["INV-001", "INV-002"]} | Valid JSON object |
+| metadata | JSONB | No | {} | Additional line data | {"invoices": ['INV-001', 'INV-002']} | Valid JSON object |
 
 #### Data Constraints
 
@@ -756,7 +756,7 @@ Approved At: 2025-11-12T11:00:00Z
 | Field Name | Data Type | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto-generated | Primary key identifier | 550e8400-... | Unique, Non-null |
-| log_number | VARCHAR(50) | Yes | Auto-generated | Unique log entry number | FXGL-2025-001234 | Unique, format: FXGL-YYYY-NNNNNN |
+| log_number | VARCHAR(50) | Yes | Auto-generated | Unique log entry number | FXGL-2501-001234 | Unique, format: FXGL-YYMM-NNNN |
 | log_date | DATE | Yes | - | Date of gain/loss | 2025-11-12 | Business date |
 | log_timestamp | TIMESTAMPTZ | Yes | NOW() | Exact time logged | 2025-11-12T10:30:00Z | When recorded |
 | accounting_period | VARCHAR(7) | Yes | - | Accounting period | 2025-11 | Format: YYYY-MM |
@@ -768,13 +768,13 @@ Approved At: 2025-11-12T11:00:00Z
 | gain_loss_amount_base | NUMERIC(15,2) | Yes | - | Gain/(loss) in base currency | 4.50, -10.00 | Positive=gain, negative=loss |
 | is_gain | BOOLEAN | Yes | - | Whether gain or loss | true (gain), false (loss) | Calculated from amount |
 | original_transaction_id | UUID | No | NULL | Source transaction | 550e8400-... | Foreign key to foreign_currency_transactions |
-| original_transaction_number | VARCHAR(50) | No | NULL | Transaction number | INV-UK-2025-00123 | For display |
+| original_transaction_number | VARCHAR(50) | No | NULL | Transaction number | INV-UK-2501-00123 | For display |
 | original_transaction_date | DATE | No | NULL | Original transaction date | 2025-11-12 | When originated |
 | original_amount | NUMERIC(15,2) | No | NULL | Original foreign amount | 900.00 | Transaction currency |
 | original_exchange_rate | NUMERIC(18,8) | No | NULL | Original rate | 1.27500000 | When originated |
 | original_base_amount | NUMERIC(15,2) | No | NULL | Original base amount | 1147.50 | At original rate |
 | settlement_transaction_id | UUID | No | NULL | Settlement transaction | 550e8400-... | For realized G/L |
-| settlement_transaction_number | VARCHAR(50) | No | NULL | Settlement number | PMT-2025-00789 | For display |
+| settlement_transaction_number | VARCHAR(50) | No | NULL | Settlement number | PMT-2501-00789 | For display |
 | settlement_date | DATE | No | NULL | Settlement date | 2025-11-20 | When settled |
 | settlement_amount | NUMERIC(15,2) | No | NULL | Settlement foreign amount | 900.00 | Same as original typically |
 | settlement_exchange_rate | NUMERIC(18,8) | No | NULL | Settlement rate | 1.28000000 | When settled |
@@ -788,7 +788,7 @@ Approved At: 2025-11-12T11:00:00Z
 | gain_loss_gl_account_id | UUID | Yes | - | G/L posting account | 550e8400-... (7200) | Foreign key to gl_accounts |
 | gain_loss_gl_account_code | VARCHAR(50) | Yes | - | G/L account code | 7200 (Realized), 7210 (Unrealized) | For display |
 | journal_entry_id | UUID | No | NULL | Posted journal entry | 550e8400-... | Foreign key to journal_entries |
-| journal_entry_number | VARCHAR(50) | No | NULL | JE number | JE-2025-011234 | For display |
+| journal_entry_number | VARCHAR(50) | No | NULL | JE number | JE-2501-011234 | For display |
 | journal_entry_line_id | UUID | No | NULL | Specific JE line | 550e8400-... | Foreign key to journal_entry_lines |
 | counterparty_type | VARCHAR(50) | No | NULL | Other party type | Vendor, Customer | Who transaction is with |
 | counterparty_id | UUID | No | NULL | Other party ID | 550e8400-... | Vendor/customer ID |
@@ -800,7 +800,7 @@ Approved At: 2025-11-12T11:00:00Z
 | reversed_by_entry_id | UUID | No | NULL | Reversal JE | 550e8400-... | Foreign key to journal_entries |
 | description | VARCHAR(500) | Yes | - | Gain/loss description | Realized loss on GBP payment | Non-empty |
 | notes | TEXT | No | NULL | Additional notes | Part of bulk payment batch | Max 2000 chars |
-| metadata | JSONB | No | {} | Flexible additional data | {"contract": "CNT-2025-001"} | Valid JSON object |
+| metadata | JSONB | No | {} | Flexible additional data | {"contract": "CNT-2501-0001"} | Valid JSON object |
 | created_at | TIMESTAMPTZ | Yes | NOW() | Creation timestamp | 2025-11-12T10:30:00Z | When logged |
 | created_by | VARCHAR(50) | Yes | System | Creator | System, User:john.doe | System or user |
 
@@ -868,7 +868,7 @@ Approved At: 2025-11-12T11:00:00Z
 | api_secret | VARCHAR(500) | No | NULL | API secret (encrypted) | ***encrypted*** | Encrypted at rest |
 | oauth_config | JSONB | No | NULL | OAuth configuration | {"client_id": "...", "token_url": "..."} | If OAuth2 |
 | supported_currencies | VARCHAR[] | Yes | {} | Currency codes supported | {GBP,EUR,JPY,CHF} | Array of ISO codes |
-| supported_currency_pairs | JSONB | No | NULL | Specific pairs supported | [{"from":"GBP","to":"USD"}] | Array of pairs |
+| supported_currency_pairs | JSONB | No | NULL | Specific pairs supported | [{"from":'GBP','to':'USD'}] | Array of pairs |
 | base_currency | VARCHAR(3) | Yes | USD | Provider's base currency | USD, EUR | ISO code |
 | rate_frequency | VARCHAR(20) | Yes | Daily | Update frequency | Hourly, Daily, Real-time | Must be from enum |
 | update_schedule | VARCHAR(100) | No | NULL | Cron expression | 0 */1 * * * (hourly) | Cron format |

@@ -73,33 +73,33 @@ Automated processes and integrations that interact with the template system
 ```mermaid
 flowchart TB
     %% Primary Actors
-    PS((Purchasing<br/>Staff))
+    PS((Purchasing<br>Staff))
     BUY((Buyer))
-    DM((Department<br/>Manager))
-    PM((Purchasing<br/>Manager))
+    DM((Department<br>Manager))
+    PM((Purchasing<br>Manager))
 
     %% System Actors
-    PRM[(Purchase Request<br/>Module)]
-    BMM[(Budget<br/>Management)]
-    VMM[(Vendor<br/>Management)]
+    PRM[(Purchase Request<br>Module)]
+    BMM[(Budget<br>Management)]
+    VMM[(Vendor<br>Management)]
 
     %% User Use Cases
-    UC001([UC-TPL-001<br/>Create Template])
-    UC002([UC-TPL-002<br/>View Template])
-    UC003([UC-TPL-003<br/>Edit Template])
-    UC004([UC-TPL-004<br/>Delete Template])
-    UC005([UC-TPL-005<br/>Clone Template])
-    UC006([UC-TPL-006<br/>Set Default])
-    UC007([UC-TPL-007<br/>Add Item])
-    UC008([UC-TPL-008<br/>Edit Item])
-    UC009([UC-TPL-009<br/>Delete Item])
-    UC010([UC-TPL-010<br/>Search/Filter])
-    UC011([UC-TPL-011<br/>Bulk Operations])
+    UC001([UC-TPL-001<br>Create Template])
+    UC002([UC-TPL-002<br>View Template])
+    UC003([UC-TPL-003<br>Edit Template])
+    UC004([UC-TPL-004<br>Delete Template])
+    UC005([UC-TPL-005<br>Clone Template])
+    UC006([UC-TPL-006<br>Set Default])
+    UC007([UC-TPL-007<br>Add Item])
+    UC008([UC-TPL-008<br>Edit Item])
+    UC009([UC-TPL-009<br>Delete Item])
+    UC010([UC-TPL-010<br>Search/Filter])
+    UC011([UC-TPL-011<br>Bulk Operations])
 
     %% Integration Use Cases
-    UC201([UC-TPL-201<br/>Convert to PR])
-    UC202([UC-TPL-202<br/>Validate Budget])
-    UC203([UC-TPL-203<br/>Fetch Catalog])
+    UC201([UC-TPL-201<br>Convert to PR])
+    UC202([UC-TPL-202<br>Validate Budget])
+    UC203([UC-TPL-203<br>Fetch Catalog])
 
     %% Purchasing Staff connections
     PS --> UC001
@@ -176,7 +176,7 @@ flowchart LR
     UC011([Bulk Operations])
 
     %% Integration
-    UC201([Convert to PR<br/>Phase 2])
+    UC201([Convert to PR<br>Phase 2])
     UC202([Validate Budget])
     UC203([Fetch Catalog])
 
@@ -915,7 +915,7 @@ flowchart LR
 5. System calculates Total Amount in real-time:
    - Total Amount = Quantity (100) × Unit Price (5.50) = 550.00
 6. User enters financial coding:
-   - Budget code (e.g., "BUD-2024-001") from dropdown
+   - Budget code (e.g., "BUD-2401-0001") from dropdown
    - Account code (e.g., "5001") from dropdown
    - Department (auto-filled from template)
    - Tax code (e.g., "VAT7", "VAT0", or "EXEMPT") from dropdown
@@ -1515,7 +1515,7 @@ flowchart LR
    - Maps template fields to PR fields
    - Copies all items with specifications
    - Applies any override values provided
-   - Generates new PR number (PR-YYYY-NNN format)
+   - Generates new PR number (PR-YYMM-NNNN format)
    - Sets PR status to "Draft" for review
 6. Templates Module returns data structure to Purchase Request Module
 7. Purchase Request Module creates new PR record
@@ -1597,7 +1597,7 @@ interface TemplateConversionRequest {
 interface TemplateConversionResponse {
   success: boolean
   purchaseRequestData?: {
-    requestNumber: string         // Generated PR-YYYY-NNN
+    requestNumber: string         // Generated PR-YYMM-NNNN
     description: string           // From template
     departmentId: string          // From template or override
     requestType: string           // From template
@@ -1687,7 +1687,7 @@ If PR creation fails after template usage count was incremented:
 
 **Main Flow**:
 1. Templates Module sends validation request to Budget Management with:
-   - Budget code (e.g., "BUD-2024-001")
+   - Budget code (e.g., "BUD-2401-0001")
    - Department ID (to validate department association)
    - Estimated amount (to check availability)
    - Fiscal period (current year/month)

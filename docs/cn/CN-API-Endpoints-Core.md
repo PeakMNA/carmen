@@ -157,7 +157,7 @@ CreditNote
 
 **Example:**
 ```
-GET /api/credit-notes/CN-2024-001
+GET /api/credit-notes/CN-2401-0001
 ```
 
 ### Create Credit Note
@@ -204,8 +204,8 @@ CreditNote
 ```json
 POST /api/credit-notes
 {
-  "poId": "PO-2024-001",
-  "grnId": "GRN-2024-001",
+  "poId": "PO-2401-0001",
+  "grnId": "GRN-2401-0001",
   "type": "Quality Issue",
   "reason": "Received items with physical damage",
   "date": "2024-03-26T10:00:00Z",
@@ -328,7 +328,7 @@ POST /api/credit-notes/:id/cancel
   "error": "NotFoundError",
   "message": "Credit note not found",
   "details": {
-    "id": "CN-2024-999"
+    "id": "CN-2401-0999"
   }
 }
 
@@ -351,7 +351,7 @@ POST /api/credit-notes/:id/cancel
   "error": "StatusConflictError",
   "message": "Cannot update credit note in current status",
   "details": {
-    "id": "CN-2024-001",
+    "id": "CN-2401-0001",
     "currentStatus": "Completed",
     "allowedStatus": ["Draft"]
   }

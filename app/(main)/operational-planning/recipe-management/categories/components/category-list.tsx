@@ -43,13 +43,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import {
-  ChevronDown,
-  ChevronRight,
   Edit,
   FileDown,
   FileUp,
   Filter,
-  FolderTree,
   MoreVertical,
   Plus,
   Printer,
@@ -85,7 +82,6 @@ interface CategoryFormData extends Omit<Partial<RecipeCategory>, 'id'> {
 
 interface FilterState {
   status: string[]
-  hasParent: boolean | null
   minRecipes: number | null
   maxRecipes: number | null
   minMargin: number | null
@@ -123,7 +119,6 @@ const FILTER_OPERATORS = [
 export function CategoryList() {
   const [categories] = useState<RecipeCategory[]>(mockCategories)
   const [searchTerm, setSearchTerm] = useState("")
-  const [expandedCategories, setExpandedCategories] = useState<Set<string>>(new Set())
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
@@ -131,7 +126,6 @@ export function CategoryList() {
   const [isAdvancedFilterOpen, setIsAdvancedFilterOpen] = useState(false)
   const [filters, setFilters] = useState<FilterState>({
     status: [],
-    hasParent: null,
     minRecipes: null,
     maxRecipes: null,
     minMargin: null,
@@ -143,8 +137,6 @@ export function CategoryList() {
     name: "",
     code: "",
     description: "",
-    parentId: undefined,
-    level: 1,
     isActive: true,
     status: "active",
     defaultCostSettings: {
@@ -159,18 +151,6 @@ export function CategoryList() {
   })
   const [filterConditions, setFilterConditions] = useState<FilterCondition[]>([])
   const [selectedCategories, setSelectedCategories] = useState<string[]>([])
-
-  const toggleExpand = (categoryId: string) => {
-    setExpandedCategories(prev => {
-      const newSet = new Set(prev)
-      if (newSet.has(categoryId)) {
-        newSet.delete(categoryId)
-      } else {
-        newSet.add(categoryId)
-      }
-      return newSet
-    })
-  }
 
   const handleEdit = (category: CategoryFormData) => {
     setSelectedCategory(category)
@@ -191,8 +171,6 @@ export function CategoryList() {
       name: "",
       code: "",
       description: "",
-      parentId: undefined,
-      level: 1,
       isActive: true,
       status: "active",
       defaultCostSettings: {
@@ -211,21 +189,19 @@ export function CategoryList() {
   const handleSave = async () => {
     // Here you would typically make an API call to save the category
     console.log("Saving category:", formData)
-    
+
     if (isEditDialogOpen) {
       setIsEditDialogOpen(false)
     } else {
       setIsCreateDialogOpen(false)
     }
-    
+
     // Reset form
     setFormData({
       id: "",
       name: "",
       code: "",
       description: "",
-      parentId: undefined,
-      level: 1,
       isActive: true,
       status: "active",
       defaultCostSettings: {
@@ -290,8 +266,6 @@ export function CategoryList() {
     if (quickFilters.length > 0) {
       if (quickFilters.includes('noRecipes') && (category.recipeCount ?? 0) > 0) return false
       if (quickFilters.includes('hasRecipes') && (category.recipeCount ?? 0) === 0) return false
-      if (quickFilters.includes('topLevel') && category.parentId !== null && category.parentId !== undefined) return false
-      if (quickFilters.includes('subLevel') && (category.parentId === null || category.parentId === undefined)) return false
     }
 
     // Advanced filters
@@ -328,18 +302,7 @@ export function CategoryList() {
 
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      const allIds = filteredCategories.reduce((acc: string[], category) => {
-        acc.push(category.id)
-        // Also include all child categories
-        const getAllChildIds = (parentId: string): string[] => {
-          const children = categories.filter(c => c.parentId === parentId)
-          return children.reduce((childAcc: string[], child) => {
-            return [...childAcc, child.id, ...getAllChildIds(child.id)]
-          }, [])
-        }
-        return [...acc, ...getAllChildIds(category.id)]
-      }, [])
-      setSelectedCategories(allIds)
+      setSelectedCategories(filteredCategories.map(category => category.id))
     } else {
       setSelectedCategories([])
     }
@@ -353,84 +316,57 @@ export function CategoryList() {
     }
   }
 
-  const renderCategoryRow = (category: CategoryFormData, depth = 0): JSX.Element => {
-    const isExpanded = expandedCategories.has(category.id)
-    const childCategories = categories.filter(c => c.parentId === category.id)
-    const hasChildren = childCategories.length > 0
-
+  const renderCategoryRow = (category: CategoryFormData): JSX.Element => {
     return (
-      <>
-        <TableRow key={category.id} role="treeitem" aria-expanded={hasChildren ? isExpanded : undefined}>
-          <TableCell>
-            <Checkbox
-              checked={selectedCategories.includes(category.id)}
-              onCheckedChange={(checked) => handleSelect(category.id, checked as boolean)}
-            />
-          </TableCell>
-          <TableCell className="font-medium">
-            <div className="flex items-center">
-              {hasChildren && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mr-2 p-2 h-11 w-11"
-                  onClick={() => toggleExpand(category.id)}
-                  aria-label={isExpanded ? `Collapse ${category.name}` : `Expand ${category.name}`}
-                >
-                  {isExpanded ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </Button>
-              )}
-              <span style={{ marginLeft: `${depth * 24}px` }}>{category.name}</span>
-            </div>
-          </TableCell>
-          <TableCell>{category.code}</TableCell>
-          <TableCell>{category.description}</TableCell>
-          <TableCell>
-            <Badge variant={category.status === "active" ? "default" : "secondary"}>
-              {category.status}
-            </Badge>
-          </TableCell>
-          <TableCell className="text-right">{category.recipeCount ?? 0}</TableCell>
-          <TableCell className="text-right">{category.activeRecipeCount ?? 0}</TableCell>
-          <TableCell className="text-right">${(category.averageCost ?? 0).toFixed(2)}</TableCell>
-          <TableCell className="text-right">{(category.averageMargin ?? 0).toFixed(1)}%</TableCell>
-          <TableCell>{category.lastUpdated ?? 'N/A'}</TableCell>
-          <TableCell>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-11 w-11 p-2"
-                  aria-label={`Actions for ${category.name}`}
-                >
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => handleEdit(category)}>
-                  <Edit className="mr-2 h-4 w-4" />
-                  <span>Edit</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleDelete(category)}>
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </TableCell>
-        </TableRow>
-        {isExpanded && childCategories.map(child => renderCategoryRow(child, depth + 1))}
-      </>
+      <TableRow key={category.id}>
+        <TableCell>
+          <Checkbox
+            checked={selectedCategories.includes(category.id)}
+            onCheckedChange={(checked) => handleSelect(category.id, checked as boolean)}
+          />
+        </TableCell>
+        <TableCell className="font-medium">{category.name}</TableCell>
+        <TableCell>{category.code}</TableCell>
+        <TableCell>{category.description}</TableCell>
+        <TableCell>
+          <Badge variant={category.status === "active" ? "default" : "secondary"}>
+            {category.status}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-right">{category.recipeCount ?? 0}</TableCell>
+        <TableCell className="text-right">{category.activeRecipeCount ?? 0}</TableCell>
+        <TableCell className="text-right">${(category.averageCost ?? 0).toFixed(2)}</TableCell>
+        <TableCell className="text-right">{(category.averageMargin ?? 0).toFixed(1)}%</TableCell>
+        <TableCell>{category.lastUpdated ?? 'N/A'}</TableCell>
+        <TableCell>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-11 w-11 p-2"
+                aria-label={`Actions for ${category.name}`}
+              >
+                <MoreVertical className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => handleEdit(category)}>
+                <Edit className="mr-2 h-4 w-4" />
+                <span>Edit</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => handleDelete(category)}>
+                <Trash2 className="mr-2 h-4 w-4" />
+                <span>Delete</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </TableCell>
+      </TableRow>
     )
   }
 
-  const rootCategories = categories.filter(category => !category.parentId)
-  const filteredCategories = rootCategories
+  const filteredCategories = categories
     .filter(category =>
       (category.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
        category.code?.toLowerCase().includes(searchTerm.toLowerCase())) &&
@@ -520,24 +456,6 @@ export function CategoryList() {
                 aria-pressed={quickFilters.includes('hasRecipes')}
               >
                 Has Recipes
-              </Button>
-              <Button
-                variant={quickFilters.includes('topLevel') ? 'default' : 'outline'}
-                size="sm"
-                className="h-11 px-4"
-                onClick={() => handleQuickFilter('topLevel')}
-                aria-pressed={quickFilters.includes('topLevel')}
-              >
-                Top Level
-              </Button>
-              <Button
-                variant={quickFilters.includes('subLevel') ? 'default' : 'outline'}
-                size="sm"
-                className="h-11 px-4"
-                onClick={() => handleQuickFilter('subLevel')}
-                aria-pressed={quickFilters.includes('subLevel')}
-              >
-                Sub Level
               </Button>
             </div>
 
@@ -713,7 +631,7 @@ export function CategoryList() {
       </div>
 
       {/* Categories Table */}
-      <div className="border rounded-lg" role="tree" aria-label="Recipe categories table">
+      <div className="border rounded-lg">
         <Table>
           <TableHeader>
             <TableRow>
@@ -789,41 +707,20 @@ export function CategoryList() {
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="parent">Parent Category</Label>
-                <Select
-                  value={formData.parentId || "none"}
-                  onValueChange={(value) => setFormData({ ...formData, parentId: value === "none" ? undefined : value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select parent category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.id} value={category.id}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value: 'active' | 'inactive') => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-4">
               <h4 className="font-medium">Default Cost Settings</h4>

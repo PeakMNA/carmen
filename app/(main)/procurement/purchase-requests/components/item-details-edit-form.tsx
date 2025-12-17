@@ -50,6 +50,7 @@ import { PendingPurchaseOrdersComponent } from "./pending-purchase-orders";
 import { PricingFormComponent } from "./pricing-form";
 import StatusBadge from "@/components/ui/custom-status-badge";
 import { PurchaseRequestItem, PRStatus, WorkflowStatus, PurchaseRequestPriority } from "@/lib/types";
+import { mockCurrencies } from "@/lib/mock-data";
 
 // Type for button state (not in central types)
 type ConsolidatedButtonState = {
@@ -74,6 +75,7 @@ type ExtendedPurchaseRequestItem = PurchaseRequestItem & {
   event?: string;
   project?: string;
   marketSegment?: string;
+  currency?: string;
 };
 import { useSimpleUser } from "@/lib/context/simple-user-context";
 
@@ -180,6 +182,9 @@ type ItemDetailsFormProps = {
   onModeChange: (mode: "view" | "edit" | "add") => void;
 };
 
+// Get base currency from mock data
+const baseCurrency = mockCurrencies.find(c => c.isBaseCurrency)?.code || 'USD';
+
 const emptyItemData: ExtendedPurchaseRequestItem = {
   id: "",
   requestId: "",
@@ -204,6 +209,7 @@ const emptyItemData: ExtendedPurchaseRequestItem = {
   event: "",
   project: "",
   marketSegment: "",
+  currency: baseCurrency,
 };
 
 export function ItemDetailsEditForm({
@@ -440,7 +446,7 @@ export function ItemDetailsEditForm({
                   <h3 className="text-lg font-semibold">Basic Information</h3>
                   <StatusBadge status={formData.status} />
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-7 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-8 gap-2">
                   <FormField id="location" label="Location" required fieldPermission={fieldPermissions.location}>
                     <Input
                       id="location"
@@ -451,6 +457,29 @@ export function ItemDetailsEditForm({
                       disabled={mode === "view"}
                       className="h-8 text-sm"
                     />
+                  </FormField>
+                  <FormField id="currency" label="Currency">
+                    {mode === "view" ? (
+                      <div className="mt-1 text-sm">
+                        {formData.currency || baseCurrency}
+                      </div>
+                    ) : (
+                      <Select
+                        value={formData.currency || baseCurrency}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+                      >
+                        <SelectTrigger className="h-8 text-sm">
+                          <SelectValue placeholder="Select currency" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {mockCurrencies.filter(c => c.isActive).map((currency) => (
+                            <SelectItem key={currency.code} value={currency.code}>
+                              {currency.code} {currency.isBaseCurrency && "(Base)"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </FormField>
                   <div className="sm:col-span-2">
                   <FormField id="itemName" label="Product name" required fieldPermission={fieldPermissions.product}>
@@ -713,9 +742,9 @@ export function ItemDetailsEditForm({
                           <SelectItem value="JOB001">JOB001 - Office Renovation</SelectItem>
                           <SelectItem value="JOB002">JOB002 - Kitchen Upgrade</SelectItem>
                           <SelectItem value="JOB003">JOB003 - IT Infrastructure</SelectItem>
-                          <SelectItem value="FB-2023-001">FB-2023-001 - Food & Beverage</SelectItem>
-                          <SelectItem value="HK-2023-001">HK-2023-001 - Housekeeping</SelectItem>
-                          <SelectItem value="MAINT-2023-001">MAINT-2023-001 - Maintenance</SelectItem>
+                          <SelectItem value="FB-2310-001">FB-2310-001 - Food & Beverage</SelectItem>
+                          <SelectItem value="HK-2310-001">HK-2310-001 - Housekeeping</SelectItem>
+                          <SelectItem value="MAINT-2310-001">MAINT-2310-001 - Maintenance</SelectItem>
                         </SelectContent>
                       </Select>
                     )}

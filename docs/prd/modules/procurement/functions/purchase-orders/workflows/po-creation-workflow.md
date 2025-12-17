@@ -273,7 +273,7 @@ interface GroupedItemData {
 const sampleData: PurchaseRequest[] = [
   {
     id: 'sample-pr-001',
-    refNumber: 'PR-2023-001',
+    refNumber: 'PR-2301-0001',
     vendor: 'Office Supplies Co.',
     vendorId: 1,
     currency: 'USD',

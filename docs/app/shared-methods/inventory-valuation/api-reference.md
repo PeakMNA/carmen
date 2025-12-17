@@ -6,6 +6,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ## Overview
@@ -361,7 +362,7 @@ console.log(receipts.length) // 4 receipts in January
 console.log(receipts[0])
 // {
 //   grnId: 'GRN-001',
-//   grnNumber: 'GRN-2025-001',
+//   grnNumber: 'GRN-2501-0001',
 //   itemId: 'ITEM-12345',
 //   receiptDate: Date('2025-01-05'),
 //   quantity: 100,

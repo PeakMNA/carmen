@@ -77,11 +77,11 @@ const unitSchema = z.object({
   description: z.string()
     .max(200, "Description must not exceed 200 characters")
     .optional(),
-  type: z.enum(["INVENTORY", "ORDER", "RECIPE"], {
+  type: z.enum(["INVENTORY", "ORDER", "RECIPE", "MEASURE"], {
     required_error: "Please select a unit type",
     invalid_type_error: "Invalid unit type selected",
   }),
-  category: z.enum(["weight", "volume", "length", "count", "time", "temperature"], {
+  category: z.enum(["weight", "volume", "length", "count", "time", "temperature", "serving"], {
     required_error: "Please select a unit category",
     invalid_type_error: "Invalid unit category selected",
   }),
@@ -513,7 +513,13 @@ export function EnhancedUnitForm({
                               </SelectItem>
                               <SelectItem value="RECIPE">
                                 <div className="flex flex-col items-start">
-                                  <span className="flex items-center gap-2">👨‍🍳 Recipe</span>
+                                  <span className="flex items-center gap-2">🍽️ Recipe</span>
+                                  <span className="text-xs text-muted-foreground">Serving units (SERVING, PORTION)</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="MEASURE">
+                                <div className="flex flex-col items-start">
+                                  <span className="flex items-center gap-2">🥄 Measure</span>
                                   <span className="text-xs text-muted-foreground">For food prep (TSP, TBSP, CUP)</span>
                                 </div>
                               </SelectItem>
@@ -535,7 +541,7 @@ export function EnhancedUnitForm({
                         <FormItem>
                           <div className="flex items-center gap-2">
                             <FormLabel className="text-sm font-medium">Measurement Category *</FormLabel>
-                            <FieldHelp content="Physical measurement category: Weight, Volume, Length, Count, Time, or Temperature." />
+                            <FieldHelp content="Physical measurement category: Weight, Volume, Length, Count, Time, Temperature, or Serving." />
                           </div>
                           <Select
                             onValueChange={field.onChange}
@@ -582,6 +588,12 @@ export function EnhancedUnitForm({
                                 <div className="flex flex-col items-start">
                                   <span>Temperature</span>
                                   <span className="text-xs text-muted-foreground">Temperature measurements</span>
+                                </div>
+                              </SelectItem>
+                              <SelectItem value="serving">
+                                <div className="flex flex-col items-start">
+                                  <span>Serving</span>
+                                  <span className="text-xs text-muted-foreground">Portion/serving measurements</span>
                                 </div>
                               </SelectItem>
                             </SelectContent>

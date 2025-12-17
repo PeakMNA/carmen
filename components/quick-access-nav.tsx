@@ -25,7 +25,7 @@ interface QuickLink {
 const quickLinks: QuickLink[] = [
   {
     name: "POS Transactions",
-    path: "/system-administration/system-integrations/pos/transactions",
+    path: "/system-administration/system-integration/pos/transactions",
     icon: FileText,
     description: "View and manage POS transactions"
   },
@@ -43,7 +43,7 @@ const quickLinks: QuickLink[] = [
   },
   {
     name: "POS Integration",
-    path: "/system-administration/system-integrations/pos",
+    path: "/system-administration/system-integration/pos",
     icon: ShoppingCart,
     description: "Configure POS system integrations"
   },

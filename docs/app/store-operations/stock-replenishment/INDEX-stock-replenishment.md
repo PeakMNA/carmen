@@ -117,9 +117,9 @@ Hotels face challenges maintaining optimal inventory levels across multiple oper
 
 ---
 
-### 3. Replenishment Request Creation
+### 3. Transfer Request Creation
 **Owner**: Store Manager
-**Description**: Create formal replenishment requests either from system recommendations or manually for ad-hoc needs.
+**Description**: Create formal transfer requests either from system recommendations or manually for ad-hoc needs.
 
 **Process Steps**:
 1. Review dashboard recommendations
@@ -248,12 +248,12 @@ Hotels face challenges maintaining optimal inventory levels across multiple oper
 - Includes reorder points, minimum levels, safety stock
 - Tracks approval status and justification for changes
 
-**Replenishment Request** (`tb_replenishment_request`)
+**Transfer Request** (`tb_replenishment_request`)
 - Request header with status, priority, dates
 - Links to approval workflow instances
 - Tracks total value and estimated costs
 
-**Replenishment Request Detail** (`tb_replenishment_request_detail`)
+**Transfer Request Detail** (`tb_replenishment_request_detail`)
 - Individual line items with requested quantities
 - Approved vs requested quantity tracking
 - Item-level notes and rejection reasons
@@ -364,8 +364,8 @@ Hotels face challenges maintaining optimal inventory levels across multiple oper
 **Inventory Monitoring** (3 actions):
 - `monitorInventoryLevels()`, `generateReplenishmentRecommendations()`, `getActiveAlerts()`
 
-**Replenishment Requests** (4 actions):
-- `createReplenishmentRequest()`, `submitReplenishmentRequest()`, `approveReplenishmentRequest()`, `getReplenishmentRequests()`
+**Transfer Requests** (4 actions):
+- `createTransferRequest()`, `submitTransferRequest()`, `approveTransferRequest()`, `getTransferRequests()`
 
 **Stock Transfers** (4 actions):
 - `createStockTransfer()`, `updateTransferStatus()`, `confirmTransferReceipt()`, `getStockTransfers()`

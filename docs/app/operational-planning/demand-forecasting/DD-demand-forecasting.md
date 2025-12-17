@@ -20,6 +20,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-12-05 | Documentation Team | Initial version |
 
 ---
@@ -265,7 +266,7 @@ erDiagram
 | stockLevelTrend | object | Stock metrics | See below |
 | costTrend | object | Cost analysis | See below |
 | supplierPerformance | object | Supplier metrics | See below |
-| recommendations | string[] | Action recommendations | ["Increase reorder point"] |
+| recommendations | string[] | Action recommendations | ['Increase reorder point'] |
 
 **analysisPeriod Object**:
 | Field | Type | Description |

@@ -49,7 +49,7 @@ interface VendorPricelistsSectionProps {
 const mockVendorPricelists: VendorPricelist[] = [
   {
     id: 'pl-001',
-    pricelistNumber: 'PL-2024-001',
+    pricelistNumber: 'PL-2410-001',
     name: 'Q2 2024 Standard Pricing',
     description: 'Standard pricing for Q2 2024 across all product categories',
     startDate: '2024-04-01',
@@ -69,7 +69,7 @@ const mockVendorPricelists: VendorPricelist[] = [
   },
   {
     id: 'pl-002',
-    pricelistNumber: 'PL-2024-002',
+    pricelistNumber: 'PL-2410-002',
     name: 'Summer Sale 2024',
     description: 'Special summer promotional pricing with volume discounts',
     startDate: '2024-06-01',
@@ -89,7 +89,7 @@ const mockVendorPricelists: VendorPricelist[] = [
   },
   {
     id: 'pl-003',
-    pricelistNumber: 'PL-2024-003',
+    pricelistNumber: 'PL-2410-003',
     name: 'Q1 2024 Pricing',
     description: 'Q1 2024 pricing - now expired',
     startDate: '2024-01-01',
@@ -109,7 +109,7 @@ const mockVendorPricelists: VendorPricelist[] = [
   },
   {
     id: 'pl-004',
-    pricelistNumber: 'PL-2024-004',
+    pricelistNumber: 'PL-2410-004',
     name: 'Q3 2024 Draft Pricing',
     description: 'Draft pricing for Q3 2024 - pending approval',
     startDate: '2024-07-01',

@@ -61,14 +61,14 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph "Inbound (IN)"
+    subgraph 'Inbound (IN)'
         A1[GRN - Goods Received]
         A2[TRF - Transfer In]
         A3[PO - Purchase Order]
         A4[PC - Physical Count +]
     end
 
-    subgraph "Outbound (OUT)"
+    subgraph 'Outbound (OUT)'
         B1[SO - Sales Order]
         B2[TRF - Transfer Out]
         B3[SR - Store Requisition]
@@ -76,7 +76,7 @@ flowchart LR
         B5[WR - Wastage Report]
     end
 
-    subgraph "Adjustment"
+    subgraph 'Adjustment'
         C1[ADJ - Manual Adjustment]
         C2[PC - Physical Count]
         C3[WO - Write Off]

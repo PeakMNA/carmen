@@ -39,10 +39,10 @@ export function DepartmentList() {
     }
   }
 
-  const getManagerName = (managerId?: string) => {
-    if (!managerId) return 'Not assigned'
-    const manager = mockUsers.find(user => user.id === managerId)
-    return manager ? manager.name : 'Not assigned'
+  const getManagerNames = (managerIds?: string[]) => {
+    if (!managerIds || managerIds.length === 0) return 'Not assigned'
+    const managers = mockUsers.filter(user => managerIds.includes(user.id))
+    return managers.length > 0 ? managers.map(m => m.name).join(', ') : 'Not assigned'
   }
 
   return (
@@ -112,7 +112,7 @@ export function DepartmentList() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm">
-                        {getManagerName(dept.manager)}
+                        {getManagerNames(dept.managers)}
                       </div>
                     </TableCell>
                     <TableCell>

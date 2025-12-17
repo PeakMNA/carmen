@@ -10,6 +10,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-13 | Development Team | Initial technical specification |
 
 ---
@@ -309,7 +310,7 @@ model DepartmentApprovalConfig {
   //     minAmount: 0,
   //     maxAmount: 2500,
   //     currency: "USD",
-  //     approvers: [{approverType: "user", approverId: "user123", priorityOrder: 1}],
+  //     approvers: [{approverType: 'user', approverId: 'user123', priorityOrder: 1}],
   //     approvalRequired: 1,
   //     timeoutHours: 24,
   //     escalateOnTimeout: true
@@ -859,12 +860,12 @@ export const departmentHeadSchema = z.object({
 {
   "target": {
     "subjects": [
-      {"type": "user_attribute", "attribute": "department", "operator": "equals", "value": "${resource.department}"}
+      {'type': 'user_attribute', 'attribute': 'department', 'operator': 'equals', 'value': '${resource.department}'}
     ],
     "resources": [
-      {"type": "purchase_request", "attributes": {"department": {"operator": "exists"}}}
+      {'type': 'purchase_request', 'attributes': {'department': {'operator': 'exists'}}}
     ],
-    "actions": ["view", "edit"]
+    "actions": ['view', 'edit']
   },
   "rules": [
     {

@@ -10,6 +10,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Carmen ERP Documentation Team | Initial version |
 
 
@@ -210,7 +211,7 @@ Currency Decimal Places: 0
 **Purchase Invoice in Foreign Currency**:
 ```yaml
 Transaction: Purchase Invoice
-Invoice Number: INV-UK-2025-00123
+Invoice Number: INV-UK-2501-00123
 Date: 2025-11-12
 Vendor: Fresh Farm Suppliers (UK)
 Transaction Currency: GBP

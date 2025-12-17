@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-10 | Development Team | Initial technical specification based on source code analysis |
 
 ---
@@ -37,31 +38,31 @@ The Inventory Overview module serves as the central command center for inventory
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         Browser[Web Browser]
         Mobile[Mobile Browser]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         NextJS[Next.js 14+ App Router]
         React[React Components]
         DragDrop[React Beautiful DnD]
         Charts[Recharts Library]
     end
 
-    subgraph "State Management"
+    subgraph 'State Management'
         UserContext[User Context Provider]
         LocationState[Location Filter State]
         DashboardState[Dashboard Layout State]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         MockData[Mock Data Layer]
         LocationInventory[Location Inventory Data]
         AggregateMetrics[Metric Aggregation Logic]
     end
 
-    subgraph "Business Logic"
+    subgraph 'Business Logic'
         PerformanceCalc[Performance Calculations]
         TransferSuggestions[Transfer Optimization]
         AlertGeneration[Alert Generation]
@@ -296,31 +297,31 @@ graph TD
 
 ```mermaid
 flowchart TD
-    Start([User accesses<br/>Inventory Dashboard]) --> LoadLayout{Saved layout<br/>exists?}
+    Start([User accesses<br>Inventory Dashboard]) --> LoadLayout{Saved layout<br>exists?}
 
-    LoadLayout -->|Yes| LoadSaved[Load saved layout<br/>from localStorage]
-    LoadLayout -->|No| LoadDefault[Load default<br/>widget arrangement]
+    LoadLayout -->|Yes| LoadSaved[Load saved layout<br>from localStorage]
+    LoadLayout -->|No| LoadDefault[Load default<br>widget arrangement]
 
-    LoadSaved --> DisplayWidgets[Display dashboard<br/>with widgets]
+    LoadSaved --> DisplayWidgets[Display dashboard<br>with widgets]
     LoadDefault --> DisplayWidgets
 
     DisplayWidgets --> UserAction{User action}
 
-    UserAction -->|View data| InteractWidget[Interact with charts<br/>and metrics]
+    UserAction -->|View data| InteractWidget[Interact with charts<br>and metrics]
     UserAction -->|Rearrange| StartDrag[User drags widget]
-    UserAction -->|Navigate| QuickNav[Click quick<br/>navigation button]
+    UserAction -->|Navigate| QuickNav[Click quick<br>navigation button]
 
-    InteractWidget --> TooltipView[View tooltips<br/>and details]
+    InteractWidget --> TooltipView[View tooltips<br>and details]
     TooltipView --> UserAction
 
-    StartDrag --> DragOver[Drag over<br/>drop target]
-    DragOver --> Drop[Drop widget<br/>in new position]
+    StartDrag --> DragOver[Drag over<br>drop target]
+    DragOver --> Drop[Drop widget<br>in new position]
     Drop --> UpdateGrid[Update grid layout]
-    UpdateGrid --> SaveLayout[Save layout to<br/>localStorage]
-    SaveLayout --> Rerender[Re-render dashboard<br/>with new order]
+    UpdateGrid --> SaveLayout[Save layout to<br>localStorage]
+    SaveLayout --> Rerender[Re-render dashboard<br>with new order]
     Rerender --> UserAction
 
-    QuickNav --> NavigateReport[Navigate to<br/>detailed report]
+    QuickNav --> NavigateReport[Navigate to<br>detailed report]
     NavigateReport --> End([End])
 ```
 
@@ -328,50 +329,50 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User navigates to<br/>Stock Overview]) --> CheckPermissions[Check user's<br/>available locations]
+    Start([User navigates to<br>Stock Overview]) --> CheckPermissions[Check user's<br>available locations]
 
-    CheckPermissions --> FilterLocations[Filter location list<br/>by permissions]
+    CheckPermissions --> FilterLocations[Filter location list<br>by permissions]
 
     FilterLocations --> DefaultView{User role}
-    DefaultView -->|Admin| ShowAll[Default to<br/>All Locations view]
-    DefaultView -->|Other| ShowFirst[Default to first<br/>accessible location]
+    DefaultView -->|Admin| ShowAll[Default to<br>All Locations view]
+    DefaultView -->|Other| ShowFirst[Default to first<br>accessible location]
 
-    ShowAll --> LoadData[Load inventory data<br/>for selected scope]
+    ShowAll --> LoadData[Load inventory data<br>for selected scope]
     ShowFirst --> LoadData
 
-    LoadData --> AggregateMetrics[Aggregate metrics:<br/>Total Items, Value,<br/>Alerts]
+    LoadData --> AggregateMetrics[Aggregate metrics:<br>Total Items, Value,<br>Alerts]
 
-    AggregateMetrics --> DisplaySummary[Display summary<br/>metric cards]
+    AggregateMetrics --> DisplaySummary[Display summary<br>metric cards]
 
     DisplaySummary --> DisplayTabs[Display tabbed interface]
 
     DisplayTabs --> TabChoice{User selects tab}
 
-    TabChoice -->|Overview| ShowCharts[Show stock distribution<br/>charts]
-    TabChoice -->|Performance| ShowPerformance[Show location<br/>performance comparison]
-    TabChoice -->|Transfers| ShowTransfers[Show transfer<br/>suggestions]
+    TabChoice -->|Overview| ShowCharts[Show stock distribution<br>charts]
+    TabChoice -->|Performance| ShowPerformance[Show location<br>performance comparison]
+    TabChoice -->|Transfers| ShowTransfers[Show transfer<br>suggestions]
 
-    ShowCharts --> ChartInteraction[User interacts<br/>with charts]
+    ShowCharts --> ChartInteraction[User interacts<br>with charts]
     ChartInteraction --> LocationChange
 
-    ShowPerformance --> CalcScores[Calculate performance<br/>scores for locations]
-    CalcScores --> DisplayScores[Display scores with<br/>color-coded badges]
+    ShowPerformance --> CalcScores[Calculate performance<br>scores for locations]
+    CalcScores --> DisplayScores[Display scores with<br>color-coded badges]
     DisplayScores --> LocationChange
 
-    ShowTransfers --> GenSuggestions[Generate AI transfer<br/>suggestions]
-    GenSuggestions --> RankSuggestions[Rank by potential<br/>savings]
-    RankSuggestions --> DisplaySuggestions[Display top 20<br/>suggestions]
+    ShowTransfers --> GenSuggestions[Generate AI transfer<br>suggestions]
+    GenSuggestions --> RankSuggestions[Rank by potential<br>savings]
+    RankSuggestions --> DisplaySuggestions[Display top 20<br>suggestions]
     DisplaySuggestions --> TransferAction{User action}
 
-    TransferAction -->|Create Transfer| InitiateTransfer[Initiate stock<br/>movement workflow]
+    TransferAction -->|Create Transfer| InitiateTransfer[Initiate stock<br>movement workflow]
     TransferAction -->|Change Location| LocationChange
 
     InitiateTransfer --> End([End])
 
-    LocationChange[User changes<br/>location selector] --> LoadData
+    LocationChange[User changes<br>location selector] --> LoadData
 
-    DisplaySuggestions --> QuickNavClick{Click quick<br/>navigation?}
-    QuickNavClick -->|Yes| NavToReport[Navigate to<br/>detailed report]
+    DisplaySuggestions --> QuickNavClick{Click quick<br>navigation?}
+    QuickNavClick -->|Yes| NavToReport[Navigate to<br>detailed report]
     QuickNavClick -->|No| LocationChange
 
     NavToReport --> End
@@ -381,42 +382,42 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Performance tab<br/>selected]) --> LoadLocations[Load all accessible<br/>locations]
+    Start([Performance tab<br>selected]) --> LoadLocations[Load all accessible<br>locations]
 
-    LoadLocations --> CalcMetrics[For each location<br/>calculate:]
+    LoadLocations --> CalcMetrics[For each location<br>calculate:]
 
-    CalcMetrics --> StockEff[Stock Efficiency =<br/>Available/Capacity × 100]
-    CalcMetrics --> TurnoverRate[Turnover Rate =<br/>COGS/Avg Inventory]
-    CalcMetrics --> FillRate[Fill Rate =<br/>Fulfilled/Total Orders × 100]
+    CalcMetrics --> StockEff[Stock Efficiency =<br>Available/Capacity × 100]
+    CalcMetrics --> TurnoverRate[Turnover Rate =<br>COGS/Avg Inventory]
+    CalcMetrics --> FillRate[Fill Rate =<br>Fulfilled/Total Orders × 100]
 
-    StockEff --> ClassifyPerf[Apply performance<br/>classification algorithm]
+    StockEff --> ClassifyPerf[Apply performance<br>classification algorithm]
     TurnoverRate --> ClassifyPerf
     FillRate --> ClassifyPerf
 
     ClassifyPerf --> CheckThresholds{Check thresholds}
 
-    CheckThresholds -->|Eff≥90 & Turn≥8<br/>& Fill≥95| Excellent[Performance:<br/>Excellent]
-    CheckThresholds -->|Eff≥80 & Turn≥6<br/>& Fill≥90| Good[Performance:<br/>Good]
-    CheckThresholds -->|Eff≥70 & Turn≥4<br/>& Fill≥85| Average[Performance:<br/>Average]
-    CheckThresholds -->|Below thresholds| Poor[Performance:<br/>Poor]
+    CheckThresholds -->|Eff≥90 & Turn≥8<br>& Fill≥95| Excellent[Performance:<br>Excellent]
+    CheckThresholds -->|Eff≥80 & Turn≥6<br>& Fill≥90| Good[Performance:<br>Good]
+    CheckThresholds -->|Eff≥70 & Turn≥4<br>& Fill≥85| Average[Performance:<br>Average]
+    CheckThresholds -->|Below thresholds| Poor[Performance:<br>Poor]
 
-    Excellent --> AssignBadge[Assign color-coded<br/>badge]
+    Excellent --> AssignBadge[Assign color-coded<br>badge]
     Good --> AssignBadge
     Average --> AssignBadge
     Poor --> AssignBadge
 
-    AssignBadge --> DisplayChart[Display comparison<br/>bar chart]
+    AssignBadge --> DisplayChart[Display comparison<br>bar chart]
 
-    DisplayChart --> DisplayTable[Display detailed<br/>metrics table]
+    DisplayChart --> DisplayTable[Display detailed<br>metrics table]
 
-    DisplayTable --> SortOption{User sorts<br/>table?}
+    DisplayTable --> SortOption{User sorts<br>table?}
 
-    SortOption -->|Yes| ApplySort[Apply sort to<br/>selected column]
+    SortOption -->|Yes| ApplySort[Apply sort to<br>selected column]
     SortOption -->|No| FilterOption
 
     ApplySort --> DisplayTable
 
-    FilterOption{User filters<br/>by performance?} -->|Yes| ApplyFilter[Filter to selected<br/>performance level]
+    FilterOption{User filters<br>by performance?} -->|Yes| ApplyFilter[Filter to selected<br>performance level]
     FilterOption -->|No| End([End])
 
     ApplyFilter --> DisplayTable
@@ -426,48 +427,48 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Transfers tab<br/>selected]) --> LoadInventory[Load inventory data<br/>for all locations]
+    Start([Transfers tab<br>selected]) --> LoadInventory[Load inventory data<br>for all locations]
 
-    LoadInventory --> AnalyzeStocks[For each item,<br/>analyze stock levels<br/>across locations]
+    LoadInventory --> AnalyzeStocks[For each item,<br>analyze stock levels<br>across locations]
 
-    AnalyzeStocks --> CheckImbalance{Stock imbalance<br/>detected?}
+    AnalyzeStocks --> CheckImbalance{Stock imbalance<br>detected?}
 
     CheckImbalance -->|No| NextItem[Move to next item]
     CheckImbalance -->|Yes| CheckConditions{Condition type}
 
-    CheckConditions -->|Qty < 10% reorder<br/>OR expiry ≤ 3 days| HighPriority[Priority: High<br/>Reason: Stockout risk<br/>or Expiry risk]
+    CheckConditions -->|Qty < 10% reorder<br>OR expiry ≤ 3 days| HighPriority[Priority: High<br>Reason: Stockout risk<br>or Expiry risk]
 
-    CheckConditions -->|Qty ≤ reorder<br/>OR expiry ≤ 7 days| MedPriority[Priority: Medium<br/>Reason: Approaching stockout<br/>or Expiring soon]
+    CheckConditions -->|Qty ≤ reorder<br>OR expiry ≤ 7 days| MedPriority[Priority: Medium<br>Reason: Approaching stockout<br>or Expiring soon]
 
-    CheckConditions -->|Excess at A<br/>Normal at B| LowPriority[Priority: Low<br/>Reason: Optimization<br/>opportunity]
+    CheckConditions -->|Excess at A<br>Normal at B| LowPriority[Priority: Low<br>Reason: Optimization<br>opportunity]
 
-    HighPriority --> CalcSavings[Calculate potential<br/>savings]
+    HighPriority --> CalcSavings[Calculate potential<br>savings]
     MedPriority --> CalcSavings
     LowPriority --> CalcSavings
 
-    CalcSavings --> CreateSuggestion[Create transfer<br/>suggestion record]
+    CalcSavings --> CreateSuggestion[Create transfer<br>suggestion record]
 
-    CreateSuggestion --> MoreItems{More items<br/>to analyze?}
+    CreateSuggestion --> MoreItems{More items<br>to analyze?}
 
     MoreItems -->|Yes| NextItem
-    MoreItems -->|No| RankSuggestions[Rank suggestions by<br/>potential savings]
+    MoreItems -->|No| RankSuggestions[Rank suggestions by<br>potential savings]
 
     NextItem --> AnalyzeStocks
 
-    RankSuggestions --> TopTwenty[Select top 20<br/>suggestions]
+    RankSuggestions --> TopTwenty[Select top 20<br>suggestions]
 
-    TopTwenty --> DisplayList[Display in table<br/>with action buttons]
+    TopTwenty --> DisplayList[Display in table<br>with action buttons]
 
     DisplayList --> UserAction{User action}
 
-    UserAction -->|Create Transfer| ValidateTransfer[Validate transfer<br/>is still applicable]
+    UserAction -->|Create Transfer| ValidateTransfer[Validate transfer<br>is still applicable]
     UserAction -->|Refresh| LoadInventory
 
-    ValidateTransfer --> InitiateWorkflow[Initiate stock<br/>movement workflow]
+    ValidateTransfer --> InitiateWorkflow[Initiate stock<br>movement workflow]
 
-    InitiateWorkflow --> NotifyUsers[Notify source and<br/>destination locations]
+    InitiateWorkflow --> NotifyUsers[Notify source and<br>destination locations]
 
-    NotifyUsers --> ShowSuccess[Show success<br/>message]
+    NotifyUsers --> ShowSuccess[Show success<br>message]
 
     ShowSuccess --> End([End])
 ```
@@ -483,42 +484,42 @@ This section provides the complete navigation structure of all pages, tabs, and 
 
 ```mermaid
 graph TD
-    DashboardPage["Dashboard Page<br/>(/inventory-management)"]
-    StockPage["Stock Overview Page<br/>(/inventory-management/stock-overview)"]
+    DashboardPage['Dashboard Page<br>(/inventory-management)']
+    StockPage['Stock Overview Page<br>(/inventory-management/stock-overview)']
 
     %% Dashboard Components
-    DashboardPage --> Widget1["Widget: Inventory Levels<br/>(Bar Chart)"]
-    DashboardPage --> Widget2["Widget: Value Trend<br/>(Line Chart)"]
-    DashboardPage --> Widget3["Widget: Turnover Analysis<br/>(Pie Chart)"]
-    DashboardPage --> Widget4["Widget: Low Stock Alert<br/>(Text Card)"]
-    DashboardPage --> Widget5["Widget: Expiring Soon<br/>(Text Card)"]
-    DashboardPage --> Widget6["Widget: Quick Actions<br/>(Text Card)"]
+    DashboardPage --> Widget1['Widget: Inventory Levels<br>(Bar Chart)']
+    DashboardPage --> Widget2['Widget: Value Trend<br>(Line Chart)']
+    DashboardPage --> Widget3['Widget: Turnover Analysis<br>(Pie Chart)']
+    DashboardPage --> Widget4['Widget: Low Stock Alert<br>(Text Card)']
+    DashboardPage --> Widget5['Widget: Expiring Soon<br>(Text Card)']
+    DashboardPage --> Widget6['Widget: Quick Actions<br>(Text Card)']
 
     %% Stock Overview Tabs
-    StockPage --> Tab1["Tab: Overview"]
-    StockPage --> Tab2["Tab: Performance"]
-    StockPage --> Tab3["Tab: Transfers"]
+    StockPage --> Tab1['Tab: Overview']
+    StockPage --> Tab2['Tab: Performance']
+    StockPage --> Tab3['Tab: Transfers']
 
     %% Tab 1 Components
-    Tab1 --> Tab1Comp1["Component: Summary Cards"]
-    Tab1 --> Tab1Comp2["Component: Stock Distribution Chart"]
-    Tab1 --> Tab1Comp3["Component: Value Distribution Chart"]
+    Tab1 --> Tab1Comp1['Component: Summary Cards']
+    Tab1 --> Tab1Comp2['Component: Stock Distribution Chart']
+    Tab1 --> Tab1Comp3['Component: Value Distribution Chart']
 
     %% Tab 2 Components
-    Tab2 --> Tab2Comp1["Component: Performance Comparison Chart"]
-    Tab2 --> Tab2Comp2["Component: Metrics Table"]
-    Tab2 --> Tab2Comp3["Component: Performance Badges"]
+    Tab2 --> Tab2Comp1['Component: Performance Comparison Chart']
+    Tab2 --> Tab2Comp2['Component: Metrics Table']
+    Tab2 --> Tab2Comp3['Component: Performance Badges']
 
     %% Tab 3 Components
-    Tab3 --> Tab3Comp1["Component: Transfer Suggestions Table"]
-    Tab3 --> Tab3Comp2["Component: Priority Indicators"]
-    Tab3 --> Tab3Comp3["Component: Create Transfer Actions"]
+    Tab3 --> Tab3Comp1['Component: Transfer Suggestions Table']
+    Tab3 --> Tab3Comp2['Component: Priority Indicators']
+    Tab3 --> Tab3Comp3['Component: Create Transfer Actions']
 
     %% Navigation Targets
-    DashboardPage -.-> Nav1["Navigate: Inventory Balance"]
-    DashboardPage -.-> Nav2["Navigate: Stock Cards"]
-    DashboardPage -.-> Nav3["Navigate: Slow Moving"]
-    DashboardPage -.-> Nav4["Navigate: Inventory Aging"]
+    DashboardPage -.-> Nav1['Navigate: Inventory Balance']
+    DashboardPage -.-> Nav2['Navigate: Stock Cards']
+    DashboardPage -.-> Nav3['Navigate: Slow Moving']
+    DashboardPage -.-> Nav4['Navigate: Inventory Aging']
 
     StockPage -.-> Nav1
     StockPage -.-> Nav2

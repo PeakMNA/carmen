@@ -43,11 +43,11 @@ import { Select } from "@/components/ui/select"
 
 // Create an array of sample templates based on the sample PR data
 const templateData: PurchaseRequest[] = [
-  { ...samplePRData, id: "template-001", requestNumber: "TPL-2024-001", notes: "Office Supplies Template" } as any,
-  { ...samplePRData, id: "template-002", requestNumber: "TPL-2024-002", notes: "Kitchen Equipment Template" } as any,
-  { ...samplePRData, id: "template-003", requestNumber: "TPL-2024-003", notes: "Housekeeping Supplies Template" } as any,
-  { ...samplePRData, id: "template-004", requestNumber: "TPL-2024-004", notes: "Maintenance Materials Template" } as any,
-  { ...samplePRData, id: "template-005", requestNumber: "TPL-2024-005", notes: "F&B Ingredients Template" } as any,
+  { ...samplePRData, id: "template-001", requestNumber: "TPL-2410-001", notes: "Office Supplies Template" } as any,
+  { ...samplePRData, id: "template-002", requestNumber: "TPL-2410-002", notes: "Kitchen Equipment Template" } as any,
+  { ...samplePRData, id: "template-003", requestNumber: "TPL-2410-003", notes: "Housekeeping Supplies Template" } as any,
+  { ...samplePRData, id: "template-004", requestNumber: "TPL-2410-004", notes: "Maintenance Materials Template" } as any,
+  { ...samplePRData, id: "template-005", requestNumber: "TPL-2410-005", notes: "F&B Ingredients Template" } as any,
 ]
 
 export default function PRTemplatesPage() {

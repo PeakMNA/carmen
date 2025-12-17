@@ -12,20 +12,20 @@
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         UI[User Management UI]
         Table[Data Table Component]
         Card[Card View Component]
         Form[User Form Dialog]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         Page[page.tsx]
         Components[React Components]
         State[Client State Management]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         DB[(Supabase Database)]
         UserProfile[tb_user_profile]
         DeptUser[tb_department_user]
@@ -138,6 +138,7 @@ graph TD
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 

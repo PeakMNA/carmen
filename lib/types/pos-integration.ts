@@ -276,17 +276,37 @@ export interface TransactionAuditLog {
 
 /**
  * POS item to recipe mapping
+ *
+ * Composite key: posItemId + posOutletId
+ * This allows the same POS item to be mapped differently per outlet
+ * (e.g., "Coke" at $3.00 in Italian Restaurant, $2.50 in Cafe)
  */
 export interface POSMapping extends AuditTimestamp {
   id: string
+
+  // POS Item identification
   posItemId: string
   posItemName: string
   posItemCategory: string
+
+  // POS Outlet (part of composite key)
+  posOutletId: string        // Links to POS outlet
+  posOutletName: string      // e.g., "Italian Restaurant POS"
+
+  // Carmen Location (resolved from outlet mapping)
+  locationId: string         // Carmen location ID
+  locationName: string       // e.g., "Italian Restaurant"
+
+  // Recipe mapping
   recipeId: string
   recipeName: string
   recipeCategory: string
   portionSize: number
   unit: string
+
+  // Pricing (outlet-specific)
+  unitPrice: Money           // Price at this outlet (e.g., $3.00)
+
   costOverride?: number
   notes?: string
   isActive: boolean

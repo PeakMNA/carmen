@@ -268,7 +268,7 @@ The Price Lists module provides a centralized system for managing vendor-submitt
 | id | string | Unique identifier |
 | vendorId | string | Associated vendor ID |
 | priceListName | string | Display name of price list |
-| priceListCode | string | Reference code (e.g., PL-2024-001) |
+| priceListCode | string | Reference code (e.g., PL-2401-0001) |
 | description | string | Description of price list |
 | currency | string | Currency name |
 | currencyCode | string | Currency code (e.g., USD) |

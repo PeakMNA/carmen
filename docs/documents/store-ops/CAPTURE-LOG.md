@@ -39,7 +39,7 @@
 
 1. `/store-operations` - Dashboard
 2. `/store-operations/store-requisitions` - List page (table + card + filters)
-3. `/store-operations/store-requisitions/SR-2024-001` - Detail page (all tabs)
+3. `/store-operations/store-requisitions/SR-2401-0001` - Detail page (all tabs)
 4. `/store-operations/stock-replenishment` - Replenishment dashboard
 5. `/store-operations/wastage-reporting` - Wastage dashboard
 

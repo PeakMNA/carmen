@@ -1,8 +1,15 @@
 /**
  * Inventory Transactions API Routes
- * 
+ *
  * API endpoints for recording and querying inventory transactions
  * including stock receipts, issues, adjustments, and transfers.
+ *
+ * Transaction Code Format: PREFIX-YYMM-NNNN
+ * - PREFIX: Document type (PO = Purchase Order, REQ = Requisition, ADJ = Adjustment, etc.)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: PO-2410-001 = Purchase Order #001 from October 2024
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -111,7 +118,7 @@ export async function GET(request: NextRequest) {
         totalCost: { amount: 1050.00, currency: 'USD' },
         balanceAfter: 100,
         transactionDate: new Date('2024-01-15'),
-        referenceNo: 'PO-2024-001',
+        referenceNo: 'PO-2410-001',
         referenceType: 'PURCHASE_ORDER',
         userId: 'user-001',
         notes: 'Received goods from supplier',

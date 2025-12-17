@@ -53,12 +53,12 @@ import { cn } from "@/lib/utils"
 const mockData = {
   id: "GRN004",
   status: "Pending",
-  ref: "REF-2024-001",
+  ref: "REF-2410-001",
   date: "2024-09-29",
   invoiceDate: "2024-09-29",
-  invoiceNumber: "INV-2024-001",
+  invoiceNumber: "INV-2410-001",
   taxInvoiceDate: "2024-09-30",
-  taxInvoiceNumber: "TAX-2024-001",
+  taxInvoiceNumber: "TAX-2410-001",
   description: "Quarterly stock replenishment for Q4",
   receiver: "Central Warehouse",
   vendor: "Global Supplies Co.",
@@ -252,7 +252,7 @@ export function GoodsReceiveNoteComponent() {
                 onChange={handleInputChange}
                 readOnly={!isEditable}
                 className={cn("h-9", errors.ref && "border-red-500")}
-                placeholder="REF-2024-001"
+                placeholder="REF-2410-001"
               />
               {errors.ref && (
                 <p className="text-sm text-red-500 flex items-center gap-1">
@@ -309,7 +309,7 @@ export function GoodsReceiveNoteComponent() {
                 onChange={handleInputChange}
                 readOnly={!isEditable}
                 className="h-9"
-                placeholder="INV-2024-001"
+                placeholder="INV-2410-001"
               />
             </div>
             
@@ -335,7 +335,7 @@ export function GoodsReceiveNoteComponent() {
                 onChange={handleInputChange}
                 readOnly={!isEditable}
                 className="h-9"
-                placeholder="TAX-2024-001"
+                placeholder="TAX-2410-001"
               />
             </div>
             

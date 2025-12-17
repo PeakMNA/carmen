@@ -101,7 +101,7 @@ This document describes data structures, entities, relationships, and constraint
 | updatedBy | String | Not Null | User ID who last updated policy |
 | validFrom | DateTime | Nullable | Policy effective start date |
 | validTo | DateTime | Nullable | Policy effective end date |
-| tags | String[] | Default [] | Tags for categorization (e.g., ["approval", "kitchen", "purchase"]) |
+| tags | String[] | Default [] | Tags for categorization (e.g., ['approval', 'kitchen', 'purchase']) |
 | createdAt | DateTime | Not Null, Auto | Policy creation timestamp |
 | updatedAt | DateTime | Not Null, Auto | Last update timestamp |
 
@@ -121,7 +121,7 @@ This document describes data structures, entities, relationships, and constraint
   "target": {
     "subject": {
       "role": "kitchen-manager",
-      "department": ["Kitchen", "F&B"],
+      "department": ['Kitchen', 'F&B'],
       "clearanceLevel": "manager"
     },
     "resource": {
@@ -203,7 +203,7 @@ createdBy: "user-admin"
 updatedBy: "user-admin"
 validFrom: 2025-11-13T00:00:00Z
 validTo: null
-tags: ["approval", "kitchen", "purchase", "manager"]
+tags: ["approval", 'kitchen', 'purchase', 'manager']
 ```
 
 ---
@@ -248,19 +248,19 @@ tags: ["approval", "kitchen", "purchase", "manager"]
     "department": "Kitchen",
     "clearanceLevel": "supervisor",
     "approvalLimit": 2000,
-    "assignedLocations": ["main-kitchen", "prep-kitchen"],
-    "workShifts": ["morning", "afternoon", "evening"],
+    "assignedLocations": ['main-kitchen', 'prep-kitchen'],
+    "workShifts": ['morning', 'afternoon', 'evening'],
     "specialPermissions": [
       "manage_kitchen_inventory",
       "approve_ingredient_purchases",
       "create_production_orders"
     ],
-    "requiredCertifications": ["food-safety", "kitchen-management"]
+    "requiredCertifications": ['food-safety', 'kitchen-management']
   },
   "basePermissions": [
     {
       "resourceType": "inventory_item",
-      "actions": ["view", "create", "update"],
+      "actions": ['view', 'create', 'update'],
       "conditions": {
         "productCategory": "Food & Beverage",
         "department": "Kitchen"
@@ -268,7 +268,7 @@ tags: ["approval", "kitchen", "purchase", "manager"]
     },
     {
       "resourceType": "purchase_request",
-      "actions": ["view", "create", "approve"],
+      "actions": ['view', 'create', 'approve'],
       "conditions": {
         "requestingDepartment": "Kitchen",
         "amount": { "lte": 2000 }
@@ -277,16 +277,16 @@ tags: ["approval", "kitchen", "purchase", "manager"]
   ],
   "inheritance": {
     "inheritFrom": "chef",
-    "overridePermissions": ["approve_purchases"],
-    "additionalRestrictions": ["cannot_delete_inventory"]
+    "overridePermissions": ['approve_purchases'],
+    "additionalRestrictions": ['cannot_delete_inventory']
   },
   "constraints": {
-    "locationRestrictions": ["main-kitchen", "prep-kitchen"],
+    "locationRestrictions": ['main-kitchen', 'prep-kitchen'],
     "timeRestrictions": {
-      "workShifts": ["morning", "afternoon", "evening"],
+      "workShifts": ['morning', 'afternoon', 'evening'],
       "noWeekendAccess": false
     },
-    "ipRestrictions": ["192.168.1.0/24"]
+    "ipRestrictions": ['192.168.1.0/24']
   }
 }
 ```
@@ -359,7 +359,7 @@ isActive: true
     "approvalLimit": 5000,
     "weekendAccess": true,
     "mobileAccess": true,
-    "specializations": ["pastry", "meat-preparation"],
+    "specializations": ['pastry', 'meat-preparation'],
     "certifications": [
       {
         "name": "Food Safety Advanced",
@@ -433,9 +433,9 @@ lastLoginAt: 2025-11-13T08:30:00Z
 ```json
 {
   "scope": {
-    "departments": ["Kitchen", "F&B"],
-    "locations": ["main-kitchen", "prep-kitchen"],
-    "resources": ["purchase_request", "inventory_item"]
+    "departments": ['Kitchen', 'F&B'],
+    "locations": ['main-kitchen', 'prep-kitchen'],
+    "resources": ['purchase_request', 'inventory_item']
   },
   "constraints": {
     "effectiveDates": {
@@ -443,16 +443,16 @@ lastLoginAt: 2025-11-13T08:30:00Z
       "to": "2026-02-28",
       "reason": "Temporary assignment while Jane Doe is on maternity leave"
     },
-    "workShifts": ["morning", "afternoon", "evening"],
+    "workShifts": ['morning', 'afternoon', 'evening'],
     "maxApprovalValue": 2500
   },
   "customAttributes": {
     "approvalLimit": 2500,
     "trainingCompleted": true,
-    "certifications": ["Food Safety Advanced", "Kitchen Management"]
+    "certifications": ['Food Safety Advanced', 'Kitchen Management']
   },
   "delegatedAuthorities": {
-    "canDelegateTo": ["role-chef"],
+    "canDelegateTo": ['role-chef'],
     "canActAs": "sous-chef"
   },
   "notes": "Temporary assignment while Jane Doe is on maternity leave. Review progress monthly."
@@ -507,16 +507,16 @@ createdBy: "user-manager"
   "subject": {
     "userId": "user-john-smith",
     "primaryRole": "kitchen-manager",
-    "roles": ["kitchen-manager", "chef"],
+    "roles": ['kitchen-manager', 'chef'],
     "department": "Kitchen",
     "clearanceLevel": "manager",
     "approvalLimit": 5000,
-    "assignedLocations": ["main-kitchen", "prep-kitchen"],
+    "assignedLocations": ['main-kitchen', 'prep-kitchen'],
     "currentShift": "morning"
   },
   "resource": {
     "resourceType": "purchase_request",
-    "resourceId": "PR-2025-0123",
+    "resourceId": "PR-2501-0123",
     "attributes": {
       "requestValue": 2500,
       "productCategory": "Food & Beverage",
@@ -549,17 +549,17 @@ createdBy: "user-manager"
 {
   "decision": "PERMIT",
   "confidence": 1.0,
-  "applicablePolicies": ["POL-2025-0123"],
+  "applicablePolicies": ['POL-2501-0123'],
   "evaluatedRules": [
-    { "policyId": "POL-2025-0123", "ruleId": "rule-1", "result": "pass" },
-    { "policyId": "POL-2025-0123", "ruleId": "rule-2", "result": "pass" },
-    { "policyId": "POL-2025-0123", "ruleId": "rule-3", "result": "pass" },
-    { "policyId": "POL-2025-0123", "ruleId": "rule-4", "result": "pass" }
+    { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-1', 'result': 'pass' },
+    { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-2', 'result': 'pass' },
+    { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-3', 'result': 'pass' },
+    { 'policyId': 'POL-2501-0123', 'ruleId': 'rule-4', 'result': 'pass' }
   ],
   "obligations": [
-    { "obligationId": "log_audit", "status": "pending" },
-    { "obligationId": "notify_requester", "status": "pending" },
-    { "obligationId": "update_status", "status": "pending" }
+    { 'obligationId': 'log_audit', 'status': 'pending' },
+    { 'obligationId': 'notify_requester', 'status': 'pending' },
+    { 'obligationId': 'update_status', 'status': 'pending' }
   ],
   "advice": [
     {
@@ -610,8 +610,8 @@ contextHash: "3f8d9e7a2b1c4f5e6d7a8b9c0d1e2f3a"
 decision: PERMIT
 cacheData: {
   "decision": "PERMIT",
-  "applicablePolicies": ["POL-2025-0123"],
-  "obligations": ["log_audit", "notify_requester"],
+  "applicablePolicies": ['POL-2501-0123'],
+  "obligations": ['log_audit', 'notify_requester'],
   "advice": []
 }
 createdAt: 2025-11-13T09:30:00Z
@@ -668,7 +668,7 @@ lastAccessed: 2025-11-13T09:35:00Z
 {
   "actionType": "POLICY_CREATED",
   "resource": "policy",
-  "resourceId": "POL-2025-0123",
+  "resourceId": "POL-2501-0123",
   "resourceName": "Kitchen Manager Purchase Approval Policy",
   "description": "Created new ABAC policy for kitchen manager approvals"
 }
@@ -685,7 +685,7 @@ lastAccessed: 2025-11-13T09:35:00Z
     "status": "ACTIVE",
     "priority": 90
   },
-  "fieldsChanged": ["status", "priority"]
+  "fieldsChanged": ['status', 'priority']
 }
 ```
 
@@ -695,10 +695,10 @@ id: "audit-abc123"
 eventCategory: POLICY
 eventType: "POLICY_ACTIVATED"
 actor: { "userId": "user-admin", "ipAddress": "192.168.1.50", ... }
-action: { "actionType": "POLICY_ACTIVATED", "resourceId": "POL-2025-0123", ... }
+action: { "actionType": "POLICY_ACTIVATED", "resourceId": "POL-2501-0123", ... }
 changes: { "oldValues": { "status": "DRAFT" }, "newValues": { "status": "ACTIVE" }, ... }
 result: "success"
-complianceFlags: ["SOX"]
+complianceFlags: ['SOX']
 retentionPeriod: 2555 (7 years)
 createdAt: 2025-11-13T09:30:00Z
 ```
@@ -738,7 +738,7 @@ createdAt: 2025-11-13T09:30:00Z
       "name": "productCategory",
       "type": "string",
       "required": true,
-      "allowedValues": ["Food & Beverage", "Equipment", "Supplies"]
+      "allowedValues": ['Food & Beverage', 'Equipment', 'Supplies']
     },
     {
       "name": "requestingDepartment",
@@ -761,7 +761,7 @@ createdAt: 2025-11-13T09:30:00Z
       "actionType": "approve",
       "description": "Approve purchase request",
       "requiresConditions": true,
-      "conditions": ["approvalLimit", "department", "location"]
+      "conditions": ['approvalLimit', 'department', 'location']
     }
   ],
   "classification": "internal"

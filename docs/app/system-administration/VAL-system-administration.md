@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -664,13 +665,13 @@ Data Stored
 **Examples**:
 
 **Valid Scenario**:
-- Role allows: departments ["Kitchen", "F&B"]
-- Assignment scope: departments ["Kitchen"]
+- Role allows: departments ['Kitchen', 'F&B']
+- Assignment scope: departments ['Kitchen']
 - Result: ✅ Passes (subset)
 
 **Invalid Scenario**:
-- Role allows: departments ["Kitchen"]
-- Assignment scope: departments ["Kitchen", "Housekeeping"]
+- Role allows: departments ['Kitchen']
+- Assignment scope: departments ['Kitchen', 'Housekeeping']
 - Result: ❌ Fails (Housekeeping not allowed)
 - User must: Remove Housekeeping or assign different role
 

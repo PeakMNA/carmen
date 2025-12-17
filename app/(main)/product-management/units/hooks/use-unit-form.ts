@@ -20,7 +20,7 @@ export const unitFormSchema = z.object({
     .regex(/^[A-Za-z0-9_-]+$/, "Symbol must contain only letters, numbers, hyphens, and underscores")
     .refine(val => val.trim() === val, "Symbol cannot have leading or trailing spaces")
     .transform(val => val.trim()),
-  category: z.enum(["weight", "volume", "length", "count", "time", "temperature"], {
+  category: z.enum(["weight", "volume", "length", "count", "time", "temperature", "serving"], {
     required_error: "Please select a unit category",
     invalid_type_error: "Invalid unit category selected",
   }),
@@ -275,6 +275,11 @@ export const unitValidationUtils = {
         description: 'Temperature measurements',
         icon: '🌡️',
       },
+      serving: {
+        label: 'Serving',
+        description: 'Portion/serving measurements',
+        icon: '🍽️',
+      },
     }
     return categoryInfo[category]
   },
@@ -321,6 +326,7 @@ export const unitFormFields = {
       { value: 'count', label: 'Count', description: 'Discrete counting units' },
       { value: 'time', label: 'Time', description: 'Time duration measurements' },
       { value: 'temperature', label: 'Temperature', description: 'Temperature measurements' },
+      { value: 'serving', label: 'Serving', description: 'Portion/serving measurements' },
     ],
   },
   isActive: {

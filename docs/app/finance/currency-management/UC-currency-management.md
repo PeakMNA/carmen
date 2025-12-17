@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Carmen ERP Documentation Team | Initial version |
 
 ---
@@ -412,7 +413,7 @@ This document describes the use cases for the Currency Management sub-module, wh
    - Transaction Currency: GBP (primary)
    - Base Currency: USD (calculated automatically)
 9. User enters invoice details:
-   - Invoice Number: INV-UK-2025-00123
+   - Invoice Number: INV-UK-2501-00123
    - Invoice Date: 2025-11-12
    - Due Date: 2025-12-12
    - Terms: Net 30
@@ -444,7 +445,7 @@ This document describes the use cases for the Currency Management sub-module, wh
 17. System displays journal entry preview:
     ```
     Date: 2025-11-12
-    Description: Invoice INV-UK-2025-00123 from Fresh Farm Suppliers UK
+    Description: Invoice INV-UK-2501-00123 from Fresh Farm Suppliers UK
 
     Debit: 5100 - Cost of Goods Sold
       GBP £900.00 / USD $1,147.50
@@ -469,7 +470,7 @@ This document describes the use cases for the Currency Management sub-module, wh
 24. System creates AP balance record in both currencies
 25. System logs transaction in audit trail with exchange rate details
 26. System sends invoice to document management system
-27. System displays success message: "Invoice INV-UK-2025-00123 posted successfully. AP Balance: £900.00 GBP ($1,147.50 USD)"
+27. System displays success message: "Invoice INV-UK-2501-00123 posted successfully. AP Balance: £900.00 GBP ($1,147.50 USD)"
 28. System updates vendor balance display
 
 **Alternative Flows**:
@@ -593,7 +594,7 @@ This document describes the use cases for the Currency Management sub-module, wh
 1. User navigates to Finance → Accounts Payable → Payments
 2. System displays list of outstanding invoices
 3. User filters invoices: Currency = GBP, Vendor = "Fresh Farm Suppliers UK"
-4. System displays invoice INV-UK-2025-00123:
+4. System displays invoice INV-UK-2501-00123:
    - Invoice Date: 2025-11-12
    - Amount: £900.00 GBP
    - Original Base Amount: $1,147.50 USD
@@ -625,7 +626,7 @@ This document describes the use cases for the Currency Management sub-module, wh
     ```
     Payment Summary:
     Vendor: Fresh Farm Suppliers UK
-    Invoice: INV-UK-2025-00123
+    Invoice: INV-UK-2501-00123
 
     Foreign Currency Payment:
       Amount: £900.00 GBP
@@ -644,7 +645,7 @@ This document describes the use cases for the Currency Management sub-module, wh
 13. System displays journal entry preview:
     ```
     Date: 2025-11-20
-    Description: Payment for Invoice INV-UK-2025-00123
+    Description: Payment for Invoice INV-UK-2501-00123
 
     Debit: 2100 - Accounts Payable: $1,147.50 USD
       (Clear original AP balance)
@@ -1216,7 +1217,7 @@ This document describes the use cases for the Currency Management sub-module, wh
 **Main Flow**:
 1. System detects foreign currency payment transaction posted
 2. System retrieves original invoice details:
-   - Invoice ID: INV-UK-2025-00123
+   - Invoice ID: INV-UK-2501-00123
    - Invoice Date: 2025-11-12
    - Amount: £900.00 GBP
    - Original Rate: 1.2750 USD/GBP
@@ -1308,7 +1309,7 @@ This document describes the use cases for the Currency Management sub-module, wh
 **Exc-103A: Missing Original Exchange Rate**
 - At step 2, original invoice lacks recorded exchange rate
 - System cannot calculate gain/loss without original rate
-- System logs error: "Original exchange rate missing for INV-UK-2025-00123"
+- System logs error: "Original exchange rate missing for INV-UK-2501-00123"
 - System sends alert to Accountant
 - System posts payment without gain/loss (temporarily)
 - System flags transaction for manual review
@@ -1388,7 +1389,7 @@ This document describes the use cases for the Currency Management sub-module, wh
      "eventId": "evt-12345",
      "eventType": "PurchaseInvoiceApproved",
      "timestamp": "2025-11-20T10:30:00Z",
-     "invoiceId": "INV-UK-2025-00123",
+     "invoiceId": "INV-UK-2501-00123",
      "vendorId": "VEN-UK-001",
      "vendorName": "Fresh Farm Suppliers UK",
      "vendorCurrency": "GBP",
@@ -1437,7 +1438,7 @@ This document describes the use cases for the Currency Management sub-module, wh
    ```
    Date: 2025-11-12
    Source: Procurement System
-   Document: INV-UK-2025-00123
+   Document: INV-UK-2501-00123
    Description: Purchase from Fresh Farm Suppliers UK
 
    Debit: 5100 - Cost of Goods Sold

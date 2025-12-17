@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-13 | Carmen ERP Documentation Team | Initial version |
 
 ---
@@ -61,17 +62,17 @@ This document provides comprehensive visual representations of the Exchange Rate
 ```mermaid
 flowchart TD
     Start([Setup Phase]) --> ConfigProviders[Configure Rate Providers]
-    ConfigProviders --> Providers[/OpenExchangeRates<br/>Bloomberg<br/>ECB<br/>Bank APIs/]
+    ConfigProviders --> Providers[/OpenExchangeRates<br>Bloomberg<br>ECB<br>Bank APIs/]
     Providers --> SetSchedule[Set Update Schedule]
-    SetSchedule --> Schedule[/Hourly: Spot Rates<br/>Daily: Forward Rates<br/>Manual: Special Rates/]
+    SetSchedule --> Schedule[/Hourly: Spot Rates<br>Daily: Forward Rates<br>Manual: Special Rates/]
 
     Schedule --> Operations([Operational Phase])
     Operations --> AutoUpdate[Automated Rate Updates]
-    AutoUpdate --> CheckVariance{Variance<br/>Check}
-    CheckVariance -->|Low Variance<br/><5%| AutoActivate[Auto-Activate Rate]
-    CheckVariance -->|High Variance<br/>≥5%| ApprovalQueue[Route to Approval Queue]
+    AutoUpdate --> CheckVariance{Variance<br>Check}
+    CheckVariance -->|Low Variance<br><5%| AutoActivate[Auto-Activate Rate]
+    CheckVariance -->|High Variance<br>≥5%| ApprovalQueue[Route to Approval Queue]
 
-    ApprovalQueue --> Approver{Finance<br/>Manager<br/>Review}
+    ApprovalQueue --> Approver{Finance<br>Manager<br>Review}
     Approver -->|Approve| ActivateRate[Activate Rate]
     Approver -->|Reject| LogRejection[Log Rejection]
     LogRejection --> KeepCurrent[Keep Current Rate]
@@ -80,11 +81,11 @@ flowchart TD
     ActivateRate --> ActiveRates
 
     ActiveRates --> Conversions[Real-Time Conversions]
-    Conversions --> TransType{Transaction<br/>Type}
-    TransType -->|Purchase| PO[Purchase Order<br/>Conversion]
-    TransType -->|Sale| SO[Sales Order<br/>Conversion]
-    TransType -->|Payment| Payment[Payment<br/>Conversion]
-    TransType -->|Report| Report[Report<br/>Conversion]
+    Conversions --> TransType{Transaction<br>Type}
+    TransType -->|Purchase| PO[Purchase Order<br>Conversion]
+    TransType -->|Sale| SO[Sales Order<br>Conversion]
+    TransType -->|Payment| Payment[Payment<br>Conversion]
+    TransType -->|Report| Report[Report<br>Conversion]
 
     PO --> LogConversion[Log Conversion]
     SO --> LogConversion
@@ -100,7 +101,7 @@ flowchart TD
     CalcUnrealized --> PostGL[Post Revaluation Entry]
     PostGL --> ScheduleReversal[Schedule Auto-Reversal]
 
-    ScheduleReversal --> NextPeriod{Next<br/>Period<br/>Starts?}
+    ScheduleReversal --> NextPeriod{Next<br>Period<br>Starts?}
     NextPeriod -->|Yes| AutoReverse[Auto-Reverse Entry]
     AutoReverse --> Operations
     NextPeriod -->|No| WaitPeriod[Wait for Period Start]
@@ -154,61 +155,61 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Scheduled Trigger<br/>Cron Job]) --> CheckSuspension{Update<br/>Suspended?}
-    CheckSuspension -->|Yes| Skip([Skip Update<br/>Period-End Close])
+    Start([Scheduled Trigger<br>Cron Job]) --> CheckSuspension{Update<br>Suspended?}
+    CheckSuspension -->|Yes| Skip([Skip Update<br>Period-End Close])
     CheckSuspension -->|No| GetProviders[Get Active Providers]
 
-    GetProviders --> Providers[/Primary: OpenExchangeRates<br/>Backup: ECB<br/>Tertiary: Manual/]
+    GetProviders --> Providers[/Primary: OpenExchangeRates<br>Backup: ECB<br>Tertiary: Manual/]
     Providers --> GetCurrencies[Get Enabled Currencies]
-    GetCurrencies --> Currencies[/USD, EUR, GBP, JPY<br/>CAD, AUD, CHF.../]
+    GetCurrencies --> Currencies[/USD, EUR, GBP, JPY<br>CAD, AUD, CHF.../]
 
-    Currencies --> LoopStart{For Each<br/>Currency Pair}
+    Currencies --> LoopStart{For Each<br>Currency Pair}
     LoopStart --> BuildRequest[Build API Request]
-    BuildRequest --> Request[/GET /latest.json?app_id=KEY<br/>&base=USD&symbols=EUR,GBP.../]
+    BuildRequest --> Request[/GET /latest.json?app_id=KEY<br>&base=USD&symbols=EUR,GBP.../]
 
     Request --> CallAPI[HTTP GET Request]
-    CallAPI --> CheckResponse{HTTP<br/>Status}
+    CallAPI --> CheckResponse{HTTP<br>Status}
 
     CheckResponse -->|200 OK| ParseJSON[Parse JSON Response]
-    ParseJSON --> ValidateFormat{Valid<br/>JSON?}
+    ParseJSON --> ValidateFormat{Valid<br>JSON?}
     ValidateFormat -->|No| ErrorFormat[/Error: Invalid Response/]
     ErrorFormat --> RetryLogic
 
     ValidateFormat -->|Yes| ExtractRates[Extract Rate Data]
-    ExtractRates --> Rates[/EUR: 0.921456<br/>GBP: 0.785234<br/>JPY: 149.345600/]
+    ExtractRates --> Rates[/EUR: 0.921456<br>GBP: 0.785234<br>JPY: 149.345600/]
 
     CheckResponse -->|429 Rate Limit| BackoffWait[Exponential Backoff]
-    BackoffWait --> RetryCount{Retry<br/>< 3?}
+    BackoffWait --> RetryCount{Retry<br>< 3?}
     RetryCount -->|Yes| Wait[Wait 1min→5min→15min]
     Wait --> CallAPI
     RetryCount -->|No| RetryLogic
 
-    CheckResponse -->|500 Server Error| RetryLogic{Retry or<br/>Failover?}
+    CheckResponse -->|500 Server Error| RetryLogic{Retry or<br>Failover?}
     CheckResponse -->|Timeout| RetryLogic
 
     RetryLogic -->|Retry| CallAPI
     RetryLogic -->|Failover| NextProvider[Switch to Backup Provider]
     NextProvider --> UpdateProviderHealth[Update Provider Health Status]
-    UpdateProviderHealth --> CheckProviders{More<br/>Providers?}
+    UpdateProviderHealth --> CheckProviders{More<br>Providers?}
     CheckProviders -->|Yes| GetProviders
-    CheckProviders -->|No| UseCache{Cached<br/>Rate?}
+    CheckProviders -->|No| UseCache{Cached<br>Rate?}
 
     UseCache -->|Yes| GetCachedRate[Get from Redis Cache]
     GetCachedRate --> FlagStale[Flag Rate as Stale]
-    FlagStale --> Alert1[/Alert Finance Manager<br/>Using Stale Rate/]
+    FlagStale --> Alert1[/Alert Finance Manager<br>Using Stale Rate/]
     Alert1 --> LogStale[Log Stale Rate Usage]
     LogStale --> Continue1[Continue Processing]
 
-    UseCache -->|No| Alert2[/Critical Alert:<br/>No Rate Available/]
+    UseCache -->|No| Alert2[/Critical Alert:<br>No Rate Available/]
     Alert2 --> LogError[Log Critical Error]
-    LogError --> EndError([End: Error<br/>Manual Entry Required])
+    LogError --> EndError([End: Error<br>Manual Entry Required])
 
     Rates --> ValidateRates[Validate Rate Values]
     ValidateRates --> CheckPositive{Rate > 0?}
     CheckPositive -->|No| ErrorNegative[/Error: Invalid Rate/]
     ErrorNegative --> LogError
 
-    CheckPositive -->|Yes| CheckBounds{0.0001 <<br/>Rate <<br/>10000?}
+    CheckPositive -->|Yes| CheckBounds{0.0001 <<br>Rate <<br>10000?}
     CheckBounds -->|No| ErrorBounds[/Error: Out of Bounds/]
     ErrorBounds --> LogError
 
@@ -217,15 +218,15 @@ flowchart TD
     PrevRate --> CalcVariance[Calculate Variance]
     CalcVariance --> Variance[/Variance: -0.024%/]
 
-    Variance --> CheckVariance{Variance<br/>> 10%?}
+    Variance --> CheckVariance{Variance<br>> 10%?}
     CheckVariance -->|Yes| FlagSuspicious[Flag Suspicious Variance]
-    FlagSuspicious --> Alert3[/Alert Finance Manager<br/>Suspicious Rate Change/]
+    FlagSuspicious --> Alert3[/Alert Finance Manager<br>Suspicious Rate Change/]
     Alert3 --> CheckApprovalThreshold
 
-    CheckVariance -->|No| CheckApprovalThreshold{Variance<br/>> 5%?}
+    CheckVariance -->|No| CheckApprovalThreshold{Variance<br>> 5%?}
     CheckApprovalThreshold -->|Yes| SetPending[Set Status = Pending Approval]
     SetPending --> RouteApproval[Route to Approval Queue]
-    RouteApproval --> NotifyApprover[/Notify Finance Manager<br/>Approval Required/]
+    RouteApproval --> NotifyApprover[/Notify Finance Manager<br>Approval Required/]
     NotifyApprover --> LogPending[Log Pending Rate]
     LogPending --> Continue1
 
@@ -248,11 +249,11 @@ flowchart TD
     InvalidateOld --> PublishEvent[/Publish RateUpdated Event/]
     PublishEvent --> LogSuccess[Log Successful Update]
 
-    LogSuccess --> LoopEnd{More<br/>Pairs?}
+    LogSuccess --> LoopEnd{More<br>Pairs?}
     LoopEnd -->|Yes| LoopStart
     Continue1 --> LoopEnd
     LoopEnd -->|No| GenerateSummary[Generate Update Summary]
-    GenerateSummary --> Summary[/Total: 20 pairs<br/>Success: 18<br/>Pending: 1<br/>Failed: 1/]
+    GenerateSummary --> Summary[/Total: 20 pairs<br>Success: 18<br>Pending: 1<br>Failed: 1/]
     Summary --> EmailSummary[/Email Summary to Finance/]
     EmailSummary --> Success([End: Success])
 
@@ -305,53 +306,53 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([User Opens Rate Entry]) --> SelectPair[Select Currency Pair]
-    SelectPair --> Pair[/Source: USD<br/>Target: EUR/]
+    SelectPair --> Pair[/Source: USD<br>Target: EUR/]
     Pair --> GetCurrent[Display Current Rate]
-    GetCurrent --> CurrentRate[/Current: 0.921456<br/>Effective: 2025-01-13 12:00 UTC<br/>Source: OpenExchangeRates/]
+    GetCurrent --> CurrentRate[/Current: 0.921456<br>Effective: 2025-01-13 12:00 UTC<br>Source: OpenExchangeRates/]
 
     CurrentRate --> GetHistory[Display Last 5 Rates]
-    GetHistory --> History[/0.921456 Current<br/>0.921678 -0.024%<br/>0.920123 +0.145%<br/>0.922034 -0.063%<br/>0.921890 +0.016%/]
+    GetHistory --> History[/0.921456 Current<br>0.921678 -0.024%<br>0.920123 +0.145%<br>0.922034 -0.063%<br>0.921890 +0.016%/]
 
     History --> EnterRate[Enter New Exchange Rate]
     EnterRate --> NewRate[/0.915000/]
     NewRate --> RateType[Select Rate Type]
-    RateType --> Type[/Spot/Forward/Average/<br/>Month-End/Year-End/]
+    RateType --> Type[/Spot/Forward/Average/<br>Month-End/Year-End/]
 
     Type --> EffectiveDate[Enter Effective Date/Time]
     EffectiveDate --> DateTime[/2025-01-13 15:00 UTC/]
-    DateTime --> CheckForward{Forward<br/>Rate?}
+    DateTime --> CheckForward{Forward<br>Rate?}
     CheckForward -->|Yes| EnterUntil[Enter Effective Until Date]
     EnterUntil --> UntilDate[/2025-04-13 90 days/]
     UntilDate --> Continue1[Continue]
     CheckForward -->|No| Continue1
 
-    Continue1 --> CheckBuySell{Enter Buy/<br/>Sell Rates?}
+    Continue1 --> CheckBuySell{Enter Buy/<br>Sell Rates?}
     CheckBuySell -->|Yes| EnterBuySell[Enter Buy and Sell Rates]
-    EnterBuySell --> BuySell[/Buy: 0.913500<br/>Sell: 0.916500<br/>Spread: 0.33%/]
+    EnterBuySell --> BuySell[/Buy: 0.913500<br>Sell: 0.916500<br>Spread: 0.33%/]
     BuySell --> Continue2[Continue]
     CheckBuySell -->|No| Continue2
 
     Continue2 --> SelectSource[Select Rate Source]
-    SelectSource --> Source[/Manual Entry<br/>Bank Quote<br/>Broker<br/>Central Bank<br/>Forward Contract/]
+    SelectSource --> Source[/Manual Entry<br>Bank Quote<br>Broker<br>Central Bank<br>Forward Contract/]
     Source --> EnterReference[Enter Source Reference]
-    EnterReference --> Reference[/Bank Quote #Q-2025-001234<br/>Email from treasury@bank.com/]
+    EnterReference --> Reference[/Bank Quote #Q-2025-001234<br>Email from treasury@bank.com/]
 
-    Reference --> UploadDoc{Upload<br/>Supporting<br/>Document?}
+    Reference --> UploadDoc{Upload<br>Supporting<br>Document?}
     UploadDoc -->|Yes| UploadFile[Upload Document]
     UploadFile --> Document[/bank_quote_20250113.pdf/]
     Document --> Continue3[Continue]
     UploadDoc -->|No| Continue3
 
     Continue3 --> EnterReason[Enter Reason for Manual Entry]
-    EnterReason --> Reason[/Automated API unavailable<br/>Unusual market conditions<br/>Bank provided special rate/]
+    EnterReason --> Reason[/Automated API unavailable<br>Unusual market conditions<br>Bank provided special rate/]
 
     Reason --> ClientValidate[Client-Side Validation]
-    ClientValidate --> ClientCheck{All Fields<br/>Valid?}
+    ClientValidate --> ClientCheck{All Fields<br>Valid?}
     ClientCheck -->|No| ShowErrors1[/Display Validation Errors/]
     ShowErrors1 --> HighlightFields[Highlight Invalid Fields]
     HighlightFields --> EnterRate
 
-    ClientCheck -->|Yes| ConfirmSubmit{Review and<br/>Confirm?}
+    ClientCheck -->|Yes| ConfirmSubmit{Review and<br>Confirm?}
     ConfirmSubmit -->|No| Edit([Return to Edit])
     Edit --> EnterRate
 
@@ -361,33 +362,33 @@ flowchart TD
     CheckPositive -->|No| Error1[/Error: Rate must be positive/]
     Error1 --> ReturnError[Return Validation Error]
 
-    CheckPositive -->|Yes| CheckBounds{0.0001 <= Rate<br/><= 10000?}
-    CheckBounds -->|No| Error2[/Error: Rate out of bounds<br/>Allowed: 0.0001 to 10000/]
+    CheckPositive -->|Yes| CheckBounds{0.0001 <= Rate<br><= 10000?}
+    CheckBounds -->|No| Error2[/Error: Rate out of bounds<br>Allowed: 0.0001 to 10000/]
     Error2 --> ReturnError
 
-    CheckBounds -->|Yes| CheckCurrencies{Source ≠<br/>Target?}
+    CheckBounds -->|Yes| CheckCurrencies{Source ≠<br>Target?}
     CheckCurrencies -->|No| Error3[/Error: Same source and target/]
     Error3 --> ReturnError
 
-    CheckCurrencies -->|Yes| CheckBuySellLogic{Buy/Sell<br/>Rates Valid?}
-    CheckBuySellLogic -->|No| Error4[/Error: Buy rate must be<br/>less than or equal to sell rate/]
+    CheckCurrencies -->|Yes| CheckBuySellLogic{Buy/Sell<br>Rates Valid?}
+    CheckBuySellLogic -->|No| Error4[/Error: Buy rate must be<br>less than or equal to sell rate/]
     Error4 --> ReturnError
 
-    CheckBuySellLogic -->|Yes| CheckDateLogic{Effective Date<br/>Valid?}
-    CheckDateLogic -->|No| Error5[/Error: Effective date cannot<br/>be more than 1 year in future/]
+    CheckBuySellLogic -->|Yes| CheckDateLogic{Effective Date<br>Valid?}
+    CheckDateLogic -->|No| Error5[/Error: Effective date cannot<br>be more than 1 year in future/]
     Error5 --> ReturnError
 
     CheckDateLogic -->|Yes| CalcVariance[Calculate Variance from Current]
-    CalcVariance --> VarianceCalc[/0.915000 - 0.921456 / 0.921456<br/>= -0.007 = -0.70%/]
+    CalcVariance --> VarianceCalc[/0.915000 - 0.921456 / 0.921456<br>= -0.007 = -0.70%/]
     VarianceCalc --> AbsVariance[/Absolute Variance: 0.70%/]
 
-    AbsVariance --> CheckVariance{Variance<br/>< 5%?}
+    AbsVariance --> CheckVariance{Variance<br>< 5%?}
     CheckVariance -->|Yes| AutoApprove[Set Approved = Auto]
     AutoApprove --> SetApprovalStatus[approval_status = 'approved']
     SetApprovalStatus --> Continue4[Continue to Posting]
 
-    CheckVariance -->|No| CheckUserAuthority{User Has<br/>Approval<br/>Authority?}
-    CheckUserAuthority -->|Yes| CheckApprovalLimit{Variance<br/>Within User<br/>Limit?}
+    CheckVariance -->|No| CheckUserAuthority{User Has<br>Approval<br>Authority?}
+    CheckUserAuthority -->|Yes| CheckApprovalLimit{Variance<br>Within User<br>Limit?}
     CheckApprovalLimit -->|Yes| SelfApprove[Self-Approve Rate]
     SelfApprove --> RecordApproval[Record User as Approver]
     RecordApproval --> Continue4
@@ -396,18 +397,18 @@ flowchart TD
     CheckUserAuthority -->|No| RouteApproval
 
     RouteApproval --> DetermineApprover[Determine Required Approver]
-    DetermineApprover --> ApproverRules[/Variance < 10%: Finance Manager<br/>Variance 10-25%: Controller<br/>Variance > 25%: CFO/]
+    DetermineApprover --> ApproverRules[/Variance < 10%: Finance Manager<br>Variance 10-25%: Controller<br>Variance > 25%: CFO/]
     ApproverRules --> SetPending[Set Status = Pending Approval]
     SetPending --> SavePending[Save as Pending Rate]
-    SavePending --> NotifyApprover[/Send Email to Approver<br/>With Rate Details and Variance/]
+    SavePending --> NotifyApprover[/Send Email to Approver<br>With Rate Details and Variance/]
     NotifyApprover --> WaitApproval([Wait for Approval])
 
-    WaitApproval --> ApproverReview{Approver<br/>Decision}
+    WaitApproval --> ApproverReview{Approver<br>Decision}
     ApproverReview -->|Approve| SetApproved[Set Status = Approved]
     SetApproved --> RecordApprover[Record Approver & Timestamp]
     RecordApprover --> ApprovalComments[Approver Enters Comments]
-    ApprovalComments --> Comments[/Approved based on bank quote<br/>Valid market volatility/]
-    Comments --> CheckReview{Set Review<br/>Expiry?}
+    ApprovalComments --> Comments[/Approved based on bank quote<br>Valid market volatility/]
+    Comments --> CheckReview{Set Review<br>Expiry?}
     CheckReview -->|Yes| SetReviewDate[Set Review Date]
     SetReviewDate --> ReviewDate[/Review in 24 hours/]
     ReviewDate --> Continue4
@@ -415,45 +416,45 @@ flowchart TD
 
     ApproverReview -->|Reject| SetRejected[Set Status = Rejected]
     SetRejected --> RecordRejection[Record Rejection Reason]
-    RecordRejection --> RejectionReason[/Rate variance too high<br/>Insufficient documentation<br/>Market rate mismatch/]
+    RecordRejection --> RejectionReason[/Rate variance too high<br>Insufficient documentation<br>Market rate mismatch/]
     RejectionReason --> NotifySubmitter[/Notify Submitter of Rejection/]
     NotifySubmitter --> LogRejection[Log Rejection in Audit]
-    LogRejection --> EndRejected([End: Rejected<br/>Current Rate Remains])
+    LogRejection --> EndRejected([End: Rejected<br>Current Rate Remains])
 
     ApproverReview -->|Request Revision| RequestChanges[Request Additional Info]
-    RequestChanges --> RevisionRequest[/Please provide additional<br/>documentation or clarification/]
+    RequestChanges --> RevisionRequest[/Please provide additional<br>documentation or clarification/]
     RevisionRequest --> NotifyRevision[/Notify Submitter/]
     NotifyRevision --> WaitRevision([Wait for Revision])
     WaitRevision --> EnterRate
 
     Continue4 --> CalcInverse[Calculate Inverse Rate]
-    CalcInverse --> Inverse[/Inverse: 1 / 0.915000<br/>= 1.092896/]
+    CalcInverse --> Inverse[/Inverse: 1 / 0.915000<br>= 1.092896/]
     Inverse --> BeginTx[Begin Database Transaction]
 
-    BeginTx --> CheckExisting{Current<br/>Rate Exists?}
+    BeginTx --> CheckExisting{Current<br>Rate Exists?}
     CheckExisting -->|Yes| DeactivateCurrent[Set is_active = false on Current]
     DeactivateCurrent --> ArchiveRate[Copy to exchange_rate_history]
     ArchiveRate --> Continue5[Continue]
     CheckExisting -->|No| Continue5
 
     Continue5 --> InsertNewRate[Insert New Exchange Rate]
-    InsertNewRate --> RateData[/rate_id: generated UUID<br/>exchange_rate: 0.915000<br/>inverse_rate: 1.092896<br/>is_manual_entry: true<br/>is_active: true<br/>approval_status: 'approved'/]
-    RateData --> LinkDocument{Document<br/>Uploaded?}
+    InsertNewRate --> RateData[/rate_id: generated UUID<br>exchange_rate: 0.915000<br>inverse_rate: 1.092896<br>is_manual_entry: true<br>is_active: true<br>approval_status: 'approved'/]
+    RateData --> LinkDocument{Document<br>Uploaded?}
     LinkDocument -->|Yes| LinkDoc[Link Document to Rate]
     LinkDoc --> Continue6[Continue]
     LinkDocument -->|No| Continue6
 
     Continue6 --> LogAudit[Insert Audit Log Entry]
-    LogAudit --> AuditData[/action: 'manual_rate_entry'<br/>user: submitter<br/>approved_by: approver<br/>variance: -0.70%<br/>reason: text/]
+    LogAudit --> AuditData[/action: 'manual_rate_entry'<br>user: submitter<br>approved_by: approver<br>variance: -0.70%<br>reason: text/]
     AuditData --> Commit[Commit Transaction]
 
     Commit --> InvalidateCache[Invalidate Redis Cache]
-    InvalidateCache --> CacheKeys[/rate:USD:EUR:*<br/>rate:EUR:USD:*/]
+    InvalidateCache --> CacheKeys[/rate:USD:EUR:*<br>rate:EUR:USD:*/]
     CacheKeys --> UpdateCache[Update Cache with New Rate]
     UpdateCache --> SetCacheTTL[Set TTL = 15 minutes]
     SetCacheTTL --> PublishEvent[/Publish RateManualEntry Event/]
-    PublishEvent --> NotifyStakeholders[/Notify Finance Team<br/>Rate Updated Manually/]
-    NotifyStakeholders --> Success([End: Success<br/>Rate Active])
+    PublishEvent --> NotifyStakeholders[/Notify Finance Team<br>Rate Updated Manually/]
+    NotifyStakeholders --> Success([End: Success<br>Rate Active])
 
     ReturnError --> ShowErrors2[/Display Server Error/]
     ShowErrors2 --> ShowErrors1
@@ -507,106 +508,106 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Rate Enters Approval Queue]) --> GetRateData[Retrieve Rate Details]
-    GetRateData --> RateInfo[/Currency Pair: USD→EUR<br/>Proposed Rate: 0.915000<br/>Current Rate: 0.921456<br/>Variance: -0.70%<br/>Source: Manual Entry<br/>Submitter: John Smith/]
+    GetRateData --> RateInfo[/Currency Pair: USD→EUR<br>Proposed Rate: 0.915000<br>Current Rate: 0.921456<br>Variance: -0.70%<br>Source: Manual Entry<br>Submitter: John Smith/]
 
     RateInfo --> DetermineApprover[Determine Required Approver]
-    DetermineApprover --> CheckVariance{Variance<br/>Level}
+    DetermineApprover --> CheckVariance{Variance<br>Level}
 
     CheckVariance -->|5-10%| AssignManager[Assign to Finance Manager]
-    AssignManager --> ManagerLevel[/Approver: Sarah Johnson<br/>Role: Finance Manager<br/>Limit: Up to 10% variance/]
+    AssignManager --> ManagerLevel[/Approver: Sarah Johnson<br>Role: Finance Manager<br>Limit: Up to 10% variance/]
     ManagerLevel --> Continue1[Continue]
 
     CheckVariance -->|10-25%| AssignController[Assign to Controller]
-    AssignController --> ControllerLevel[/Approver: Michael Chen<br/>Role: Financial Controller<br/>Limit: Up to 25% variance/]
+    AssignController --> ControllerLevel[/Approver: Michael Chen<br>Role: Financial Controller<br>Limit: Up to 25% variance/]
     ControllerLevel --> Continue1
 
     CheckVariance -->|> 25%| AssignCFO[Assign to CFO]
-    AssignCFO --> CFOLevel[/Approver: Patricia Williams<br/>Role: Chief Financial Officer<br/>Limit: Unlimited/]
+    AssignCFO --> CFOLevel[/Approver: Patricia Williams<br>Role: Chief Financial Officer<br>Limit: Unlimited/]
     CFOLevel --> Continue1
 
     Continue1 --> SendNotification[Send Email Notification]
-    SendNotification --> Email[/To: Approver<br/>Subject: Exchange Rate Approval Required<br/>Priority: High if > 10% variance<br/>Link: Approval Dashboard/]
+    SendNotification --> Email[/To: Approver<br>Subject: Exchange Rate Approval Required<br>Priority: High if > 10% variance<br>Link: Approval Dashboard/]
     Email --> UpdateQueue[Update Approval Queue]
-    UpdateQueue --> QueueStatus[/Status: Pending<br/>Assigned To: Approver<br/>Created: Timestamp<br/>SLA: 24 hours/]
+    UpdateQueue --> QueueStatus[/Status: Pending<br>Assigned To: Approver<br>Created: Timestamp<br>SLA: 24 hours/]
 
     QueueStatus --> WaitApproval([Wait for Approver Action])
-    WaitApproval --> CheckSLA{24 Hours<br/>Elapsed?}
+    WaitApproval --> CheckSLA{24 Hours<br>Elapsed?}
     CheckSLA -->|Yes| EscalateApproval[Escalate to Next Level]
-    EscalateApproval --> SendEscalation[/Send Escalation Email<br/>To: Higher Authority<br/>CC: Original Approver/]
+    EscalateApproval --> SendEscalation[/Send Escalation Email<br>To: Higher Authority<br>CC: Original Approver/]
     SendEscalation --> WaitApproval
 
     CheckSLA -->|No| ApproverOpens[Approver Opens Request]
     ApproverOpens --> DisplayComparison[Display Comprehensive Comparison]
-    DisplayComparison --> Comparison[/Proposed Rate: 0.915000<br/>Current Rate: 0.921456<br/>Variance: -0.70%<br/><br/>Last 5 Rates:<br/>0.921456, 0.921678, 0.920123<br/>0.922034, 0.921890<br/><br/>External Comparison:<br/>OpenExchangeRates: 0.921234<br/>ECB: 0.920987<br/>Bloomberg: 0.921567<br/>Average: 0.921197<br/><br/>Proposed vs External Avg:<br/>-0.67% difference<br/><br/>Supporting Documents:<br/>bank_quote_20250113.pdf<br/><br/>Submitter Notes:<br/>Unusual market volatility<br/>Using bank quote/]
+    DisplayComparison --> Comparison[/Proposed Rate: 0.915000<br>Current Rate: 0.921456<br>Variance: -0.70%<br><br>Last 5 Rates:<br>0.921456, 0.921678, 0.920123<br>0.922034, 0.921890<br><br>External Comparison:<br>OpenExchangeRates: 0.921234<br>ECB: 0.920987<br>Bloomberg: 0.921567<br>Average: 0.921197<br><br>Proposed vs External Avg:<br>-0.67% difference<br><br>Supporting Documents:<br>bank_quote_20250113.pdf<br><br>Submitter Notes:<br>Unusual market volatility<br>Using bank quote/]
 
-    Comparison --> CheckDocs{Supporting<br/>Documents<br/>Provided?}
+    Comparison --> CheckDocs{Supporting<br>Documents<br>Provided?}
     CheckDocs -->|No| RequestDocs[Request Additional Documentation]
-    RequestDocs --> NotifySubmitter1[/Notify Submitter<br/>Additional Info Needed/]
+    RequestDocs --> NotifySubmitter1[/Notify Submitter<br>Additional Info Needed/]
     NotifySubmitter1 --> WaitDocs([Wait for Documents])
     WaitDocs --> ApproverOpens
 
     CheckDocs -->|Yes| ReviewDocs[Review Supporting Documents]
-    ReviewDocs --> ValidateDocs{Documents<br/>Valid?}
+    ReviewDocs --> ValidateDocs{Documents<br>Valid?}
     ValidateDocs -->|No| RejectDocs[Documents Insufficient]
-    RejectDocs --> Decision1{Reject or<br/>Request<br/>Revision?}
+    RejectDocs --> Decision1{Reject or<br>Request<br>Revision?}
     Decision1 -->|Reject| RejectRate
     Decision1 -->|Request Revision| RequestRevision
 
     ValidateDocs -->|Yes| CompareExternal[Compare with External Sources]
-    CompareExternal --> ExternalCheck{Within 1%<br/>of External<br/>Average?}
+    CompareExternal --> ExternalCheck{Within 1%<br>of External<br>Average?}
     ExternalCheck -->|No| FlagDiscrepancy[Flag Major Discrepancy]
-    FlagDiscrepancy --> Warning[/Warning: Proposed rate differs<br/>significantly from market rates/]
-    Warning --> Decision2{Approve with<br/>Discrepancy?}
+    FlagDiscrepancy --> Warning[/Warning: Proposed rate differs<br>significantly from market rates/]
+    Warning --> Decision2{Approve with<br>Discrepancy?}
     Decision2 -->|No| RejectRate
     Decision2 -->|Yes| ContinueApprove[Continue to Approval]
 
     ExternalCheck -->|Yes| ContinueApprove
     ContinueApprove --> CheckMarket[Check Market Conditions]
-    CheckMarket --> MarketNews[/Check: Recent news, volatility,<br/>central bank announcements/]
-    MarketNews --> ReasonableRate{Rate<br/>Reasonable<br/>for Market?}
+    CheckMarket --> MarketNews[/Check: Recent news, volatility,<br>central bank announcements/]
+    MarketNews --> ReasonableRate{Rate<br>Reasonable<br>for Market?}
 
     ReasonableRate -->|No| RejectRate[Reject Rate]
-    ReasonableRate -->|Yes| ApproverDecision{Approver<br/>Decision}
+    ReasonableRate -->|Yes| ApproverDecision{Approver<br>Decision}
 
     ApproverDecision -->|Approve| EnterComments[Enter Approval Comments]
-    EnterComments --> ApprovalComments[/Approved based on bank quote<br/>Market volatility confirmed<br/>within acceptable range/]
-    ApprovalComments --> SetReview{Set<br/>Review<br/>Reminder?}
+    EnterComments --> ApprovalComments[/Approved based on bank quote<br>Market volatility confirmed<br>within acceptable range/]
+    ApprovalComments --> SetReview{Set<br>Review<br>Reminder?}
     SetReview -->|Yes| ReviewPeriod[Enter Review Period]
     ReviewPeriod --> ReviewHours[/24 hours / 48 hours / 1 week/]
     ReviewHours --> Continue2[Continue]
     SetReview -->|No| Continue2
 
     Continue2 --> RecordApproval[Record Approval]
-    RecordApproval --> ApprovalData[/approved_by: Approver ID<br/>approved_date: Timestamp<br/>approval_comments: Text<br/>review_expiry_date: Date if set/]
+    RecordApproval --> ApprovalData[/approved_by: Approver ID<br>approved_date: Timestamp<br>approval_comments: Text<br>review_expiry_date: Date if set/]
     ApprovalData --> ActivateRate[Activate Exchange Rate]
-    ActivateRate --> RateActivation[/is_active: true<br/>approval_status: 'approved'/]
+    ActivateRate --> RateActivation[/is_active: true<br>approval_status: 'approved'/]
 
     RateActivation --> DeactivateOld[Deactivate Previous Rate]
     DeactivateOld --> UpdateQueue1[Remove from Approval Queue]
     UpdateQueue1 --> InvalidateCache[Invalidate Cache]
-    InvalidateCache --> NotifySubmitter2[/Notify Submitter<br/>Rate Approved/]
-    NotifySubmitter2 --> NotifyFinance[/Notify Finance Team<br/>New Rate Active/]
-    NotifyFinance --> CheckReview2{Review<br/>Scheduled?}
+    InvalidateCache --> NotifySubmitter2[/Notify Submitter<br>Rate Approved/]
+    NotifySubmitter2 --> NotifyFinance[/Notify Finance Team<br>New Rate Active/]
+    NotifyFinance --> CheckReview2{Review<br>Scheduled?}
     CheckReview2 -->|Yes| ScheduleReminder[Create Review Task]
-    ScheduleReminder --> ReminderTask[/Task: Review USD→EUR Rate<br/>Assigned: Approver<br/>Due: Review expiry date/]
-    ReminderTask --> Success([End: Approved<br/>Rate Active])
+    ScheduleReminder --> ReminderTask[/Task: Review USD→EUR Rate<br>Assigned: Approver<br>Due: Review expiry date/]
+    ReminderTask --> Success([End: Approved<br>Rate Active])
     CheckReview2 -->|No| Success
 
     ApproverDecision -->|Reject| RejectRate
     RejectRate --> EnterRejection[Enter Rejection Reason]
-    EnterRejection --> RejectionReason[/Variance too high<br/>Insufficient documentation<br/>Rate not supported by market<br/>Incorrect source reference/]
+    EnterRejection --> RejectionReason[/Variance too high<br>Insufficient documentation<br>Rate not supported by market<br>Incorrect source reference/]
     RejectionReason --> RecordRejection[Record Rejection]
-    RecordRejection --> RejectionData[/rejection_reason: Text<br/>rejected_by: Approver ID<br/>rejected_date: Timestamp<br/>approval_status: 'rejected'/]
+    RecordRejection --> RejectionData[/rejection_reason: Text<br>rejected_by: Approver ID<br>rejected_date: Timestamp<br>approval_status: 'rejected'/]
     RejectionData --> UpdateQueue2[Remove from Approval Queue]
     UpdateQueue2 --> KeepCurrent[Keep Current Rate Active]
-    KeepCurrent --> NotifySubmitter3[/Notify Submitter<br/>Rate Rejected<br/>Reason: Text/]
+    KeepCurrent --> NotifySubmitter3[/Notify Submitter<br>Rate Rejected<br>Reason: Text/]
     NotifySubmitter3 --> LogRejection[Log Rejection in Audit]
-    LogRejection --> EndRejected([End: Rejected<br/>Current Rate Remains])
+    LogRejection --> EndRejected([End: Rejected<br>Current Rate Remains])
 
     ApproverDecision -->|Request Revision| RequestRevision[Request Revision]
     RequestRevision --> RevisionRequest[Enter Revision Request]
-    RevisionRequest --> RevisionText[/Please provide additional<br/>documentation from bank<br/>Clarify market conditions<br/>Explain variance calculation/]
-    RevisionText --> SendRevision[/Send to Submitter<br/>With Revision Request/]
+    RevisionRequest --> RevisionText[/Please provide additional<br>documentation from bank<br>Clarify market conditions<br>Explain variance calculation/]
+    RevisionText --> SendRevision[/Send to Submitter<br>With Revision Request/]
     SendRevision --> KeepInQueue[Keep in Approval Queue]
     KeepInQueue --> WaitRevision([Wait for Submitter Revision])
 
@@ -642,84 +643,84 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Conversion Requested]) --> GetParams[Parse Conversion Parameters]
-    GetParams --> Params[/Source Currency: USD<br/>Target Currency: EUR<br/>Amount: 1000.00<br/>Conversion Date: 2025-01-13<br/>Rate Type: spot/]
+    GetParams --> Params[/Source Currency: USD<br>Target Currency: EUR<br>Amount: 1000.00<br>Conversion Date: 2025-01-13<br>Rate Type: spot/]
 
     Params --> ValidateParams[Validate Parameters]
     ValidateParams --> CheckAmount{Amount > 0?}
     CheckAmount -->|No| ErrorAmount[/Error: Amount must be positive/]
     ErrorAmount --> EndError([End: Error])
 
-    CheckAmount -->|Yes| CheckCurrencies{Source ≠<br/>Target?}
-    CheckCurrencies -->|No| ErrorSame[/Error: Same currency<br/>No conversion needed/]
+    CheckAmount -->|Yes| CheckCurrencies{Source ≠<br>Target?}
+    CheckCurrencies -->|No| ErrorSame[/Error: Same currency<br>No conversion needed/]
     ErrorSame --> EndError
 
-    CheckCurrencies -->|Yes| CheckActive{Both<br/>Currencies<br/>Active?}
+    CheckCurrencies -->|Yes| CheckActive{Both<br>Currencies<br>Active?}
     CheckActive -->|No| ErrorInactive[/Error: Inactive currency/]
     ErrorInactive --> EndError
 
-    CheckActive -->|Yes| CheckCache{Rate in<br/>Redis Cache?}
+    CheckActive -->|Yes| CheckCache{Rate in<br>Redis Cache?}
     CheckCache -->|Yes| GetCachedRate[Retrieve from Cache]
-    GetCachedRate --> CachedRate[/Key: rate:USD:EUR:2025-01-13:spot<br/>Value: 0.921456<br/>TTL: 12 minutes remaining/]
-    CachedRate --> CheckTTL{TTL<br/>Valid?}
+    GetCachedRate --> CachedRate[/Key: rate:USD:EUR:2025-01-13:spot<br>Value: 0.921456<br>TTL: 12 minutes remaining/]
+    CachedRate --> CheckTTL{TTL<br>Valid?}
     CheckTTL -->|Yes| UseCache[Use Cached Rate]
     CheckTTL -->|No| RefreshCache[Refresh from Database]
 
     CheckCache -->|No| RefreshCache
     RefreshCache --> QueryDB[Query exchange_rates Table]
-    QueryDB --> DBQuery[/SELECT * FROM exchange_rates<br/>WHERE source_currency = 'USD'<br/>AND target_currency = 'EUR'<br/>AND effective_date <= '2025-01-13'<br/>AND rate_type = 'spot'<br/>AND is_active = true<br/>ORDER BY effective_date DESC<br/>LIMIT 1/]
+    QueryDB --> DBQuery[/SELECT * FROM exchange_rates<br>WHERE source_currency = 'USD'<br>AND target_currency = 'EUR'<br>AND effective_date <= '2025-01-13'<br>AND rate_type = 'spot'<br>AND is_active = true<br>ORDER BY effective_date DESC<br>LIMIT 1/]
 
-    DBQuery --> RateFound{Rate<br/>Found?}
-    RateFound -->|No| CheckTriangulation{Base<br/>Currency<br/>Available?}
+    DBQuery --> RateFound{Rate<br>Found?}
+    RateFound -->|No| CheckTriangulation{Base<br>Currency<br>Available?}
     CheckTriangulation -->|Yes| TriangulateRate[Use Triangulation]
-    CheckTriangulation -->|No| ErrorNoRate[/Error: No rate available<br/>for USD→EUR on 2025-01-13/]
+    CheckTriangulation -->|No| ErrorNoRate[/Error: No rate available<br>for USD→EUR on 2025-01-13/]
     ErrorNoRate --> EndError
 
     RateFound -->|Yes| FetchRate[Fetch Rate Record]
-    FetchRate --> Rate[/Exchange Rate: 0.921456<br/>Source: OpenExchangeRates<br/>Effective: 2025-01-13 12:00 UTC<br/>Confidence: 98%/]
+    FetchRate --> Rate[/Exchange Rate: 0.921456<br>Source: OpenExchangeRates<br>Effective: 2025-01-13 12:00 UTC<br>Confidence: 98%/]
     Rate --> UpdateCache[Update Redis Cache]
     UpdateCache --> SetTTL[Set TTL = 15 minutes]
     SetTTL --> UseCache
 
     UseCache --> InitDecimal[Initialize Decimal.js]
     InitDecimal --> CreateAmount[Create Decimal Amount]
-    CreateAmount --> DecimalAmount[/Decimal(1000.00)<br/>Precision: 6 decimal places/]
+    CreateAmount --> DecimalAmount[/Decimal(1000.00)<br>Precision: 6 decimal places/]
     DecimalAmount --> CreateRate[Create Decimal Rate]
     CreateRate --> DecimalRate[/Decimal(0.921456)/]
 
     DecimalRate --> Multiply[Multiply with High Precision]
-    Multiply --> Calculation[/1000.00 × 0.921456<br/>= 921.456000/]
+    Multiply --> Calculation[/1000.00 × 0.921456<br>= 921.456000/]
     Calculation --> GetRounding[Get Currency Rounding Rules]
-    GetRounding --> RoundingRule[/Target Currency: EUR<br/>Rounding: Standard<br/>Precision: 0.01 (2 decimals)/]
+    GetRounding --> RoundingRule[/Target Currency: EUR<br>Rounding: Standard<br>Precision: 0.01 (2 decimals)/]
 
     RoundingRule --> ApplyRounding[Apply Rounding]
-    ApplyRounding --> RoundedAmount[/921.456000 → 921.46<br/>Method: Half-Even (Banker's)/]
-    RoundedAmount --> CheckTolerance{Rounding<br/>Difference<br/>> 0.01?}
+    ApplyRounding --> RoundedAmount[/921.456000 → 921.46<br>Method: Half-Even (Banker's)/]
+    RoundedAmount --> CheckTolerance{Rounding<br>Difference<br>> 0.01?}
     CheckTolerance -->|Yes| LogRounding[Log Rounding Adjustment]
-    LogRounding --> RoundingLog[/Original: 921.456000<br/>Rounded: 921.46<br/>Difference: 0.004<br/>Method: Half-Even/]
+    LogRounding --> RoundingLog[/Original: 921.456000<br>Rounded: 921.46<br>Difference: 0.004<br>Method: Half-Even/]
     RoundingLog --> Continue1[Continue]
     CheckTolerance -->|No| Continue1
 
     Continue1 --> CalcInverse[Calculate Inverse Rate]
     CalcInverse --> InverseRate[/1 / 0.921456 = 1.085267/]
     InverseRate --> BuildResponse[Build Conversion Response]
-    BuildResponse --> Response[/Source Amount: 1000.00 USD<br/>Target Amount: 921.46 EUR<br/>Exchange Rate: 0.921456<br/>Inverse Rate: 1.085267<br/>Rate Type: spot<br/>Rate Source: OpenExchangeRates<br/>Conversion Method: Direct<br/>Rate Effective: 2025-01-13 12:00 UTC<br/>Rate Age: 3 hours<br/>Confidence: 98%<br/>Conversion Timestamp: 2025-01-13 15:00 UTC/]
+    BuildResponse --> Response[/Source Amount: 1000.00 USD<br>Target Amount: 921.46 EUR<br>Exchange Rate: 0.921456<br>Inverse Rate: 1.085267<br>Rate Type: spot<br>Rate Source: OpenExchangeRates<br>Conversion Method: Direct<br>Rate Effective: 2025-01-13 12:00 UTC<br>Rate Age: 3 hours<br>Confidence: 98%<br>Conversion Timestamp: 2025-01-13 15:00 UTC/]
 
     Response --> LogConversion[Log Conversion to Audit]
-    LogConversion --> AuditLog[/INSERT INTO currency_conversions<br/>Values: All conversion details<br/>User: Current user<br/>Session: Session ID<br/>Purpose: Transaction/Report/Estimation/]
+    LogConversion --> AuditLog[/INSERT INTO currency_conversions<br>Values: All conversion details<br>User: Current user<br>Session: Session ID<br>Purpose: Transaction/Report/Estimation/]
     AuditLog --> UpdateStats[Update Rate Usage Statistics]
-    UpdateStats --> StatUpdate[/exchange_rates.transaction_count += 1<br/>exchange_rates.last_used_date = NOW()/]
+    UpdateStats --> StatUpdate[/exchange_rates.transaction_count += 1<br>exchange_rates.last_used_date = NOW()/]
     StatUpdate --> Success([End: Conversion Complete])
 
     TriangulateRate --> GetBaseCurrency[Get Base Currency Rate]
-    GetBaseCurrency --> BaseCurrency[/Base: USD<br/>Need: USD→EUR<br/>Have: USD→GBP, GBP→EUR/]
+    GetBaseCurrency --> BaseCurrency[/Base: USD<br>Need: USD→EUR<br>Have: USD→GBP, GBP→EUR/]
     BaseCurrency --> GetRate1[Get USD→GBP Rate]
     GetRate1 --> Rate1[/USD→GBP: 0.785234/]
     Rate1 --> GetRate2[Get GBP→EUR Rate]
     GetRate2 --> Rate2[/GBP→EUR: 1.173456/]
     Rate2 --> TriangulateCalc[Calculate Triangulated Rate]
-    TriangulateCalc --> TriangulatedRate[/USD→EUR = USD→GBP × GBP→EUR<br/>= 0.785234 × 1.173456<br/>= 0.921234/]
+    TriangulateCalc --> TriangulatedRate[/USD→EUR = USD→GBP × GBP→EUR<br>= 0.785234 × 1.173456<br>= 0.921234/]
     TriangulatedRate --> FlagTriangulated[Flag as Triangulated]
-    FlagTriangulated --> TriangulationData[/Conversion Method: Triangulated<br/>Base Currency: GBP<br/>Rate Path: USD→GBP→EUR<br/>Confidence: 95% (slightly lower)/]
+    FlagTriangulated --> TriangulationData[/Conversion Method: Triangulated<br>Base Currency: GBP<br>Rate Path: USD→GBP→EUR<br>Confidence: 95% (slightly lower)/]
     TriangulationData --> UseCache
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -760,16 +761,16 @@ flowchart TD
 flowchart TD
     Start([Direct Rate Not Found]) --> GetBaseCurrency[Identify Base Currency]
     GetBaseCurrency --> BaseCurrency[/Organization Base: USD/]
-    BaseCurrency --> CheckSource{Source =<br/>Base?}
+    BaseCurrency --> CheckSource{Source =<br>Base?}
 
     CheckSource -->|Yes| Path1[Path: Base→Target]
     Path1 --> GetRate1[Get USD→EUR Rate]
     GetRate1 --> Rate1[/USD→EUR: 0.921456/]
     Rate1 --> SingleConversion[Single Conversion]
-    SingleConversion --> Result1[/JPY→USD→EUR<br/>Source→Base→Target/]
+    SingleConversion --> Result1[/JPY→USD→EUR<br>Source→Base→Target/]
     Result1 --> Continue1[Continue]
 
-    CheckSource -->|No| CheckTarget{Target =<br/>Base?}
+    CheckSource -->|No| CheckTarget{Target =<br>Base?}
     CheckTarget -->|Yes| Path2[Path: Source→Base]
     Path2 --> GetRate2[Get GBP→USD Rate]
     GetRate2 --> Rate2[/GBP→USD: 1.267890/]
@@ -781,36 +782,36 @@ flowchart TD
     SourceBaseRate --> GetRate4[Get Base→Target Rate]
     GetRate4 --> BaseTargetRate[/USD→EUR: 0.921456/]
     BaseTargetRate --> DoubleConversion[Double Conversion]
-    DoubleConversion --> Result2[/GBP→USD→EUR<br/>Source→Base→Target/]
+    DoubleConversion --> Result2[/GBP→USD→EUR<br>Source→Base→Target/]
     Result2 --> Continue1
 
-    Continue1 --> ValidateRates{All Rates<br/>Available?}
-    ValidateRates -->|No| Error[/Error: Cannot triangulate<br/>Missing intermediate rate/]
+    Continue1 --> ValidateRates{All Rates<br>Available?}
+    ValidateRates -->|No| Error[/Error: Cannot triangulate<br>Missing intermediate rate/]
     Error --> EndError([End: Error])
 
-    ValidateRates -->|Yes| CheckRateAge{All Rates<br/>Current?}
-    CheckRateAge -->|No| Warning[/Warning: Using stale rate<br/>for triangulation/]
+    ValidateRates -->|Yes| CheckRateAge{All Rates<br>Current?}
+    CheckRateAge -->|No| Warning[/Warning: Using stale rate<br>for triangulation/]
     Warning --> FlagStale[Flag Conversion as Stale]
     FlagStale --> Continue2[Continue]
     CheckRateAge -->|Yes| Continue2
 
     Continue2 --> CalcTriangulated[Calculate Triangulated Rate]
-    CalcTriangulated --> Calculation[/Example: GBP→USD→EUR<br/>GBP→USD = 1.267890<br/>USD→EUR = 0.921456<br/>GBP→EUR = 1.267890 × 0.921456<br/>= 1.168345/]
+    CalcTriangulated --> Calculation[/Example: GBP→USD→EUR<br>GBP→USD = 1.267890<br>USD→EUR = 0.921456<br>GBP→EUR = 1.267890 × 0.921456<br>= 1.168345/]
 
-    Calculation --> ValidateResult{Result<br/>Reasonable?}
-    ValidateResult -->|No| ErrorBounds[/Error: Triangulated rate<br/>out of reasonable bounds/]
+    Calculation --> ValidateResult{Result<br>Reasonable?}
+    ValidateResult -->|No| ErrorBounds[/Error: Triangulated rate<br>out of reasonable bounds/]
     ErrorBounds --> EndError
 
     ValidateResult -->|Yes| AdjustConfidence[Adjust Confidence Level]
-    AdjustConfidence --> Confidence[/Direct Rate Confidence: 98%<br/>Triangulated Confidence: 95%<br/>Penalty: -3% for triangulation/]
+    AdjustConfidence --> Confidence[/Direct Rate Confidence: 98%<br>Triangulated Confidence: 95%<br>Penalty: -3% for triangulation/]
 
     Confidence --> PerformConversion[Perform Conversion]
-    PerformConversion --> ConversionCalc[/Amount: 1000.00 GBP<br/>Rate: 1.168345 GBP→EUR<br/>Result: 1168.35 EUR/]
+    PerformConversion --> ConversionCalc[/Amount: 1000.00 GBP<br>Rate: 1.168345 GBP→EUR<br>Result: 1168.35 EUR/]
     ConversionCalc --> BuildResponse[Build Response with Metadata]
-    BuildResponse --> Response[/Source: 1000.00 GBP<br/>Target: 1168.35 EUR<br/>Conversion Method: Triangulated<br/>Base Currency: USD<br/>Rate Path: GBP→USD→EUR<br/>Triangulated Rate: 1.168345<br/>Confidence: 95%<br/>Rates Used:<br/>  GBP→USD: 1.267890<br/>  USD→EUR: 0.921456/]
+    BuildResponse --> Response[/Source: 1000.00 GBP<br>Target: 1168.35 EUR<br>Conversion Method: Triangulated<br>Base Currency: USD<br>Rate Path: GBP→USD→EUR<br>Triangulated Rate: 1.168345<br>Confidence: 95%<br>Rates Used:<br>  GBP→USD: 1.267890<br>  USD→EUR: 0.921456/]
 
     Response --> LogTriangulation[Log Triangulation Details]
-    LogTriangulation --> AuditLog[/conversion_method: 'triangulated'<br/>base_currency: 'USD'<br/>intermediate_rates: JSON<br/>confidence_level: 95/]
+    LogTriangulation --> AuditLog[/conversion_method: 'triangulated'<br>base_currency: 'USD'<br>intermediate_rates: JSON<br>confidence_level: 95/]
     AuditLog --> Success([End: Success])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -869,128 +870,128 @@ Example 3: CAD to AUD (Base: USD)
 
 ```mermaid
 flowchart TD
-    Start([Accountant Initiates<br/>Revaluation]) --> Phase1[Phase 1: Configuration]
+    Start([Accountant Initiates<br>Revaluation]) --> Phase1[Phase 1: Configuration]
     Phase1 --> SelectPeriod[Select Accounting Period]
-    SelectPeriod --> Period[/Period: 2025-01<br/>Type: Month-End/]
+    SelectPeriod --> Period[/Period: 2025-01<br>Type: Month-End/]
     Period --> SelectDate[Select Revaluation Date]
-    SelectDate --> Date[/Date: 2025-01-31<br/>Time: 23:59:59 UTC/]
+    SelectDate --> Date[/Date: 2025-01-31<br>Time: 23:59:59 UTC/]
     Date --> SelectCurrencies[Select Currencies to Revalue]
-    SelectCurrencies --> Currencies[/Currencies:<br/>☑ GBP<br/>☑ EUR<br/>☑ JPY<br/>☐ CAD<br/>☐ AUD/]
+    SelectCurrencies --> Currencies[/Currencies:<br>☑ GBP<br>☑ EUR<br>☑ JPY<br>☐ CAD<br>☐ AUD/]
 
     Currencies --> SelectAccounts[Select Account Types]
-    SelectAccounts --> Accounts[/Account Types:<br/>☑ Accounts Receivable<br/>☑ Accounts Payable<br/>☑ Cash and Bank Accounts<br/>☐ Inventory Non-Monetary<br/>☐ Fixed Assets Non-Monetary/]
-    Accounts --> ConfirmConfig{Review<br/>Configuration}
+    SelectAccounts --> Accounts[/Account Types:<br>☑ Accounts Receivable<br>☑ Accounts Payable<br>☑ Cash and Bank Accounts<br>☐ Inventory Non-Monetary<br>☐ Fixed Assets Non-Monetary/]
+    Accounts --> ConfirmConfig{Review<br>Configuration}
     ConfirmConfig -->|No| Phase1
     ConfirmConfig -->|Yes| Phase2[Phase 2: Rate Retrieval]
 
     Phase2 --> RetrieveRates[Retrieve Period-End Rates]
-    RetrieveRates --> CheckAutomated{Automated<br/>Rates<br/>Available?}
+    RetrieveRates --> CheckAutomated{Automated<br>Rates<br>Available?}
     CheckAutomated -->|Yes| GetAutomated[Get from Rate Providers]
-    GetAutomated --> AutoRates[/GBP: 1.2800 OpenExchangeRates<br/>EUR: 1.0850 ECB<br/>JPY: Not Available/]
+    GetAutomated --> AutoRates[/GBP: 1.2800 OpenExchangeRates<br>EUR: 1.0850 ECB<br>JPY: Not Available/]
     AutoRates --> Continue1[Continue]
 
     CheckAutomated -->|No| Continue1
-    Continue1 --> CheckMissing{Missing<br/>Rates?}
+    Continue1 --> CheckMissing{Missing<br>Rates?}
     CheckMissing -->|Yes| DisplayMissing[Display Missing Currencies]
-    DisplayMissing --> MissingList[/Missing Rates:<br/>• JPY: No rate for 2025-01-31/]
-    MissingList --> UserAction{User<br/>Action}
+    DisplayMissing --> MissingList[/Missing Rates:<br>• JPY: No rate for 2025-01-31/]
+    MissingList --> UserAction{User<br>Action}
     UserAction -->|Cancel| CancelReval([Cancel Revaluation])
     UserAction -->|Manual Entry| EnterManual[Enter Missing Rates Manually]
-    EnterManual --> ManualRate[/JPY: 0.00690<br/>Source: Bank Quote<br/>Reference: Q-2025-001234/]
+    EnterManual --> ManualRate[/JPY: 0.00690<br>Source: Bank Quote<br>Reference: Q-2025-001234/]
     ManualRate --> CheckMissing
 
     CheckMissing -->|No| DisplayRates[Display All Retrieved Rates]
-    DisplayRates --> RatesList[/GBP/USD: 1.2800<br/>Source: OpenExchangeRates<br/>Effective: 2025-01-31 23:59:59<br/><br/>EUR/USD: 1.0850<br/>Source: ECB<br/>Effective: 2025-01-31 23:59:59<br/><br/>JPY/USD: 0.00690<br/>Source: Manual Entry<br/>Effective: 2025-01-31 23:59:59/]
-    RatesList --> ConfirmRates{Approve<br/>Rates?}
+    DisplayRates --> RatesList[/GBP/USD: 1.2800<br>Source: OpenExchangeRates<br>Effective: 2025-01-31 23:59:59<br><br>EUR/USD: 1.0850<br>Source: ECB<br>Effective: 2025-01-31 23:59:59<br><br>JPY/USD: 0.00690<br>Source: Manual Entry<br>Effective: 2025-01-31 23:59:59/]
+    RatesList --> ConfirmRates{Approve<br>Rates?}
     ConfirmRates -->|No| EnterManual
     ConfirmRates -->|Yes| Phase3[Phase 3: Balance Identification]
 
     Phase3 --> QueryBalances[Query Open Foreign Balances]
-    QueryBalances --> BalanceQuery[/SELECT account, currency,<br/>SUM(amount_fc) as balance_fc,<br/>SUM(amount_bc) as balance_bc<br/>FROM transactions<br/>WHERE currency != base_currency<br/>AND is_settled = false<br/>AND account_type IN (selected types)<br/>GROUP BY account, currency/]
+    QueryBalances --> BalanceQuery[/SELECT account, currency,<br>SUM(amount_fc) as balance_fc,<br>SUM(amount_bc) as balance_bc<br>FROM transactions<br>WHERE currency != base_currency<br>AND is_settled = false<br>AND account_type IN (selected types)<br>GROUP BY account, currency/]
 
     BalanceQuery --> FilterMonetary[Filter Monetary Items Only]
-    FilterMonetary --> ExcludeNonMonetary[/Exclude:<br/>• Inventory (subject to LCM rule)<br/>• Fixed Assets (historical cost)<br/>• Prepaid Expenses<br/>• Deferred Revenue/]
+    FilterMonetary --> ExcludeNonMonetary[/Exclude:<br>• Inventory (subject to LCM rule)<br>• Fixed Assets (historical cost)<br>• Prepaid Expenses<br>• Deferred Revenue/]
     ExcludeNonMonetary --> DisplayBalances[Display Open Balances]
-    DisplayBalances --> BalancesList[/Account: 1200 - AR GBP<br/>  Balance: £15,000.00<br/>  Base: $19,125.00 (various rates)<br/><br/>Account: 2100 - AP EUR<br/>  Balance: €20,000.00<br/>  Base: $21,600.00 @ 1.0800<br/><br/>Account: 1110 - Cash GBP<br/>  Balance: £10,000.00<br/>  Base: $12,750.00 @ 1.2750/]
+    DisplayBalances --> BalancesList[/Account: 1200 - AR GBP<br>  Balance: £15,000.00<br>  Base: $19,125.00 (various rates)<br><br>Account: 2100 - AP EUR<br>  Balance: €20,000.00<br>  Base: $21,600.00 @ 1.0800<br><br>Account: 1110 - Cash GBP<br>  Balance: £10,000.00<br>  Base: $12,750.00 @ 1.2750/]
 
-    BalancesList --> ReviewBalances{Review<br/>Balances?}
+    BalancesList --> ReviewBalances{Review<br>Balances?}
     ReviewBalances -->|Issues Found| ResolveIssues[Resolve Discrepancies]
     ResolveIssues --> QueryBalances
     ReviewBalances -->|OK| Phase4[Phase 4: Calculation]
 
     Phase4 --> CalcRevaluation[Calculate Revaluation Adjustments]
     CalcRevaluation --> LoopAccounts[For Each Foreign Balance:]
-    LoopAccounts --> Calc1[/"AR GBP £15,000.00:<br/>Original Base: $19,125.00<br/>Revalued: £15,000 × 1.2800 = $19,200.00<br/>Unrealized Gain: $75.00"/]
+    LoopAccounts --> Calc1[/'AR GBP £15,000.00:<br>Original Base: $19,125.00<br>Revalued: £15,000 × 1.2800 = $19,200.00<br>Unrealized Gain: $75.00'/]
 
-    Calc1 --> Calc2[/"AP EUR €20,000.00:<br/>Original Base: $21,600.00<br/>Revalued: €20,000 × 1.0850 = $21,700.00<br/>Unrealized Loss: $100.00"/]
+    Calc1 --> Calc2[/'AP EUR €20,000.00:<br>Original Base: $21,600.00<br>Revalued: €20,000 × 1.0850 = $21,700.00<br>Unrealized Loss: $100.00'/]
 
-    Calc2 --> Calc3[/"Cash GBP £10,000.00:<br/>Original Base: $12,750.00<br/>Revalued: £10,000 × 1.2800 = $12,800.00<br/>Unrealized Gain: $50.00"/]
+    Calc2 --> Calc3[/'Cash GBP £10,000.00:<br>Original Base: $12,750.00<br>Revalued: £10,000 × 1.2800 = $12,800.00<br>Unrealized Gain: $50.00'/]
 
     Calc3 --> SumGains[Sum Total Gains]
-    SumGains --> TotalGains[/$125.00<br/>(AR: $75 + Cash: $50)/]
+    SumGains --> TotalGains[/$125.00<br>(AR: $75 + Cash: $50)/]
     TotalGains --> SumLosses[Sum Total Losses]
-    SumLosses --> TotalLosses[/$100.00<br/>(AP: $100)/]
+    SumLosses --> TotalLosses[/$100.00<br>(AP: $100)/]
     TotalLosses --> CalcNet[Calculate Net Gain/Loss]
-    CalcNet --> NetAmount[/Net Gain: $25.00<br/>($125 gains - $100 losses)/]
+    CalcNet --> NetAmount[/Net Gain: $25.00<br>($125 gains - $100 losses)/]
 
     NetAmount --> DisplayCalc[Display Calculation Summary]
-    DisplayCalc --> Summary[/Total Accounts: 3<br/>Accounts with Gains: 2<br/>Accounts with Losses: 1<br/>Total Realized Gain: $0.00<br/>Total Unrealized Gain: $125.00<br/>Total Realized Loss: $0.00<br/>Total Unrealized Loss: $100.00<br/>Net Impact: $25.00 Gain/]
+    DisplayCalc --> Summary[/Total Accounts: 3<br>Accounts with Gains: 2<br>Accounts with Losses: 1<br>Total Realized Gain: $0.00<br>Total Unrealized Gain: $125.00<br>Total Realized Loss: $0.00<br>Total Unrealized Loss: $100.00<br>Net Impact: $25.00 Gain/]
     Summary --> Phase5[Phase 5: Preview]
 
     Phase5 --> BuildJE[Construct Revaluation Journal Entry]
     BuildJE --> AddGainEntries[Add Gain Adjustment Entries]
-    AddGainEntries --> GainLines[/Debit: 1200 - AR GBP     $75.00<br/>Debit: 1110 - Cash GBP    $50.00/]
+    AddGainEntries --> GainLines[/Debit: 1200 - AR GBP     $75.00<br>Debit: 1110 - Cash GBP    $50.00/]
     GainLines --> AddLossEntries[Add Loss Adjustment Entries]
     AddLossEntries --> LossLines[/Credit: 2100 - AP EUR     $100.00/]
     LossLines --> AddNetEntry[Add Net P&L Entry]
-    AddNetEntry --> NetEntry[/Credit: 7210 - Unrealized<br/>        Exchange Gain $125.00<br/>Debit:  7210 - Unrealized<br/>        Exchange Loss $100.00/]
+    AddNetEntry --> NetEntry[/Credit: 7210 - Unrealized<br>        Exchange Gain $125.00<br>Debit:  7210 - Unrealized<br>        Exchange Loss $100.00/]
 
     NetEntry --> DisplayJE[Display Complete Journal Entry]
-    DisplayJE --> JEPreview[/Journal Entry: REVAL-2025-001<br/>Date: 2025-01-31<br/>Description: Period-end currency revaluation<br/><br/>Debit  1200 AR GBP              $75.00<br/>Debit  1110 Cash GBP            $50.00<br/>Debit  7210 Unreal Exch Loss   $100.00<br/>Credit 2100 AP EUR             $100.00<br/>Credit 7210 Unreal Exch Gain   $125.00<br/><br/>Total Debits:  $225.00<br/>Total Credits: $225.00<br/>Net P&L Impact: $25.00 Gain/]
+    DisplayJE --> JEPreview[/Journal Entry: REVAL-2501-0001<br>Date: 2025-01-31<br>Description: Period-end currency revaluation<br><br>Debit  1200 AR GBP              $75.00<br>Debit  1110 Cash GBP            $50.00<br>Debit  7210 Unreal Exch Loss   $100.00<br>Credit 2100 AP EUR             $100.00<br>Credit 7210 Unreal Exch Gain   $125.00<br><br>Total Debits:  $225.00<br>Total Credits: $225.00<br>Net P&L Impact: $25.00 Gain/]
 
-    JEPreview --> CheckMaterial{Net Impact<br/>> $10,000?}
+    JEPreview --> CheckMaterial{Net Impact<br>> $10,000?}
     CheckMaterial -->|Yes| RequireCFO[Require CFO Approval]
     RequireCFO --> SetPendingCFO[Status: Pending CFO Approval]
-    SetPendingCFO --> NotifyCFO[/Email CFO for Approval<br/>Subject: Revaluation Approval Required<br/>Net Impact: $25.00 Gain/]
+    SetPendingCFO --> NotifyCFO[/Email CFO for Approval<br>Subject: Revaluation Approval Required<br>Net Impact: $25.00 Gain/]
     NotifyCFO --> WaitCFO([Wait for CFO Approval])
-    WaitCFO --> CFODecision{CFO<br/>Approves?}
+    WaitCFO --> CFODecision{CFO<br>Approves?}
     CFODecision -->|No| RejectReval([End: Rejected by CFO])
     CFODecision -->|Yes| Continue2[Continue]
     CheckMaterial -->|No| Continue2
 
-    Continue2 --> UserConfirm{Confirm<br/>Posting?}
+    Continue2 --> UserConfirm{Confirm<br>Posting?}
     UserConfirm -->|No| EditReval([Return to Edit Configuration])
     EditReval --> Phase1
     UserConfirm -->|Yes| Phase6[Phase 6: Posting]
 
     Phase6 --> BeginTx[Begin Database Transaction]
     BeginTx --> InsertRevaluation[Insert Revaluation Batch]
-    InsertRevaluation --> BatchData[/batch_id: generated UUID<br/>batch_number: REVAL-2025-001<br/>revaluation_date: 2025-01-31<br/>fiscal_period: FY2025-01<br/>currencies: [GBP, EUR, JPY]<br/>status: 'in_progress'/]
+    InsertRevaluation --> BatchData[/batch_id: generated UUID<br>batch_number: REVAL-2501-0001<br>revaluation_date: 2025-01-31<br>fiscal_period: FY2025-01<br>currencies: [GBP, EUR, JPY]<br>status: 'in_progress'/]
 
     BatchData --> InsertLines[Insert Revaluation Lines]
-    InsertLines --> LineData[/3 lines:<br/>AR GBP: $75 gain<br/>AP EUR: $100 loss<br/>Cash GBP: $50 gain/]
+    InsertLines --> LineData[/3 lines:<br>AR GBP: $75 gain<br>AP EUR: $100 loss<br>Cash GBP: $50 gain/]
     LineData --> PostJE[Post Journal Entry]
-    PostJE --> JEPosting[/Journal Entry ID: generated<br/>Posted to GL accounts<br/>Account balances updated/]
+    PostJE --> JEPosting[/Journal Entry ID: generated<br>Posted to GL accounts<br>Account balances updated/]
 
     JEPosting --> UpdateBalances[Update Account Balances]
-    UpdateBalances --> BalanceUpdates[/1200 AR: +$75 (base only)<br/>2100 AP: -$100 (base only)<br/>1110 Cash: +$50 (base only)<br/>7210 Gain/Loss: Net $25 gain<br/><br/>Note: Foreign currency balances<br/>remain unchanged/]
+    UpdateBalances --> BalanceUpdates[/1200 AR: +$75 (base only)<br>2100 AP: -$100 (base only)<br>1110 Cash: +$50 (base only)<br>7210 Gain/Loss: Net $25 gain<br><br>Note: Foreign currency balances<br>remain unchanged/]
 
     BalanceUpdates --> LogGainLoss[Insert Gain/Loss Log Entries]
-    LogGainLoss --> LogData[/3 entries in gain_loss_log:<br/>One per revaluation line<br/>With all calculation details/]
+    LogGainLoss --> LogData[/3 entries in gain_loss_log:<br>One per revaluation line<br>With all calculation details/]
     LogData --> UpdateStatus[Set Status = Posted]
     UpdateStatus --> CommitTx[Commit Transaction]
     CommitTx --> Phase7[Phase 7: Reversal Scheduling]
 
     Phase7 --> CalcReversalDate[Calculate Reversal Date]
-    CalcReversalDate --> ReversalDate[/Next Period Start:<br/>2025-02-01 00:00:01 UTC/]
+    CalcReversalDate --> ReversalDate[/Next Period Start:<br>2025-02-01 00:00:01 UTC/]
     ReversalDate --> CreateJob[Create Scheduled Job]
-    CreateJob --> JobDetails[/Job Type: Cron<br/>Schedule: Daily at 00:00:00 UTC<br/>Condition: IF current_date = 2025-02-01<br/>Action: Execute auto-reversal<br/>Parameters: batch_id, reversal details/]
+    CreateJob --> JobDetails[/Job Type: Cron<br>Schedule: Daily at 00:00:00 UTC<br>Condition: IF current_date = 2025-02-01<br>Action: Execute auto-reversal<br>Parameters: batch_id, reversal details/]
 
     JobDetails --> SetFlags[Set Reversal Flags]
-    SetFlags --> Flags[/automatic_reversal_scheduled: true<br/>reversal_scheduled_date: 2025-02-01<br/>reversal_journal_template: prepared/]
+    SetFlags --> Flags[/automatic_reversal_scheduled: true<br>reversal_scheduled_date: 2025-02-01<br>reversal_journal_template: prepared/]
     Flags --> PublishEvent[/Publish RevaluationPosted Event/]
-    PublishEvent --> NotifyStakeholders[/Notify:<br/>• Accountant (Success)<br/>• Finance Manager (FYI)<br/>• CFO if approved by CFO/]
-    NotifyStakeholders --> Success([End: Success<br/>Reversal Scheduled])
+    PublishEvent --> NotifyStakeholders[/Notify:<br>• Accountant (Success)<br>• Finance Manager (FYI)<br>• CFO if approved by CFO/]
+    NotifyStakeholders --> Success([End: Success<br>Reversal Scheduled])
 
     CancelReval --> EndCancel([End: Cancelled])
     RejectReval --> EndReject([End: Rejected])
@@ -1081,59 +1082,59 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Error Discovered in<br/>Historical Rate]) --> GetRate[Retrieve Historical Rate]
-    GetRate --> Rate[/Rate ID: rate_001234<br/>Date: 2024-12-15<br/>USD→EUR: 0.920000<br/>Should be: 0.925000<br/>Error: -0.54%/]
+    Start([Error Discovered in<br>Historical Rate]) --> GetRate[Retrieve Historical Rate]
+    GetRate --> Rate[/Rate ID: rate_001234<br>Date: 2024-12-15<br>USD→EUR: 0.920000<br>Should be: 0.925000<br>Error: -0.54%/]
 
     Rate --> CheckUsage[Check Rate Usage]
-    CheckUsage --> Usage[/Transactions Using Rate: 45<br/>Conversions: 23<br/>Revaluations: 1<br/>Total Impact: $2,340.00/]
+    CheckUsage --> Usage[/Transactions Using Rate: 45<br>Conversions: 23<br>Revaluations: 1<br>Total Impact: $2,340.00/]
 
-    Usage --> CheckPeriod{Period<br/>Closed?}
+    Usage --> CheckPeriod{Period<br>Closed?}
     CheckPeriod -->|No| AllowCorrection[Allow Direct Correction]
     AllowCorrection --> EnterCorrection[Enter Corrected Rate]
-    EnterCorrection --> CorrectedRate[/New Rate: 0.925000<br/>Reason: Bank statement shows<br/>incorrect rate entered/]
+    EnterCorrection --> CorrectedRate[/New Rate: 0.925000<br>Reason: Bank statement shows<br>incorrect rate entered/]
     CorrectedRate --> Continue1[Continue]
 
     CheckPeriod -->|Yes| RequireApproval[Require Controller Approval]
     RequireApproval --> SubmitRequest[Submit Correction Request]
-    SubmitRequest --> Request[/Original Rate: 0.920000<br/>Corrected Rate: 0.925000<br/>Transactions Affected: 45<br/>Financial Impact: $2,340.00<br/>Justification: Bank statement proof/]
+    SubmitRequest --> Request[/Original Rate: 0.920000<br>Corrected Rate: 0.925000<br>Transactions Affected: 45<br>Financial Impact: $2,340.00<br>Justification: Bank statement proof/]
 
-    Request --> NotifyController[/Notify Financial Controller<br/>Approval Required/]
+    Request --> NotifyController[/Notify Financial Controller<br>Approval Required/]
     NotifyController --> WaitApproval([Wait for Approval])
-    WaitApproval --> ControllerReview{Controller<br/>Approves?}
+    WaitApproval --> ControllerReview{Controller<br>Approves?}
     ControllerReview -->|No| Reject[Reject Correction]
-    Reject --> NotifyRejection[/Notify Requester<br/>Correction Rejected/]
+    Reject --> NotifyRejection[/Notify Requester<br>Correction Rejected/]
     NotifyRejection --> EndRejected([End: Rejected])
 
     ControllerReview -->|Yes| Approve[Approve Correction]
     Approve --> Continue1
 
-    Continue1 --> CheckImpact{Financial<br/>Impact<br/>> $5,000?}
+    Continue1 --> CheckImpact{Financial<br>Impact<br>> $5,000?}
     CheckImpact -->|Yes| RequireCFO[Require CFO Approval]
     RequireCFO --> WaitCFO([Wait for CFO Approval])
-    WaitCFO --> CFODecision{CFO<br/>Approves?}
+    WaitCFO --> CFODecision{CFO<br>Approves?}
     CFODecision -->|No| Reject
     CFODecision -->|Yes| Continue2[Continue]
     CheckImpact -->|No| Continue2
 
     Continue2 --> BeginTx[Begin Database Transaction]
     BeginTx --> ArchiveOriginal[Archive Original Rate]
-    ArchiveOriginal --> ArchiveData[/Copy to exchange_rate_corrections<br/>with 'original' flag<br/>Preserve all original data/]
+    ArchiveOriginal --> ArchiveData[/Copy to exchange_rate_corrections<br>with 'original' flag<br>Preserve all original data/]
 
     ArchiveData --> UpdateRate[Update Exchange Rate Record]
-    UpdateRate --> UpdateData[/exchange_rate: 0.925000<br/>inverse_rate: recalculated<br/>is_corrected: true<br/>corrected_by: user_id<br/>corrected_date: timestamp<br/>correction_reason: text/]
+    UpdateRate --> UpdateData[/exchange_rate: 0.925000<br>inverse_rate: recalculated<br>is_corrected: true<br>corrected_by: user_id<br>corrected_date: timestamp<br>correction_reason: text/]
 
     UpdateData --> LogCorrection[Insert Correction Log]
-    LogCorrection --> LogData[/original_rate: 0.920000<br/>corrected_rate: 0.925000<br/>variance: +0.54%<br/>affected_transactions: 45<br/>approved_by: controller/CFO/]
+    LogCorrection --> LogData[/original_rate: 0.920000<br>corrected_rate: 0.925000<br>variance: +0.54%<br>affected_transactions: 45<br>approved_by: controller/CFO/]
 
     LogData --> UpdateTransactions[Update Affected Transactions]
-    UpdateTransactions --> TransUpdate[/Recalculate base amounts<br/>for affected transactions<br/>Store correction reference/]
+    UpdateTransactions --> TransUpdate[/Recalculate base amounts<br>for affected transactions<br>Store correction reference/]
 
     TransUpdate --> AdjustBalances[Post Adjustment Entry]
-    AdjustBalances --> JE[/Journal Entry:<br/>Debit/Credit affected accounts<br/>for net impact of $2,340.00<br/>Description: Historical rate correction/]
+    AdjustBalances --> JE[/Journal Entry:<br>Debit/Credit affected accounts<br>for net impact of $2,340.00<br>Description: Historical rate correction/]
 
     JE --> CommitTx[Commit Transaction]
     CommitTx --> PublishEvent[/Publish RateCorrected Event/]
-    PublishEvent --> NotifyAffected[/Notify:<br/>• Finance Team<br/>• Affected Transaction Users<br/>• External Auditors (if material)/]
+    PublishEvent --> NotifyAffected[/Notify:<br>• Finance Team<br>• Affected Transaction Users<br>• External Auditors (if material)/]
     NotifyAffected --> Success([End: Corrected])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1166,24 +1167,24 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    User([Finance Manager<br/>Treasury Manager<br/>Accountant]) -->|Configure Providers<br/>Enter Manual Rates<br/>Run Revaluations| System{Exchange Rate<br/>Management<br/>System}
-    System -->|Rate Updates<br/>Approvals<br/>Confirmations| User
+    User([Finance Manager<br>Treasury Manager<br>Accountant]) -->|Configure Providers<br>Enter Manual Rates<br>Run Revaluations| System{Exchange Rate<br>Management<br>System}
+    System -->|Rate Updates<br>Approvals<br>Confirmations| User
 
-    System <-->|Store/Retrieve<br/>Rates & History| DB[(PostgreSQL<br/>Database)]
-    System <-->|Cache Active Rates<br/>15-min TTL| Cache[(Redis<br/>Cache)]
+    System <-->|Store/Retrieve<br>Rates & History| DB[(PostgreSQL<br>Database)]
+    System <-->|Cache Active Rates<br>15-min TTL| Cache[(Redis<br>Cache)]
 
-    System <-->|Retrieve Rates| OpenEx[OpenExchangeRates<br/>API]
-    System <-->|Retrieve Rates| Bloomberg[Bloomberg<br/>Terminal API]
-    System <-->|Retrieve Rates| ECB[European Central<br/>Bank API]
-    System <-->|Retrieve Rates| Bank[Bank Treasury<br/>Systems]
+    System <-->|Retrieve Rates| OpenEx[OpenExchangeRates<br>API]
+    System <-->|Retrieve Rates| Bloomberg[Bloomberg<br>Terminal API]
+    System <-->|Retrieve Rates| ECB[European Central<br>Bank API]
+    System <-->|Retrieve Rates| Bank[Bank Treasury<br>Systems]
 
-    System <-->|Get Currency Definitions| CurrMgmt[Currency<br/>Management]
-    System <-->|Get GL Accounts<br/>for Gain/Loss| AcctMapping[Account Code<br/>Mapping]
-    System <-->|Post Revaluation<br/>Journal Entries| PostingEngine[Posting<br/>Engine]
+    System <-->|Get Currency Definitions| CurrMgmt[Currency<br>Management]
+    System <-->|Get GL Accounts<br>for Gain/Loss| AcctMapping[Account Code<br>Mapping]
+    System <-->|Post Revaluation<br>Journal Entries| PostingEngine[Posting<br>Engine]
 
-    System -->|Conversion Services<br/>Historical Rates| Procurement[Procurement<br/>Module]
-    System -->|Conversion Services| Sales[Sales<br/>Module]
-    System -->|Conversion Services| Reporting[Financial<br/>Reporting]
+    System -->|Conversion Services<br>Historical Rates| Procurement[Procurement<br>Module]
+    System -->|Conversion Services| Sales[Sales<br>Module]
+    System -->|Conversion Services| Reporting[Financial<br>Reporting]
 
     style User fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style System fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
@@ -1219,13 +1220,13 @@ flowchart LR
 
 ```mermaid
 flowchart TD
-    subgraph "Exchange Rate Management System"
-        P1[1.0<br/>Provider<br/>Configuration]
-        P2[2.0<br/>Rate<br/>Retrieval]
-        P3[3.0<br/>Rate<br/>Approval]
-        P4[4.0<br/>Currency<br/>Conversion]
-        P5[5.0<br/>Period-End<br/>Revaluation]
-        P6[6.0<br/>Historical<br/>Management]
+    subgraph 'Exchange Rate Management System'
+        P1[1.0<br>Provider<br>Configuration]
+        P2[2.0<br>Rate<br>Retrieval]
+        P3[3.0<br>Rate<br>Approval]
+        P4[4.0<br>Currency<br>Conversion]
+        P5[5.0<br>Period-End<br>Revaluation]
+        P6[6.0<br>Historical<br>Management]
 
         DS1[(D1: Rate Providers)]
         DS2[(D2: Exchange Rates)]
@@ -1328,14 +1329,14 @@ sequenceDiagram
     activate RateService
 
     RateService->>ProviderDB: Get active providers (priority order)
-    ProviderDB-->>RateService: [Primary: OpenExchangeRates,<br/>Backup: ECB, Manual]
+    ProviderDB-->>RateService: [Primary: OpenExchangeRates,<br>Backup: ECB, Manual]
 
     RateService->>ProviderDB: Get enabled currencies
     ProviderDB-->>RateService: [USD, EUR, GBP, JPY, CAD, AUD]
 
-    RateService->>API: GET /latest.json?app_id=KEY<br/>&base=USD&symbols=EUR,GBP,JPY...
+    RateService->>API: GET /latest.json?app_id=KEY<br>&base=USD&symbols=EUR,GBP,JPY...
     activate API
-    API-->>RateService: {base: "USD", rates: {<br/>  EUR: 0.921456,<br/>  GBP: 0.785234,<br/>  JPY: 149.345600...<br/>}}
+    API-->>RateService: {base: 'USD', rates: {<br>  EUR: 0.921456,<br>  GBP: 0.785234,<br>  JPY: 149.345600...<br>}}
     deactivate API
 
     RateService->>Validator: Validate rate data
@@ -1348,7 +1349,7 @@ sequenceDiagram
         Validator->>DB: Get previous rate for variance
         DB-->>Validator: Previous: EUR 0.921678
 
-        Validator->>Validator: Calculate variance:<br/>(0.921456 - 0.921678) / 0.921678<br/>= -0.024%
+        Validator->>Validator: Calculate variance:<br>(0.921456 - 0.921678) / 0.921678<br>= -0.024%
 
         alt Variance < 5%
             Validator-->>RateService: Valid (auto-approve)
@@ -1364,16 +1365,16 @@ sequenceDiagram
     RateService->>DB: BEGIN TRANSACTION
 
     loop For each approved rate
-        RateService->>DB: UPDATE exchange_rates<br/>SET is_active = false<br/>WHERE currency_pair = current
-        RateService->>DB: INSERT INTO exchange_rate_history<br/>(archived rate)
-        RateService->>DB: INSERT INTO exchange_rates<br/>(new rate, is_active = true,<br/>approval_status = 'approved')
+        RateService->>DB: UPDATE exchange_rates<br>SET is_active = false<br>WHERE currency_pair = current
+        RateService->>DB: INSERT INTO exchange_rate_history<br>(archived rate)
+        RateService->>DB: INSERT INTO exchange_rates<br>(new rate, is_active = true,<br>approval_status = 'approved')
 
-        RateService->>Cache: SET rate:USD:EUR:2025-01-13:spot<br/>VALUE 0.921456 EX 900
+        RateService->>Cache: SET rate:USD:EUR:2025-01-13:spot<br>VALUE 0.921456 EX 900
         Cache-->>RateService: OK
     end
 
     loop For each pending rate
-        RateService->>DB: INSERT INTO exchange_rates<br/>(new rate, is_active = false,<br/>approval_status = 'pending')
+        RateService->>DB: INSERT INTO exchange_rates<br>(new rate, is_active = false,<br>approval_status = 'pending')
         RateService->>Queue: Add to approval queue
         Queue-->>RateService: Queued
     end
@@ -1383,12 +1384,12 @@ sequenceDiagram
     alt Rates requiring approval
         RateService->>Notifier: Send approval request emails
         activate Notifier
-        Notifier->>Notifier: To: Finance Manager<br/>Subject: Exchange Rate Approval Required<br/>Body: High-variance rates detected
+        Notifier->>Notifier: To: Finance Manager<br>Subject: Exchange Rate Approval Required<br>Body: High-variance rates detected
         Notifier-->>RateService: Emails sent
         deactivate Notifier
     end
 
-    RateService->>RateService: Generate summary:<br/>Total: 6 pairs<br/>Auto-approved: 5<br/>Pending approval: 1<br/>Failed: 0
+    RateService->>RateService: Generate summary:<br>Total: 6 pairs<br>Auto-approved: 5<br>Pending approval: 1<br>Failed: 0
 
     RateService-->>Cron: Success: 5 rates updated, 1 pending
     deactivate RateService
@@ -1416,13 +1417,13 @@ sequenceDiagram
 
     User->>UI: Open manual rate entry
     UI->>API: Get current rate (USD→EUR)
-    API->>DB: SELECT * FROM exchange_rates<br/>WHERE currency_pair = 'USD/EUR'<br/>AND is_active = true
+    API->>DB: SELECT * FROM exchange_rates<br>WHERE currency_pair = 'USD/EUR'<br>AND is_active = true
     DB-->>API: Current: 0.921456
     API-->>UI: Display current rate + history
 
-    UI->>User: Show: Current 0.921456<br/>Last 5 rates: [history]
+    UI->>User: Show: Current 0.921456<br>Last 5 rates: [history]
 
-    User->>UI: Enter:<br/>Rate: 0.915000<br/>Type: Spot<br/>Source: Bank Quote<br/>Reference: Q-2025-001234<br/>Reason: API unavailable
+    User->>UI: Enter:<br>Rate: 0.915000<br>Type: Spot<br>Source: Bank Quote<br>Reference: Q-2025-001234<br>Reason: API unavailable
     User->>UI: Upload: bank_quote_20250113.pdf
     User->>UI: Click Submit
 
@@ -1439,7 +1440,7 @@ sequenceDiagram
     Validator->>DB: Get current rate for variance
     DB-->>Validator: Current: 0.921456
 
-    Validator->>Validator: Calculate variance:<br/>0.915000 - 0.921456 / 0.921456<br/>= -0.70% = 0.70% absolute
+    Validator->>Validator: Calculate variance:<br>0.915000 - 0.921456 / 0.921456<br>= -0.70% = 0.70% absolute
 
     alt Variance >= 5%
         Validator->>Validator: Requires approval
@@ -1451,7 +1452,7 @@ sequenceDiagram
     deactivate Validator
 
     API->>DB: BEGIN TRANSACTION
-    API->>DB: INSERT INTO exchange_rates<br/>(rate, is_manual_entry = true,<br/>is_active = false,<br/>approval_status = 'pending',<br/>submitted_by, document_ref)
+    API->>DB: INSERT INTO exchange_rates<br>(rate, is_manual_entry = true,<br>is_active = false,<br>approval_status = 'pending',<br>submitted_by, document_ref)
     DB-->>API: Rate ID: rate_001234
 
     API->>DB: Link supporting document
@@ -1461,13 +1462,13 @@ sequenceDiagram
 
     API->>Email: Send approval notification
     activate Email
-    Email->>Approver: Email:<br/>To: Financial Controller<br/>Subject: Exchange Rate Approval Required<br/>Body: USD→EUR manual rate 0.915000<br/>Variance: -0.70% from current<br/>Submitter: Treasury Manager<br/>Link: [Approval Dashboard]
+    Email->>Approver: Email:<br>To: Financial Controller<br>Subject: Exchange Rate Approval Required<br>Body: USD→EUR manual rate 0.915000<br>Variance: -0.70% from current<br>Submitter: Treasury Manager<br>Link: [Approval Dashboard]
     deactivate Email
 
-    API-->>UI: Success: Rate submitted<br/>Status: Pending approval
+    API-->>UI: Success: Rate submitted<br>Status: Pending approval
     deactivate API
 
-    UI->>User: Display: Rate pending approval<br/>Will be notified when processed
+    UI->>User: Display: Rate pending approval<br>Will be notified when processed
 
     rect rgb(255, 240, 230)
     Note over Approver,Cache: Approval Process (later)
@@ -1478,30 +1479,30 @@ sequenceDiagram
 
     Approver->>UI: Click rate to review
     UI->>DB: Get rate details + comparison
-    DB-->>UI: Rate: 0.915000<br/>Current: 0.921456<br/>External: 0.921234 (OpenExchangeRates)<br/>Document: bank_quote_20250113.pdf<br/>Submitter notes: API unavailable
+    DB-->>UI: Rate: 0.915000<br>Current: 0.921456<br>External: 0.921234 (OpenExchangeRates)<br>Document: bank_quote_20250113.pdf<br>Submitter notes: API unavailable
 
     UI->>Approver: Display comprehensive comparison
-    Approver->>Approver: Review supporting document<br/>Verify with external sources<br/>Check market conditions
+    Approver->>Approver: Review supporting document<br>Verify with external sources<br>Check market conditions
 
-    Approver->>UI: Approve rate<br/>Comments: Bank quote valid,<br/>within acceptable range
+    Approver->>UI: Approve rate<br>Comments: Bank quote valid,<br>within acceptable range
     UI->>API: Submit approval
     activate API
 
     API->>DB: BEGIN TRANSACTION
-    API->>DB: UPDATE exchange_rates<br/>SET approval_status = 'approved',<br/>approved_by = controller_id,<br/>approved_date = NOW(),<br/>is_active = true
+    API->>DB: UPDATE exchange_rates<br>SET approval_status = 'approved',<br>approved_by = controller_id,<br>approved_date = NOW(),<br>is_active = true
 
-    API->>DB: UPDATE exchange_rates<br/>SET is_active = false<br/>WHERE currency_pair = current
+    API->>DB: UPDATE exchange_rates<br>SET is_active = false<br>WHERE currency_pair = current
 
-    API->>DB: INSERT INTO exchange_rate_history<br/>(archived previous rate)
+    API->>DB: INSERT INTO exchange_rate_history<br>(archived previous rate)
 
     API->>Queue: Remove from approval queue
     API->>DB: COMMIT TRANSACTION
 
     API->>Cache: DEL rate:USD:EUR:*
-    API->>Cache: SET rate:USD:EUR:2025-01-13:spot<br/>VALUE 0.915000 EX 900
+    API->>Cache: SET rate:USD:EUR:2025-01-13:spot<br>VALUE 0.915000 EX 900
 
     API->>Email: Notify submitter
-    Email->>User: Email: Your USD→EUR rate approved<br/>Now active
+    Email->>User: Email: Your USD→EUR rate approved<br>Now active
 
     API-->>UI: Success: Rate approved and activated
     deactivate API
@@ -1526,10 +1527,10 @@ sequenceDiagram
     participant Decimal as Decimal.js Engine
     participant AuditLog as Conversion Log
 
-    PO->>API: Convert currency<br/>{source: USD, target: EUR,<br/> amount: 1000.00,<br/> date: 2025-01-13, type: spot}
+    PO->>API: Convert currency<br>{source: USD, target: EUR,<br> amount: 1000.00,<br> date: 2025-01-13, type: spot}
     activate API
 
-    API->>API: Validate parameters:<br/>amount > 0: ✓<br/>source ≠ target: ✓<br/>both active: ✓
+    API->>API: Validate parameters:<br>amount > 0: ✓<br>source ≠ target: ✓<br>both active: ✓
 
     API->>Cache: GET rate:USD:EUR:2025-01-13:spot
     activate Cache
@@ -1541,12 +1542,12 @@ sequenceDiagram
         Cache-->>API: null
         deactivate Cache
 
-        API->>DB: SELECT * FROM exchange_rates<br/>WHERE source_currency = 'USD'<br/>AND target_currency = 'EUR'<br/>AND effective_date <= '2025-01-13'<br/>AND rate_type = 'spot'<br/>AND is_active = true<br/>ORDER BY effective_date DESC<br/>LIMIT 1
+        API->>DB: SELECT * FROM exchange_rates<br>WHERE source_currency = 'USD'<br>AND target_currency = 'EUR'<br>AND effective_date <= '2025-01-13'<br>AND rate_type = 'spot'<br>AND is_active = true<br>ORDER BY effective_date DESC<br>LIMIT 1
         activate DB
-        DB-->>API: Rate: 0.921456<br/>Source: OpenExchangeRates<br/>Effective: 2025-01-13 12:00 UTC<br/>Confidence: 98%
+        DB-->>API: Rate: 0.921456<br>Source: OpenExchangeRates<br>Effective: 2025-01-13 12:00 UTC<br>Confidence: 98%
         deactivate DB
 
-        API->>Cache: SET rate:USD:EUR:2025-01-13:spot<br/>VALUE 0.921456 EX 900
+        API->>Cache: SET rate:USD:EUR:2025-01-13:spot<br>VALUE 0.921456 EX 900
         activate Cache
         Cache-->>API: OK
         deactivate Cache
@@ -1554,34 +1555,34 @@ sequenceDiagram
 
     API->>Decimal: Initialize Decimal engine
     activate Decimal
-    Decimal->>Decimal: Create Decimal(1000.00)<br/>Precision: 6 decimals
+    Decimal->>Decimal: Create Decimal(1000.00)<br>Precision: 6 decimals
     Decimal->>Decimal: Create Decimal(0.921456)
     Decimal->>Decimal: Multiply: 1000.00 × 0.921456
     Decimal-->>API: Result: 921.456000
     deactivate Decimal
 
-    API->>API: Get EUR rounding rules:<br/>Precision: 0.01 (2 decimals)<br/>Method: Half-Even
+    API->>API: Get EUR rounding rules:<br>Precision: 0.01 (2 decimals)<br>Method: Half-Even
 
-    API->>API: Apply rounding:<br/>921.456000 → 921.46
+    API->>API: Apply rounding:<br>921.456000 → 921.46
 
-    API->>API: Calculate inverse rate:<br/>1 / 0.921456 = 1.085267
+    API->>API: Calculate inverse rate:<br>1 / 0.921456 = 1.085267
 
-    API->>API: Build response:<br/>{source_amount: 1000.00 USD,<br/> target_amount: 921.46 EUR,<br/> exchange_rate: 0.921456,<br/> inverse_rate: 1.085267,<br/> rate_source: OpenExchangeRates,<br/> conversion_method: Direct,<br/> rate_age: 2 hours,<br/> confidence: 98%}
+    API->>API: Build response:<br>{source_amount: 1000.00 USD,<br> target_amount: 921.46 EUR,<br> exchange_rate: 0.921456,<br> inverse_rate: 1.085267,<br> rate_source: OpenExchangeRates,<br> conversion_method: Direct,<br> rate_age: 2 hours,<br> confidence: 98%}
 
-    API->>AuditLog: INSERT INTO currency_conversions<br/>(all conversion details,<br/> user, transaction_context,<br/> timestamp)
+    API->>AuditLog: INSERT INTO currency_conversions<br>(all conversion details,<br> user, transaction_context,<br> timestamp)
     activate AuditLog
     AuditLog-->>API: Logged
     deactivate AuditLog
 
-    API->>DB: UPDATE exchange_rates<br/>SET transaction_count += 1,<br/>last_used_date = NOW()<br/>WHERE rate_id = current
+    API->>DB: UPDATE exchange_rates<br>SET transaction_count += 1,<br>last_used_date = NOW()<br>WHERE rate_id = current
     activate DB
     DB-->>API: Updated
     deactivate DB
 
-    API-->>PO: {converted_amount: 921.46 EUR,<br/> rate: 0.921456, metadata: {...}}
+    API-->>PO: {converted_amount: 921.46 EUR,<br> rate: 0.921456, metadata: {...}}
     deactivate API
 
-    PO->>PO: Use converted amount:<br/>Display to user,<br/>Store in transaction
+    PO->>PO: Use converted amount:<br>Display to user,<br>Store in transaction
 ```
 
 ---
@@ -1594,22 +1595,22 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft: Rate retrieved from<br/>provider or manual entry
+    [*] --> Draft: Rate retrieved from<br>provider or manual entry
 
-    Draft --> Validation: System validates<br/>rate values
+    Draft --> Validation: System validates<br>rate values
 
-    Validation --> PendingApproval: Variance >= 5%<br/>or manual entry
-    Validation --> Active: Variance < 5%<br/>auto-approved
+    Validation --> PendingApproval: Variance >= 5%<br>or manual entry
+    Validation --> Active: Variance < 5%<br>auto-approved
 
-    PendingApproval --> Active: Approved by<br/>authorized user
-    PendingApproval --> Rejected: Rejected by<br/>approver
-    PendingApproval --> Draft: Revision requested<br/>by approver
+    PendingApproval --> Active: Approved by<br>authorized user
+    PendingApproval --> Rejected: Rejected by<br>approver
+    PendingApproval --> Draft: Revision requested<br>by approver
 
-    Active --> Historical: Superseded by<br/>new rate
-    Active --> Active: Used in transaction<br/>(increment usage count)
+    Active --> Historical: Superseded by<br>new rate
+    Active --> Active: Used in transaction<br>(increment usage count)
 
-    Historical --> Corrected: Error discovered,<br/>correction approved
-    Corrected --> Historical: Correction complete,<br/>archived
+    Historical --> Corrected: Error discovered,<br>correction approved
+    Corrected --> Historical: Correction complete,<br>archived
 
     Historical --> [*]: Archived permanently
     Rejected --> [*]: Not activated
@@ -1645,30 +1646,30 @@ stateDiagram-v2
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Configuration: User initiates<br/>revaluation wizard
+    [*] --> Configuration: User initiates<br>revaluation wizard
 
-    Configuration --> RateRetrieval: Configuration<br/>confirmed
+    Configuration --> RateRetrieval: Configuration<br>confirmed
     Configuration --> [*]: Cancelled by user
 
-    RateRetrieval --> BalanceIdentification: All rates retrieved<br/>and approved
-    RateRetrieval --> Configuration: Missing rates,<br/>return to config
+    RateRetrieval --> BalanceIdentification: All rates retrieved<br>and approved
+    RateRetrieval --> Configuration: Missing rates,<br>return to config
 
-    BalanceIdentification --> Calculation: Balances reviewed<br/>and confirmed
-    BalanceIdentification --> Configuration: Discrepancies found,<br/>return to config
+    BalanceIdentification --> Calculation: Balances reviewed<br>and confirmed
+    BalanceIdentification --> Configuration: Discrepancies found,<br>return to config
 
-    Calculation --> Preview: Calculations<br/>complete
+    Calculation --> Preview: Calculations<br>complete
 
-    Preview --> PendingCFOApproval: Net impact > $10K<br/>CFO approval required
-    Preview --> ReadyToPost: Net impact <= $10K<br/>or user confirms
+    Preview --> PendingCFOApproval: Net impact > $10K<br>CFO approval required
+    Preview --> ReadyToPost: Net impact <= $10K<br>or user confirms
     Preview --> Configuration: User requests edits
 
     PendingCFOApproval --> ReadyToPost: CFO approves
     PendingCFOApproval --> Rejected: CFO rejects
     PendingCFOApproval --> Configuration: CFO requests changes
 
-    ReadyToPost --> Posted: Journal entry posted,<br/>reversal scheduled
+    ReadyToPost --> Posted: Journal entry posted,<br>reversal scheduled
 
-    Posted --> Reversed: Next period starts,<br/>auto-reversal posted
+    Posted --> Reversed: Next period starts,<br>auto-reversal posted
 
     Reversed --> [*]: Complete
     Rejected --> [*]: Not posted
@@ -1730,20 +1731,20 @@ flowchart TD
     Start([Rate Operation Triggered]) --> NeedCurrencies[Need Currency Information]
     NeedCurrencies --> CallCurrMgmt[Call Currency Management API]
     CallCurrMgmt --> GetDefs[Get Currency Definitions]
-    GetDefs --> CheckActive{Currencies<br/>Active?}
+    GetDefs --> CheckActive{Currencies<br>Active?}
 
-    CheckActive -->|No| ErrorInactive[/Error: Inactive currency<br/>cannot use for rates/]
-    ErrorInactive --> Alert[/Alert User<br/>Select different currency/]
+    CheckActive -->|No| ErrorInactive[/Error: Inactive currency<br>cannot use for rates/]
+    ErrorInactive --> Alert[/Alert User<br>Select different currency/]
     Alert --> End1([End: Error])
 
     CheckActive -->|Yes| GetRounding[Get Rounding Rules]
-    GetRounding --> RoundingRules[/EUR: 2 decimals, standard<br/>JPY: 0 decimals, standard<br/>USD: 2 decimals, standard/]
+    GetRounding --> RoundingRules[/EUR: 2 decimals, standard<br>JPY: 0 decimals, standard<br>USD: 2 decimals, standard/]
 
     RoundingRules --> GetDisplay[Get Display Formats]
-    GetDisplay --> DisplayFormats[/EUR: €#,##0.00<br/>JPY: ¥#,##0<br/>USD: $#,##0.00/]
+    GetDisplay --> DisplayFormats[/EUR: €#,##0.00<br>JPY: ¥#,##0<br>USD: $#,##0.00/]
 
     DisplayFormats --> UseData[Use Currency Data]
-    UseData --> Operations[/• Validate currencies active<br/>• Apply rounding rules<br/>• Format display amounts<br/>• Store currency codes/]
+    UseData --> Operations[/• Validate currencies active<br>• Apply rounding rules<br>• Format display amounts<br>• Store currency codes/]
     Operations --> Success([End: Success])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
@@ -1764,27 +1765,27 @@ flowchart TD
 flowchart TD
     Start([Revaluation Posted]) --> GetAccounts[Get GL Accounts from Mapping]
     GetAccounts --> CallMapping[Call Account Code Mapping]
-    CallMapping --> MapRequest[/Request GL accounts for:<br/>• Unrealized Exchange Gain<br/>• Unrealized Exchange Loss<br/>• Foreign Currency accounts/]
+    CallMapping --> MapRequest[/Request GL accounts for:<br>• Unrealized Exchange Gain<br>• Unrealized Exchange Loss<br>• Foreign Currency accounts/]
 
     MapRequest --> GetGainAcct[Get Gain Account]
     GetGainAcct --> GainAcct[/7210 - Unrealized Exchange Gain/]
     GainAcct --> GetLossAcct[Get Loss Account]
     GetLossAcct --> LossAcct[/7210 - Unrealized Exchange Loss/]
     LossAcct --> GetFXAccts[Get Foreign Currency Accounts]
-    GetFXAccts --> FXAccts[/1200 - AR<br/>2100 - AP<br/>1110 - Cash/]
+    GetFXAccts --> FXAccts[/1200 - AR<br>2100 - AP<br>1110 - Cash/]
 
-    FXAccts --> ValidateAccts{All Accounts<br/>Active and<br/>Allow Posting?}
-    ValidateAccts -->|No| ErrorAccts[/Error: Account inactive<br/>or posting not allowed/]
-    ErrorAccts --> Alert[/Alert Finance Manager<br/>Configure accounts/]
+    FXAccts --> ValidateAccts{All Accounts<br>Active and<br>Allow Posting?}
+    ValidateAccts -->|No| ErrorAccts[/Error: Account inactive<br>or posting not allowed/]
+    ErrorAccts --> Alert[/Alert Finance Manager<br>Configure accounts/]
     Alert --> End1([End: Error])
 
     ValidateAccts -->|Yes| BuildJE[Build Journal Entry]
-    BuildJE --> JEHeader[/JE Header:<br/>Date: Revaluation date<br/>Description: Period-end revaluation<br/>Batch: REVAL-2025-001<br/>Auto-Reverse: Yes<br/>Reverse Date: Next period start/]
+    BuildJE --> JEHeader[/JE Header:<br>Date: Revaluation date<br>Description: Period-end revaluation<br>Batch: REVAL-2501-0001<br>Auto-Reverse: Yes<br>Reverse Date: Next period start/]
 
     JEHeader --> JELines[Add Journal Entry Lines]
-    JELines --> Lines[/Debit: 1200 AR $75<br/>Debit: 1110 Cash $50<br/>Debit: 7210 Loss $100<br/>Credit: 2100 AP $100<br/>Credit: 7210 Gain $125/]
+    JELines --> Lines[/Debit: 1200 AR $75<br>Debit: 1110 Cash $50<br>Debit: 7210 Loss $100<br>Credit: 2100 AP $100<br>Credit: 7210 Gain $125/]
 
-    Lines --> Validate{Debits =<br/>Credits?}
+    Lines --> Validate{Debits =<br>Credits?}
     Validate -->|No| ErrorBalance[/Error: Unbalanced entry/]
     ErrorBalance --> Alert
 
@@ -1792,10 +1793,10 @@ flowchart TD
     CallPosting --> PostHeader[Post JE Header]
     PostHeader --> PostLines[Post JE Lines]
     PostLines --> UpdateBalances[Update Account Balances]
-    UpdateBalances --> BalanceUpdates[/Update base currency balances<br/>for all affected accounts<br/>Foreign currency unchanged/]
+    UpdateBalances --> BalanceUpdates[/Update base currency balances<br>for all affected accounts<br>Foreign currency unchanged/]
 
     BalanceUpdates --> CreateReversal[Create Reversal Template]
-    CreateReversal --> ReversalTemplate[/Reversal JE:<br/>Date: Next period start<br/>Lines: Inverted amounts<br/>Status: Scheduled/]
+    CreateReversal --> ReversalTemplate[/Reversal JE:<br>Date: Next period start<br>Lines: Inverted amounts<br>Status: Scheduled/]
     ReversalTemplate --> LinkOriginal[Link Reversal to Original]
     LinkOriginal --> Success([End: Posted with Reversal])
 

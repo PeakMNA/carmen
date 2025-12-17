@@ -10,6 +10,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.1 | 2025-01-05 | System | Added implementation status section and Section 11 (Backend Requirements) |
 | 1.0 | 2024-01-15 | System | Initial business requirements document created |
 
@@ -2100,7 +2101,7 @@ The Menu Engineering module integrates with the Workflow Engine to automate appr
     {
       "stepId": "notify_manager",
       "type": "notification",
-      "recipients": ["role:food_beverage_manager"],
+      "recipients": ['role:food_beverage_manager'],
       "template": "menu_analysis_ready"
     },
     {
@@ -2108,7 +2109,7 @@ The Menu Engineering module integrates with the Workflow Engine to automate appr
       "type": "approval",
       "approver": "role:food_beverage_manager",
       "timeout": "48_hours",
-      "actions": ["approve", "modify", "reject"]
+      "actions": ['approve', 'modify', 'reject']
     },
     {
       "stepId": "publish_recommendations",
@@ -2142,7 +2143,7 @@ The Menu Engineering module integrates with the Workflow Engine to automate appr
     {
       "stepId": "notify_purchasing",
       "type": "notification",
-      "recipients": ["role:purchasing_manager"],
+      "recipients": ['role:purchasing_manager'],
       "priority": "high"
     },
     {
@@ -2154,14 +2155,14 @@ The Menu Engineering module integrates with the Workflow Engine to automate appr
     {
       "stepId": "escalate_department",
       "type": "notification",
-      "recipients": ["role:department_manager"],
+      "recipients": ['role:department_manager'],
       "priority": "urgent"
     },
     {
       "stepId": "escalate_financial",
       "type": "notification",
       "delay": "2_hours",
-      "recipients": ["role:financial_manager"],
+      "recipients": ['role:financial_manager'],
       "priority": "critical"
     },
     {

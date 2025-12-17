@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added costing method context (FIFO or Periodic Average configurable at system level) |
 | 1.0.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
@@ -76,10 +77,10 @@ Data Stored
 **User Action**: System automatically generates unique GRN number. User should not manually modify.
 
 **Test Cases**:
-- ✅ Valid: "GRN-2025-001234"
-- ✅ Valid: "GRN-2025-001235" (unique)
+- ✅ Valid: "GRN-2501-001234"
+- ✅ Valid: "GRN-2501-001235" (unique)
 - ❌ Invalid: "" (empty)
-- ❌ Invalid: "GRN-2025-001234" (duplicate)
+- ❌ Invalid: "GRN-2501-001234" (duplicate)
 - ❌ Invalid: null or undefined
 
 ---
@@ -338,7 +339,7 @@ Data Stored
 **User Action**: User must enter invoice number in correct format or leave blank.
 
 **Test Cases**:
-- ✅ Valid: "INV-2025-001234"
+- ✅ Valid: "INV-2501-001234"
 - ✅ Valid: "INV001234" (no hyphens)
 - ✅ Valid: null (optional field)
 - ❌ Invalid: "INV/2025/001" (contains slash)
@@ -918,17 +919,17 @@ Data Stored
 **Scenario 2: Invalid Case**
 - Situation: User attempts to commit GRN
 - Location: Main Warehouse
-- Stock Take Session: ST-2025-001
+- Stock Take Session: ST-2501-0001
 - Session Status: IN_PROGRESS
 - Session Started: 2025-01-30 08:00
 - Result: ❌ Validation fails
 - Reason: Cannot commit GRN during active stock take
-- User must: Wait until ST-2025-001 is completed or contact supervisor
+- User must: Wait until ST-2501-0001 is completed or contact supervisor
 
 **Scenario 3: Valid Case**
 - Situation: User attempts to commit GRN
 - Location: Office Storage
-- Stock Take Session: ST-2025-002
+- Stock Take Session: ST-2501-0002
 - Session Status: COMPLETED
 - Session Completed: 2025-01-28
 - Result: ✅ Validation passes
@@ -1330,7 +1331,7 @@ Data Stored
 
 **Format Error**:
 - Message: "{Field name} must be in format: {expected format}"
-- Example: "Invoice number can only contain letters, numbers, and hyphens (e.g., INV-2025-001)"
+- Example: "Invoice number can only contain letters, numbers, and hyphens (e.g., INV-2501-0001)"
 
 **Range Error**:
 - Message: "{Field name} must be between {min} and {max}"
@@ -1397,14 +1398,14 @@ All validation rules must have test cases covering:
 
 **Preconditions**:
 - User is authenticated with `create_grn` permission
-- Valid approved PO exists (PO-2025-001)
+- Valid approved PO exists (PO-2501-0001)
 - User has access to Kitchen Receiving location
 - User has access to vendor Professional Kitchen Supplies
 
 **Test Steps**:
 1. Navigate to GRN creation page
 2. Select process type: "From Purchase Order"
-3. Select PO: PO-2025-001
+3. Select PO: PO-2501-0001
 4. Verify auto-populated fields (vendor, PO number, items)
 5. Enter receipt date: 2025-01-30
 6. Enter invoice number: INV-2025-KIT-001
@@ -1416,7 +1417,7 @@ All validation rules must have test cases covering:
 
 **Input Data**:
 - Process Type: PO-based
-- PO Number: PO-2025-001
+- PO Number: PO-2501-0001
 - Receipt Date: 2025-01-30
 - Vendor: Professional Kitchen Supplies
 - Invoice Number: INV-2025-KIT-001
@@ -1431,7 +1432,7 @@ All validation rules must have test cases covering:
 **Pass/Fail Criteria**:
 - No validation errors displayed
 - GRN saved to database with correct data
-- GRN Number auto-generated (GRN-2025-XXXXX)
+- GRN Number auto-generated (GRN-2501-XXXXX)
 - All totals calculated correctly
 - Success message shown
 - User redirected to GRN detail page

@@ -250,9 +250,9 @@ The use cases are organized into four categories:
 11. Chef Daniel attaches 2 photos of overcooked salmon using mobile camera
 12. System validates all required fields and business rules (BR-WAST-001 to BR-WAST-006)
 13. Chef Daniel clicks "Submit for Approval"
-14. System creates wastage transaction with status "pending_approval", generates wastage number WST-2025-0112-0023
+14. System creates wastage transaction with status "pending_approval", generates wastage number WST-2501-0112-0023
 15. System routes wastage to appropriate approver based on value ($31.25 < $50, routes to Department Manager)
-16. System displays success message: "Wastage WST-2025-0112-0023 submitted for approval. Department Manager will review."
+16. System displays success message: "Wastage WST-2501-0112-0023 submitted for approval. Department Manager will review."
 17. System sends notification to Department Manager
 18. Use case ends
 
@@ -502,7 +502,7 @@ The use cases are organized into four categories:
 2. System displays list of pending wastage transactions assigned to Maria's approval queue
 3. System shows key information in list: Wastage Number, Date, Product, Quantity, Value, Category, Submitted By, Days Pending
 4. System highlights urgent items (>24 hours pending) in yellow
-5. Maria clicks on wastage transaction WST-2025-0112-0023 (Atlantic Salmon, $31.25, Chef Daniel)
+5. Maria clicks on wastage transaction WST-2501-0112-0023 (Atlantic Salmon, $31.25, Chef Daniel)
 6. System displays complete wastage details:
    - Header: Wastage number, date/time, location, submitter
    - Product: Name, code, quantity (2.5 kg), unit cost ($12.50), total value ($31.25)
@@ -524,8 +524,8 @@ The use cases are organized into four categories:
 16. System updates wastage status to "approved", captures approval date/time, approver (Maria), comment
 17. System triggers inventory adjustment (UC-WAST-101) reducing Atlantic Salmon stock by 2.5 kg
 18. System queues GL posting (UC-WAST-202) debiting Wastage Expense, crediting Inventory
-19. System sends notification to Chef Daniel: "Your wastage WST-2025-0112-0023 has been approved by Maria."
-20. System displays success message: "Wastage WST-2025-0112-0023 approved successfully. Inventory adjusted."
+19. System sends notification to Chef Daniel: "Your wastage WST-2501-0112-0023 has been approved by Maria."
+20. System displays success message: "Wastage WST-2501-0112-0023 approved successfully. Inventory adjusted."
 21. System returns Maria to approval queue with item removed from pending list
 22. Use case ends
 
@@ -653,7 +653,7 @@ The use cases are organized into four categories:
 - **Failure**: Validation error (e.g., rejection reason too short), wastage remains pending
 
 **Main Flow** (Happy Path):
-1. Store Manager Maria is reviewing wastage transaction WST-2025-0112-0045 (Beef Ribeye, $125, Chef Daniel)
+1. Store Manager Maria is reviewing wastage transaction WST-2501-0112-0045 (Beef Ribeye, $125, Chef Daniel)
 2. System displays wastage details showing:
    - Product: Beef Ribeye Steak, 5 kg, $25/kg = $125 total value
    - Category: Preparation Error - Dropped
@@ -671,8 +671,8 @@ The use cases are organized into four categories:
 11. System updates wastage status to "rejected"
 12. System records rejection date/time, rejector (Maria), rejection reason
 13. System does NOT create inventory adjustment (stock remains unchanged)
-14. System sends notification to Chef Daniel: "Your wastage WST-2025-0112-0045 was rejected by Maria. Reason: Insufficient documentation. Photo does not clearly show wasted product. Please resubmit with detailed explanation and clear photos of the affected product."
-15. System displays success message: "Wastage WST-2025-0112-0045 rejected. Submitter has been notified."
+14. System sends notification to Chef Daniel: "Your wastage WST-2501-0112-0045 was rejected by Maria. Reason: Insufficient documentation. Photo does not clearly show wasted product. Please resubmit with detailed explanation and clear photos of the affected product."
+15. System displays success message: "Wastage WST-2501-0112-0045 rejected. Submitter has been notified."
 16. System removes wastage from Maria's approval queue
 17. System retains rejected wastage in history for audit purposes (not deleted)
 18. Use case ends
@@ -782,7 +782,7 @@ The use cases are organized into four categories:
 9. System updates summary: Total Spoilage (23 transactions, $1,125), Average per Transaction ($49)
 10. Maria sorts list by Value (descending) to see highest spoilage first
 11. System reorders list showing highest value spoilage at top
-12. Maria clicks on wastage transaction WST-2024-1215-0012 (Fresh Salmon, $180 spoilage)
+12. Maria clicks on wastage transaction WST-2401-1215-0012 (Fresh Salmon, $180 spoilage)
 13. System displays complete transaction details:
     - Header info, product details, photos (3 attached), reason ("Refrigerator malfunction overnight, product reached unsafe temperature")
     - Approval history showing approved by Maria on 2024-12-15
@@ -800,7 +800,7 @@ The use cases are organized into four categories:
 **Alternative Flows**:
 
 **Alt-5A: Search by Wastage Number** (At step 6)
-- 6a. Maria knows specific wastage number WST-2025-0105-0018
+- 6a. Maria knows specific wastage number WST-2501-0105-0018
 - 6b. Maria enters wastage number in search box
 - 6c. System finds matching wastage and displays details immediately
 - Use case ends

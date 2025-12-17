@@ -28,7 +28,7 @@ import { Input } from "@/components/ui/input";
 const sampleData = [
   {
     id: 'sample-pr-001',
-    refNumber: 'PR-2023-001',
+    refNumber: 'PR-2310-001',
     date: new Date('2023-01-01'),
     type: 'goods',
     description: 'Sample purchase request for office supplies',
@@ -61,7 +61,7 @@ const sampleData = [
   },
   {
     id: 'sample-pr-002',
-    refNumber: 'PR-2023-002',
+    refNumber: 'PR-2310-002',
     date: new Date('2023-01-02'),
     type: 'goods',
     description: 'IT Equipment and Supplies',
@@ -94,7 +94,7 @@ const sampleData = [
   },
   {
     id: 'sample-pr-003',
-    refNumber: 'PR-2023-003',
+    refNumber: 'PR-2310-003',
     date: new Date('2023-01-03'),
     type: 'goods',
     description: 'Marketing Materials',
@@ -127,7 +127,7 @@ const sampleData = [
   },
   {
     id: 'sample-pr-004',
-    refNumber: 'PR-2023-004',
+    refNumber: 'PR-2310-004',
     date: new Date('2023-01-04'),
     type: 'goods',
     description: 'Kitchen Equipment',
@@ -160,7 +160,7 @@ const sampleData = [
   },
   {
     id: 'sample-pr-005',
-    refNumber: 'PR-2023-005',
+    refNumber: 'PR-2310-005',
     date: new Date('2023-01-05'),
     type: 'goods',
     description: 'Office Supplies - Stationery',
@@ -193,7 +193,7 @@ const sampleData = [
   },
   {
     id: 'sample-pr-006',
-    refNumber: 'PR-2023-006',
+    refNumber: 'PR-2310-006',
     date: new Date('2023-01-06'),
     type: 'goods',
     description: 'International Supplies',
@@ -226,7 +226,7 @@ const sampleData = [
   },
   {
     id: 'sample-pr-007',
-    refNumber: 'PR-2023-007',
+    refNumber: 'PR-2310-007',
     date: new Date('2023-01-07'),
     type: 'goods',
     description: 'European Office Equipment',

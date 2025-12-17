@@ -3,6 +3,13 @@
  *
  * Comprehensive mock data for spot checks, including different statuses,
  * types, and item states to support the spot check UI prototype.
+ *
+ * Transaction Code Format: SC-YYMM-NNNN
+ * - SC: Spot Check prefix
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: SC-2410-001 = Spot Check #001 from October 2024
  */
 
 import {
@@ -99,7 +106,7 @@ export const mockSpotChecks: SpotCheck[] = [
   // Draft spot checks
   {
     id: 'sc-001',
-    checkNumber: 'SC-2024-001',
+    checkNumber: 'SC-2410-001',
     checkType: 'random' as SpotCheckType,
     status: 'draft' as SpotCheckStatus,
     priority: 'medium',
@@ -129,7 +136,7 @@ export const mockSpotChecks: SpotCheck[] = [
   },
   {
     id: 'sc-002',
-    checkNumber: 'SC-2024-002',
+    checkNumber: 'SC-2410-002',
     checkType: 'targeted' as SpotCheckType,
     status: 'draft' as SpotCheckStatus,
     priority: 'high',
@@ -161,7 +168,7 @@ export const mockSpotChecks: SpotCheck[] = [
   // Pending spot checks
   {
     id: 'sc-003',
-    checkNumber: 'SC-2024-003',
+    checkNumber: 'SC-2410-003',
     checkType: 'high-value' as SpotCheckType,
     status: 'pending' as SpotCheckStatus,
     priority: 'critical',
@@ -191,7 +198,7 @@ export const mockSpotChecks: SpotCheck[] = [
   },
   {
     id: 'sc-004',
-    checkNumber: 'SC-2024-004',
+    checkNumber: 'SC-2410-004',
     checkType: 'variance-based' as SpotCheckType,
     status: 'pending' as SpotCheckStatus,
     priority: 'high',
@@ -223,7 +230,7 @@ export const mockSpotChecks: SpotCheck[] = [
   // In-progress spot checks
   {
     id: 'sc-005',
-    checkNumber: 'SC-2024-005',
+    checkNumber: 'SC-2410-005',
     checkType: 'cycle-count' as SpotCheckType,
     status: 'in-progress' as SpotCheckStatus,
     priority: 'medium',
@@ -253,7 +260,7 @@ export const mockSpotChecks: SpotCheck[] = [
   },
   {
     id: 'sc-006',
-    checkNumber: 'SC-2024-006',
+    checkNumber: 'SC-2410-006',
     checkType: 'random' as SpotCheckType,
     status: 'in-progress' as SpotCheckStatus,
     priority: 'low',
@@ -283,7 +290,7 @@ export const mockSpotChecks: SpotCheck[] = [
   },
   {
     id: 'sc-007',
-    checkNumber: 'SC-2024-007',
+    checkNumber: 'SC-2410-007',
     checkType: 'targeted' as SpotCheckType,
     status: 'in-progress' as SpotCheckStatus,
     priority: 'critical',
@@ -315,7 +322,7 @@ export const mockSpotChecks: SpotCheck[] = [
   // Completed spot checks
   {
     id: 'sc-008',
-    checkNumber: 'SC-2024-008',
+    checkNumber: 'SC-2410-008',
     checkType: 'cycle-count' as SpotCheckType,
     status: 'completed' as SpotCheckStatus,
     priority: 'medium',
@@ -345,7 +352,7 @@ export const mockSpotChecks: SpotCheck[] = [
   },
   {
     id: 'sc-009',
-    checkNumber: 'SC-2024-009',
+    checkNumber: 'SC-2410-009',
     checkType: 'high-value' as SpotCheckType,
     status: 'completed' as SpotCheckStatus,
     priority: 'critical',
@@ -375,7 +382,7 @@ export const mockSpotChecks: SpotCheck[] = [
   },
   {
     id: 'sc-010',
-    checkNumber: 'SC-2024-010',
+    checkNumber: 'SC-2410-010',
     checkType: 'random' as SpotCheckType,
     status: 'completed' as SpotCheckStatus,
     priority: 'low',
@@ -407,7 +414,7 @@ export const mockSpotChecks: SpotCheck[] = [
   // On-hold spot check
   {
     id: 'sc-011',
-    checkNumber: 'SC-2024-011',
+    checkNumber: 'SC-2410-011',
     checkType: 'targeted' as SpotCheckType,
     status: 'on-hold' as SpotCheckStatus,
     priority: 'high',
@@ -439,7 +446,7 @@ export const mockSpotChecks: SpotCheck[] = [
   // Cancelled spot check
   {
     id: 'sc-012',
-    checkNumber: 'SC-2024-012',
+    checkNumber: 'SC-2410-012',
     checkType: 'variance-based' as SpotCheckType,
     status: 'cancelled' as SpotCheckStatus,
     priority: 'medium',

@@ -191,7 +191,7 @@ Location: Main Kitchen (MK)
 
 #### Transaction Details
 ```yaml
-Document: GRN-2025-001
+Document: GRN-2501-0001
 Product: Flour (All Purpose)
 Quantity: 50 kg
 Unit Cost: $5.50/kg
@@ -231,14 +231,14 @@ LIMIT 1;
 // tb_inventory_transaction_detail
 {
   id: "uuid-txn-001",
-  transaction_id: "GRN-2025-001",
+  transaction_id: "GRN-2501-0001",
   transaction_type: "good_received_note",
   transaction_date: "2025-11-07T10:30:00Z",
   product_id: "flour-uuid",
   location_id: "mk-uuid",
   quantity: 50.00000,
   unit_cost: 5.50000,
-  reference_document: "PO-2025-050"
+  reference_document: "PO-2501-0050"
 }
 ```
 
@@ -326,7 +326,7 @@ Reason: "Found stock during physical count"
 
 #### Transaction Details
 ```yaml
-Document: ADJ-2025-001234
+Document: ADJ-2501-001234
 Type: Stock-In Adjustment
 Product: Flour (All Purpose)
 Quantity: +10 kg
@@ -448,7 +448,7 @@ Butter inventory: 0 kg (receiving transfer)
 
 #### Transaction Details
 ```yaml
-Document: TRF-2025-001
+Document: TRF-2501-0001
 Transfer Date: 2025-11-07
 From: Pastry Venue (PV)
 To: Main Kitchen (MK)
@@ -489,14 +489,14 @@ LIMIT 1;
 // tb_inventory_transaction_detail
 {
   id: "uuid-txn-transfer-in",
-  transaction_id: "TRF-2025-001",
+  transaction_id: "TRF-2501-0001",
   transaction_type: "transfer_in",
   transaction_date: "2025-11-07T14:00:00Z",
   product_id: "butter-uuid",
   location_id: "mk-uuid",           // Destination
   quantity: 10.00000,
   unit_cost: 8.23000,               // 🟢 Weighted avg from source
-  reference_document: "TRF-2025-001",
+  reference_document: "TRF-2501-0001",
   source_location_id: "pv-uuid"
 }
 ```
@@ -531,8 +531,8 @@ LIMIT 1;
 ```typescript
 // Store transfer linkage in transaction metadata
 {
-  transfer_id: "TRF-2025-001",
-  source_lot_nos: ["PV-251106-0025", "PV-251106-0030"],
+  transfer_id: "TRF-2501-0001",
+  source_lot_nos: ['PV-251106-0025', 'PV-251106-0030'],
   destination_lot_no: "MK-251107-0003",
   traceability: "PV lots → MK-251107-0003"
 }
@@ -609,7 +609,7 @@ Total Available: 105 kg
 
 #### Transaction Details
 ```yaml
-Document: ISS-2025-050
+Document: ISS-2501-0050
 Issue Date: 2025-11-07
 Product: Flour (All Purpose)
 Quantity Requested: 25 kg
@@ -693,7 +693,7 @@ Lots Consumed: 2 (1 full, 1 partial)
 // tb_inventory_transaction_detail
 {
   id: "uuid-txn-issue",
-  transaction_id: "ISS-2025-050",
+  transaction_id: "ISS-2501-0050",
   transaction_type: "issue",
   transaction_date: "2025-11-07T16:30:00Z",
   product_id: "flour-uuid",
@@ -831,7 +831,7 @@ Total: 12 kg
 
 #### Transaction Details
 ```yaml
-Document: TRF-2025-001
+Document: TRF-2501-0001
 Transfer Date: 2025-11-07
 From: Pastry Venue (PV)
 To: Main Kitchen (MK)
@@ -878,7 +878,7 @@ let remainingQty = 10;
 // tb_inventory_transaction_detail (at source)
 {
   id: "uuid-txn-transfer-out",
-  transaction_id: "TRF-2025-001",
+  transaction_id: "TRF-2501-0001",
   transaction_type: "transfer_out",
   transaction_date: "2025-11-07T14:00:00Z",
   product_id: "butter-uuid",
@@ -999,7 +999,7 @@ Total: 20 kg
 
 #### Transaction Details
 ```yaml
-Document: ADJ-2025-001235
+Document: ADJ-2501-001235
 Type: Stock-Out Adjustment
 Product: Tomatoes (Fresh)
 Quantity: -5 kg (negative = stock-out)
@@ -1053,7 +1053,7 @@ let remainingQty = 5;
 ```typescript
 {
   id: "uuid-txn-adj-stockout",
-  transaction_id: "ADJ-2025-001235",
+  transaction_id: "ADJ-2501-001235",
   transaction_type: "adjustment",
   transaction_date: "2025-11-07T18:00:00Z",
   product_id: "tomato-uuid",
@@ -1135,13 +1135,13 @@ Total: 50 kg
 
 #### Transaction Details
 ```yaml
-Document: CN-2025-005
+Document: CN-2501-0005
 Type: Credit Note (Vendor Return)
 Product: Olive Oil (Extra Virgin)
 Quantity: 12 kg
 Reason: "Quality issue - cloudiness detected"
 Vendor: Mediterranean Imports Ltd
-Original GRN: GRN-2025-095
+Original GRN: GRN-2501-0095
 ```
 
 #### Step-by-Step Process
@@ -1149,14 +1149,14 @@ Original GRN: GRN-2025-095
 **Step 1: Create Credit Note**
 ```typescript
 {
-  credit_note_id: "CN-2025-005",
+  credit_note_id: "CN-2501-0005",
   vendor_id: "vendor-mediterranean-uuid",
   product_id: "olive-oil-uuid",
   location_id: "mk-uuid",
   return_quantity: 12.00000,
   reason_code: "QUALITY_ISSUE",
   reason_description: "Quality issue - cloudiness detected",
-  original_grn: "GRN-2025-095",
+  original_grn: "GRN-2501-0095",
   approval_status: "APPROVED",
   approved_by: "purchasing-manager-uuid"
 }
@@ -1186,7 +1186,7 @@ let remainingQty = 12;
 ```typescript
 {
   id: "uuid-txn-cn",
-  transaction_id: "CN-2025-005",
+  transaction_id: "CN-2501-0005",
   transaction_type: "credit_note",
   transaction_date: "2025-11-07T11:00:00Z",
   product_id: "olive-oil-uuid",
@@ -1194,7 +1194,7 @@ let remainingQty = 12;
   quantity: 12.00000,
   unit_cost: 7.20000,
   total_cost: 86.40000,
-  reference_document: "GRN-2025-095"
+  reference_document: "GRN-2501-0095"
 }
 ```
 
@@ -1283,8 +1283,8 @@ Operational Impact:
   - Future purchasing decision: Review vendor quality control
 
 Traceability:
-  - Original Receipt: GRN-2025-095
-  - Return Document: CN-2025-005
+  - Original Receipt: GRN-2501-0095
+  - Return Document: CN-2501-0005
   - Lot Consumed: MK-251105-0015 (FIFO)
   - Cost Basis: Historical cost from original receipt
 ```
@@ -1317,7 +1317,7 @@ Vendor Agreement: 4% volume rebate for Q1 purchases
 
 #### Transaction Details
 ```yaml
-Document: CN-2025-006
+Document: CN-2501-0006
 Type: Credit Note (Amount-Only Discount)
 Credit Type: AMOUNT_DISCOUNT
 Discount Amount: $500.00 (4% of $12,500)
@@ -1334,7 +1334,7 @@ Total Credit: $590.00
 **Step 1: Create Amount-Only Credit Note**
 ```typescript
 {
-  credit_note_id: "CN-2025-006",
+  credit_note_id: "CN-2501-0006",
   credit_type: "AMOUNT_DISCOUNT",         // 🟢 No physical return
   vendor_id: "vendor-premium-uuid",
   discount_amount: 500.00000,
@@ -1367,7 +1367,7 @@ Total Credit: $590.00
 ```typescript
 {
   id: "uuid-txn-cn-discount",
-  transaction_id: "CN-2025-006",
+  transaction_id: "CN-2501-0006",
   transaction_type: "credit_note",
   transaction_date: "2025-03-31T16:00:00Z",
   vendor_id: "vendor-premium-uuid",
@@ -1436,7 +1436,7 @@ Operational Impact:
 
 #### Initial State
 ```yaml
-Original Receipt (GRN-2025-120):
+Original Receipt (GRN-2501-0120):
   - Product: Chicken Breast (Fresh)
   - Received: 50 kg @ $8.50/kg
   - Lot: MK-251202-0025
@@ -1450,14 +1450,14 @@ Current Status:
 
 #### Transaction Details
 ```yaml
-Document: CN-2025-007
+Document: CN-2501-0007
 Type: Credit Note (Vendor Return - Partial Availability)
 Credit Type: QUANTITY_RETURN
 Product: Chicken Breast (Fresh)
 Return Quantity: 30 kg (requested by purchasing)
 Reason: QUALITY_ISSUE (temperature abuse during transport)
 Vendor: Fresh Poultry Suppliers
-Original GRN: GRN-2025-120
+Original GRN: GRN-2501-0120
 
 Split Processing:
   - Available Portion: 10 kg (will be returned to stock)
@@ -1650,7 +1650,7 @@ This example shows all database records for a single lot through its entire life
 // tb_inventory_transaction_detail
 {
   id: "txn-001",
-  transaction_id: "GRN-2025-100",
+  transaction_id: "GRN-2501-0100",
   transaction_type: "good_received_note",
   transaction_date: "2025-11-05T10:00:00Z",
   product_id: "sugar-uuid",
@@ -1690,7 +1690,7 @@ This example shows all database records for a single lot through its entire life
 ```typescript
 {
   id: "txn-002",
-  transaction_id: "ISS-2025-200",
+  transaction_id: "ISS-2501-0200",
   transaction_type: "issue",
   transaction_date: "2025-11-06T15:00:00Z",
   product_id: "sugar-uuid",
@@ -1731,7 +1731,7 @@ This example shows all database records for a single lot through its entire life
 ```typescript
 {
   id: "txn-003",
-  transaction_id: "ADJ-2025-300",
+  transaction_id: "ADJ-2501-0300",
   transaction_type: "adjustment",
   transaction_date: "2025-11-07T09:00:00Z",
   product_id: "sugar-uuid",
@@ -1773,7 +1773,7 @@ This example shows all database records for a single lot through its entire life
 ```typescript
 {
   id: "txn-004",
-  transaction_id: "ISS-2025-400",
+  transaction_id: "ISS-2501-0400",
   transaction_type: "issue",
   transaction_date: "2025-11-08T11:00:00Z",
   product_id: "sugar-uuid",

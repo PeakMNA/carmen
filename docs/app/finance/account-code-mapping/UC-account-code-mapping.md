@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-12 | Documentation Team | Initial version |
 
 ---
@@ -575,7 +576,7 @@ This document describes the use cases for the Account Code Mapping sub-module, w
 3. User enters journal entry header information:
    - **Entry Date**: 2025-11-12 (transaction date)
    - **Posting Date**: 2025-11-12 (GL posting date)
-   - **Reference Number**: Auto-generated JE-2025-001234
+   - **Reference Number**: Auto-generated JE-2501-001234
    - **Description**: "Accrual for November utilities - electricity and water"
    - **Source**: Manual Entry
 4. User adds first journal entry line (debit):
@@ -634,7 +635,7 @@ This document describes the use cases for the Account Code Mapping sub-module, w
     - Entry amount: $3,300
     - User posting limit: $5,000
     - Approval required: No (within limit)
-16. System generates unique journal entry ID: JE-2025-001234
+16. System generates unique journal entry ID: JE-2501-001234
 17. System posts entry to general ledger:
     - Updates account balances
     - Creates GL transaction records
@@ -645,7 +646,7 @@ This document describes the use cases for the Account Code Mapping sub-module, w
     - IP address
     - Entry details (before/after state)
 19. System sends confirmation email to user
-20. System displays success message: "Journal entry JE-2025-001234 posted successfully"
+20. System displays success message: "Journal entry JE-2501-001234 posted successfully"
 21. System navigates to journal entry detail view showing posted entry
 22. System updates account balances immediately in reports
 
@@ -665,7 +666,7 @@ This document describes the use cases for the Account Code Mapping sub-module, w
 - System creates new entry with:
   - All debits and credits swapped
   - Reference to original entry
-  - Description prefixed with "Reversal of JE-2025-001234: "
+  - Description prefixed with "Reversal of JE-2501-001234: "
 - User confirms reversal
 - System posts reversing entry
 - Both original and reversal entries linked in audit trail
@@ -991,9 +992,9 @@ This document describes the use cases for the Account Code Mapping sub-module, w
 4. System calls Mapping Rule Engine (UC-ACM-102) to determine GL accounts
 5. Mapping Rule Engine returns account assignments with dimensions
 6. System constructs journal entry:
-   - **Entry ID**: Auto-generated JE-2025-001235
+   - **Entry ID**: Auto-generated JE-2501-001235
    - **Posting Date**: Transaction posting date
-   - **Source**: Procurement System - GRN-2025-00123
+   - **Source**: Procurement System - GRN-2501-000123
    - **Description**: Auto-generated from transaction data
    - **Lines**: Created per mapping rule response
 7. For each line item in transaction:
@@ -1174,9 +1175,9 @@ This document describes the use cases for the Account Code Mapping sub-module, w
    ```json
    {
      "event_type": "grn_posted",
-     "grn_id": "GRN-2025-00123",
+     "grn_id": "GRN-2501-000123",
      "vendor_id": "VEN-12345",
-     "po_id": "PO-2025-00789",
+     "po_id": "PO-2501-00789",
      "posting_date": "2025-11-12",
      "total_amount": 5000.00,
      "currency": "USD",
@@ -1212,7 +1213,7 @@ This document describes the use cases for the Account Code Mapping sub-module, w
      * Debit: 1230 - Inventory - Raw Materials - F&B
      * Credit: 2100 - Accounts Payable - Trade
      * Tax Input: 1150 - Input Tax Recoverable
-10. Posting Engine constructs journal entry JE-2025-001235:
+10. Posting Engine constructs journal entry JE-2501-001235:
     ```
     Line 1: Debit  1230 Inventory-Raw Materials  $5,000.00  Dept:KITCHEN-01  Loc:LOC-MAIN  CC:FOOD-COST
     Line 2: Credit 2100 Accounts Payable          $5,000.00  Dept:KITCHEN-01  Vendor:VEN-12345

@@ -1,6 +1,13 @@
 /**
  * Mock Vendor Data
  * Centralized vendor mock data for the Carmen ERP application
+ *
+ * Reference Code Format: PREFIX-YYMM-NNNN
+ * - PREFIX: Company/Business type identifier (e.g., TI, GF, GL, SM, EE)
+ * - YY: Two-digit year (e.g., 24 for 2024)
+ * - MM: Two-digit month (e.g., 10 for October)
+ * - NNNN: Sequential number (e.g., 001, 002, etc.)
+ * Example: TI-2410-001 = Business Registration #001 from October 2024
  */
 
 import type { Vendor } from '@/lib/types'
@@ -219,7 +226,7 @@ export const mockVendors: Vendor[] = [
     vendorCode: 'VEN-005',
     companyName: 'Tech Innovations Inc.',
     displayName: 'Tech Innovations',
-    businessRegistrationNumber: 'TI-2024-001',
+    businessRegistrationNumber: 'TI-2410-001',
     taxId: 'TAX-123456789',
     establishmentDate: '2024-01-01',
     businessType: 'service_provider',
@@ -265,7 +272,7 @@ export const mockVendors: Vendor[] = [
     vendorCode: 'VEN-006',
     companyName: 'Green Fields Produce',
     displayName: 'Green Fields',
-    businessRegistrationNumber: 'GF-2023-002',
+    businessRegistrationNumber: 'GF-2310-002',
     taxId: 'TAX-987654321',
     establishmentDate: '2023-12-15',
     businessType: 'distributor',
@@ -311,7 +318,7 @@ export const mockVendors: Vendor[] = [
     vendorCode: 'VEN-007',
     companyName: 'Global Logistics Co.',
     displayName: 'Global Logistics',
-    businessRegistrationNumber: 'GL-2023-003',
+    businessRegistrationNumber: 'GL-2310-003',
     taxId: 'TAX-456789123',
     establishmentDate: '2023-11-01',
     businessType: 'service_provider',
@@ -357,7 +364,7 @@ export const mockVendors: Vendor[] = [
     vendorCode: 'VEN-008',
     companyName: 'Stellar Manufacturing',
     displayName: 'Stellar Mfg',
-    businessRegistrationNumber: 'SM-2023-004',
+    businessRegistrationNumber: 'SM-2310-004',
     taxId: 'TAX-789123456',
     establishmentDate: '2023-10-15',
     businessType: 'manufacturer',
@@ -403,7 +410,7 @@ export const mockVendors: Vendor[] = [
     vendorCode: 'VEN-009',
     companyName: 'Eco Energy Solutions',
     displayName: 'Eco Energy',
-    businessRegistrationNumber: 'EE-2023-005',
+    businessRegistrationNumber: 'EE-2310-005',
     taxId: 'TAX-321654987',
     establishmentDate: '2023-09-01',
     businessType: 'service_provider',

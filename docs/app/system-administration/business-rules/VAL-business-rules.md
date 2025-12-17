@@ -8,6 +8,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -533,7 +534,7 @@ fractionalType: z.enum([
     return false
   }
   return true
-}, { message: "Fractional type is required for fractional sales rules" })
+}, { message: 'Fractional type is required for fractional sales rules' })
 ```
 
 ---
@@ -559,7 +560,7 @@ foodSafetyLevel: z.enum(['high', 'medium', 'low']).optional()
       return false
     }
     return true
-  }, { message: "Food safety level is required for fractional sales rules" })
+  }, { message: 'Food safety level is required for fractional sales rules' })
 ```
 
 ---
@@ -589,7 +590,7 @@ qualityStandards: z.array(qualityStandardSchema)
       return standards?.some(s => s.criticalControl) ?? false
     }
     return true
-  }, { message: "At least one critical control point required for high safety level" })
+  }, { message: 'At least one critical control point required for high safety level' })
 ```
 
 ---
@@ -628,7 +629,7 @@ const qualityStandardSchema = z.object({
     return data.maximumValue > data.minimumValue
   }
   return true
-}, { message: "Maximum value must be greater than minimum value" })
+}, { message: 'Maximum value must be greater than minimum value' })
 ```
 
 ---
@@ -656,7 +657,7 @@ hazardType: z.enum(['biological', 'chemical', 'physical', 'cross-contamination']
       return false
     }
     return true
-  }, { message: "Hazard type is required for food safety rules" })
+  }, { message: 'Hazard type is required for food safety rules' })
 ```
 
 ---
@@ -684,7 +685,7 @@ riskLevel: z.enum(['critical', 'high', 'medium', 'low'])
       return false
     }
     return true
-  }, { message: "Risk level is required for food safety rules" })
+  }, { message: 'Risk level is required for food safety rules' })
 ```
 
 ---
@@ -714,7 +715,7 @@ haccpPoint: z.string()
       return false
     }
     return true
-  }, { message: "HACCP point is required for food safety rules" })
+  }, { message: 'HACCP point is required for food safety rules' })
 ```
 
 ---
@@ -962,7 +963,7 @@ evidenceUrl: z.string()
       return false
     }
     return true
-  }, { message: "Evidence is required for this action" })
+  }, { message: 'Evidence is required for this action' })
 ```
 
 ---
@@ -1023,7 +1024,7 @@ businessJustification: z.string()
       return false
     }
     return true
-  }, { message: "Business justification is required for high-impact changes" })
+  }, { message: 'Business justification is required for high-impact changes' })
 ```
 
 ---
@@ -1228,21 +1229,21 @@ export const businessRuleSchema = z.object({
     return data.fractionalType && data.foodSafetyLevel
   }
   return true
-}, { message: "Fractional sales rules require fractional type and food safety level" })
+}, { message: 'Fractional sales rules require fractional type and food safety level' })
 .refine(data => {
   // Food safety category requires specific fields
   if (data.category === 'food-safety') {
     return data.hazardType && data.riskLevel && data.haccpPoint
   }
   return true
-}, { message: "Food safety rules require hazard type, risk level, and HACCP point" })
+}, { message: 'Food safety rules require hazard type, risk level, and HACCP point' })
 .refine(data => {
   // High safety level requires critical control point
   if (data.foodSafetyLevel === 'high') {
     return data.qualityStandards?.some(s => s.criticalControl) ?? false
   }
   return true
-}, { message: "High food safety level requires at least one critical control point" })
+}, { message: 'High food safety level requires at least one critical control point' })
 ```
 
 ---

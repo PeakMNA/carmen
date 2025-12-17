@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional flow diagrams (5-step wizard, bulk import, price comparison, approval workflows, price alerts, RFQ integration, scheduled jobs); Updated to reflect implemented functionality using Mermaid 8.8.2 syntax |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
@@ -32,18 +33,18 @@ The Price Lists module enables procurement staff to view, create, and manage ven
 
 ```mermaid
 graph TB
-    subgraph "Frontend Layer"
+    subgraph 'Frontend Layer'
         UI[Next.js UI Components]
         Forms[React Hook Form + Zod]
         State[useState + useMemo]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         Pages[Client Components]
         Actions[Event Handlers]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         MockData[Mock Data - lib/mock-data]
         Types[TypeScript Interfaces]
     end
@@ -66,9 +67,9 @@ graph TB
 graph LR
     Sidebar[Sidebar Navigation] --> VendorMgmt[Vendor Management]
     VendorMgmt --> PriceLists[Price Lists]
-    PriceLists --> ListPage["/vendor-management/pricelists"]
-    ListPage --> AddPage["/vendor-management/pricelists/add"]
-    ListPage --> DetailPage["/vendor-management/pricelists/[id]"]
+    PriceLists --> ListPage['/vendor-management/pricelists']
+    ListPage --> AddPage['/vendor-management/pricelists/add']
+    ListPage --> DetailPage['/vendor-management/pricelists/[id]']
 ```
 
 ### 3.2 Page Navigation Flow
@@ -334,10 +335,10 @@ graph TD
 ```mermaid
 graph TD
     InitState[Initialize State] --> DefaultValues[Set Default Values]
-    DefaultValues --> SearchEmpty["searchTerm = ''"]
-    SearchEmpty --> StatusAll["statusFilter = 'all'"]
-    StatusAll --> VendorAll["vendorFilter = 'all'"]
-    VendorAll --> TableView["viewMode = 'table'"]
+    DefaultValues --> SearchEmpty['searchTerm = ''']
+    SearchEmpty --> StatusAll['statusFilter = 'all'']
+    StatusAll --> VendorAll['vendorFilter = 'all'']
+    VendorAll --> TableView['viewMode = 'table'']
 
     TableView --> UserInteraction{User Interaction}
 
@@ -500,10 +501,10 @@ graph TD
     CheckStatus -->|pending| YellowBadge[Yellow Badge]
     CheckStatus -->|draft| GrayBadge[Gray Badge]
 
-    GreenBadge --> Style1["bg-green-100 text-green-800"]
-    RedBadge --> Style2["bg-red-100 text-red-800"]
-    YellowBadge --> Style3["bg-yellow-100 text-yellow-800"]
-    GrayBadge --> Style4["bg-gray-100 text-gray-800"]
+    GreenBadge --> Style1['bg-green-100 text-green-800']
+    RedBadge --> Style2['bg-red-100 text-red-800']
+    YellowBadge --> Style3['bg-yellow-100 text-yellow-800']
+    GrayBadge --> Style4['bg-gray-100 text-gray-800']
 
     Style1 --> RenderBadge[Render Badge Component]
     Style2 --> RenderBadge

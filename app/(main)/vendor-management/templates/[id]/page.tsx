@@ -343,7 +343,7 @@ export default function TemplateDetailPage() {
               <div className="flex items-center gap-2">
                 <span className="text-sm font-semibold">Template #</span>
                 <span className="font-mono text-sm font-semibold text-blue-600">
-                  {template.id || 'TPL-2024-001'}
+                  {template.id || 'TPL-2410-001'}
                 </span>
               </div>
             </div>

@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version |
 
 ---
@@ -99,7 +100,7 @@ StockInTransaction 1:N StockInActivity
 | Column Name | Data Type | Constraints | Description |
 |-------------|-----------|-------------|-------------|
 | id | UUID | PRIMARY KEY, DEFAULT gen_random_uuid() | Unique identifier |
-| ref_no | VARCHAR(20) | UNIQUE, NOT NULL | Transaction reference number (STK-IN-YYYY-NNNN) |
+| ref_no | VARCHAR(20) | UNIQUE, NOT NULL | Transaction reference number (STK-IN-YYMM-NNNN) |
 | date | DATE | NOT NULL | Transaction date (determines costing period) |
 | type | ENUM | NOT NULL | Transaction type: 'Good Receive Note', 'Transfer', 'Credit Note', 'Issue Return', 'Adjustment' |
 | related_doc | VARCHAR(50) | NULL | Reference to source document (GRN-XXXX, TRF-XXXX, etc.) |
@@ -111,7 +112,7 @@ StockInTransaction 1:N StockInActivity
 | status | ENUM | NOT NULL, DEFAULT 'Saved' | 'Saved', 'Committed', 'Void' |
 | commit_date | TIMESTAMP | NULL | When transaction was committed |
 | committed_by | UUID | FK to tb_user, NULL | User who committed transaction |
-| gl_journal_entry_number | VARCHAR(30) | NULL | Reference to GL journal entry (JE-YYYY-NNNN) |
+| gl_journal_entry_number | VARCHAR(30) | NULL | Reference to GL journal entry (JE-YYMM-NNNN) |
 | is_reversed | BOOLEAN | NOT NULL, DEFAULT false | True if transaction has been reversed |
 | reversal_transaction_id | UUID | FK to stock_out_transaction, NULL | Link to reversal transaction |
 | reversal_date | TIMESTAMP | NULL | When reversal occurred |
@@ -146,10 +147,10 @@ StockInTransaction 1:N StockInActivity
 **Example Data**:
 ```
 id: 550e8400-e29b-41d4-a716-446655440001
-ref_no: STK-IN-2024-0001
-date: 2024-01-15
+ref_no: STK-IN-2501-0001
+date: 2025-01-15
 type: Good Receive Note
-related_doc: GRN-2024-001
+related_doc: GRN-2401-0001
 location_id: loc-550e8400-...
 location_code: WH-MAIN
 location_name: Main Warehouse
@@ -158,7 +159,7 @@ total_qty: 500.0000
 status: Committed
 commit_date: 2024-01-15 11:00:00
 committed_by: user-550e8400-...
-gl_journal_entry_number: JE-2024-5678
+gl_journal_entry_number: JE-2401-5678
 is_reversed: false
 ```
 
@@ -308,7 +309,7 @@ inventory_unit: Bottle
 stock_in: 200.0000
 stock_out: 0.0000
 amount: 17100.0000
-reference: GRN-2024-001
+reference: GRN-2401-0001
 is_reversed: false
 ```
 

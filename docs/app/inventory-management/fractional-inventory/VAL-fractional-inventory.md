@@ -19,6 +19,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 
@@ -1225,7 +1226,7 @@ ALTER TABLE tb_fractional_stock
 | Duplicate item code | item_code: "PIZZA-001" (already exists) | Fail | ITEM_CODE_DUPLICATE |
 | Empty portions array | available_portions: [] | Fail | PORTIONS_REQUIRED |
 | All portions inactive | available_portions: [8 slices (inactive)] | Fail | NO_ACTIVE_PORTIONS |
-| Duplicate portion IDs | available_portions: [{id: "1"}, {id: "1"}] | Fail | PORTION_ID_DUPLICATE |
+| Duplicate portion IDs | available_portions: [{id: '1'}, {id: '1'}] | Fail | PORTION_ID_DUPLICATE |
 | Zero portions per whole | portions_per_whole: 0 | Fail | PORTIONS_PER_WHOLE_INVALID |
 | Negative portions per whole | portions_per_whole: -8 | Fail | PORTIONS_PER_WHOLE_INVALID |
 | Shelf life 0 hours | shelf_life_hours: 0 | Fail | SHELF_LIFE_TOO_LOW |

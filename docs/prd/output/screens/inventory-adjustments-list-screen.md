@@ -47,7 +47,7 @@ Status: Based on Actual Source Code Analysis
 
 ### Table Structure
 The adjustments are displayed in a structured table with the following columns:
-- **Adjustment Number**: Unique identifier for each adjustment (e.g., ADJ-2024-001)
+- **Adjustment Number**: Unique identifier for each adjustment (e.g., ADJ-2401-0001)
 - **Date**: Date when the adjustment was created or processed
 - **Type**: Movement type displayed as color-coded badges (Stock In/Stock Out)
 - **Location**: Physical location where adjustment occurred (Main Warehouse, Production Store)

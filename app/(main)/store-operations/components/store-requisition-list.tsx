@@ -67,6 +67,7 @@ interface Requisition {
   toLocation: string
   storeName: string
   description: string
+  requestedBy: string
   status: 'In Process' | 'Complete' | 'Reject' | 'Void' | 'Draft'
   workflowStage?: string
   totalAmount: number
@@ -194,7 +195,7 @@ const FilterBuilder = ({ filters, setFilters }: { filters: FilterCondition[], se
             <SelectContent>
               <SelectItem value="date">Date</SelectItem>
               <SelectItem value="refNo">Requisition</SelectItem>
-              <SelectItem value="requestTo">Request To</SelectItem>
+              <SelectItem value="requestTo">Request From</SelectItem>
               <SelectItem value="toLocation">To Location</SelectItem>
               <SelectItem value="storeName">Store Name</SelectItem>
               <SelectItem value="description">Description</SelectItem>
@@ -301,22 +302,23 @@ export function StoreRequisitionListComponent() {
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
   // Sample data - would come from API in real implementation
+  // Transaction Code Format: SR-YYMM-NNNN (e.g., SR-2410-001 = Store Requisition #001, October 2024)
   const requisitions: Requisition[] = [
-    { date: '2024-01-15', refNo: 'SR-2024-001', requestTo: 'M01', toLocation: 'Central Kitchen', storeName: 'Main Store', description: 'Monthly supplies request', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 566.25, currency: 'BHT' },
-    { date: '2024-01-14', refNo: 'SR-2024-002', requestTo: 'B01', toLocation: 'Front Bar', storeName: 'Branch Store 1', description: 'Emergency stock replenishment', status: 'Complete', workflowStage: 'Complete', totalAmount: 1038.44, currency: 'BHT' },
-    { date: '2024-01-13', refNo: 'SR-2024-003', requestTo: 'M02', toLocation: 'Banquet Hall', storeName: 'Main Store', description: 'Draft Requisition', status: 'Draft', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-12', refNo: 'SR-2024-004', requestTo: 'B02', toLocation: 'Coffee Station', storeName: 'Branch Store 2', description: 'Quarterly inventory update', status: 'In Process', workflowStage: 'Submission', totalAmount: 453.00, currency: 'BHT' },
-    { date: '2024-01-11', refNo: 'SR-2024-005', requestTo: 'M01', toLocation: 'Admin Office', storeName: 'Main Store', description: 'Office supplies restock', status: 'Complete', workflowStage: 'Complete', totalAmount: 679.50, currency: 'BHT' },
-    { date: '2024-01-10', refNo: 'SR-2024-006', requestTo: 'B03', toLocation: 'Maintenance Room', storeName: 'Branch Store 3', description: 'Emergency equipment request', status: 'Reject', workflowStage: 'Rejected at HOD', totalAmount: 566.25, currency: 'BHT' },
-    { date: '2024-01-09', refNo: 'SR-2024-007', requestTo: 'M02', toLocation: 'IT Department', storeName: 'Main Store', description: 'IT department supplies', status: 'In Process', workflowStage: 'HOD Approval', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-08', refNo: 'SR-2024-008', requestTo: 'B01', toLocation: 'Storage Area', storeName: 'Branch Store 1', description: 'Seasonal inventory preparation', status: 'Draft', totalAmount: 415.25, currency: 'BHT' },
-    { date: '2024-01-07', refNo: 'SR-2024-009', requestTo: 'M01', toLocation: 'Workshop', storeName: 'Main Store', description: 'Maintenance tools request', status: 'Complete', workflowStage: 'Complete', totalAmount: 490.75, currency: 'BHT' },
-    { date: '2024-01-06', refNo: 'SR-2024-010', requestTo: 'B02', toLocation: 'Staff Lounge', storeName: 'Branch Store 2', description: 'Staff uniform order', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 453.00, currency: 'BHT' },
-    { date: '2024-01-05', refNo: 'SR-2024-011', requestTo: 'M02', toLocation: 'Marketing Dept', storeName: 'Main Store', description: 'Marketing materials request', status: 'Void', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-04', refNo: 'SR-2024-012', requestTo: 'B03', toLocation: 'Security Office', storeName: 'Branch Store 3', description: 'Safety equipment restock', status: 'Complete', workflowStage: 'Complete', totalAmount: 528.50, currency: 'BHT' },
-    { date: '2024-01-03', refNo: 'SR-2024-013', requestTo: 'M01', toLocation: 'Housekeeping', storeName: 'Main Store', description: 'Cleaning supplies order', status: 'In Process', workflowStage: 'Submission', totalAmount: 415.25, currency: 'BHT' },
-    { date: '2024-01-02', refNo: 'SR-2024-014', requestTo: 'B01', toLocation: 'R&D Lab', storeName: 'Branch Store 1', description: 'New product samples request', status: 'Draft', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-01', refNo: 'SR-2024-015', requestTo: 'M02', toLocation: 'Warehouse', storeName: 'Main Store', description: 'Year-end inventory count supplies', status: 'Complete', workflowStage: 'Complete', totalAmount: 604.00, currency: 'BHT' },
+    { date: '2024-01-15', refNo: 'SR-2410-001', requestTo: 'M01', toLocation: 'Central Kitchen', storeName: 'Main Store', description: 'Monthly supplies request', requestedBy: 'Chef Maria Rodriguez', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 566.25, currency: 'BHT' },
+    { date: '2024-01-14', refNo: 'SR-2410-002', requestTo: 'B01', toLocation: 'Front Bar', storeName: 'Branch Store 1', description: 'Emergency stock replenishment', requestedBy: 'Bar Manager Tom', status: 'Complete', workflowStage: 'Complete', totalAmount: 1038.44, currency: 'BHT' },
+    { date: '2024-01-13', refNo: 'SR-2410-003', requestTo: 'M02', toLocation: 'Banquet Hall', storeName: 'Main Store', description: 'Draft Requisition', requestedBy: 'John Doe', status: 'Draft', totalAmount: 377.50, currency: 'BHT' },
+    { date: '2024-01-12', refNo: 'SR-2410-004', requestTo: 'B02', toLocation: 'Coffee Station', storeName: 'Branch Store 2', description: 'Quarterly inventory update', requestedBy: 'Sarah Chen', status: 'In Process', workflowStage: 'Submission', totalAmount: 453.00, currency: 'BHT' },
+    { date: '2024-01-11', refNo: 'SR-2410-005', requestTo: 'M01', toLocation: 'Admin Office', storeName: 'Main Store', description: 'Office supplies restock', requestedBy: 'Admin Staff', status: 'Complete', workflowStage: 'Complete', totalAmount: 679.50, currency: 'BHT' },
+    { date: '2024-01-10', refNo: 'SR-2410-006', requestTo: 'B03', toLocation: 'Maintenance Room', storeName: 'Branch Store 3', description: 'Emergency equipment request', requestedBy: 'Mike Johnson', status: 'Reject', workflowStage: 'Rejected at HOD', totalAmount: 566.25, currency: 'BHT' },
+    { date: '2024-01-09', refNo: 'SR-2410-007', requestTo: 'M02', toLocation: 'IT Department', storeName: 'Main Store', description: 'IT department supplies', requestedBy: 'IT Support', status: 'In Process', workflowStage: 'HOD Approval', totalAmount: 377.50, currency: 'BHT' },
+    { date: '2024-01-08', refNo: 'SR-2410-008', requestTo: 'B01', toLocation: 'Storage Area', storeName: 'Branch Store 1', description: 'Seasonal inventory preparation', requestedBy: 'Warehouse Staff', status: 'Draft', totalAmount: 415.25, currency: 'BHT' },
+    { date: '2024-01-07', refNo: 'SR-2410-009', requestTo: 'M01', toLocation: 'Workshop', storeName: 'Main Store', description: 'Maintenance tools request', requestedBy: 'Maintenance Team', status: 'Complete', workflowStage: 'Complete', totalAmount: 490.75, currency: 'BHT' },
+    { date: '2024-01-06', refNo: 'SR-2410-010', requestTo: 'B02', toLocation: 'Staff Lounge', storeName: 'Branch Store 2', description: 'Staff uniform order', requestedBy: 'HR Department', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 453.00, currency: 'BHT' },
+    { date: '2024-01-05', refNo: 'SR-2410-011', requestTo: 'M02', toLocation: 'Marketing Dept', storeName: 'Main Store', description: 'Marketing materials request', requestedBy: 'Marketing Team', status: 'Void', totalAmount: 377.50, currency: 'BHT' },
+    { date: '2024-01-04', refNo: 'SR-2410-012', requestTo: 'B03', toLocation: 'Security Office', storeName: 'Branch Store 3', description: 'Safety equipment restock', requestedBy: 'Security Chief', status: 'Complete', workflowStage: 'Complete', totalAmount: 528.50, currency: 'BHT' },
+    { date: '2024-01-03', refNo: 'SR-2410-013', requestTo: 'M01', toLocation: 'Housekeeping', storeName: 'Main Store', description: 'Cleaning supplies order', requestedBy: 'Housekeeping Lead', status: 'In Process', workflowStage: 'Submission', totalAmount: 415.25, currency: 'BHT' },
+    { date: '2024-01-02', refNo: 'SR-2410-014', requestTo: 'B01', toLocation: 'R&D Lab', storeName: 'Branch Store 1', description: 'New product samples request', requestedBy: 'R&D Manager', status: 'Draft', totalAmount: 377.50, currency: 'BHT' },
+    { date: '2024-01-01', refNo: 'SR-2410-015', requestTo: 'M02', toLocation: 'Warehouse', storeName: 'Main Store', description: 'Year-end inventory count supplies', requestedBy: 'Warehouse Manager', status: 'Complete', workflowStage: 'Complete', totalAmount: 604.00, currency: 'BHT' },
   ]
 
   const itemsPerPage = 10
@@ -428,7 +430,7 @@ export function StoreRequisitionListComponent() {
               
               <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div>
-                  <div className="font-medium text-muted-foreground text-xs mb-1">Request To</div>
+                  <div className="font-medium text-muted-foreground text-xs mb-1">Request From</div>
                   <div className="truncate">{req.requestTo}</div>
                 </div>
                 <div>
@@ -437,10 +439,14 @@ export function StoreRequisitionListComponent() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3 sm:gap-4 text-sm">
+              <div className="grid grid-cols-1 xs:grid-cols-2 gap-3 sm:gap-4 text-sm">
                 <div>
                   <div className="font-medium text-muted-foreground text-xs mb-1">Store</div>
                   <div className="truncate">{req.storeName}</div>
+                </div>
+                <div>
+                  <div className="font-medium text-muted-foreground text-xs mb-1">Requested By</div>
+                  <div className="truncate">{req.requestedBy}</div>
                 </div>
               </div>
 
@@ -492,7 +498,11 @@ export function StoreRequisitionListComponent() {
                 <Download className="w-4 h-4 mr-2" />
                 Export
               </Button>
-              <Button size="sm" className="bg-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary/20">
+              <Button
+                size="sm"
+                className="bg-primary hover:bg-primary/90 focus:ring-2 focus:ring-primary/20"
+                onClick={() => router.push('/store-operations/store-requisitions/new')}
+              >
                 <Plus className="w-4 h-4 mr-2" />
                 New Request
               </Button>
@@ -609,9 +619,10 @@ export function StoreRequisitionListComponent() {
                   <TableRow>
                     <TableHead scope="col" className="min-w-[120px]">SR #</TableHead>
                     <TableHead scope="col" className="min-w-[100px]">Date</TableHead>
-                    <TableHead scope="col" className="min-w-[80px]">Request To</TableHead>
+                    <TableHead scope="col" className="min-w-[80px]">Request From</TableHead>
                     <TableHead scope="col" className="min-w-[120px]">To Location</TableHead>
                     <TableHead scope="col" className="min-w-[120px]">Store Name</TableHead>
+                    <TableHead scope="col" className="min-w-[150px]">Requested By</TableHead>
                     <TableHead scope="col" className="min-w-[200px]">Description</TableHead>
                     <TableHead scope="col" className="min-w-[100px] text-right">Amount</TableHead>
                     <TableHead scope="col" className="min-w-[60px]">Currency</TableHead>
@@ -637,6 +648,7 @@ export function StoreRequisitionListComponent() {
                       <TableCell>{req.requestTo}</TableCell>
                       <TableCell className="max-w-[120px] truncate">{req.toLocation}</TableCell>
                       <TableCell className="max-w-[150px] truncate">{req.storeName}</TableCell>
+                      <TableCell className="max-w-[150px] truncate" title={req.requestedBy}>{req.requestedBy}</TableCell>
                       <TableCell className="max-w-[200px] truncate" title={req.description}>{req.description}</TableCell>
                       <TableCell className="text-right font-medium">
                         {new Intl.NumberFormat('en-US', {

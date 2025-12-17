@@ -8,6 +8,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.2 | 2025-12-03 | Documentation Team | Updated inventory section with configurable costing method context (FIFO or Periodic Average) |
 | 1.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
 | 1.0 | 2025-12-02 | Documentation Team | Initial version |
@@ -122,7 +123,7 @@ This document covers:
 - 2c. System provides "Retry" button
 
 **Business Rules**:
-- BR-GRN-001: GRN numbers displayed in format GRN-YYYY-NNNN
+- BR-GRN-001: GRN numbers displayed in format GRN-YYMM-NNNN
 - Users see only GRNs they have permission to view based on role
 
 **UI Requirements**:
@@ -263,7 +264,7 @@ This document covers:
     - Storage location selected for each item
     - No duplicate items
 18. System creates GRN record:
-    - Auto-generates GRN number (GRN-YYYY-NNNN)
+    - Auto-generates GRN number (GRN-YYMM-NNNN)
     - Sets receipt date to today
     - Sets status to RECEIVED
     - Sets created by to current user
@@ -320,7 +321,7 @@ This document covers:
 - 18d. User data preserved in form for retry
 
 **Business Rules**:
-- BR-GRN-001: GRN number auto-generated, sequential per year
+- BR-GRN-001: GRN number auto-generated, sequential per month
 - BR-GRN-002: Received qty cannot exceed (ordered - previously received)
 - BR-GRN-003: New GRN created with RECEIVED status
 - BR-GRN-004: Line subtotal = received qty × unit price
@@ -508,7 +509,7 @@ This document covers:
     - All required fields complete
     - Storage locations valid
 11. System saves GRN:
-    - Generates final GRN number (GRN-YYYY-NNNN)
+    - Generates final GRN number (GRN-YYMM-NNNN)
     - Sets status to RECEIVED
     - Records created by user and timestamp
 12. System displays success message
@@ -1242,7 +1243,7 @@ This document covers:
    - Financial totals calculated
    - No pending validations or errors
 5. System displays commit confirmation dialog:
-   - "Commit GRN-YYYY-NNNN?"
+   - "Commit GRN-YYMM-NNNN?"
    - "This will update inventory and post accounting entries."
    - "This action cannot be undone."
    - Summary: X items, Total amount $Y.YY
@@ -1405,7 +1406,7 @@ This document covers:
 2. User clicks "Actions" dropdown
 3. User selects "Void GRN"
 4. System displays void confirmation dialog:
-   - "Void GRN-YYYY-NNNN?"
+   - "Void GRN-YYMM-NNNN?"
    - Warning: "This action cannot be undone."
    - If committed: "This will reverse inventory and accounting entries."
    - **Void Reason**: Text area (required)

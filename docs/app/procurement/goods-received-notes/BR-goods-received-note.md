@@ -114,7 +114,7 @@ The Goods Received Note (GRN) module enables receiving clerks and storekeeper st
 **User Story**: As a Receiving Clerk, I want to capture complete delivery information in the GRN header so that all delivery details are documented for reference and audit.
 
 **Requirements**:
-- **GRN Number**: Auto-generated unique identifier (format: GRN-YYYY-NNNN)
+- **GRN Number**: Auto-generated unique identifier (format: GRN-YYMM-NNNN)
 - **Receipt Date**: Date goods physically received (default: today)
 - **Invoice Number**: Vendor invoice reference
 - **Invoice Date**: Date on vendor invoice
@@ -697,8 +697,8 @@ The Goods Received Note (GRN) module enables receiving clerks and storekeeper st
 ## 4. Business Rules
 
 ### BR-GRN-001: GRN Numbering
-- GRN numbers auto-generated in format: GRN-YYYY-NNNN
-- Sequential numbering per fiscal year
+- GRN numbers auto-generated in format: GRN-YYMM-NNNN
+- Sequential numbering per month
 - No gaps allowed in sequence
 - Cannot manually assign GRN number
 
@@ -741,6 +741,75 @@ The Goods Received Note (GRN) module enables receiving clerks and storekeeper st
 - Stock movement cannot be reversed (must create adjustment)
 - GRN creates inventory layers with unit cost data used for inventory valuation
 - Inventory costing method (FIFO or Periodic Average) is configured at system level (System Administration → Inventory Settings) and determines how costs are calculated when inventory is consumed (e.g., credit note returns, requisitions)
+
+### BR-GRN-008: Location Type Business Rules
+
+GRN processing behavior varies based on the **location type** of the receiving location. The system supports three location types that determine whether inventory balances are updated and how costs are recorded.
+
+#### Location Type Definitions
+
+| Location Type | Code | Purpose | Examples |
+|---------------|------|---------|----------|
+| **INVENTORY** | INV | Standard tracked warehouse locations | Main Warehouse, Central Kitchen Store |
+| **DIRECT** | DIR | Direct expense locations (no stock balance) | Restaurant Bar Direct, Kitchen Direct |
+| **CONSIGNMENT** | CON | Vendor-owned inventory locations | Beverage Consignment, Linen Consignment |
+
+#### BR-GRN-008.1: Location Type Processing Rules
+
+**INVENTORY Locations (INV)**:
+- ✅ Standard GRN processing with stock balance update
+- ✅ Creates FIFO cost layer with lot tracking
+- ✅ Updates inventory asset balance
+- ✅ GL: Debit Inventory Asset, Credit Accounts Payable
+- ✅ Full stock movement recorded
+- ✅ Stock card updated with receipt details
+
+**DIRECT Locations (DIR)**:
+- ❌ No stock-in or balance update (items expensed on receipt)
+- ❌ No cost layer created
+- ✅ GRN recorded for audit and AP matching
+- ✅ GL: Debit Department Expense, Credit Accounts Payable
+- ⚠️ Items filtered out from stock movement display
+- ⚠️ Alert displayed indicating direct expense processing
+
+**CONSIGNMENT Locations (CON)**:
+- ✅ Creates consignment stock layer with vendor ownership
+- ✅ Updates consignment stock balance
+- ✅ Vendor liability tracking (not asset until consumption)
+- ✅ GL: Debit Consignment Asset, Credit Vendor Liability
+- ✅ Full stock movement recorded with vendor ownership indicator
+- ✅ Stock card shows vendor-owned quantities
+
+#### BR-GRN-008.2: Location Type Feature Matrix
+
+| Feature | INVENTORY | DIRECT | CONSIGNMENT |
+|---------|-----------|--------|-------------|
+| **Stock Balance Update** | ✅ Yes | ❌ No | ✅ Yes (vendor-owned) |
+| **Cost Layer Creation** | ✅ FIFO layer | ❌ None | ✅ FIFO layer (vendor) |
+| **Lot Tracking** | ✅ Full | ❌ None | ✅ Full |
+| **Batch/Expiry** | ✅ Tracked | ❌ Not tracked | ✅ Tracked |
+| **GL Posting** | Asset increase | Expense posting | Vendor liability |
+| **Stock Movement Display** | ✅ Shown | ❌ Filtered out | ✅ Shown |
+| **Stock Card** | ✅ Updated | ❌ Not maintained | ✅ Updated (vendor) |
+| **AP Matching** | ✅ Full | ✅ Full | ✅ Full |
+
+#### BR-GRN-008.3: Location Type Validation Rules
+
+1. **Mixed Location Type GRN**:
+   - Single GRN can receive items to multiple location types
+   - Each line item's processing determined by its destination location type
+   - Summary shows breakdown by location type
+
+2. **UI Behavior**:
+   - Location type badge displayed in location selection
+   - Alert banner when receiving to DIRECT location
+   - Stock movement tab shows count of filtered DIRECT items
+   - Consignment items show vendor ownership indicator
+
+3. **Reporting Impact**:
+   - DIRECT items excluded from inventory valuation reports
+   - DIRECT items included in expense reports by department
+   - Stock movement report filters DIRECT items by default
 
 ---
 

@@ -11,6 +11,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.4 | 2025-12-03 | Documentation Team | Updated to support configurable costing method (FIFO or Periodic Average) per system settings |
 | 1.0.3 | 2025-12-03 | Documentation Team | Added Shared Method references to VAL-CN-700 and VAL-CN-715 |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added backend system validations (VAL-CN-700 to VAL-CN-799) |
@@ -78,13 +79,13 @@ Data Stored
 
 **Error Code**: VAL-CN-001
 **Error Message**: "Credit Note Number is required"
-**User Action**: System automatically generates unique CN number (format: CN-YYYY-NNNNNN). User should not manually modify.
+**User Action**: System automatically generates unique CN number (format: CN-YYMM-NNNN). User should not manually modify.
 
 **Test Cases**:
-- ✅ Valid: "CN-2025-000123"
-- ✅ Valid: "CN-2025-000124" (unique)
+- ✅ Valid: "CN-2501-0123"
+- ✅ Valid: "CN-2501-0124" (unique)
 - ❌ Invalid: "" (empty)
-- ❌ Invalid: "CN-2025-000123" (duplicate)
+- ❌ Invalid: "CN-2501-0123" (duplicate)
 - ❌ Invalid: null or undefined
 
 ---
@@ -216,7 +217,7 @@ Data Stored
 **User Action**: User can optionally select a GRN from the dropdown list or allow system to auto-assign during commit.
 
 **Test Cases**:
-- ✅ Valid: grnId = "GRN-2025-000123" (explicitly selected)
+- ✅ Valid: grnId = "GRN-2501-000123" (explicitly selected)
 - ✅ Valid: grnId = null (will be auto-assigned on commit for quantity returns)
 - ✅ Valid: grnId = null for AMOUNT_DISCOUNT (standalone credit)
 - ❌ Invalid: grnId = "GRN-INVALID" (non-existent GRN if explicitly provided)
@@ -737,7 +738,7 @@ Data Stored
 **User Action**: User must select lots from available inventory for the product.
 
 **Test Cases**:
-- ✅ Valid: "LOT-2025-001234"
+- ✅ Valid: "LOT-2501-0001234"
 - ✅ Valid: "BATCH-ABC-123"
 - ❌ Invalid: "" (empty)
 - ❌ Invalid: null
@@ -1482,7 +1483,7 @@ Data Stored
 **User Action**: System automatically generates unique number. User should retry if error occurs.
 
 **Test Cases**:
-- ✅ Valid: New CN with unique number "CN-2025-000123"
+- ✅ Valid: New CN with unique number "CN-2501-0123"
 - ❌ Invalid: Attempt to create CN with existing number
 
 ---
@@ -1980,7 +1981,7 @@ The following validations are implemented at the server action layer to enforce 
 
 ### VAL-CN-716: CN Number Sequence Validation
 
-**Rule**: CN numbers must follow format CN-YYYY-NNN, be unique, and gap-free within each year.
+**Rule**: CN numbers must follow format CN-YYMM-NNNN, be unique, and gap-free within each month.
 
 **Related Backend Requirement**: BR-BE-011 (CN Number Generator)
 
@@ -1996,9 +1997,9 @@ The following validations are implemented at the server action layer to enforce 
 **User Action**: Retry operation. If persists, contact support.
 
 **Test Cases**:
-- ✅ Valid: "CN-2025-001" (first of year)
-- ✅ Valid: "CN-2025-002" (sequential)
-- ✅ Valid: "CN-2026-001" (new year reset)
+- ✅ Valid: "CN-2501-001" (first of year and month)
+- ✅ Valid: "CN-2501-002" (sequential)
+- ✅ Valid: "CN-2601-001" (new year reset)
 - ❌ Invalid: Duplicate number generated
 - ❌ Invalid: Gap in sequence
 

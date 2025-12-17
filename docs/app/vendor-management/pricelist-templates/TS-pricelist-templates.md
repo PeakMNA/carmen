@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.1.0 | 2025-11-25 | Documentation Team | Restructured to sitemap-focused format; Removed implementation code |
 | 2.0.0 | 2025-11-25 | Documentation Team | Simplified to align with BR-pricelist-templates.md |
 | 1.0 | 2024-01-15 | System | Initial technical specification |
@@ -56,20 +57,20 @@ app/
 
 ```mermaid
 graph TD
-    subgraph VendorManagement["Vendor Management"]
-        ListPage["List Page<br>/pricelist-templates"]
-        CreatePage["Create Page<br>/pricelist-templates/new"]
+    subgraph VendorManagement['Vendor Management']
+        ListPage['List Page<br>/pricelist-templates']
+        CreatePage['Create Page<br>/pricelist-templates/new']
         DetailPage["Detail Page<br>/pricelist-templates/[id]"]
         EditPage["Edit Page<br>/pricelist-templates/[id]/edit"]
     end
 
-    ListPage -->|"+ New Template"| CreatePage
-    ListPage -->|"Click Row"| DetailPage
-    DetailPage -->|"Edit Button"| EditPage
-    CreatePage -->|"Save"| DetailPage
-    EditPage -->|"Save"| DetailPage
-    CreatePage -->|"Cancel"| ListPage
-    EditPage -->|"Cancel"| DetailPage
+    ListPage -->|'+ New Template'| CreatePage
+    ListPage -->|'Click Row'| DetailPage
+    DetailPage -->|'Edit Button'| EditPage
+    CreatePage -->|'Save'| DetailPage
+    EditPage -->|'Save'| DetailPage
+    CreatePage -->|'Cancel'| ListPage
+    EditPage -->|'Cancel'| DetailPage
 
     style ListPage fill:#e1f5ff,stroke:#0288d1
     style CreatePage fill:#fff4e1,stroke:#f57c00
@@ -356,30 +357,30 @@ Same as Create Page with pre-populated data.
 
 ```mermaid
 flowchart TD
-    subgraph CreateFlow["Create Template Flow"]
+    subgraph CreateFlow['Create Template Flow']
         L1[List Page] -->|"Click + New Template"| C1[Create Page]
-        C1 -->|"Fill Form"| C2[Add Products]
-        C2 -->|"Save"| D1[Detail Page]
-        C1 -->|"Cancel"| L1
+        C1 -->|'Fill Form'| C2[Add Products]
+        C2 -->|'Save'| D1[Detail Page]
+        C1 -->|'Cancel'| L1
     end
 
-    subgraph EditFlow["Edit Template Flow"]
+    subgraph EditFlow['Edit Template Flow']
         L2[List Page] -->|"Click Row"| D2[Detail Page]
-        D2 -->|"Click Edit"| E1[Edit Page]
-        E1 -->|"Save"| D2
-        E1 -->|"Cancel"| D2
+        D2 -->|'Click Edit'| E1[Edit Page]
+        E1 -->|'Save'| D2
+        E1 -->|'Cancel'| D2
     end
 
-    subgraph StatusFlow["Status Change Flow"]
+    subgraph StatusFlow['Status Change Flow']
         D3[Detail Page] -->|"Click Activate"| S1{Status Dialog}
-        S1 -->|"Confirm"| D4[Detail Page - Active]
-        D4 -->|"Click Deactivate"| S2{Status Dialog}
-        S2 -->|"Confirm"| D5[Detail Page - Inactive]
+        S1 -->|'Confirm'| D4[Detail Page - Active]
+        D4 -->|'Click Deactivate'| S2{Status Dialog}
+        S2 -->|'Confirm'| D5[Detail Page - Inactive]
     end
 
-    subgraph CloneFlow["Clone Template Flow"]
+    subgraph CloneFlow['Clone Template Flow']
         D6[Detail Page] -->|"Click Clone"| CL1{Clone Dialog}
-        CL1 -->|"Enter Name + Confirm"| D7[New Template Detail]
+        CL1 -->|'Enter Name + Confirm'| D7[New Template Detail]
     end
 ```
 

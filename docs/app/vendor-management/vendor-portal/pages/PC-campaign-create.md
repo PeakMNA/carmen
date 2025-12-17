@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-01-23 | System | Initial version based on UC v2.0, TS v2.0 |
 
 ---
@@ -1083,7 +1084,7 @@ Q1 2024 Kitchen Equipment Pricing
 ```
 Your campaign is now active and vendor invitations are being sent.
 
-Campaign ID: CAM-2024-001234
+Campaign ID: CAM-2401-001234
 Launch Time: 23 Jan 2024, 14:35 PST
 
 What's Next:
@@ -1301,7 +1302,7 @@ Try adjusting your filters or add new vendors to the system.
 ### Non-Translatable Content
 | Content | Reason |
 |---------|--------|
-| Campaign IDs (CAM-2024-001234) | System-generated |
+| Campaign IDs (CAM-2401-001234) | System-generated |
 | Email addresses | User data |
 | Dates and times | Locale-specific formatting |
 | Percentages and numbers | Universal |

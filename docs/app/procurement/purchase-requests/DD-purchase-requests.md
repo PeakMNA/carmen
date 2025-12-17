@@ -4,19 +4,21 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Requests
 - **Database**: Carmen ERP PostgreSQL
-- **Schema Version**: 2.3.0
-- **Last Updated**: 2025-12-03
+- **Schema Version**: 2.4.0
+- **Last Updated**: 2025-12-10
 - **Owner**: Procurement Team
 - **Status**: Active
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-30 | System Architect | Initial SQL-based schema |
 | 2.0.0 | 2025-01-01 | Development Team | Converted to text-based DD format + added new fields for 9/7/2025 requirements |
 | 2.1.0 | 2025-11-26 | Documentation Team | Synchronized with BR document - updated status values, removed fictional features, added implementation status markers |
 | 2.2.0 | 2025-11-28 | Development Team | Added Returned status, return_reason and rejection_reason fields for workflow actions |
 | 2.3.0 | 2025-12-03 | Development Team | Added parent_pr_id and split_reason fields for Approver Split capability; added role-based field visibility documentation |
+| 2.4.0 | 2025-12-10 | Documentation Team | Synced ref_number format with BR: changed from PR-YYYY-NNNN to PR-YYMM-NNNN |
 
 ## Implementation Status
 
@@ -111,7 +113,7 @@ erDiagram
 
 **Data Ownership**: Department that submitted the request; created by requesting staff member
 
-**Access Pattern**: Accessed by reference number (PR-YYYY-NNNN), by department, by status, by date range, by requester, and by approver for workflow tasks
+**Access Pattern**: Accessed by reference number (PR-YYMM-NNNN), by department, by status, by date range, by requester, and by approver for workflow tasks
 
 **Data Volume**: Approximately 500-1000 records per month depending on organization size; 6K-12K records per year; archive after 2 years
 
@@ -140,7 +142,7 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 
 **Primary Identification**:
 - **ID Field**: UUID (auto-generated)
-- **Business Key**: ref_number - Format: PR-YYYY-NNNN (e.g., PR-2025-0042)
+- **Business Key**: ref_number - Format: PR-YYMM-NNNN (e.g., PR-2501-0042)
 - **Display Name**: ref_number combined with brief description
 
 **Core Business Fields**:
@@ -345,7 +347,7 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
   - References: purchase_requests table (self-reference)
   - Purpose: Links split PRs to original PR for traceability
   - Business rule: Set when Approver or Purchasing Staff splits a PR
-  - Example: uuid for "PR-2025-0042" (original PR that was split)
+  - Example: uuid for "PR-2501-0042" (original PR that was split)
 
 - **Split Reason**: Reason for splitting the PR
   - Required: No (required when parent_pr_id is set)
@@ -379,7 +381,7 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 | Field Name | Data Type | Required | Default | Description | Example Values | Constraints |
 |-----------|-----------|----------|---------|-------------|----------------|-------------|
 | id | UUID | Yes | Auto-generated | Primary key | 550e8400-e29b-41d4-a716-446655440000 | Unique, Non-null |
-| ref_number | VARCHAR(50) | Yes | Auto-generated | Business key format PR-YYYY-NNNN | PR-2025-0042 | Unique, Format: PR-YYYY-NNNN |
+| ref_number | VARCHAR(50) | Yes | Auto-generated | Business key format PR-YYMM-NNNN | PR-2501-0042 | Unique, Format: PR-YYMM-NNNN |
 | type | VARCHAR(20) | Yes | General | PR type category | General, Market List, Asset | Must be in allowed values |
 | date | DATE | Yes | Current date | Request creation date | 2025-01-15 | >= 2020-01-01, <= today+30 days |
 | delivery_date | DATE | Yes | - | Expected delivery date | 2025-01-22 | >= date field |
@@ -424,9 +426,9 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 
 **Unique Constraints**:
 - `ref_number`: Must be unique across all records (including soft-deleted)
-  - Format: PR-YYYY-NNNN where YYYY is year from date field, NNNN is 4-digit sequence
+  - Format: PR-YYMM-NNNN where YY is 2-digit year, MM is 2-digit month from date field, NNNN is 4-digit sequence
   - Auto-generated using database sequence
-  - Example: PR-2025-0001, PR-2025-0042
+  - Example: PR-2501-0001, PR-2506-0042
 
 **Foreign Key Relationships**:
 - **Department** (`department_id` → `departments.id`)

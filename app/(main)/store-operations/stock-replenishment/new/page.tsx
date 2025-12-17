@@ -1,14 +1,45 @@
+/**
+ * Stock Replenishment - New Request Page
+ *
+ * Creates new stock transfer requests to transfer inventory between locations.
+ *
+ * LOCATION TYPE HANDLING:
+ * Stock replenishment operates between locations with specific rules:
+ *
+ * - INVENTORY → INVENTORY: Standard internal transfer
+ *   - Both source and destination must have stock tracking
+ *   - Creates transfer-out at source, transfer-in at destination
+ *
+ * - INVENTORY → CONSIGNMENT: Not typical but allowed
+ *   - Transfers company-owned to vendor-managed stock
+ *   - Requires vendor notification
+ *
+ * - CONSIGNMENT → INVENTORY: Conversion to owned
+ *   - Vendor-owned becomes company-owned
+ *   - Vendor notification required
+ *
+ * - DIRECT locations: NOT ALLOWED for replenishment
+ *   - Cannot transfer FROM DIRECT (no stock balance)
+ *   - Cannot transfer TO DIRECT (no PAR levels, no tracking)
+ *   - DIRECT locations should use Purchase Requests instead
+ *
+ * The component filters out DIRECT locations from both source and destination
+ * selection to enforce these business rules.
+ */
+
 "use client"
 
-import { useState, useMemo, useEffect, Suspense } from "react"
+import React, { useState, useMemo, useEffect, Suspense } from "react"
 import { useSearchParams, useRouter } from "next/navigation"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
 import { Textarea } from "@/components/ui/textarea"
+import { Separator } from "@/components/ui/separator"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
   Select,
   SelectContent,
@@ -17,15 +48,25 @@ import {
   SelectValue
 } from "@/components/ui/select"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table"
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger
+} from "@/components/ui/dialog"
+import { Checkbox } from "@/components/ui/checkbox"
+import { ScrollArea } from "@/components/ui/scroll-area"
 import {
-  ArrowLeft,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from "@/components/ui/dropdown-menu"
+import {
+  ChevronLeft,
+  ChevronRight,
   MapPin,
   Package,
   AlertTriangle,
@@ -38,11 +79,20 @@ import {
   Calendar,
   ArrowRight,
   Warehouse,
-  Info,
-  CheckCircle2,
-  TrendingDown
+  Hash,
+  FileText,
+  Plus,
+  MoreHorizontal,
+  CheckCircle,
+  X,
+  Clock,
+  MessageSquare,
+  Paperclip,
+  PanelRightClose,
+  PanelRightOpen,
+  DollarSign,
+  Truck
 } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 import { useToast } from "@/components/ui/use-toast"
 import { useSimpleUser } from "@/lib/context/simple-user-context"
 import {
@@ -50,33 +100,62 @@ import {
   enrichItemsWithSourceAvailability,
   getSourceLocations,
   mockInventoryLocations,
-  type ReplenishmentItem
+  type TransferItem
 } from "@/lib/mock-data"
 import { InventoryLocationType } from "@/lib/types/location-management"
+import {
+  canReceiveTransfer,
+  canTransferBetween,
+  requiresVendorNotification,
+  getLocationTypeLabel
+} from "@/lib/utils/location-type-helpers"
+import { LocationTypeBadge, LocationTypeAlert } from "@/components/location-type-badge"
+import { formatNumber } from "@/lib/utils/formatters"
 
-interface RequestItem extends ReplenishmentItem {
+// ============================================================================
+// TYPE DEFINITIONS
+// ============================================================================
+
+interface RequestItem extends TransferItem {
   requestedQty: number
   sourceAvailable: number
   isValid: boolean
   validationError?: string
+  itemInfo: {
+    location: string
+    locationCode: string
+    itemName: string
+    category: string
+    subCategory: string
+    itemGroup: string
+    barCode: string
+  }
 }
 
-function getUrgencyBadge(urgency: string) {
-  const config: Record<string, { variant: "destructive" | "default" | "secondary" | "outline"; label: string; icon: React.ReactNode }> = {
-    critical: { variant: "destructive", label: "Critical", icon: <AlertCircle className="h-3 w-3" /> },
-    warning: { variant: "default", label: "Warning", icon: <AlertTriangle className="h-3 w-3" /> },
-    low: { variant: "secondary", label: "Low", icon: <TrendingDown className="h-3 w-3" /> }
+// ============================================================================
+// HELPER COMPONENTS
+// ============================================================================
+
+function PriorityBadge({ priority }: { priority: string }) {
+  const config: Record<string, { label: string; className: string; icon: React.ReactNode }> = {
+    standard: { label: "Standard", className: "bg-green-100 text-green-700 border-green-200", icon: <Clock className="h-3 w-3" /> },
+    urgent: { label: "Urgent", className: "bg-amber-100 text-amber-700 border-amber-200", icon: <AlertTriangle className="h-3 w-3" /> },
+    emergency: { label: "Emergency", className: "bg-red-100 text-red-700 border-red-200", icon: <AlertCircle className="h-3 w-3" /> }
   }
-  const { variant, label, icon } = config[urgency] || { variant: "outline", label: urgency, icon: null }
+  const { label, className, icon } = config[priority] || { label: priority, className: "", icon: null }
   return (
-    <Badge variant={variant} className="gap-1">
+    <Badge variant="outline" className={`gap-1 ${className}`}>
       {icon}
       {label}
     </Badge>
   )
 }
 
-function NewReplenishmentRequestPageContent() {
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
+function NewTransferRequestPageContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   const { toast } = useToast()
@@ -88,23 +167,59 @@ function NewReplenishmentRequestPageContent() {
   const [notes, setNotes] = useState("")
   const [requestItems, setRequestItems] = useState<RequestItem[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSidePanelOpen, setIsSidePanelOpen] = useState(false)
+  const [selectedItems, setSelectedItems] = useState<number[]>([])
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
+  const [newComment, setNewComment] = useState("")
+
+  // Add Items Dialog state
+  const [showAddItemsDialog, setShowAddItemsDialog] = useState(false)
+  const [selectedBelowParItems, setSelectedBelowParItems] = useState<Set<string>>(new Set())
 
   // Get user's current location (destination)
-  const userLocationId = user?.context?.currentLocation?.id || "loc-003"
-  const userLocationName = user?.context?.currentLocation?.name || "Central Kitchen"
-  const userName = user?.name || "Unknown User"
-  const userDepartment = user?.context?.currentDepartment?.name || "Unknown Department"
+  const userLocationId = user?.context?.currentLocation?.id || "loc-006"
+  const userName = user?.name || "John Doe"
+  const userDepartment = user?.context?.currentDepartment?.name || "Administration"
 
-  // Check if user's location is an inventory location
+  /**
+   * LOCATION TYPE VALIDATION:
+   * Check if user's current location can receive stock replenishment.
+   *
+   * Business Rules:
+   * - INVENTORY: Can receive replenishment (has PAR levels, tracks stock)
+   * - CONSIGNMENT: Can receive replenishment (has PAR levels, vendor-owned)
+   * - DIRECT: Cannot receive replenishment (no PAR levels, no stock tracking)
+   *
+   * If user is at a DIRECT location, they should use Purchase Requests instead.
+   */
   const userInventoryLocation = useMemo(() => {
-    return mockInventoryLocations.find(loc => loc.id === userLocationId && loc.type === InventoryLocationType.INVENTORY)
+    const location = mockInventoryLocations.find(loc => loc.id === userLocationId)
+    // Only allow locations that can receive replenishment (not DIRECT)
+    if (location && canReceiveTransfer(location.type)) {
+      return location
+    }
+    return null
   }, [userLocationId])
 
   const isInventoryLocation = !!userInventoryLocation
+  const userLocationName = userInventoryLocation?.name || user?.context?.currentLocation?.name || "Corporate Office"
+  const userLocationCode = userInventoryLocation?.code || "CORP-001"
 
-  // Get source locations (inventory locations, excluding user's location)
+  /**
+   * SOURCE LOCATION FILTERING:
+   * Get valid source locations for stock replenishment.
+   *
+   * Business Rules:
+   * - INVENTORY: Can be source (has stock balance to transfer)
+   * - CONSIGNMENT: Can be source (has vendor stock, requires notification)
+   * - DIRECT: Cannot be source (no stock balance exists)
+   *
+   * Also excludes the user's current location (can't transfer to self).
+   */
   const sourceLocations = useMemo(() => {
-    return getSourceLocations().filter(loc => loc.id !== userLocationId)
+    // getSourceLocations already filters to INVENTORY type locations
+    return getSourceLocations()
+      .filter(loc => loc.id !== userLocationId)
   }, [userLocationId])
 
   // Get items below par level for user's location
@@ -119,14 +234,14 @@ function NewReplenishmentRequestPageContent() {
   }, [searchParams])
 
   // Initialize request items when source location is selected
+  // Only auto-populate if items were pre-selected via URL params
+  // Otherwise, start with empty list and let user add items via dialog
   useEffect(() => {
-    if (sourceLocationId && itemsBelowPar.length > 0) {
+    if (sourceLocationId && selectedItemIds.size > 0 && itemsBelowPar.length > 0) {
       const enrichedItems = enrichItemsWithSourceAvailability(itemsBelowPar, sourceLocationId)
 
-      // Filter to selected items if any
-      const itemsToAdd = selectedItemIds.size > 0
-        ? enrichedItems.filter(item => selectedItemIds.has(item.id))
-        : enrichedItems
+      // Filter to pre-selected items from URL
+      const itemsToAdd = enrichedItems.filter(item => selectedItemIds.has(item.id))
 
       // Convert to request items
       const newRequestItems: RequestItem[] = itemsToAdd.map(item => {
@@ -142,15 +257,23 @@ function NewReplenishmentRequestPageContent() {
             ? (item.sourceAvailable || 0) === 0
               ? "No stock available at source"
               : "Requested quantity exceeds available"
-            : undefined
+            : undefined,
+          itemInfo: {
+            location: userLocationName,
+            locationCode: userLocationCode,
+            itemName: item.productName,
+            category: item.categoryName,
+            subCategory: "General",
+            itemGroup: "Standard",
+            barCode: `885${Math.random().toString().slice(2, 12)}`
+          }
         }
       })
 
       setRequestItems(newRequestItems)
-    } else {
-      setRequestItems([])
     }
-  }, [sourceLocationId, itemsBelowPar, selectedItemIds])
+    // Note: Don't reset requestItems when source changes - user may have manually added items
+  }, [sourceLocationId, itemsBelowPar, selectedItemIds, userLocationName])
 
   // Update requested quantity with validation
   const updateRequestedQty = (itemId: string, newQty: number) => {
@@ -180,11 +303,91 @@ function NewReplenishmentRequestPageContent() {
     setRequestItems(prev => prev.filter(item => item.id !== itemId))
   }
 
+  // Toggle item expansion
+  const toggleItemExpansion = (id: string) => {
+    setExpandedItems(prev =>
+      prev.includes(id) ? prev.filter(itemId => itemId !== id) : [...prev, id]
+    )
+  }
+
+  // Get items available to add (below PAR but not yet in request)
+  const availableItemsToAdd = useMemo(() => {
+    if (!sourceLocationId) return []
+    const existingIds = new Set(requestItems.map(item => item.id))
+    const enrichedItems = enrichItemsWithSourceAvailability(itemsBelowPar, sourceLocationId)
+    return enrichedItems.filter(item => !existingIds.has(item.id))
+  }, [sourceLocationId, itemsBelowPar, requestItems])
+
+  // Toggle item selection in Add Items dialog
+  const toggleBelowParItemSelection = (itemId: string) => {
+    setSelectedBelowParItems(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId)
+      } else {
+        newSet.add(itemId)
+      }
+      return newSet
+    })
+  }
+
+  // Select all available items
+  const selectAllAvailableItems = () => {
+    setSelectedBelowParItems(new Set(availableItemsToAdd.map(item => item.id)))
+  }
+
+  // Clear all selections
+  const clearAllSelections = () => {
+    setSelectedBelowParItems(new Set())
+  }
+
+  // Add selected items to request
+  const handleAddSelectedItems = () => {
+    if (selectedBelowParItems.size === 0) return
+
+    const itemsToAdd = availableItemsToAdd.filter(item => selectedBelowParItems.has(item.id))
+
+    const newItems: RequestItem[] = itemsToAdd.map(item => {
+      const requestedQty = Math.min(item.recommendedQty, item.sourceAvailable || 0)
+      const isValid = requestedQty > 0 && requestedQty <= (item.sourceAvailable || 0)
+
+      return {
+        ...item,
+        requestedQty,
+        sourceAvailable: item.sourceAvailable || 0,
+        isValid,
+        validationError: !isValid
+          ? (item.sourceAvailable || 0) === 0
+            ? "No stock available at source"
+            : "Requested quantity exceeds available"
+          : undefined,
+        itemInfo: {
+          location: userLocationName,
+          locationCode: userLocationCode,
+          itemName: item.productName,
+          category: item.categoryName,
+          subCategory: "General",
+          itemGroup: "Standard",
+          barCode: `885${Math.random().toString().slice(2, 12)}`
+        }
+      }
+    })
+
+    setRequestItems(prev => [...prev, ...newItems])
+    setSelectedBelowParItems(new Set())
+    setShowAddItemsDialog(false)
+    toast({
+      title: "Items Added",
+      description: `Added ${newItems.length} item(s) to the request.`
+    })
+  }
+
   // Calculate totals
   const totals = useMemo(() => {
     const validItems = requestItems.filter(item => item.isValid)
     return {
-      totalItems: validItems.length,
+      totalItems: requestItems.length,
+      validItems: validItems.length,
       totalQuantity: validItems.reduce((sum, item) => sum + item.requestedQty, 0),
       invalidItems: requestItems.filter(item => !item.isValid).length
     }
@@ -196,481 +399,794 @@ function NewReplenishmentRequestPageContent() {
     requestItems.every(item => item.isValid) &&
     totals.totalQuantity > 0
 
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('en-US').format(value)
-  }
+  // Get selected source location
+  const selectedSourceLocation = sourceLocations.find(loc => loc.id === sourceLocationId)
 
-  const formatDate = (date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'short',
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    })
-  }
-
-  // ============================================================================
-  // STORE REQUISITION (SR) CREATION
-  // ============================================================================
-  //
-  // Stock Replenishment creates a Store Requisition (SR) document which represents
-  // an internal stock transfer request. The workflow is:
-  //
-  // 1. User selects items below par level at their location
-  // 2. User selects source location (warehouse) to request stock from
-  // 3. User adjusts quantities and submits
-  // 4. System creates an SR with movementType: "Transfer"
-  // 5. SR goes through approval workflow
-  // 6. Once approved, stock is transferred from source to destination
-  //
-  // SR Document Structure:
-  // - refNo: SR-YYYY-XXX (Store Requisition number)
-  // - movementType: "Transfer" (internal stock movement)
-  // - requestedFrom: Source location (where stock comes from)
-  // - requestedTo: Destination location (user's location)
-  // - status: Draft → Pending → Approved → In Process → Completed
-  // ============================================================================
-
-  /**
-   * Generate Store Requisition (SR) reference number
-   * Format: SR-YYYY-XXX where XXX is a sequential number
-   */
-  const generateSRNumber = () => {
+  // Generate reference number
+  const generateRefNo = () => {
     const year = new Date().getFullYear()
-    const randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
-    return `SR-${year}-${randomNum}`
+    const randomNum = Math.floor(Math.random() * 10000).toString().padStart(4, '0')
+    return `TR-${year}-${randomNum}`
   }
 
-  /**
-   * Build the Store Requisition payload for API submission
-   *
-   * @param status - 'Draft' for save draft, 'Pending' for submit for approval
-   * @returns SR payload object ready for API call
-   */
-  const buildStoreRequisitionPayload = (status: 'Draft' | 'Pending') => {
-    const sourceLocation = sourceLocations.find(loc => loc.id === sourceLocationId)
-    const validItems = requestItems.filter(item => item.isValid)
+  const refNo = useMemo(() => generateRefNo(), [])
+  const today = new Date().toISOString().split('T')[0]
+  const expectedDelivery = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-    return {
-      // Document identification
-      refNo: generateSRNumber(),
-      date: new Date().toISOString().split('T')[0],
-      expectedDeliveryDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+  // Handle submit
+  const handleSubmit = async () => {
+    setIsSubmitting(true)
+    await new Promise(resolve => setTimeout(resolve, 1500))
 
-      // Transfer type - this is an internal stock movement
-      movementType: 'Transfer',
+    toast({
+      title: "Transfer Request Created",
+      description: `${refNo} submitted for approval. ${totals.validItems} items requested.`,
+    })
 
-      // Location information
-      requestedFrom: `${sourceLocation?.code || ''} : ${sourceLocation?.name || 'Unknown'}`, // Source (e.g., Main Warehouse)
-      requestedTo: userLocationName, // Destination (user's location, e.g., Central Kitchen)
-      sourceLocationId: sourceLocationId,
-      destinationLocationId: userLocationId,
-
-      // Request details
-      description: `Stock replenishment request - ${priority} priority${notes ? `: ${notes}` : ''}`,
-      department: userDepartment,
-      requestedBy: userName,
-      status: status,
-      priority: priority,
-
-      // Line items
-      items: validItems.map((item, index) => ({
-        id: index + 1,
-        productId: item.productId,
-        productCode: item.productCode,
-        description: item.productName,
-        category: item.categoryName,
-        unit: item.unit,
-        qtyRequired: item.requestedQty,
-        qtyApproved: status === 'Draft' ? 0 : item.requestedQty,
-        currentStock: item.currentStock,
-        parLevel: item.parLevel,
-        sourceAvailable: item.sourceAvailable,
-        urgency: item.urgency
-      })),
-
-      // Summary
-      totalItems: validItems.length,
-      totalQuantity: validItems.reduce((sum, item) => sum + item.requestedQty, 0),
-
-      // Audit fields
-      createdAt: new Date().toISOString(),
-      createdBy: user?.id || 'unknown'
-    }
+    setIsSubmitting(false)
+    router.push("/store-operations/stock-replenishment/requests")
   }
 
-  /**
-   * Save the replenishment request as a Draft SR
-   * - Creates SR with status: 'Draft'
-   * - Does not trigger approval workflow
-   * - Can be edited later before submission
-   */
+  // Handle save draft
   const handleSaveDraft = async () => {
     setIsSubmitting(true)
-
-    const srPayload = buildStoreRequisitionPayload('Draft')
-
-    // TODO: Replace with actual API call
-    // await api.storeRequisitions.create(srPayload)
     await new Promise(resolve => setTimeout(resolve, 1000))
-    console.log('Creating Draft Store Requisition:', srPayload)
 
     toast({
       title: "Draft Saved",
-      description: `Store Requisition ${srPayload.refNo} has been saved as draft.`,
+      description: `Transfer request ${refNo} has been saved as draft.`,
     })
 
     setIsSubmitting(false)
-    router.push("/store-operations/store-requisitions")
-  }
-
-  /**
-   * Submit the replenishment request for approval
-   *
-   * This action:
-   * 1. Creates a Store Requisition (SR) with status: 'Pending'
-   * 2. Triggers the approval workflow
-   * 3. Notifies approvers (warehouse manager, etc.)
-   * 4. Once approved, stock transfer will be executed
-   *
-   * The SR document type is "Transfer" which means:
-   * - Stock OUT from source location (e.g., Main Warehouse)
-   * - Stock IN to destination location (user's location)
-   */
-  const handleSubmit = async () => {
-    setIsSubmitting(true)
-
-    const srPayload = buildStoreRequisitionPayload('Pending')
-    const sourceLocation = sourceLocations.find(loc => loc.id === sourceLocationId)
-
-    // TODO: Replace with actual API call
-    // await api.storeRequisitions.create(srPayload)
-    // await api.storeRequisitions.submitForApproval(srPayload.refNo)
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    console.log('Creating and Submitting Store Requisition:', srPayload)
-
-    toast({
-      title: "Store Requisition Created",
-      description: `${srPayload.refNo} submitted for approval. ${srPayload.totalItems} items (${srPayload.totalQuantity} units) requested from ${sourceLocation?.name}.`,
-    })
-
-    setIsSubmitting(false)
-    router.push("/store-operations/store-requisitions")
+    router.push("/store-operations/stock-replenishment/requests")
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
-      {/* Header */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <div className="flex items-center gap-4">
-          <Link href="/store-operations/stock-replenishment">
-            <Button variant="ghost" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-              <Warehouse className="h-7 w-7 text-green-600" />
-              Create Replenishment Request
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Request items to restock your location to par level
-            </p>
-          </div>
-        </div>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            disabled={!isFormValid || isSubmitting}
-            onClick={handleSaveDraft}
-          >
-            <Save className="h-4 w-4 mr-2" />
-            {isSubmitting ? "Saving..." : "Save Draft"}
-          </Button>
-          <Button
-            disabled={!isFormValid || isSubmitting}
-            onClick={handleSubmit}
-          >
-            <Send className="h-4 w-4 mr-2" />
-            {isSubmitting ? "Submitting..." : "Submit for Approval"}
-          </Button>
-        </div>
-      </div>
-
-      {/* Warning when location is not an inventory location */}
-      {!isInventoryLocation && (
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <strong>Your current location ({userLocationName})</strong> is not configured as an inventory location.
-            Stock replenishment is only available for inventory locations like Central Kitchen or Main Warehouse.
-            Please switch to an inventory location to create replenishment requests.
-          </AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column - Request Form */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Requestor Information (Auto-filled) */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Requestor Information
-              </CardTitle>
-              <CardDescription>Automatically filled from your profile</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid md:grid-cols-3 gap-4">
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Requested By</Label>
-                  <div className="flex items-center gap-2">
-                    <User className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{userName}</span>
+    <div className="w-full px-0 py-6">
+      <div className="flex gap-4">
+        {/* Main Content */}
+        <div className={`transition-all duration-300 ${isSidePanelOpen ? 'flex-1' : 'w-full'}`}>
+          <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+            <CardHeader className="p-6 pb-4 bg-muted/30 border-b space-y-6">
+              {/* Top Actions */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => router.back()}
+                      aria-label="Go back"
+                      className="focus:ring-2 focus:ring-primary/20 flex-shrink-0"
+                    >
+                      <ChevronLeft className="w-4 h-4" />
+                    </Button>
+                    <div className="flex items-center gap-3 min-w-0">
+                      <CardTitle className="text-xl sm:text-2xl lg:text-3xl font-bold truncate">New Stock Replenishment</CardTitle>
+                      <Badge variant="outline" className="bg-gray-100 text-gray-700 border-gray-200">Draft</Badge>
+                      <PriorityBadge priority={priority} />
+                    </div>
                   </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Department</Label>
-                  <div className="flex items-center gap-2">
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{userDepartment}</span>
-                  </div>
-                </div>
-                <div className="space-y-1">
-                  <Label className="text-muted-foreground text-xs">Request Date</Label>
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
-                    <span className="font-medium">{formatDate(new Date())}</span>
+
+                  {/* Action Buttons */}
+                  <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
+                    <Button
+                      variant="outline"
+                      className="flex items-center justify-center gap-2 border-muted-foreground/20 hover:bg-muted/50"
+                      disabled={!isFormValid || isSubmitting}
+                      onClick={handleSaveDraft}
+                    >
+                      <Save className="w-4 h-4" />
+                      <span>{isSubmitting ? "Saving..." : "Save Draft"}</span>
+                    </Button>
+                    <Button
+                      className="flex items-center justify-center gap-2 bg-primary hover:bg-primary/90"
+                      disabled={!isFormValid || isSubmitting}
+                      onClick={handleSubmit}
+                    >
+                      <Send className="w-4 h-4" />
+                      <span>{isSubmitting ? "Submitting..." : "Submit"}</span>
+                    </Button>
+
+                    {/* Side Panel Toggle */}
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="flex-shrink-0 border-muted-foreground/20 hover:bg-muted/50"
+                      onClick={() => setIsSidePanelOpen(!isSidePanelOpen)}
+                    >
+                      {isSidePanelOpen ? <PanelRightClose className="w-4 h-4" /> : <PanelRightOpen className="w-4 h-4" />}
+                    </Button>
                   </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
 
-          {/* Transfer Details */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <ArrowRight className="h-5 w-5" />
-                Transfer Details
-              </CardTitle>
-              <CardDescription>Select source location and priority</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Location Flow */}
-              <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-                <div className="flex-1 space-y-2">
-                  <Label htmlFor="source">From Location (Source) *</Label>
-                  <Select value={sourceLocationId} onValueChange={setSourceLocationId}>
-                    <SelectTrigger id="source">
-                      <SelectValue placeholder="Select source location" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {sourceLocations.map(loc => (
-                        <SelectItem key={loc.id} value={loc.id}>
+              {/* Header Information - Three Row Layout */}
+              <div className="space-y-4 sm:space-y-6">
+                {/* First Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Hash className="w-4 h-4" />
+                      <span>Reference No.</span>
+                    </div>
+                    <p className="font-semibold text-muted-foreground">{refNo} (Auto-generated)</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>Request Date</span>
+                    </div>
+                    <p className="font-semibold">{today}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Calendar className="w-4 h-4" />
+                      <span>Expected Delivery</span>
+                    </div>
+                    <Input type="date" defaultValue={expectedDelivery} className="h-8" />
+                  </div>
+                </div>
+
+                {/* Second Row - Transfer Flow */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                  {/*
+                    SOURCE LOCATION SELECTION:
+                    Only locations that can be transfer sources are shown.
+                    - INVENTORY: Standard source with full tracking
+                    - CONSIGNMENT: Vendor-owned, requires notification
+                    - DIRECT: Filtered out (no stock to transfer)
+                  */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Warehouse className="w-4 h-4" />
+                      <span>From (Source) *</span>
+                    </div>
+                    <Select value={sourceLocationId} onValueChange={setSourceLocationId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select source location" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {sourceLocations.map(loc => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            <div className="flex items-center gap-2">
+                              {/* All source locations are INVENTORY type */}
+                              <Package className="h-4 w-4 text-blue-600" />
+                              <span>{loc.code} : {loc.name}</span>
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="flex items-center justify-center">
+                    <ArrowRight className="h-6 w-6 text-muted-foreground" />
+                  </div>
+
+                  {/*
+                    DESTINATION LOCATION:
+                    Fixed to user's current location (must be INVENTORY or CONSIGNMENT).
+                    Shows location type badge for clarity.
+                  */}
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-4 h-4" />
+                      <span>To (Destination)</span>
+                    </div>
+                    <div className="flex items-center gap-2 h-9 px-3 border rounded-md bg-muted/50">
+                      <MapPin className="h-4 w-4 text-green-600" />
+                      <span className="font-medium">{userLocationCode} : {userLocationName}</span>
+                      {userInventoryLocation && (
+                        <LocationTypeBadge
+                          locationType={userInventoryLocation.type}
+                          size="sm"
+                          showIcon={false}
+                        />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Third Row */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6">
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <User className="w-4 h-4" />
+                      <span>Requested By</span>
+                    </div>
+                    <p className="font-semibold">{userName}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Building2 className="w-4 h-4" />
+                      <span>Department</span>
+                    </div>
+                    <p className="font-semibold">{userDepartment}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-4 h-4" />
+                      <span>Priority</span>
+                    </div>
+                    <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="standard">
                           <div className="flex items-center gap-2">
-                            <Warehouse className="h-4 w-4 text-muted-foreground" />
-                            {loc.name}
+                            <div className="h-2 w-2 rounded-full bg-green-500" />
+                            Standard
                           </div>
                         </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="hidden md:flex items-center justify-center px-4 pt-6">
-                  <ArrowRight className="h-6 w-6 text-muted-foreground" />
-                </div>
-
-                <div className="flex-1 space-y-2">
-                  <Label>To Location (Destination)</Label>
-                  <div className="flex items-center gap-2 p-2 border rounded-md bg-muted/50">
-                    <MapPin className="h-4 w-4 text-green-600" />
-                    <span className="font-medium">{userLocationName}</span>
-                    <Badge variant="outline" className="ml-auto">Your Location</Badge>
+                        <SelectItem value="urgent">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-amber-500" />
+                            Urgent
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="emergency">
+                          <div className="flex items-center gap-2">
+                            <div className="h-2 w-2 rounded-full bg-red-500" />
+                            Emergency
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid md:grid-cols-2 gap-4">
+                {/* Description */}
                 <div className="space-y-2">
-                  <Label htmlFor="priority">Priority</Label>
-                  <Select value={priority} onValueChange={(v) => setPriority(v as typeof priority)}>
-                    <SelectTrigger id="priority">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="standard">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-green-500" />
-                          Standard
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="urgent">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-amber-500" />
-                          Urgent
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="emergency">
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-2 rounded-full bg-red-500" />
-                          Emergency
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <FileText className="w-4 h-4" />
+                    <span>Description / Notes</span>
+                  </div>
+                  <Textarea
+                    placeholder="Add any special instructions or notes..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={2}
+                    className="resize-none"
+                  />
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea
-                  id="notes"
-                  placeholder="Add any special instructions or notes..."
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Items to Replenish */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Items to Replenish
-                {requestItems.length > 0 && (
-                  <Badge variant="secondary">{requestItems.length} items</Badge>
-                )}
-              </CardTitle>
-              <CardDescription>
-                Items below par level at your location. Adjust quantities as needed.
-              </CardDescription>
+              <Separator className="my-4" />
             </CardHeader>
-            <CardContent>
-              {!sourceLocationId ? (
-                <div className="text-center py-8 text-muted-foreground">
-                  <Warehouse className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p className="font-medium">Select a source location first</p>
-                  <p className="text-sm">Choose where to request items from</p>
-                </div>
-              ) : requestItems.length === 0 ? (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="h-12 w-12 mx-auto mb-2 text-green-500" />
-                  <p className="font-medium">All items are at par level!</p>
-                  <p className="text-sm text-muted-foreground">
-                    No items need replenishment at this time.
-                  </p>
-                </div>
-              ) : (
-                <div className="rounded-md border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead className="text-right">Current</TableHead>
-                        <TableHead className="text-right">Par Level</TableHead>
-                        <TableHead className="text-right">Recommended</TableHead>
-                        <TableHead className="text-right">Available</TableHead>
-                        <TableHead className="text-right w-[140px]">Request Qty</TableHead>
-                        <TableHead>Urgency</TableHead>
-                        <TableHead className="w-[50px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {requestItems.map((item) => (
-                        <TableRow
-                          key={item.id}
-                          className={!item.isValid ? "bg-red-50" : ""}
-                        >
-                          <TableCell>
-                            <div>
-                              <div className="font-medium">{item.productName}</div>
-                              <div className="text-xs text-muted-foreground">
-                                {item.productCode} • {item.categoryName}
+
+            {/* Tabs */}
+            <Tabs defaultValue="items" className="w-full">
+              <CardHeader className="pb-0 pt-4 px-4">
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="items" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    Items
+                  </TabsTrigger>
+                  <TabsTrigger value="stock-info" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
+                    Stock Info
+                  </TabsTrigger>
+                </TabsList>
+              </CardHeader>
+
+              <CardContent className="p-0">
+                <div className="w-full rounded-b-md border-t">
+                  <div className="p-6">
+                    {/* Items Tab */}
+                    <TabsContent value="items" className="mt-0">
+                      <div className="space-y-4">
+                        <div className="flex justify-between items-center">
+                          <div className="flex items-center gap-3">
+                            <h3 className="text-xl font-semibold">Transfer Items</h3>
+                            <Badge variant="secondary">{requestItems.length} items</Badge>
+                          </div>
+                          {sourceLocationId && (
+                            <Dialog open={showAddItemsDialog} onOpenChange={setShowAddItemsDialog}>
+                              <DialogTrigger asChild>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  className="gap-1"
+                                  disabled={availableItemsToAdd.length === 0}
+                                >
+                                  <Plus className="h-4 w-4" />
+                                  Add Items
+                                  {availableItemsToAdd.length > 0 && (
+                                    <Badge variant="secondary" className="ml-1 h-5 px-1.5">
+                                      {availableItemsToAdd.length}
+                                    </Badge>
+                                  )}
+                                </Button>
+                              </DialogTrigger>
+                              <DialogContent className="max-w-2xl">
+                                <DialogHeader>
+                                  <DialogTitle>Add Items Below PAR Level</DialogTitle>
+                                  <DialogDescription>
+                                    Select items from your location that are below PAR level to add to this transfer request.
+                                  </DialogDescription>
+                                </DialogHeader>
+                                <div className="space-y-4">
+                                  {/* Selection controls */}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Button variant="ghost" size="sm" onClick={selectAllAvailableItems}>
+                                        Select All
+                                      </Button>
+                                      <Button variant="ghost" size="sm" onClick={clearAllSelections}>
+                                        Clear All
+                                      </Button>
+                                    </div>
+                                    <span className="text-sm text-muted-foreground">
+                                      {selectedBelowParItems.size} of {availableItemsToAdd.length} selected
+                                    </span>
+                                  </div>
+
+                                  {/* Items list */}
+                                  <ScrollArea className="h-[400px] border rounded-md">
+                                    <div className="p-4 space-y-2">
+                                      {availableItemsToAdd.length === 0 ? (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                          <CheckCircle className="h-10 w-10 mx-auto mb-2 text-green-500" />
+                                          <p className="font-medium">All items below PAR have been added</p>
+                                        </div>
+                                      ) : (
+                                        availableItemsToAdd.map(item => {
+                                          const parPercent = Math.round((item.currentStock / item.parLevel) * 100)
+                                          return (
+                                            <div
+                                              key={item.id}
+                                              className={`flex items-center gap-3 p-3 border rounded-md cursor-pointer hover:bg-muted/50 transition-colors ${
+                                                selectedBelowParItems.has(item.id) ? 'bg-blue-50 border-blue-200' : ''
+                                              }`}
+                                              onClick={() => toggleBelowParItemSelection(item.id)}
+                                            >
+                                              <Checkbox
+                                                checked={selectedBelowParItems.has(item.id)}
+                                                onCheckedChange={() => toggleBelowParItemSelection(item.id)}
+                                              />
+                                              <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                  <span className="font-medium truncate">{item.productName}</span>
+                                                  <Badge
+                                                    variant="outline"
+                                                    className={
+                                                      parPercent < 30 ? 'bg-red-100 text-red-700 border-red-200' :
+                                                      parPercent < 60 ? 'bg-amber-100 text-amber-700 border-amber-200' :
+                                                      'bg-green-100 text-green-700 border-green-200'
+                                                    }
+                                                  >
+                                                    {parPercent}% PAR
+                                                  </Badge>
+                                                </div>
+                                                <p className="text-xs text-muted-foreground">
+                                                  {item.productCode} • {item.categoryName}
+                                                </p>
+                                              </div>
+                                              <div className="text-right text-sm">
+                                                <p className="font-medium text-red-600">
+                                                  Shortage: {formatNumber(item.recommendedQty)} {item.unit}
+                                                </p>
+                                                <p className="text-xs text-muted-foreground">
+                                                  Available: {formatNumber(item.sourceAvailable || 0)} {item.unit}
+                                                </p>
+                                              </div>
+                                            </div>
+                                          )
+                                        })
+                                      )}
+                                    </div>
+                                  </ScrollArea>
+                                </div>
+                                <DialogFooter>
+                                  <Button variant="outline" onClick={() => setShowAddItemsDialog(false)}>
+                                    Cancel
+                                  </Button>
+                                  <Button
+                                    onClick={handleAddSelectedItems}
+                                    disabled={selectedBelowParItems.size === 0}
+                                  >
+                                    Add {selectedBelowParItems.size} Item{selectedBelowParItems.size !== 1 ? 's' : ''}
+                                  </Button>
+                                </DialogFooter>
+                              </DialogContent>
+                            </Dialog>
+                          )}
+                        </div>
+
+                        {/* Warning if no source selected */}
+                        {!sourceLocationId ? (
+                          <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/20">
+                            <Warehouse className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                            <p className="font-medium">Select a source location first</p>
+                            <p className="text-sm">Choose where to request items from</p>
+                          </div>
+                        ) : requestItems.length === 0 ? (
+                          <div className="text-center py-12 border rounded-lg bg-muted/20">
+                            <Package className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                            <p className="font-medium">No items added yet</p>
+                            <p className="text-sm text-muted-foreground mb-4">
+                              {availableItemsToAdd.length > 0
+                                ? `${availableItemsToAdd.length} item(s) below PAR level available to add`
+                                : "All items are at par level - no replenishment needed"}
+                            </p>
+                            {availableItemsToAdd.length > 0 && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => setShowAddItemsDialog(true)}
+                                className="gap-1"
+                              >
+                                <Plus className="h-4 w-4" />
+                                Add Items Below PAR
+                              </Button>
+                            )}
+                          </div>
+                        ) : (
+                          <>
+                            {/* Items Table */}
+                            <div className="border rounded-lg overflow-x-auto">
+                              <table className="w-full min-w-[800px]">
+                                <thead>
+                                  <tr className="border-b bg-gray-50">
+                                    <th className="text-left p-3 text-xs font-medium text-gray-500 w-10"></th>
+                                    <th className="text-left p-3 text-xs font-medium text-gray-500 min-w-[180px]">Product</th>
+                                    <th className="text-left p-3 text-xs font-medium text-gray-500">Unit</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Current</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">PAR</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Available</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Recommended</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500 w-[120px]">Request Qty *</th>
+                                    <th className="text-center p-3 text-xs font-medium text-gray-500">Status</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500 w-[60px]"></th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                  {requestItems.map((item) => (
+                                    <React.Fragment key={item.id}>
+                                      <tr className={`group hover:bg-gray-50 ${!item.isValid ? 'bg-red-50' : ''}`}>
+                                        <td className="p-3">
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleItemExpansion(item.id)}
+                                            className="p-1 h-6 w-6"
+                                          >
+                                            <ChevronRight className={`h-4 w-4 transition-transform ${expandedItems.includes(item.id) ? 'rotate-90' : ''}`} />
+                                          </Button>
+                                        </td>
+                                        <td className="p-3">
+                                          <div className="space-y-1">
+                                            <p className="font-medium text-gray-700 text-sm">{item.productName}</p>
+                                            <p className="text-xs text-gray-500">{item.productCode}</p>
+                                          </div>
+                                        </td>
+                                        <td className="p-3 text-sm">{item.unit}</td>
+                                        <td className="p-3 text-right">
+                                          <span className={`text-sm tabular-nums ${item.currentStock < item.parLevel * 0.3 ? 'text-red-600 font-medium' : ''}`}>
+                                            {formatNumber(item.currentStock)}
+                                          </span>
+                                        </td>
+                                        <td className="p-3 text-right text-sm tabular-nums">{formatNumber(item.parLevel)}</td>
+                                        <td className="p-3 text-right">
+                                          <span className={`text-sm tabular-nums ${item.sourceAvailable === 0 ? 'text-red-600' : 'text-blue-600'}`}>
+                                            {formatNumber(item.sourceAvailable)}
+                                          </span>
+                                        </td>
+                                        <td className="p-3 text-right">
+                                          <span className="text-sm tabular-nums text-green-600 font-medium">
+                                            +{formatNumber(item.recommendedQty)}
+                                          </span>
+                                        </td>
+                                        <td className="p-3 text-right">
+                                          <div className="flex flex-col items-end gap-1">
+                                            <Input
+                                              type="number"
+                                              min={0}
+                                              max={item.sourceAvailable}
+                                              value={item.requestedQty}
+                                              onChange={(e) => updateRequestedQty(item.id, parseInt(e.target.value) || 0)}
+                                              className={`w-[90px] h-8 text-right text-sm ${!item.isValid ? "border-red-500" : ""}`}
+                                            />
+                                            {item.validationError && (
+                                              <span className="text-xs text-red-500 max-w-[90px] text-right">{item.validationError}</span>
+                                            )}
+                                          </div>
+                                        </td>
+                                        <td className="p-3 text-center">
+                                          {item.isValid ? (
+                                            <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200 text-xs">Valid</Badge>
+                                          ) : (
+                                            <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200 text-xs">Invalid</Badge>
+                                          )}
+                                        </td>
+                                        <td className="p-3 text-right">
+                                          <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="h-8 w-8 text-muted-foreground hover:text-red-600"
+                                            onClick={() => removeItem(item.id)}
+                                          >
+                                            <Trash2 className="h-4 w-4" />
+                                          </Button>
+                                        </td>
+                                      </tr>
+
+                                      {/* Expanded Row - Item Details */}
+                                      {expandedItems.includes(item.id) && (
+                                        <tr className="bg-blue-50/50">
+                                          <td colSpan={10} className="p-4">
+                                            <div className="grid grid-cols-3 gap-6 text-sm">
+                                              <div className="space-y-3">
+                                                <h4 className="font-semibold text-gray-700">Item Information</h4>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Category</p>
+                                                    <p className="font-medium">{item.categoryName}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Sub Category</p>
+                                                    <p className="font-medium">{item.itemInfo.subCategory}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Item Group</p>
+                                                    <p className="font-medium">{item.itemInfo.itemGroup}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Barcode</p>
+                                                    <p className="font-medium font-mono text-xs">{item.itemInfo.barCode}</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div className="space-y-3">
+                                                <h4 className="font-semibold text-gray-700">Stock Analysis</h4>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Stock Level</p>
+                                                    <p className="font-medium">{Math.round((item.currentStock / item.parLevel) * 100)}% of PAR</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Shortage</p>
+                                                    <p className="font-medium text-red-600">{formatNumber(item.parLevel - item.currentStock)} {item.unit}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Can Fulfill</p>
+                                                    <p className={`font-medium ${item.sourceAvailable >= item.recommendedQty ? 'text-green-600' : 'text-amber-600'}`}>
+                                                      {item.sourceAvailable >= item.recommendedQty ? 'Yes' : 'Partial'}
+                                                    </p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Max Available</p>
+                                                    <p className="font-medium text-blue-600">{formatNumber(item.sourceAvailable)} {item.unit}</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                              <div className="space-y-3">
+                                                <h4 className="font-semibold text-gray-700">Transfer Impact</h4>
+                                                <div className="grid grid-cols-2 gap-2">
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Current Stock</p>
+                                                    <p className="font-medium">{formatNumber(item.currentStock)} {item.unit}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">After Transfer</p>
+                                                    <p className="font-medium text-green-600">{formatNumber(item.currentStock + item.requestedQty)} {item.unit}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">Target PAR</p>
+                                                    <p className="font-medium">{formatNumber(item.parLevel)} {item.unit}</p>
+                                                  </div>
+                                                  <div>
+                                                    <p className="text-muted-foreground text-xs">PAR Fulfillment</p>
+                                                    <p className={`font-medium ${(item.currentStock + item.requestedQty) >= item.parLevel ? 'text-green-600' : 'text-amber-600'}`}>
+                                                      {Math.round(((item.currentStock + item.requestedQty) / item.parLevel) * 100)}%
+                                                    </p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </td>
+                                        </tr>
+                                      )}
+                                    </React.Fragment>
+                                  ))}
+                                </tbody>
+                              </table>
+                            </div>
+
+                            {/* Transaction Summary */}
+                            <div className="flex justify-end">
+                              <div className="w-full md:w-80 space-y-2 p-4 bg-muted/30 rounded-lg border">
+                                <h4 className="font-semibold mb-3">Request Summary</h4>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Total Items:</span>
+                                  <span className="font-medium tabular-nums">{totals.totalItems}</span>
+                                </div>
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Valid Items:</span>
+                                  <span className="font-medium text-green-600 tabular-nums">{totals.validItems}</span>
+                                </div>
+                                {totals.invalidItems > 0 && (
+                                  <div className="flex justify-between text-sm">
+                                    <span className="text-muted-foreground">Invalid Items:</span>
+                                    <span className="font-medium text-red-600 tabular-nums">{totals.invalidItems}</span>
+                                  </div>
+                                )}
+                                <Separator className="my-2" />
+                                <div className="flex justify-between text-sm">
+                                  <span className="text-muted-foreground">Total Quantity:</span>
+                                  <span className="font-medium tabular-nums">{formatNumber(totals.totalQuantity)} units</span>
+                                </div>
                               </div>
                             </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className={item.urgency === "critical" ? "text-red-600 font-medium" : ""}>
-                              {formatNumber(item.currentStock)}
-                            </span>
-                            <span className="text-muted-foreground ml-1">{item.unit}</span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            {formatNumber(item.parLevel)}
-                            <span className="text-muted-foreground ml-1">{item.unit}</span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className="text-green-600 font-medium">
-                              +{formatNumber(item.recommendedQty)}
-                            </span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <span className={item.sourceAvailable === 0 ? "text-red-600" : "text-blue-600"}>
-                              {formatNumber(item.sourceAvailable)}
-                            </span>
-                            <span className="text-muted-foreground ml-1">{item.unit}</span>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex flex-col items-end gap-1">
-                              <Input
-                                type="number"
-                                min={0}
-                                max={item.sourceAvailable}
-                                value={item.requestedQty}
-                                onChange={(e) => updateRequestedQty(item.id, parseInt(e.target.value) || 0)}
-                                className={`w-[100px] text-right ${!item.isValid ? "border-red-500" : ""}`}
-                              />
-                              {item.validationError && (
-                                <span className="text-xs text-red-500">{item.validationError}</span>
-                              )}
+                          </>
+                        )}
+                      </div>
+                    </TabsContent>
+
+                    {/* Stock Info Tab */}
+                    <TabsContent value="stock-info" className="mt-0">
+                      <div className="space-y-6">
+                        <h3 className="text-xl font-semibold">Stock Level Analysis</h3>
+
+                        {!sourceLocationId ? (
+                          <div className="text-center py-12 text-muted-foreground border rounded-lg bg-muted/20">
+                            <Warehouse className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                            <p className="font-medium">Select a source location first</p>
+                            <p className="text-sm">Stock analysis will be shown after selecting source</p>
+                          </div>
+                        ) : requestItems.length === 0 ? (
+                          <div className="text-center py-12 border rounded-lg bg-green-50">
+                            <CheckCircle className="h-12 w-12 mx-auto mb-3 text-green-500" />
+                            <p className="font-medium">All items are at par level!</p>
+                            <p className="text-sm text-muted-foreground">
+                              No items need replenishment at this time.
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="grid md:grid-cols-4 gap-4">
+                              <Card className="border-red-200 bg-red-50">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center gap-2">
+                                    <AlertCircle className="h-5 w-5 text-red-600" />
+                                    <span className="text-sm text-red-700">Below 30% PAR</span>
+                                  </div>
+                                  <p className="text-2xl font-bold text-red-600 mt-2">
+                                    {requestItems.filter(i => (i.currentStock / i.parLevel) < 0.3).length}
+                                  </p>
+                                </CardContent>
+                              </Card>
+                              <Card className="border-amber-200 bg-amber-50">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center gap-2">
+                                    <AlertTriangle className="h-5 w-5 text-amber-600" />
+                                    <span className="text-sm text-amber-700">30-60% PAR</span>
+                                  </div>
+                                  <p className="text-2xl font-bold text-amber-600 mt-2">
+                                    {requestItems.filter(i => (i.currentStock / i.parLevel) >= 0.3 && (i.currentStock / i.parLevel) < 0.6).length}
+                                  </p>
+                                </CardContent>
+                              </Card>
+                              <Card className="border-green-200 bg-green-50">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-5 w-5 text-green-600" />
+                                    <span className="text-sm text-green-700">Above 60% PAR</span>
+                                  </div>
+                                  <p className="text-2xl font-bold text-green-600 mt-2">
+                                    {requestItems.filter(i => (i.currentStock / i.parLevel) >= 0.6).length}
+                                  </p>
+                                </CardContent>
+                              </Card>
+                              <Card className="border-blue-200 bg-blue-50">
+                                <CardContent className="pt-4">
+                                  <div className="flex items-center gap-2">
+                                    <Package className="h-5 w-5 text-blue-600" />
+                                    <span className="text-sm text-blue-700">Total Items</span>
+                                  </div>
+                                  <p className="text-2xl font-bold text-blue-600 mt-2">{requestItems.length}</p>
+                                </CardContent>
+                              </Card>
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            {getUrgencyBadge(item.urgency)}
-                          </TableCell>
-                          <TableCell>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8 text-muted-foreground hover:text-red-600"
-                              onClick={() => removeItem(item.id)}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
+
+                            {/* Stock Level Table */}
+                            <div className="border rounded-lg overflow-x-auto">
+                              <table className="w-full">
+                                <thead>
+                                  <tr className="border-b bg-gray-50">
+                                    <th className="text-left p-3 text-xs font-medium text-gray-500">Product</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Current Stock</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">PAR Level</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Shortage</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Stock %</th>
+                                    <th className="text-right p-3 text-xs font-medium text-gray-500">Source Available</th>
+                                  </tr>
+                                </thead>
+                                <tbody className="divide-y">
+                                  {requestItems.map((item) => {
+                                    const stockPercent = Math.round((item.currentStock / item.parLevel) * 100)
+                                    const shortage = item.parLevel - item.currentStock
+                                    return (
+                                      <tr key={item.id} className="hover:bg-gray-50">
+                                        <td className="p-3">
+                                          <div>
+                                            <p className="font-medium text-sm">{item.productName}</p>
+                                            <p className="text-xs text-muted-foreground">{item.productCode}</p>
+                                          </div>
+                                        </td>
+                                        <td className="p-3 text-right">
+                                          <span className={`text-sm tabular-nums ${item.currentStock < item.parLevel * 0.3 ? 'text-red-600 font-medium' : ''}`}>
+                                            {formatNumber(item.currentStock)} {item.unit}
+                                          </span>
+                                        </td>
+                                        <td className="p-3 text-right text-sm tabular-nums">{formatNumber(item.parLevel)} {item.unit}</td>
+                                        <td className="p-3 text-right">
+                                          <span className="text-sm tabular-nums text-red-600 font-medium">
+                                            -{formatNumber(shortage)} {item.unit}
+                                          </span>
+                                        </td>
+                                        <td className="p-3 text-right">
+                                          <div className="flex items-center justify-end gap-2">
+                                            <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden">
+                                              <div
+                                                className={`h-full rounded-full ${stockPercent < 30 ? 'bg-red-500' : stockPercent < 60 ? 'bg-amber-500' : 'bg-green-500'}`}
+                                                style={{ width: `${Math.min(stockPercent, 100)}%` }}
+                                              />
+                                            </div>
+                                            <span className="text-sm tabular-nums w-10 text-right">{stockPercent}%</span>
+                                          </div>
+                                        </td>
+                                        <td className="p-3 text-right">
+                                          <span className={`text-sm tabular-nums ${item.sourceAvailable >= shortage ? 'text-green-600' : 'text-amber-600'}`}>
+                                            {formatNumber(item.sourceAvailable)} {item.unit}
+                                          </span>
+                                        </td>
+                                      </tr>
+                                    )
+                                  })}
+                                </tbody>
+                              </table>
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </TabsContent>
+                  </div>
                 </div>
-              )}
-            </CardContent>
+              </CardContent>
+            </Tabs>
           </Card>
         </div>
 
-        {/* Right Column - Summary */}
-        <div className="space-y-6">
-          <Card className="sticky top-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Request Summary</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {requestItems.length === 0 ? (
-                <div className="text-center py-4 text-muted-foreground text-sm">
-                  No items in request yet
-                </div>
-              ) : (
-                <>
+        {/* Side Panel */}
+        {isSidePanelOpen && (
+          <div className="w-80 flex-shrink-0">
+            <div className="sticky top-6 space-y-4">
+              {/* Transfer Summary Card */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Package className="h-4 w-4" />
+                    Transfer Summary
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
                   <div className="space-y-2">
                     <div className="flex justify-between text-sm">
-                      <span className="text-muted-foreground">Valid Items:</span>
+                      <span className="text-muted-foreground">From:</span>
+                      <span className="font-medium">{selectedSourceLocation?.name || "-"}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">To:</span>
+                      <span className="font-medium">{userLocationName}</span>
+                    </div>
+                    <Separator />
+                    <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Total Items:</span>
                       <span className="font-medium">{totals.totalItems}</span>
                     </div>
                     <div className="flex justify-between text-sm">
@@ -684,72 +1200,96 @@ function NewReplenishmentRequestPageContent() {
                       </div>
                     )}
                   </div>
+                </CardContent>
+              </Card>
 
-                  <div className="border-t pt-4 space-y-3">
-                    <div className="flex items-center gap-2 text-sm">
-                      <Warehouse className="h-4 w-4 text-muted-foreground" />
-                      <span className="text-muted-foreground">From:</span>
-                      <span className="font-medium">
-                        {sourceLocations.find(l => l.id === sourceLocationId)?.name || "-"}
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <MapPin className="h-4 w-4 text-green-600" />
-                      <span className="text-muted-foreground">To:</span>
-                      <span className="font-medium">{userLocationName}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Badge
-                        variant={priority === "emergency" ? "destructive" : priority === "urgent" ? "default" : "secondary"}
-                      >
-                        {priority.charAt(0).toUpperCase() + priority.slice(1)} Priority
-                      </Badge>
-                    </div>
-                  </div>
-
-                  <div className="border-t pt-4 space-y-2">
-                    <Button className="w-full" disabled={!isFormValid}>
-                      <Send className="h-4 w-4 mr-2" />
-                      Submit for Approval
-                    </Button>
-                    <Button variant="outline" className="w-full" disabled={!isFormValid}>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save as Draft
+              {/* Comments Card */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <MessageSquare className="h-4 w-4" />
+                    Comments (0)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <p className="text-sm text-muted-foreground text-center py-2">No comments yet</p>
+                  <div className="pt-2">
+                    <Textarea
+                      placeholder="Add a comment..."
+                      rows={2}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      className="text-sm"
+                    />
+                    <Button size="sm" className="mt-2 w-full" disabled={!newComment.trim()}>
+                      Add Comment
                     </Button>
                   </div>
-                </>
+                </CardContent>
+              </Card>
+
+              {/* Attachments Card */}
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" />
+                    Attachments (0)
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2">
+                  <p className="text-sm text-muted-foreground text-center py-2">No attachments yet</p>
+                  <Button variant="outline" size="sm" className="w-full">
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Attachment
+                  </Button>
+                </CardContent>
+              </Card>
+
+              {/* Validation Warning */}
+              {totals.invalidItems > 0 && (
+                <Card className="border-red-200 bg-red-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-red-800">Validation Required</p>
+                        <p className="text-sm text-red-700">
+                          {totals.invalidItems} item(s) have validation errors. Please fix them before submitting.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
-            </CardContent>
-          </Card>
 
-          {/* Validation Warnings */}
-          {totals.invalidItems > 0 && (
-            <Alert variant="destructive">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                {totals.invalidItems} item(s) have validation errors. Please fix them before submitting.
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {/* Info Card */}
-          <Alert>
-            <Info className="h-4 w-4" />
-            <AlertDescription className="text-sm">
-              <strong>Stock Validation:</strong> You cannot request more than what is available at the source location.
-              Adjust quantities to match availability.
-            </AlertDescription>
-          </Alert>
-        </div>
+              {/* Low Stock Warning */}
+              {requestItems.some(item => (item.currentStock / item.parLevel) < 0.3) && (
+                <Card className="border-amber-200 bg-amber-50">
+                  <CardContent className="pt-4">
+                    <div className="flex items-start gap-3">
+                      <AlertTriangle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-amber-800">Low Stock Alert</p>
+                        <p className="text-sm text-amber-700">
+                          {requestItems.filter(i => (i.currentStock / i.parLevel) < 0.3).length} items are below 30% PAR level.
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-export default function NewReplenishmentRequestPage() {
+export default function NewTransferRequestPage() {
   return (
     <Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
-      <NewReplenishmentRequestPageContent />
+      <NewTransferRequestPageContent />
     </Suspense>
   )
 }

@@ -13,7 +13,7 @@ import { MessageSquareIcon } from "lucide-react"
 const mockRelatedPRItems = [
   {
     id: 'PR001',
-    prNumber: 'PR-2024-001',
+    prNumber: 'PR-2410-001',
     location: 'Human Resources',
     requestedQuantity: 10,
     approvedQuantity: 8,
@@ -23,7 +23,7 @@ const mockRelatedPRItems = [
   },
   {
     id: 'PR002',
-    prNumber: 'PR-2024-002',
+    prNumber: 'PR-2410-002',
     location: 'IT',
     requestedQuantity: 20,
     approvedQuantity: 20,
@@ -33,7 +33,7 @@ const mockRelatedPRItems = [
   },
   {
     id: 'PR003',
-    prNumber: 'PR-2024-003',
+    prNumber: 'PR-2410-003',
     location: 'Marketing',
     requestedQuantity: 15,
     approvedQuantity: 10,

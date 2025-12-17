@@ -90,7 +90,7 @@ The Store Requisitions feature supports:
 
 ### Stock Replenishment
 
-Dashboard for managing automated and manual stock replenishment requests based on:
+Dashboard for managing automated and manual stock transfer requests based on:
 - Minimum/maximum stock levels
 - Par levels by location
 - Consumption patterns
