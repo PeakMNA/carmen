@@ -3,8 +3,8 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Requests
 - **Route**: `/procurement/purchase-requests`
-- **Version**: 1.7.0
-- **Last Updated**: 2025-12-03
+- **Version**: 1.9.0
+- **Last Updated**: 2025-12-17
 
 ## **Document History**
 
@@ -18,6 +18,8 @@
 | 1.5.0 | 2025-11-28 | Development Team | Added FR-PR-026: Bulk Item Actions for line-item level bulk operations (Approve Selected, Reject Selected, Return Selected, Split, Set Date Required) |
 | 1.6.0 | 2025-11-28 | Development Team | Added FR-PR-027: Budget Tab CRUD Operations for budget allocation management within Purchase Requests |
 | 1.7.0 | 2025-12-03 | Development Team | Updated FR-PR-011A: Approvers can view vendor/pricing in read-only; Updated FR-PR-026: Approvers can Split PR to enable parallel processing of approved vs returned items |
+| 1.8.0 | 2025-12-17 | Development Team | Added FR-PR-028: Auto-Pricing System with vendor scoring, MOQ validation, and price normalization |
+| 1.9.0 | 2025-12-17 | Development Team | Added FR-PR-029: Multi-Currency Display with dual currency visibility and exchange rate handling |
 
 ---
 
@@ -25,18 +27,6 @@
 
 The Purchase Requests sub-module enables users to create, manage, and track purchase requests throughout the approval workflow. It provides comprehensive functionality for requesting goods and services with budget control and multi-level approval workflows.
 
-## Implementation Status
-
-This document serves as the **target specification** for Purchase Request functionality. Each requirement includes an implementation status marker to track development progress:
-
-| Status | Meaning |
-|--------|---------|
-| ✅ Implemented | Feature complete and functional |
-| 🔧 Partial | Frontend exists, backend development needed |
-| 🚧 Pending | Not yet implemented |
-| ⏳ Future | Post-MVP enhancement |
-
-**Current State**: Frontend prototype with mock data. Backend API and integrations pending development.
 
 ## Business Objectives
 
@@ -219,11 +209,11 @@ This document serves as the **target specification** for Purchase Request functi
 | **Submit** | Submit PR for approval | Draft | In-progress | No |
 | **Delete** | Delete draft PR | Draft | Deleted | No |
 | **Edit** | Modify draft or rejected PR | Draft, Void | Draft | No |
-| **Recall** | Withdraw submitted PR | In-progress | Draft | Yes (reason) |
+
 
 **Button Display**:
 - **Draft Status**: Delete (red), Submit (blue/primary)
-- **Void Status**: Edit button to modify and resubmit
+- **Void Status**: Edit button to modify 
 
 #### Approver Actions (Department Manager, Financial Manager, General Manager, Finance Director)
 
@@ -234,7 +224,8 @@ This document serves as the **target specification** for Purchase Request functi
 | **Approve** | Approve and advance to next stage | In-progress | In-progress or Approved | No (optional) |
 
 **Button Display**: Reject (red/destructive), Return (outline), Approve (green)
-
+**Edit Capabilities** (in Edit Mode):
+- Edit Approved quantity 
 **Approval Logic**:
 - If more approval stages pending → PR remains "In-progress", routes to next approver
 - If final approval stage → PR status changes to "Approved"
@@ -262,7 +253,7 @@ This document serves as the **target specification** for Purchase Request functi
 | Role Category | View | Edit | Submit | Approve | Reject | Return | Delete |
 |--------------|------|------|--------|---------|--------|--------|--------|
 | Requestor | ✅ | ✅ (Draft/Void) | ✅ | ❌ | ❌ | ❌ | ✅ (Draft) |
-| Approver | ✅ | ❌ | ❌ | ✅ | ✅ | ✅ | ❌ |
+| Approver | ✅ | ✅| ❌ | ✅ | ✅ | ✅ | ❌ |
 | Purchasing Staff | ✅ | ✅ (Edit Mode) | ✅ | ❌ | ✅ | ✅ | ❌ |
 
 #### Return Flow Details
@@ -304,7 +295,6 @@ When **Return** action is selected:
 
 - **Draft**: Saved but not submitted (editable by requestor)
 - **In-progress** : Some approvals received, others pending
-
 - **Approved**: All approvals received (ready for PO conversion)
 - **Void**: Approval denied (returned to requestor with comments)
 - **Completed**: Converted to Purchase Order(s) (read-only)
@@ -376,12 +366,12 @@ When **Return** action is selected:
 * **Location**: Main Kitchen, Pastry Kitchen, Housekeeping Store, etc.
 * **Requestor**: Filter by user name or department staff
 * **Amount Range**: Min/Max values with preset ranges
+* **Currency**: Dropdown Currency lookup
 * **PR Type**: General, Market List, Asset
-- Global search: PR Number, Item Name, Description, Vendor Name
+- Global search: PR Number, Item Name, Description
 - Quick filters (one-click):
 * **My PRs**: PRs created by logged-in user
 * **Pending My Approval**: PRs awaiting current user’s approval
-
 * **Recently Approved**: PRs approved in last 7 days
 * **In Process**: PRs being converted to POs
 * **Rejected**: PRs rejected and awaiting resubmission
@@ -431,14 +421,16 @@ When **Return** action is selected:
 - **Header Information** displayed prominently:
 * PR Reference Number (large, bold)
 * Creation Date and Delivery Date
-* Requestor Name, Department, Contact Information
+* Requestor Name, Department
 * Current Status with visual indicator (badge/chip)
 * **Department** (clearly labeled as “Department” - the department that created the PR)
-* Location (e.g., Main Kitchen, Housekeeping Store)
 * PR Type (General, Market List, Fixed Asset)
 - **Item Details Grid** with columns:
-* Line Number, Item Name, Description
-* Quantity, Unit, Unit Price
+* Line Number
+* Location (e.g., Main Kitchen, Housekeeping Store)
+* Item Name, Description
+* Request Quantity, Unit, Unit Price
+* Approved Quantity
 * Subtotal, Discount, Tax, Total
 * Delivery Date, Delivery Point
 * Vendor (if selected)
@@ -495,7 +487,7 @@ When **Return** action is selected:
 - **Submitted PRs**: No editing until returned or rejected
 - **Rejected PRs (Void)**: Full editing capability to address rejection comments and resubmit
 - **Returned PRs**: Full editing capability to address feedback and resubmit
-- **Under Review (In-progress)**: No editing by requestor (read-only)
+- **Pending (In-progress)**: No editing by requestor (read-only)
 - **Approved PRs**: No editing (read-only for all users)
 - **Approver Adjustments**: Approvers can adjust item quantities during approval
 - Edit locking to prevent concurrent modifications
@@ -507,12 +499,12 @@ When **Return** action is selected:
 | Status | Requestor | Approver | Purchasing Staff | Notes |
 |--------|-----------|----------|------------------|-------|
 | Draft | ✅ Full Edit | ❌ View Only | ❌ View Only | Initial state, can add/edit/remove items |
-| Void (Rejected) | ✅ Full Edit | ❌ View Only | ❌ View Only | Can revise and resubmit |
-| Returned | ✅ Full Edit | ❌ View Only | ❌ View Only | Address feedback and resubmit |
+| Void (Rejected) | ❌ View Only  | ❌ View Only | ❌ View Only | View Only
+| Returned | ✅ Full Edit | 👁️ Limited*  | ✅ Edit Mode | Address feedback and resubmit |
 | In-progress | ❌ View Only | 👁️ Limited* | ✅ Edit Mode | *Approvers can adjust quantities |
 | Approved | ❌ View Only | ❌ View Only | ❌ View Only | Read-only for all |
 | Completed | ❌ View Only | ❌ View Only | ❌ View Only | Converted to PO |
-| Cancelled | ❌ View Only | ❌ View Only | ❌ View Only | Cancelled PR |
+| Cancelled | ❌ View Only | ❌ View Only | ❌ View Only | Cancelled PO |
 
 **Acceptance Criteria**:
 - Edit restrictions enforced by status (Draft, Void, Returned = editable by Requestor; others = read-only)
@@ -539,10 +531,10 @@ When **Return** action is selected:
   - Set discount rate percentage
   - Override calculated discount amount with manual entry
 - **Tax Profile Management**:
-  - Select tax profile (VAT, GST, SST, WHT, None) for each item
+  - Select tax profile (VAT, GST, SST, WHT, None) for each item (Default from Product) 
   - Tax rate automatically set from selected tax profile
   - Override calculated tax amount with manual entry
-- **Price Calculation**: System auto-calculates subtotal, net amount, and total based on inputs
+- **Price Calculation**: System auto-calculates subtotal, net amount, and total based on inputs, All tax are add tax
 
 **Tax Profile Defaults**:
 | Tax Profile | Default Rate |
@@ -571,6 +563,10 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 
 | Field | Requestor | Approver | Purchasing Staff |
 |-------|-----------|----------|------------------|
+| Location | ✅  | 👁️ | 👁️ |
+| Item Name | ✅  | 👁️ | 👁️ |
+| Description |  👁️  | 👁️ | 👁️ |
+| Item Note | ✅  | ✅ | ✅ |
 | Vendor Selection | ❌ | 👁️ | ✅ |
 | Currency | ❌ | 👁️ | ✅ |
 | Exchange Rate | ❌ | 👁️ | ✅ |
@@ -582,6 +578,7 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 | Tax Override | ❌ | 👁️ | ✅ |
 | FOC Quantity | ❌ | 👁️ | ✅ |
 | Approved Quantity | ❌ | ✅ | ✅ |
+| Request Quantity | ✅  | 👁️ | 👁️ |
 | Delivery Point | ✅ | ✅ | ✅ |
 
 **Note**: Approvers always see vendor and pricing information in read-only mode to make informed approval decisions, regardless of the requestor's hide_price setting.
@@ -591,13 +588,15 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 | Field | Draft | Void | Returned | In-progress | Notes |
 |-------|-------|------|----------|-------------|-------|
 | Delivery Date | ✅ | ✅ | ✅ | ❌ | Header level |
-| Description | ✅ | ✅ | ✅ | ❌ | PR purpose |
+| Description |  👁️  | 👁️  |  👁️  |  👁️ | PR purpose |
+| Location | ✅ | ✅ | ✅ | ❌ | Line item |
 | Item Name | ✅ | ✅ | ✅ | ❌ | Line item |
-| Item Quantity | ✅ | ✅ | ✅ | ❌ | Line item |
+| Request Quantity | ✅ | ✅ | ✅ | ❌ | Line item |
+| Approved Quantity | ❌ | ❌ | ❌ | ❌ | Line item |
 | Unit of Measure | ✅ | ✅ | ✅ | ❌ | Line item |
 | Requested Delivery Date | ✅ | ✅ | ✅ | ❌ | Per item |
 | Delivery Point | ✅ | ✅ | ✅ | ❌ | Per item |
-| Item Notes | ✅ | ✅ | ✅ | ❌ | Line item |
+| Item Notes | ✅ | ✅ | ✅ | ✅  | Line item |
 | Attachments | ✅ | ✅ | ✅ | ❌ | Add/remove |
 | Add New Items | ✅ | ✅ | ✅ | ❌ | Line item management |
 | Remove Items | ✅ | ✅ | ✅ | ❌ | Line item management |
@@ -615,11 +614,6 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 - **Copy from Existing PR**: Duplicate any PR with all items and details
 - **Create from Template**: Use predefined templates for common purchases
 - **Template Management**: Create, edit, delete, and share templates
-- **Market List Templates**: Specific templates for daily/weekly F&B purchases
-- **Department Templates**: Department-specific templates (e.g., housekeeping cleaning supplies)
-- **Template Categories**: Organize templates by type (Daily, Weekly, Monthly, Special Events)
-- **Recurring PR Scheduling**: Schedule automatic PR creation (future enhancement)
-- **Last Purchase History**: Option to use last purchase prices when copying
 
 **Acceptance Criteria**:
 - Copy preserves all items, quantities, and details from source PR
@@ -644,7 +638,7 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 - **Batch Export**: Export multiple PRs at once (from list view)
 - **Print Format**: Professional layout matching hotel branding (logo, colors, fonts)
 - **Print Options**: Include/exclude certain sections (e.g., internal comments, budget info)
-- **QR Code**: Generate QR code for mobile scanning and quick access
+
 
 **Acceptance Criteria**:
 - Print preview shows exactly what will be printed
@@ -655,7 +649,6 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 - Excel export structured properly with separate sheets for header and items
 - Hotel branding elements included (logo, name, address, contact)
 - Print options allow selective inclusion of sections
-- QR code links directly to PR detail page (requires authentication)
 - Print/export actions logged in activity log
 
 ### FR-PR-014: Notifications
@@ -671,9 +664,9 @@ Legend: ✅ = Editable | 👁️ = Read-only (visible) | ❌ = Hidden
 * PR Rejected: Notify requestor with rejection comments
 * PR Requires Action: Daily digest to pending approvers (8:00 AM)
 * PR Converted to PO: Notify requestor with PO number(s)
-* @Mention in Comments: Notify mentioned user immediately
 * PR Deadline Approaching: Notify if delivery date within 3 days and not approved
 - **In-App Notifications**:
+* @Mention in Comments: Notify mentioned user immediately (Optional)
 * Bell icon with notification counter
 * Notification panel with recent activities
 * Mark as read/unread
@@ -1607,6 +1600,171 @@ interface BudgetItem {
 
 ---
 
+### FR-PR-028: Auto-Pricing System
+
+**Priority**: High | **Status**: ✅ Implemented
+**User Story**: As a Purchasing Staff member, I want the system to automatically recommend the optimal vendor based on pricing, MOQ, and business preferences so that I can efficiently process purchase requests while ensuring cost optimization.
+
+**Related Documentation**: [PR-AUTO-PRICING-PROCESS.md](./PR-AUTO-PRICING-PROCESS.md), [FD-purchase-requests.md](./FD-purchase-requests.md#211-auto-pricing-process-flow)
+
+**Requirements**:
+
+- **Unit Conversion & Price Normalization**:
+  * System converts all vendor prices to a common base inventory unit (e.g., KG, L, EA)
+  * Formula: `pricePerBaseUnit = unitPrice / conversionToBase`
+  * All price comparisons use normalized prices for accuracy
+  * Product unit configuration defines conversion factors for each ordering unit
+
+- **Vendor Scoring Algorithm**:
+  * System calculates vendor score using weighted factors:
+    - Preferred Item: 35% (item marked as preferred from this vendor)
+    - Preferred Vendor: 25% (vendor is department preferred)
+    - Price Score: 25% (lower price = higher score)
+    - Rating: 10% (vendor performance rating)
+    - Lead Time: 5% (shorter lead time = higher score)
+  * Formula: `score = (preferredItem × 0.35) + (preferredVendor × 0.25) + (priceScore × 0.25) + (rating × 0.10) + (leadTime × 0.05)`
+  * Highest scoring vendor marked as "Recommended"
+
+- **MOQ (Minimum Order Quantity) Validation**:
+  * System converts vendor MOQ to base unit for comparison
+  * Formula: `moqInBaseUnit = moqQuantity × conversionToBase`
+  * Validation: `meetsRequirement = requestedInBaseUnit >= moqInBaseUnit`
+  * MOQ gap calculated when requirement not met: `gap = moqInBaseUnit - requestedInBaseUnit`
+
+- **MOQ Alert Severity Levels**:
+  * **INFO** (Blue): ≥90% of MOQ met - minor adjustment suggested
+  * **WARNING** (Yellow): 50-90% of MOQ met - quantity increase recommended
+  * **ERROR** (Red): <50% of MOQ met - significant gap, may block submission
+
+- **Enhanced Price Comparison UI**:
+  * Display all vendor options in comparison table
+  * Columns: Vendor Name, Price/Base Unit, MOQ Status, Rating, Lead Time, Score, Rank
+  * Highlight recommended vendor row
+  * Filter options: "MOQ Met Only", "Preferred Only"
+  * Sort options: Score, Price, Rating, Lead Time, MOQ
+
+- **Vendor Override Workflow**:
+  * Purchasing Staff can select non-recommended vendor
+  * Override requires reason selection:
+    - Better relationship
+    - Quality preference
+    - Delivery requirement
+    - Other (with text)
+  * Override recorded for audit trail with price difference
+
+- **Caching & Performance**:
+  * Price comparison results cached for 5 minutes (TTL)
+  * Cache invalidated on quantity change
+  * Batch processing for multiple PR items
+
+**Role-Based Access**:
+
+| Feature | Requestor | Approver | Purchasing Staff |
+|---------|-----------|----------|------------------|
+| View Price Comparison | ❌ | 👁️ View-only | ✅ Full access |
+| Select Vendor | ❌ | ❌ | ✅ |
+| Override Recommended | ❌ | ❌ | ✅ (with reason) |
+| View MOQ Alerts | ❌ | ✅ | ✅ |
+
+**Acceptance Criteria**:
+- All vendor prices normalized to base unit for accurate comparison
+- Scoring algorithm ranks vendors consistently with business rules
+- MOQ validation prevents submission when critical gaps exist (ERROR severity)
+- Override reasons captured and available in audit trail
+- Price comparison table displays all vendor options with relevant metrics
+- Filter and sort controls function correctly
+- Recommended vendor clearly highlighted in UI
+- Cache improves performance on repeated views
+
+**Implementation Files**:
+- `lib/services/pr-auto-pricing-service.ts` - Main orchestrator service
+- `lib/services/unit-conversion-service.ts` - Unit conversion utilities
+- `lib/services/vendor-allocation-service.ts` - Vendor scoring/ranking
+- `app/(main)/procurement/purchase-requests/components/enhanced-price-comparison.tsx` - Comparison UI
+- `app/(main)/procurement/purchase-requests/components/moq-warning-banner.tsx` - MOQ alerts
+- `app/(main)/procurement/purchase-requests/hooks/use-pr-auto-pricing.ts` - Client-side hook
+
+---
+
+### FR-PR-029: Multi-Currency Display
+
+**Priority**: High | **Status**: ✅ Implemented
+**User Story**: As a Finance Manager, I want to see both the transaction currency and base currency amounts throughout the Purchase Request so that I can understand the true financial impact in our reporting currency.
+
+**Related Documentation**: [FD-purchase-requests.md](./FD-purchase-requests.md#212-multi-currency-display-flow)
+
+**Requirements**:
+
+- **Dual Currency Display**:
+  * When item currency differs from base currency, display both amounts
+  * Primary display: Transaction currency (item's original currency)
+  * Secondary display: Base currency (converted amount)
+  * Secondary amount shown in green (green-700) text, smaller font size
+
+- **Currency Conversion**:
+  * Formula: `convertedAmount = originalAmount × exchangeRate`
+  * Exchange rate sourced from currency configuration
+  * Rate can be manually overridden by Purchasing Staff with appropriate permissions
+
+- **Display Locations**:
+  * Item Detail Cards: Unit price, subtotal, discount, tax, total
+  * Summary Total component: All financial summary rows
+  * Applies to all monetary fields throughout PR lifecycle
+
+- **Currency Selector (Purchasing Staff)**:
+  * Dropdown with active currencies from system configuration
+  * Currency options include: code, symbol, name, and "(Base)" indicator
+  * Exchange rate input field (auto-populated, editable)
+  * Currency change triggers recalculation of all amounts
+
+- **Visual Indicators**:
+  * Badge: "Base Currency" indicator when viewing multi-currency PR
+  * Badge: Exchange rate display (e.g., "Rate: 1 EUR = 1.176 USD")
+  * Green text color for converted amounts
+  * Smaller font size for secondary (base) amounts
+
+- **Summary Total Display**:
+  * Subtotal: Primary + Secondary amounts
+  * Discount: Primary + Secondary amounts (with minus sign)
+  * Net Amount: Primary + Secondary amounts
+  * Tax: Primary + Secondary amounts (with plus sign)
+  * Total: Primary (bold) + Secondary amounts
+
+**Display Rules**:
+
+| Scenario | Primary Display | Secondary Display | Badges |
+|----------|-----------------|-------------------|--------|
+| Same currency | Transaction amount only | None | None |
+| Different currency | Transaction currency | Base currency (green) | Base Currency, Exchange Rate |
+
+**Styling Specifications**:
+
+| Element | Transaction Currency | Base Currency |
+|---------|---------------------|---------------|
+| Text Color | gray-900 (default) | green-700 |
+| Font Size | text-sm, text-base | text-xs |
+| Position | Primary (top/left) | Secondary (below/right) |
+| Font Weight | semibold/bold | normal |
+
+**Acceptance Criteria**:
+- Single currency PRs display amounts without conversion
+- Multi-currency PRs display both amounts at all relevant locations
+- Exchange rate badge shows current conversion rate
+- Base currency badge indicates reporting currency
+- Currency selector allows Purchasing Staff to change currency
+- Exchange rate field allows manual override when needed
+- All calculations use consistent exchange rate throughout PR
+- Green color clearly distinguishes base currency amounts
+- Font sizing creates clear visual hierarchy
+
+**Implementation Files**:
+- `app/(main)/procurement/purchase-requests/components/tabs/ItemDetailCards.tsx` - Dual display implementation
+- `app/(main)/procurement/purchase-requests/components/SummaryTotal.tsx` - Summary dual display
+- `components/ui/currency-selector.tsx` - Currency selection component
+- `lib/mock-data/index.ts` - mockCurrencies data
+
+---
+
 ## Business Rules
 
 > **Status Summary**: 🔧 Partial - Frontend validation exists; backend enforcement and integration pending
@@ -1709,6 +1867,42 @@ interface BudgetItem {
 - **BR-PR-075**: Budget deletion requires confirmation dialog
 - **BR-PR-076**: Budget totals recalculate dynamically on any CRUD operation
 
+### Auto-Pricing Rules (✅ Implemented)
+
+- **BR-PR-077**: All vendor prices must be normalized to base inventory unit before comparison
+- **BR-PR-078**: Price normalization formula: `pricePerBaseUnit = unitPrice / conversionToBase`
+- **BR-PR-079**: Vendor scoring uses weighted formula: (Preferred Item × 0.35) + (Preferred Vendor × 0.25) + (Price × 0.25) + (Rating × 0.10) + (Lead Time × 0.05)
+- **BR-PR-080**: MOQ conversion formula: `moqInBaseUnit = moqQuantity × conversionToBase`
+- **BR-PR-081**: MOQ validation: `meetsRequirement = requestedInBaseUnit >= moqInBaseUnit`
+- **BR-PR-082**: MOQ severity INFO when percentage met ≥90%
+- **BR-PR-083**: MOQ severity WARNING when percentage met is 50-90%
+- **BR-PR-084**: MOQ severity ERROR when percentage met <50%
+- **BR-PR-085**: Vendor with highest score is marked as "Recommended"
+- **BR-PR-086**: Purchasing Staff can override recommended vendor with mandatory reason
+- **BR-PR-087**: Override reasons must be one of: "Better relationship", "Quality preference", "Delivery requirement", or "Other"
+- **BR-PR-088**: All vendor overrides must be recorded for audit trail with price difference
+- **BR-PR-089**: Price comparison cache TTL is 5 minutes
+- **BR-PR-090**: Cache must be invalidated when quantity changes
+- **BR-PR-091**: Requestors cannot view price comparison or vendor details
+- **BR-PR-092**: Approvers can view price comparison in read-only mode
+- **BR-PR-093**: Only Purchasing Staff can select/change vendors
+
+### Multi-Currency Display Rules (✅ Implemented)
+
+- **BR-PR-094**: When item currency equals base currency, display single amount only
+- **BR-PR-095**: When item currency differs from base currency, display both amounts
+- **BR-PR-096**: Currency conversion formula: `convertedAmount = originalAmount × exchangeRate`
+- **BR-PR-097**: Base currency amounts must be displayed in green (green-700) text
+- **BR-PR-098**: Base currency amounts must use smaller font size (text-xs)
+- **BR-PR-099**: Base currency amounts positioned below/after transaction currency amounts
+- **BR-PR-100**: "Base Currency" badge must be shown for multi-currency PRs
+- **BR-PR-101**: Exchange rate badge must show conversion rate (e.g., "Rate: 1 EUR = 1.176 USD")
+- **BR-PR-102**: Currency selector available to Requestors during PR creation and Purchasing Staff in edit mode
+- **BR-PR-103**: Exchange rate field auto-populated from system, editable for override
+- **BR-PR-104**: Currency change must trigger recalculation of all base currency amounts
+- **BR-PR-105**: Dual currency display applies to: Unit Price, Subtotal, Discount, Net Amount, Tax, Total
+- **BR-PR-106**: Summary Total component must show dual amounts for all rows
+
 ## Data Model
 
 ### Purchase Request Entity
@@ -1721,7 +1915,7 @@ interface BudgetItem {
 #### Core Fields
 | Field | Type | Description |
 |-------|------|-------------|
-| refNumber | Text | Reference number in format PR-YYYY-NNNNNN |
+| refNumber | Text | Reference number in format PR-YYMM-NNNN |
 | date | Date | Creation date of the purchase request |
 | type | Enum | Type of request: General, Market List, or Asset |
 | deliveryDate | Date | Required delivery date for all items |
@@ -2011,21 +2205,21 @@ This section provides a high-level overview of implementation progress across al
 
 | Category | Total | ✅ Implemented | 🔧 Partial | 🚧 Pending | ⏳ Future |
 |----------|-------|----------------|------------|------------|-----------|
-| Functional Requirements | 26 | 3 | 11 | 12 | 0 |
-| Business Rules | ~65 | 6 | 15 | 44 | 0 |
+| Functional Requirements | 29 | 5 | 11 | 13 | 0 |
+| Business Rules | ~106 | 36 | 15 | 55 | 0 |
 | Non-Functional Requirements | 25 | 0 | 5 | 20 | 0 |
 
 ### Implementation Progress by Category
 
-**Functional Requirements (26 total)**:
-- ✅ Implemented (3): Status Management, List View & Filtering, Detail View
+**Functional Requirements (29 total)**:
+- ✅ Implemented (5): Status Management, List View & Filtering, Detail View, Auto-Pricing System (FR-PR-028), Multi-Currency Display (FR-PR-029)
 - 🔧 Partial (11): PR Creation, Item Management, Approval Workflow, Edit/Modify, Copy/Template, Print/Export, Mobile Responsiveness, Item Metadata, Monetary Formatting, Enhanced Pricing fields, Bulk Item Actions
-- 🚧 Pending (12): Financial Calculations, Budget Control, Document Management, Comments/Collaboration, Notifications, Real-Time Inventory, Inventory Display, FOC Visibility, Price Visibility, Delivery Point Dropdown, Header Total Removal, Amount Override
+- 🚧 Pending (13): Financial Calculations, Budget Control, Document Management, Comments/Collaboration, Notifications, Real-Time Inventory, Inventory Display, FOC Visibility, Price Visibility, Delivery Point Dropdown, Header Total Removal, Amount Override
 
-**Business Rules (~65 total)**:
-- ✅ Implemented (6): Display Rules - date formatting, currency display, status indicators
+**Business Rules (~106 total)**:
+- ✅ Implemented (36): Display Rules (BR-PR-021 to BR-PR-026), Budget Tab CRUD Rules (BR-PR-066 to BR-PR-076), Auto-Pricing Rules (BR-PR-077 to BR-PR-093), Multi-Currency Display Rules (BR-PR-094 to BR-PR-106)
 - 🔧 Partial (15): Required Fields (frontend validation), Workflow Rules (display only), Data Validation Rules (client-side)
-- 🚧 Pending (44): Budget Rules, Inventory Integration Rules, Template Management Rules, FOC Rules, Tax Rate Assignment Rules
+- 🚧 Pending (55): Budget Rules, Inventory Integration Rules, Template Management Rules, FOC Rules, Tax Rate Assignment Rules
 
 **Non-Functional Requirements (25 total)**:
 - 🔧 Partial (5): Usability requirements - UI exists but not fully optimized

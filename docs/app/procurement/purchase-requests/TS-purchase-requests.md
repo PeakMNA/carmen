@@ -4,8 +4,8 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Requests
 - **Route**: `/procurement/purchase-requests`
-- **Version**: 1.7.0
-- **Last Updated**: 2025-12-03
+- **Version**: 2.0.0
+- **Last Updated**: 2025-12-17
 - **Owner**: Development Team
 - **Status**: Active
 
@@ -20,6 +20,9 @@
 | 1.5.0 | 2025-11-28 | Development Team | Added 4.2: Bulk Item Actions Component with selection, toolbar, and action handlers |
 | 1.6.0 | 2025-11-28 | Development Team | Added 4.3: Budget Tab CRUD Component with add/edit/delete dialogs, validation, and calculations |
 | 1.7.0 | 2025-12-03 | Development Team | Extended Split capability to Approvers; added role-based field visibility; added Approver Split by Approval Status flow |
+| 1.8.0 | 2025-12-10 | Documentation Team | Synced ref_number format with BR: changed from PR-YYYY-NNNN to PR-YYMM-NNNN |
+| 1.9.0 | 2025-12-17 | Development Team | Added 4.4: Auto-Pricing System Components - PRAutoPricingService, EnhancedPriceComparison, MOQWarningBanner, usePRAutoPricing hook |
+| 2.0.0 | 2025-12-17 | Development Team | Added 4.5: Multi-Currency Display Components - CurrencySelector, dual currency formatting, exchange rate handling |
 
 ## Implementation Status
 
@@ -59,24 +62,24 @@ The Purchase Requests module allows users to create, submit, approve, and track 
 
 ```mermaid
 graph TB
-    subgraph "Client Layer"
+    subgraph 'Client Layer'
         Browser[Web Browser]
         Mobile[Mobile Browser]
     end
 
-    subgraph "Application Layer"
+    subgraph 'Application Layer'
         NextJS[Next.js 14+ App Router]
         React[React Components]
         ServerActions[Server Actions]
     end
 
-    subgraph "Data Layer"
+    subgraph 'Data Layer'
         Supabase[(Supabase PostgreSQL)]
         Storage[Supabase Storage]
         Cache[Redis Cache]
     end
 
-    subgraph "External Systems"
+    subgraph 'External Systems'
         Budget[Budget Management]
         Inventory[Inventory System]
         Workflow[Approval Workflow]
@@ -387,7 +390,7 @@ const taxTypeOptions = [
 
 **Role Detection Logic**:
 ```typescript
-const isPurchaser = ["Purchasing Staff", "Purchaser", "Procurement Manager"]
+const isPurchaser = ['Purchasing Staff', 'Purchaser', 'Procurement Manager']
   .some(role => userRole?.toLowerCase().includes(role.toLowerCase()));
 
 const isPurchaserEditable = isPurchaser && formMode === "edit";
@@ -1031,6 +1034,338 @@ All currency values are formatted using Intl.NumberFormat with USD currency, dis
 
 ---
 
+#### 4.4 Auto-Pricing System Components
+
+**Status**: ✅ Implemented
+**Related BR**: FR-PR-028
+**Location**: Item detail panels and pricing dialogs
+
+##### 4.4.1 PRAutoPricingService
+
+**File**: `lib/services/pr-auto-pricing-service.ts`
+**Purpose**: Main orchestrator for auto-pricing functionality, coordinates unit conversion, vendor allocation, and caching.
+
+**Service Interface**:
+```typescript
+interface VendorPriceListData {
+  vendorId: string;
+  vendorName: string;
+  priceListId: string;
+  priceListName: string;
+  unitPrice: Money;
+  sellingUnitCode: string;
+  sellingUnitName: string;
+  minimumOrderQuantity: number;
+  leadTimeDays: number;
+  rating: number;
+  isPreferredVendor: boolean;
+  isPreferredItem: boolean;
+  validFrom: Date;
+  validTo: Date;
+  isValid: boolean;
+}
+
+interface PricingCacheEntry {
+  productId: string;
+  comparison: PRItemPriceComparison;
+  cachedAt: Date;
+  expiresAt: Date;
+}
+```
+
+**Key Methods**:
+| Method | Parameters | Returns | Description |
+|--------|------------|---------|-------------|
+| `fetchPricingOptionsForItem` | `FetchPricingInput` | `Promise<PRItemPriceComparison>` | Main entry point - fetches and normalizes all vendor prices |
+| `recalculateOnQuantityChange` | `RecalculatePricingInput` | `Promise<PRItemPriceComparison>` | Recalculates when quantity changes |
+| `processPRItems` | `Array<{id, productId, quantity, unit}>` | `Promise<Map<string, PRItemPriceComparison>>` | Batch processing for multiple items |
+| `recordOverride` | `prItemId, originalVendorId, selectedVendorId, reasonType, reasonText, userId, priceDifference` | `VendorOverrideRecord` | Records vendor override for audit |
+| `clearCache` | none | `void` | Clears all pricing cache |
+| `clearCacheForProduct` | `productId: string` | `void` | Clears cache for specific product |
+
+**Configuration**:
+- Cache TTL: 5 minutes (`CACHE_TTL_MS = 5 * 60 * 1000`)
+- Singleton pattern for shared state
+
+##### 4.4.2 UnitConversionService
+
+**File**: `lib/services/unit-conversion-service.ts`
+**Purpose**: Handles unit conversion for price normalization and MOQ validation.
+
+**Key Methods**:
+| Method | Description |
+|--------|-------------|
+| `convertToBaseUnit(quantity, unit, unitConfig)` | Converts quantity to base inventory unit |
+| `normalizePrice(unitPrice, sellingUnitCode, unitConfig)` | Normalizes price to price per base unit |
+| `convertMOQToBaseUnit(moqQuantity, sellingUnitCode, unitConfig)` | Converts MOQ to base unit |
+| `validateMOQRequirement(requestedInBase, baseUnit, moqQuantity, moqUnit, unitConfig)` | Validates if MOQ is met |
+| `getMOQAlertSeverity(percentageMet)` | Returns severity level: 'error' (<50%), 'warning' (50-90%), 'info' (≥90%) |
+
+##### 4.4.3 VendorAllocationService
+
+**File**: `lib/services/vendor-allocation-service.ts`
+**Purpose**: Vendor scoring and ranking algorithm.
+
+**Scoring Weights**:
+```typescript
+const SCORING_WEIGHTS = {
+  preferredItem: 0.35,      // 35%
+  preferredVendor: 0.25,    // 25%
+  priceScore: 0.25,         // 25%
+  rating: 0.10,             // 10%
+  leadTime: 0.05            // 5%
+};
+```
+
+**Key Methods**:
+| Method | Description |
+|--------|-------------|
+| `allocateVendor(options)` | Scores and ranks all vendors, returns recommended |
+| `reRankForQuantity(options, newQuantity)` | Re-ranks vendors for new quantity |
+| `calculateVendorScore(option)` | Calculates weighted score for single vendor |
+
+##### 4.4.4 EnhancedPriceComparison Component
+
+**File**: `app/(main)/procurement/purchase-requests/components/enhanced-price-comparison.tsx`
+**Purpose**: Multi-vendor comparison table with sorting, filtering, and selection.
+
+**Props Interface**:
+```typescript
+interface EnhancedPriceComparisonProps {
+  comparison: PRItemPriceComparison;
+  isReadOnly?: boolean;
+  onSelectVendor?: (vendorId: string, vendorName: string) => void;
+  onOverrideVendor?: (override: VendorOverrideRecord) => void;
+}
+```
+
+**Features**:
+- **Sorting**: Score, Price, Rating, Lead Time, MOQ
+- **Filtering**: MOQ Met Only, Preferred Only
+- **Visual Indicators**: Recommended badge, MOQ status badges, preferred vendor star
+- **Selection**: Radio button for vendor selection (Purchasing Staff only)
+
+**Table Columns**:
+| Column | Description |
+|--------|-------------|
+| Vendor | Name with preferred badge if applicable |
+| Price/Base Unit | Normalized price per base unit |
+| MOQ Status | Badge showing met/not met with quantity |
+| Rating | Star rating display |
+| Lead Time | Days to delivery |
+| Score | Overall vendor score |
+| Rank | Position in ranking |
+| Select | Radio button (if not read-only) |
+
+##### 4.4.5 MOQWarningBanner Component
+
+**File**: `app/(main)/procurement/purchase-requests/components/moq-warning-banner.tsx`
+**Purpose**: Displays MOQ validation alerts with severity-based styling.
+
+**Props Interface**:
+```typescript
+interface MOQWarningBannerProps {
+  alerts: MOQAlert[];
+  onDismiss?: () => void;
+}
+
+interface MOQAlert {
+  vendorId: string;
+  vendorName: string;
+  gap: number;
+  gapInBaseUnit: number;
+  baseUnit: string;
+  severity: 'error' | 'warning' | 'info';
+  message: string;
+  suggestedQuantity: number;
+}
+```
+
+**Severity Styling**:
+| Severity | Color | Icon | Behavior |
+|----------|-------|------|----------|
+| ERROR | Red (destructive) | AlertTriangle | Blocks submission, shows CriticalMOQBlock |
+| WARNING | Yellow | AlertCircle | Allows proceed with confirmation |
+| INFO | Blue | Info | Informational only |
+
+**CriticalMOQBlock Component**:
+- Displayed when any alert has severity='error'
+- Red background, bold messaging
+- Disables form submission controls
+
+##### 4.4.6 usePRAutoPricing Hook
+
+**File**: `app/(main)/procurement/purchase-requests/hooks/use-pr-auto-pricing.ts`
+**Purpose**: Client-side hook for managing auto-pricing state and interactions.
+
+**Hook Interface**:
+```typescript
+interface UsePRAutoPricingOptions {
+  prItems: Array<{ id: string; productId: string; quantity: number; unit: string }>;
+  autoFetch?: boolean;
+}
+
+interface UsePRAutoPricingReturn {
+  pricingState: Map<string, PRItemPricingState>;
+  isLoading: boolean;
+  error: Error | null;
+  fetchPricing: (itemId: string) => Promise<void>;
+  fetchAllPricing: () => Promise<void>;
+  selectVendor: (itemId: string, vendorId: string) => void;
+  overrideVendor: (itemId: string, override: VendorOverrideRecord) => void;
+  recalculateForQuantity: (itemId: string, newQuantity: number, newUnit?: string) => Promise<void>;
+  canSubmit: boolean;
+  criticalAlerts: MOQAlert[];
+}
+```
+
+**State Management**:
+- Maintains pricing state for each PR item
+- Tracks selected vendor per item
+- Aggregates MOQ alerts across items
+- Computes `canSubmit` based on critical errors
+
+---
+
+#### 4.5 Multi-Currency Display Components
+
+**Status**: ✅ Implemented
+**Related BR**: FR-PR-029
+**Location**: Item detail cards, summary totals, pricing forms
+
+##### 4.5.1 Currency Selector Component
+
+**File**: `components/ui/currency-selector.tsx`
+**Purpose**: Dropdown for currency selection with search functionality.
+
+**Props Interface**:
+```typescript
+interface CurrencySelectorProps {
+  value?: string;
+  onChange: (value: string) => void;
+  currencies?: Currency[];
+  disabled?: boolean;
+  className?: string;
+  placeholder?: string;
+  emptyText?: string;
+}
+
+interface Currency {
+  code: string;    // ISO 4217 code (e.g., "USD")
+  name: string;    // Full name (e.g., "US Dollar")
+  symbol: string;  // Symbol (e.g., "$")
+}
+```
+
+**Default Currencies**:
+USD, EUR, GBP, CAD, AUD, JPY, CNY, CHF, SGD, HKD, NZD, MXN, BRL, INR, THB
+
+**Features**:
+- Search/filter by code or name
+- Displays code, symbol, and name
+- Keyboard navigation support
+- ARIA compliant
+
+##### 4.5.2 Dual Currency Display Pattern
+
+**File**: `app/(main)/procurement/purchase-requests/components/tabs/ItemDetailCards.tsx`
+**Purpose**: Shows both transaction currency and base currency amounts.
+
+**Implementation Pattern**:
+```typescript
+// Currency conversion helper
+const formatCurrencyConversion = (amount: number) => {
+  if (!showCurrencyConversion || !baseCurrency || currency === baseCurrency) return null;
+  const convertedAmount = amount * currencyRate;
+  return `${baseCurrency} ${convertedAmount.toFixed(2)}`;
+};
+```
+
+**Display Locations**:
+| Location | Primary (Transaction) | Secondary (Base) |
+|----------|----------------------|------------------|
+| Unit Price | `{currency} {unitPrice.toFixed(2)}` | Green text below |
+| Subtotal | `{currency} {subtotal.toFixed(2)}` | Green text below |
+| Discount | `-{currency} {discountAmount.toFixed(2)}` | Green text below |
+| Net Amount | `{currency} {netAmount.toFixed(2)}` | Green text below |
+| Tax | `+{currency} {taxAmount.toFixed(2)}` | Green text below |
+| Total | Bold `{currency} {total.toFixed(2)}` | Green text below |
+
+**Styling Specifications**:
+```typescript
+// Primary (transaction currency)
+className="text-sm font-semibold text-gray-900"
+
+// Secondary (base currency)
+className="text-xs text-green-700"
+```
+
+##### 4.5.3 Summary Total Component
+
+**File**: `app/(main)/procurement/purchase-requests/components/SummaryTotal.tsx`
+**Purpose**: PR summary with dual currency display.
+
+**Props Interface**:
+```typescript
+interface SummaryTotalProps {
+  prData: MockPurchaseRequest;
+}
+```
+
+**Currency Detection**:
+```typescript
+const currency = mockPrData.currency || "USD";
+const baseCurrency = mockPrData.baseCurrencyCode || "USD";
+const showBaseCurrency = currency !== baseCurrency;
+```
+
+**Visual Elements**:
+- Badge: "Base Currency" indicator (`variant="secondary"`)
+- Badge: Exchange rate display (`variant="outline"`)
+- Dual amount display for all summary rows
+
+##### 4.5.4 Currency-Related Props in ItemDetailCards
+
+**Purchaser Edit Mode Props**:
+```typescript
+interface ItemDetailCardsProps {
+  // Currency props
+  currency: string;
+  baseCurrency?: string;
+  currencyRate?: number;
+  showCurrencyConversion?: boolean;
+
+  // Currency edit callbacks
+  onCurrencyChange?: (currency: string) => void;
+  onCurrencyRateChange?: (rate: number) => void;
+
+  // Currency options
+  currencyOptions?: Array<{ value: string; label: string }>;
+}
+```
+
+**Currency Options Generation**:
+```typescript
+const defaultCurrencyOptions = mockCurrencies
+  .filter(c => c.isActive)
+  .map(c => ({
+    value: c.code,
+    label: `${c.code} - ${c.name}${c.isBaseCurrency ? ' (Base)' : ''}`
+  }));
+```
+
+##### Role-Based Currency Access
+
+| Feature | Requestor | Approver | Purchasing Staff |
+|---------|-----------|----------|------------------|
+| View Currency | ✅ | ✅ | ✅ |
+| View Dual Display | ✅ | ✅ | ✅ |
+| Select Currency (Create) | ✅ | ❌ | ✅ |
+| Change Currency (Edit) | ❌ | ❌ | ✅ |
+| Change Exchange Rate | ❌ | ❌ | ✅ |
+
+---
+
 #### 5. Template Management Page
 **Route**: `/procurement/purchase-requests/templates`
 
@@ -1071,40 +1406,40 @@ All currency values are formatted using Intl.NumberFormat with USD currency, dis
 
 ```mermaid
 flowchart TD
-    Start([User clicks Create PR]) --> Choice{New from scratch<br/>or template?}
+    Start([User clicks Create PR]) --> Choice{New from scratch<br>or template?}
 
-    Choice -->|New| SelectType[Select PR Type:<br/>Market List, Standard Order,<br/>Fixed Asset]
-    Choice -->|Template| TemplateDialog[Open Template<br/>Selection Dialog]
+    Choice -->|New| SelectType[Select PR Type:<br>Market List, Standard Order,<br>Fixed Asset]
+    Choice -->|Template| TemplateDialog[Open Template<br>Selection Dialog]
 
     TemplateDialog --> SelectTemplate[Select Template]
-    SelectTemplate --> TemplateOptions[Configure Template<br/>Options]
-    TemplateOptions --> LoadTemplate[Load Template Data<br/>with Price Updates]
+    SelectTemplate --> TemplateOptions[Configure Template<br>Options]
+    TemplateOptions --> LoadTemplate[Load Template Data<br>with Price Updates]
     LoadTemplate --> SelectType
 
-    SelectType --> HeaderForm[Fill Header Info:<br/>Delivery Date, Department,<br/>Location, Description]
+    SelectType --> HeaderForm[Fill Header Info:<br>Delivery Date, Department,<br>Location, Description]
 
     HeaderForm --> AddItems[Add Line Items]
 
     AddItems --> ItemDialog[Item Selection Dialog]
     ItemDialog --> SearchProduct[Search/Select Product]
-    SearchProduct --> InventoryPanel[View Real-time<br/>Inventory & Pricing]
-    InventoryPanel --> EnterDetails[Enter Quantity, Price,<br/>FOC Qty/Unit, Tax Rate]
-    EnterDetails --> MoreItems{Add more<br/>items?}
+    SearchProduct --> InventoryPanel[View Real-time<br>Inventory & Pricing]
+    InventoryPanel --> EnterDetails[Enter Quantity, Price,<br>FOC Qty/Unit, Tax Rate]
+    EnterDetails --> MoreItems{Add more<br>items?}
 
     MoreItems -->|Yes| ItemDialog
-    MoreItems -->|No| ReviewItems[Review All Items<br/>and Financial Summary]
+    MoreItems -->|No| ReviewItems[Review All Items<br>and Financial Summary]
 
-    ReviewItems --> SaveChoice{Save as Draft<br/>or Submit?}
+    ReviewItems --> SaveChoice{Save as Draft<br>or Submit?}
 
     SaveChoice -->|Draft| SaveDraft[Save as Draft]
-    SaveChoice -->|Submit| ValidateSubmit[Validate Required<br/>Fields]
+    SaveChoice -->|Submit| ValidateSubmit[Validate Required<br>Fields]
 
     ValidateSubmit --> SubmitPR[Submit for Approval]
 
     SaveDraft --> SuccessMsg[Show Success Message]
     SubmitPR --> SuccessMsg
 
-    SuccessMsg --> RedirectDetail[Redirect to<br/>PR Detail Page]
+    SuccessMsg --> RedirectDetail[Redirect to<br>PR Detail Page]
 
     RedirectDetail --> End([End])
 ```
@@ -1113,30 +1448,30 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Approver receives<br/>notification]) --> AccessPR[Click notification<br/>or navigate to PR]
+    Start([Approver receives<br>notification]) --> AccessPR[Click notification<br>or navigate to PR]
 
     AccessPR --> ViewDetail[View PR Detail Page]
 
-    ViewDetail --> ReviewInfo[Review PR Information:<br/>Items, Prices, Justification]
+    ViewDetail --> ReviewInfo[Review PR Information:<br>Items, Prices, Justification]
 
-    ReviewInfo --> CheckInventory{Need to check<br/>inventory?}
-    CheckInventory -->|Yes| ViewInventory[View Inventory Panel<br/>for each item]
+    ReviewInfo --> CheckInventory{Need to check<br>inventory?}
+    CheckInventory -->|Yes| ViewInventory[View Inventory Panel<br>for each item]
     CheckInventory -->|No| Decision
-    ViewInventory --> Decision{Approve<br/>or Reject?}
+    ViewInventory --> Decision{Approve<br>or Reject?}
 
     Decision -->|Approve| ClickApprove[Click Approve Button]
     Decision -->|Reject| ClickReject[Click Reject Button]
-    Decision -->|Request Info| AddComment[Add Comment<br/>requesting clarification]
+    Decision -->|Request Info| AddComment[Add Comment<br>requesting clarification]
 
     ClickApprove --> ConfirmApprove[Confirm Approval]
-    ConfirmApprove --> ProcessApproval[System processes:<br/>Update status,<br/>Notify next approver/requestor]
+    ConfirmApprove --> ProcessApproval[System processes:<br>Update status,<br>Notify next approver/requestor]
 
     ClickReject --> RejectDialog[Rejection Dialog Opens]
-    RejectDialog --> EnterReason[Enter rejection reason<br/>minimum 10 characters]
+    RejectDialog --> EnterReason[Enter rejection reason<br>minimum 10 characters]
     EnterReason --> ConfirmReject[Confirm Rejection]
-    ConfirmReject --> ProcessReject[System processes:<br/>Update status to Void,<br/>Notify requestor]
+    ConfirmReject --> ProcessReject[System processes:<br>Update status to Void,<br>Notify requestor]
 
-    AddComment --> NotifyRequestor[System notifies<br/>requestor]
+    AddComment --> NotifyRequestor[System notifies<br>requestor]
     NotifyRequestor --> WaitResponse[Wait for response]
 
     ProcessApproval --> ShowSuccess[Show success message]
@@ -1151,41 +1486,41 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Purchasing staff<br/>views approved PR]) --> ClickConvert[Click Convert to PO<br/>button]
+    Start([Purchasing staff<br>views approved PR]) --> ClickConvert[Click Convert to PO<br>button]
 
-    ClickConvert --> ValidatePR{PR already<br/>converted?}
+    ClickConvert --> ValidatePR{PR already<br>converted?}
 
-    ValidatePR -->|Yes| ShowError[Show error:<br/>Already converted]
+    ValidatePR -->|Yes| ShowError[Show error:<br>Already converted]
     ValidatePR -->|No| LoadPRData[Load PR data]
 
-    LoadPRData --> POForm[Display PO Form<br/>pre-filled with PR data]
+    LoadPRData --> POForm[Display PO Form<br>pre-filled with PR data]
 
-    POForm --> SelectVendors[Select vendors<br/>for items]
+    POForm --> SelectVendors[Select vendors<br>for items]
 
-    SelectVendors --> ReviewData[Review PO data:<br/>Items, Vendors,<br/>Delivery dates]
+    SelectVendors --> ReviewData[Review PO data:<br>Items, Vendors,<br>Delivery dates]
 
-    ReviewData --> SplitChoice{Split to<br/>multiple POs?}
+    ReviewData --> SplitChoice{Split to<br>multiple POs?}
 
     SplitChoice -->|No| SinglePO[Create single PO]
-    SplitChoice -->|Yes| GroupItems[Group items by:<br/>Vendor or Delivery date]
+    SplitChoice -->|Yes| GroupItems[Group items by:<br>Vendor or Delivery date]
 
     GroupItems --> ReviewGroups[Review grouping]
     ReviewGroups --> CreateMultiplePOs[Create multiple POs]
 
-    SinglePO --> ValidateBudget[Validate budget<br/>availability]
+    SinglePO --> ValidateBudget[Validate budget<br>availability]
     CreateMultiplePOs --> ValidateBudget
 
-    ValidateBudget --> CreatePOs[Create PO records<br/>in database]
+    ValidateBudget --> CreatePOs[Create PO records<br>in database]
 
     CreatePOs --> LinkPRPO[Link PR to POs]
 
-    LinkPRPO --> UpdatePRStatus[Update PR status<br/>to Completed]
+    LinkPRPO --> UpdatePRStatus[Update PR status<br>to Completed]
 
     UpdatePRStatus --> NotifyCreator[Notify PR creator]
 
-    NotifyCreator --> ShowSuccess[Show success message<br/>with PO numbers]
+    NotifyCreator --> ShowSuccess[Show success message<br>with PO numbers]
 
-    ShowSuccess --> RedirectPO[Redirect to PO<br/>detail page]
+    ShowSuccess --> RedirectPO[Redirect to PO<br>detail page]
 
     ShowError --> End([End])
     RedirectPO --> End
@@ -1202,79 +1537,79 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage["List Page<br/>(/procurement/purchase-requests)"]
-    CreatePage["Create Page<br/>(/procurement/purchase-requests/new)"]
-    DetailPage["Detail Page<br/>(/procurement/purchase-requests/[id])"]
-    EditPage["Edit Page<br/>(/procurement/purchase-requests/[id]/edit)"]
-    TemplatePage["Template Management<br/>(/procurement/purchase-requests/templates)"]
+    ListPage['List Page<br>(/procurement/purchase-requests)']
+    CreatePage['Create Page<br>(/procurement/purchase-requests/new)']
+    DetailPage["Detail Page<br>(/procurement/purchase-requests/[id])"]
+    EditPage["Edit Page<br>(/procurement/purchase-requests/[id]/edit)"]
+    TemplatePage['Template Management<br>(/procurement/purchase-requests/templates)']
 
     %% List Page Primary Filters
-    ListPage --> PrimaryFilter1["Primary: My Pending (Default)"]
-    ListPage --> PrimaryFilter2["Primary: All Documents"]
-    PrimaryFilter1 --> SecondaryFilter1["Secondary: Stage Filter"]
-    PrimaryFilter2 --> SecondaryFilter2["Secondary: Status Filter"]
+    ListPage --> PrimaryFilter1['Primary: My Pending (Default)']
+    ListPage --> PrimaryFilter2['Primary: All Documents']
+    PrimaryFilter1 --> SecondaryFilter1['Secondary: Stage Filter']
+    PrimaryFilter2 --> SecondaryFilter2['Secondary: Status Filter']
 
     %% List Page Dialogs
-    ListPage -.-> ListDialog1["Dialog: Quick Create"]
-    ListPage -.-> ListDialog2["Dialog: Bulk Actions"]
-    ListPage -.-> ListDialog3["Dialog: Export"]
-    ListPage -.-> ListDialog4["Dialog: Filter Settings"]
-    ListPage -.-> ListDialog5["Dialog: Column Preferences"]
+    ListPage -.-> ListDialog1['Dialog: Quick Create']
+    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
+    ListPage -.-> ListDialog3['Dialog: Export']
+    ListPage -.-> ListDialog4['Dialog: Filter Settings']
+    ListPage -.-> ListDialog5['Dialog: Column Preferences']
 
     %% Create Page Tabs
-    CreatePage --> CreateTab1["Tab: General Info"]
-    CreatePage --> CreateTab2["Tab: Line Items"]
-    CreatePage --> CreateTab3["Tab: Delivery Details"]
-    CreatePage --> CreateTab4["Tab: Financial"]
+    CreatePage --> CreateTab1['Tab: General Info']
+    CreatePage --> CreateTab2['Tab: Line Items']
+    CreatePage --> CreateTab3['Tab: Delivery Details']
+    CreatePage --> CreateTab4['Tab: Financial']
 
     %% Create Page Dialogs
-    CreatePage -.-> CreateDialog1["Dialog: Item Selection"]
-    CreatePage -.-> CreateDialog2["Dialog: Product Search"]
-    CreatePage -.-> CreateDialog3["Dialog: Inventory Panel"]
-    CreatePage -.-> CreateDialog4["Dialog: Template Selection"]
-    CreatePage -.-> CreateDialog5["Dialog: Draft Saved"]
-    CreatePage -.-> CreateDialog6["Dialog: Cancel Confirm"]
-    CreatePage -.-> CreateDialog7["Dialog: Validation Error"]
-    CreatePage -.-> CreateDialog8["Dialog: Budget Check"]
+    CreatePage -.-> CreateDialog1['Dialog: Item Selection']
+    CreatePage -.-> CreateDialog2['Dialog: Product Search']
+    CreatePage -.-> CreateDialog3['Dialog: Inventory Panel']
+    CreatePage -.-> CreateDialog4['Dialog: Template Selection']
+    CreatePage -.-> CreateDialog5['Dialog: Draft Saved']
+    CreatePage -.-> CreateDialog6['Dialog: Cancel Confirm']
+    CreatePage -.-> CreateDialog7['Dialog: Validation Error']
+    CreatePage -.-> CreateDialog8['Dialog: Budget Check']
 
     %% Detail Page Tabs
-    DetailPage --> DetailTab1["Tab: Overview"]
-    DetailPage --> DetailTab2["Tab: Line Items"]
-    DetailPage --> DetailTab3["Tab: Approval Timeline"]
-    DetailPage --> DetailTab4["Tab: Attachments"]
-    DetailPage --> DetailTab5["Tab: Comments"]
-    DetailPage --> DetailTab6["Tab: Activity Log"]
-    DetailPage --> DetailTab7["Tab: Related Documents"]
+    DetailPage --> DetailTab1['Tab: Overview']
+    DetailPage --> DetailTab2['Tab: Line Items']
+    DetailPage --> DetailTab3['Tab: Approval Timeline']
+    DetailPage --> DetailTab4['Tab: Attachments']
+    DetailPage --> DetailTab5['Tab: Comments']
+    DetailPage --> DetailTab6['Tab: Activity Log']
+    DetailPage --> DetailTab7['Tab: Related Documents']
 
     %% Detail Page Dialogs
-    DetailPage -.-> DetailDialog1["Dialog: Approve PR"]
-    DetailPage -.-> DetailDialog2["Dialog: Reject PR"]
-    DetailPage -.-> DetailDialog3["Dialog: Convert to PO"]
-    DetailPage -.-> DetailDialog4["Dialog: Recall PR"]
-    DetailPage -.-> DetailDialog5["Dialog: Cancel PR"]
-    DetailPage -.-> DetailDialog6["Dialog: Add Comment"]
-    DetailPage -.-> DetailDialog7["Dialog: Upload Attachment"]
-    DetailPage -.-> DetailDialog8["Dialog: Print PR"]
-    DetailPage -.-> DetailDialog9["Dialog: Share PR"]
-    DetailPage -.-> DetailDialog10["Dialog: Clone PR"]
+    DetailPage -.-> DetailDialog1['Dialog: Approve PR']
+    DetailPage -.-> DetailDialog2['Dialog: Reject PR']
+    DetailPage -.-> DetailDialog3['Dialog: Convert to PO']
+    DetailPage -.-> DetailDialog4['Dialog: Recall PR']
+    DetailPage -.-> DetailDialog5['Dialog: Cancel PR']
+    DetailPage -.-> DetailDialog6['Dialog: Add Comment']
+    DetailPage -.-> DetailDialog7['Dialog: Upload Attachment']
+    DetailPage -.-> DetailDialog8['Dialog: Print PR']
+    DetailPage -.-> DetailDialog9['Dialog: Share PR']
+    DetailPage -.-> DetailDialog10['Dialog: Clone PR']
 
     %% Edit Page Tabs (Same as Create)
-    EditPage --> EditTab1["Tab: General Info"]
-    EditPage --> EditTab2["Tab: Line Items"]
-    EditPage --> EditTab3["Tab: Delivery Details"]
-    EditPage --> EditTab4["Tab: Financial"]
+    EditPage --> EditTab1['Tab: General Info']
+    EditPage --> EditTab2['Tab: Line Items']
+    EditPage --> EditTab3['Tab: Delivery Details']
+    EditPage --> EditTab4['Tab: Financial']
 
     %% Edit Page Dialogs
-    EditPage -.-> EditDialog1["Dialog: Item Selection"]
-    EditPage -.-> EditDialog2["Dialog: Change Tracking"]
-    EditPage -.-> EditDialog3["Dialog: Cancel Changes"]
-    EditPage -.-> EditDialog4["Dialog: Save Draft"]
+    EditPage -.-> EditDialog1['Dialog: Item Selection']
+    EditPage -.-> EditDialog2['Dialog: Change Tracking']
+    EditPage -.-> EditDialog3['Dialog: Cancel Changes']
+    EditPage -.-> EditDialog4['Dialog: Save Draft']
 
     %% Template Management
-    TemplatePage -.-> TempDialog1["Dialog: Create Template"]
-    TemplatePage -.-> TempDialog2["Dialog: Edit Template"]
-    TemplatePage -.-> TempDialog3["Dialog: Delete Template"]
-    TemplatePage -.-> TempDialog4["Dialog: Apply Template"]
+    TemplatePage -.-> TempDialog1['Dialog: Create Template']
+    TemplatePage -.-> TempDialog2['Dialog: Edit Template']
+    TemplatePage -.-> TempDialog3['Dialog: Delete Template']
+    TemplatePage -.-> TempDialog4['Dialog: Apply Template']
 
     %% Navigation arrows
     ListPage --> DetailPage
@@ -1726,7 +2061,7 @@ graph TD
 
 ```mermaid
 flowchart TD
-    Start([User lands on<br/>PR List Page]) --> ListAction{User Action?}
+    Start([User lands on<br>PR List Page]) --> ListAction{User Action?}
 
     ListAction -->|New PR| CreatePage[Create Page]
     ListAction -->|View PR| DetailPage[Detail Page]
@@ -1878,8 +2213,8 @@ flowchart TD
    - Budget Check succeeds: "Budget available ✓"
    - Clicks "Proceed to Submit"
    - System validates form, saves PR, determines approval route
-   - Success toast appears: "PR-2025-0042 submitted successfully"
-   - Redirects to Detail Page for PR-2025-0042
+   - Success toast appears: "PR-2501-0042 submitted successfully"
+   - Redirects to Detail Page for PR-2501-0042
 8. **Detail Page**:
    - Status badge shows: "In-progress" (yellow)
    - Approval Timeline tab shows: Pending approval from "John Smith (Dept Manager)"
@@ -1912,14 +2247,14 @@ flowchart TD
    - Clicks "Approve" button → Approve PR Dialog opens
 5. **Approve Dialog**:
    - Dialog shows:
-     - PR Number: PR-2025-0042
+     - PR Number: PR-2501-0042
      - Amount: $588.50
      - Approval Level: 1 (Department Manager)
    - Manager enters comment: "Approved for weekly supplies. Standard order."
    - Clicks "Confirm Approval"
 6. **Success**:
    - Dialog closes
-   - Success toast appears: "PR-2025-0042 approved successfully"
+   - Success toast appears: "PR-2501-0042 approved successfully"
    - Detail Page status updates: Badge changes to "Approved" (green)
    - Approval Timeline tab updates: Manager's approval recorded with timestamp
    - Manager clicks "Back to List"
@@ -1936,7 +2271,7 @@ flowchart TD
 **Steps**:
 1. **Start**: Purchasing staff opens PR List Page
 2. **Filter**: Clicks "Approved" tab → Shows all approved PRs
-3. **Select**: Clicks PR-2025-0042 → Opens Detail Page
+3. **Select**: Clicks PR-2501-0042 → Opens Detail Page
 4. **Verify**:
    - Status: "Approved" ✓
    - Approval Timeline: All approvers have approved ✓
@@ -1964,11 +2299,11 @@ flowchart TD
    - System validates budget availability (already encumbered from PR approval)
    - Budget check passes
 8. **Success**:
-   - System creates 3 POs: PO-2025-0088, PO-2025-0089, PO-2025-0090
-   - Links POs to PR-2025-0042
+   - System creates 3 POs: PO-2501-0088, PO-2501-0089, PO-2501-0090
+   - Links POs to PR-2501-0042
    - Updates PR status to "Completed"
-   - Success toast: "Created 3 Purchase Orders from PR-2025-0042"
-   - Redirects to PO Detail Page (PO-2025-0088)
+   - Success toast: "Created 3 Purchase Orders from PR-2501-0042"
+   - Redirects to PO Detail Page (PO-2501-0088)
 9. **Verify**:
    - PO Detail Page shows linked PR
    - User navigates back to PR Detail Page

@@ -3,8 +3,8 @@
 **Module**: Procurement
 **Sub-Module**: Purchase Requests
 **Document Type**: Validations (VAL)
-**Version**: 1.7.0
-**Last Updated**: 2025-12-03
+**Version**: 1.8.0
+**Last Updated**: 2025-12-10
 **Status**: Active
 
 ## Document History
@@ -19,6 +19,9 @@
 | 1.5.0 | 2025-11-28 | Development Team | Added VAL-PR-400 series: Bulk Item Action validations for selection, permissions, and action-specific rules |
 | 1.6.0 | 2025-11-28 | Development Team | Added VAL-PR-500 series: Budget Tab CRUD validations for budget allocation management |
 | 1.7.0 | 2025-12-03 | Development Team | Extended Split capability to Approvers; added VAL-PR-405C (Split Reason), VAL-PR-410 (Approver Split by Approval Status); added role-based field visibility validations |
+| 1.8.0 | 2025-12-10 | Documentation Team | Synced PR number format with BR: changed from PR-YYYY-NNNN to PR-YYMM-NNNN |
+| 1.9.0 | 2025-12-17 | Development Team | Added VAL-PR-600 series: Auto-Pricing & MOQ validations |
+| 2.0.0 | 2025-12-17 | Development Team | Added VAL-PR-650 series: Multi-Currency Display validations |
 
 ---
 
@@ -93,9 +96,9 @@ Per BR-purchase-requests.md, the following are the only valid status values:
 **Database Column**: `purchase_requests.ref_number`
 **Data Type**: VARCHAR(50) / string
 
-**Validation Rule**: Reference number must follow the format PR-YYYY-NNNN where YYYY is the year and NNNN is a 4-digit sequential number (e.g., PR-2025-0042).
+**Validation Rule**: Reference number must follow the format PR-YYMM-NNNN where YY is the 2-digit year, MM is the 2-digit month, and NNNN is a 4-digit sequential number (e.g., PR-2501-0042).
 
-**Rationale**: Provides unique, sequential identification for all purchase requests with year-based organization.
+**Rationale**: Provides unique, sequential identification for all purchase requests with year-month-based organization for better chronological tracking.
 
 **Implementation Requirements**:
 - **Client-Side**: Display field as read-only (auto-generated). Show format example as placeholder.
@@ -103,15 +106,17 @@ Per BR-purchase-requests.md, the following are the only valid status values:
 - **Database**: UNIQUE constraint on ref_number column. Trigger function generates value if not provided.
 
 **Error Code**: VAL-PR-001
-**Error Message**: "Invalid reference number format. Must be PR-YYYY-NNNN"
+**Error Message**: "Invalid reference number format. Must be PR-YYMM-NNNN"
 **User Action**: System auto-generates - no user action required. Error only if manual override attempted.
 
 **Test Cases**:
-- ✅ Valid: PR-2025-0001
-- ✅ Valid: PR-2025-9999
-- ❌ Invalid: PR-25-001 (year must be 4 digits)
-- ❌ Invalid: PR-2025-001 (sequence must be 4 digits)
-- ❌ Invalid: 2025-0001 (missing PR prefix)
+- ✅ Valid: PR-2501-0001 (January 2025)
+- ✅ Valid: PR-2512-9999 (December 2025)
+- ✅ Valid: PR-2506-0042 (June 2025)
+- ❌ Invalid: PR-2501-0001 (4-digit year instead of YYMM)
+- ❌ Invalid: PR-25-0001 (missing month digits)
+- ❌ Invalid: PR-2501-01 (sequence must be 4 digits)
+- ❌ Invalid: 2501-0001 (missing PR prefix)
 
 ---
 
@@ -1054,16 +1059,16 @@ effective_discount =
 
 **User Action**: Select valid active currency from dropdown.
 
-**Role Restrictions**: Only Purchasing Staff, Purchaser, and Procurement Manager can modify currency.
+**Role Restrictions**: Requestor, Purchasing Staff, Purchaser, and Procurement Manager can modify currency. Requestors can select currency during PR creation.
 
 **Test Cases**:
 - ✅ Valid: "USD" (active currency)
 - ✅ Valid: "EUR" (active currency)
 - ✅ Valid: "THB" (active currency)
+- ✅ Valid: Requestor selects currency during PR creation
 - ❌ Invalid: "US" (not 3 letters)
 - ❌ Invalid: "XYZ" (not valid ISO code)
 - ❌ Invalid: "ABC" where ABC is inactive → Inactive error
-- ❌ Invalid: Requestor attempts to change currency → Permission denied
 
 ---
 
@@ -2139,7 +2144,7 @@ All validation rules must have test coverage for:
 - PR created with status "In-progress"
 - Approval records created
 - Success message shown
-- PR reference number assigned (e.g., PR-2025-0042)
+- PR reference number assigned (e.g., PR-2501-0042)
 
 ---
 
@@ -2797,7 +2802,348 @@ availableBudget = totalBudget - softCommitmentDeptHead - softCommitmentPO - hard
 
 ---
 
-## 9. Validation Matrix Summary
+## 9. Auto-Pricing & MOQ Validations (VAL-PR-600 to 649)
+
+This section defines validation rules for the Auto-Pricing system and Minimum Order Quantity (MOQ) handling.
+
+### VAL-PR-600: MOQ Base Unit Conversion
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: MOQ validation must convert both requested quantity and vendor MOQ to base inventory unit before comparison.
+
+**Business Justification**: Ensures accurate MOQ validation regardless of the unit used on the purchase request vs vendor pricelist.
+
+**Validation Logic**:
+- **Client-Side**: Calculate `requestedInBaseUnit = quantity × conversionToBase`
+- **Server-Side**: Fetch MOQ from vendor pricelist, convert to base unit using unit conversion factors
+- **Comparison**: `meetsRequirement = requestedInBaseUnit >= moqInBaseUnit`
+
+**Error Code**: VAL-PR-600
+**Error Message**: "MOQ comparison requires base unit conversion"
+**User Action**: System performs automatic conversion; no user action required.
+
+**Test Cases**:
+- ✅ Valid: Request 15 KG, MOQ 10 bags @ 1kg/bag → 15 >= 10 → Passes
+- ✅ Valid: Request 8 KG, MOQ 20 units @ 500g/unit → 8 >= 10 → Warning
+- ❌ Invalid: Compare quantities without unit conversion
+
+---
+
+### VAL-PR-601: MOQ Severity Level Display
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: MOQ warnings must display appropriate severity levels based on fulfillment percentage.
+
+**Business Justification**: Provides clear visual feedback to procurement staff about MOQ compliance status.
+
+**Validation Logic**:
+- **Calculation**: `fillRate = (requestedInBaseUnit / moqInBaseUnit) × 100`
+- **Severity Assignment**:
+  - INFO (≥90%): Close to meeting MOQ, minor adjustment needed
+  - WARNING (50-90%): Significant shortfall, consider consolidation
+  - ERROR (<50%): Major shortfall, vendor may reject order
+
+**Error Codes**:
+- VAL-PR-601A: `info` - Fill rate ≥90%
+- VAL-PR-601B: `warning` - Fill rate 50-90%
+- VAL-PR-601C: `error` - Fill rate <50%
+
+**Error Messages**:
+- INFO: "Quantity is close to MOQ ({fillRate}%)"
+- WARNING: "Quantity below MOQ - consider increasing to {moq} {unit}"
+- ERROR: "Quantity significantly below MOQ ({fillRate}%) - vendor may reject"
+
+**Test Cases**:
+- ✅ Valid: 95% fill rate → INFO badge displayed
+- ✅ Valid: 70% fill rate → WARNING badge displayed
+- ✅ Valid: 40% fill rate → ERROR badge displayed
+
+---
+
+### VAL-PR-602: Price Normalization Validation
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: All vendor prices must be normalized to price-per-base-unit for accurate comparison.
+
+**Business Justification**: Enables fair comparison across vendors selling in different units.
+
+**Validation Logic**:
+- **Formula**: `pricePerBaseUnit = unitPrice / conversionToBase`
+- **Client-Side**: Display normalized prices in comparison panel
+- **Server-Side**: Calculate normalized prices using unit conversion service
+
+**Error Code**: VAL-PR-602
+**Error Message**: "Unable to normalize price - unit conversion factor missing"
+**User Action**: Contact administrator to configure unit conversion for this product.
+
+**Test Cases**:
+- ✅ Valid: $28/bag (1kg/bag) → $28/KG normalized
+- ✅ Valid: $16/bag (500g/bag) → $32/KG normalized
+- ✅ Valid: $130/box (5kg/box) → $26/KG normalized
+- ❌ Invalid: Display raw prices without normalization in comparison
+
+---
+
+### VAL-PR-603: Vendor Scoring Algorithm Validation
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: Vendor recommendations must use weighted scoring algorithm with defined weights.
+
+**Business Justification**: Ensures consistent, auditable vendor selection across all PRs.
+
+**Validation Logic**:
+- **Scoring Weights**:
+  - Preferred Item Match: 35%
+  - Preferred Vendor: 25%
+  - Normalized Price: 25%
+  - Vendor Rating: 10%
+  - Lead Time: 5%
+- **Final Score**: Sum of weighted factors (0-100)
+
+**Error Code**: VAL-PR-603
+**Error Message**: "Vendor scoring failed - one or more scoring factors unavailable"
+**User Action**: System handles gracefully with partial scoring; review vendor selection manually.
+
+**Test Cases**:
+- ✅ Valid: All factors available → Full score calculated
+- ✅ Valid: Rating unavailable → Score from remaining factors
+- ✅ Valid: Preferred item match → +35 bonus to score
+
+---
+
+### VAL-PR-604: Auto-Pricing Cache Validation
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: Pricing cache must expire after 5 minutes (300,000ms) TTL.
+
+**Business Justification**: Balances performance with price accuracy; prevents stale pricing.
+
+**Validation Logic**:
+- **Client-Side**: Track cache timestamps, refetch when TTL exceeded
+- **Server-Side**: Validate cache entry age before returning cached data
+- **TTL**: 5 minutes (configurable)
+
+**Error Code**: VAL-PR-604
+**Error Message**: "Pricing data refreshed - prices may have changed"
+**User Action**: Review updated pricing options.
+
+**Test Cases**:
+- ✅ Valid: Cache age < 5 min → Return cached data
+- ✅ Valid: Cache age >= 5 min → Fetch fresh data
+- ✅ Valid: Cache miss → Fetch from API
+
+---
+
+### VAL-PR-605: Override Reason Required
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: When user overrides auto-recommended vendor, a reason must be recorded.
+
+**Business Justification**: Maintains audit trail for vendor selection decisions.
+
+**Validation Logic**:
+- **Client-Side**: Display reason input when override detected
+- **Server-Side**: Record override with reason, timestamp, and user ID
+- **Database**: Store in PR item audit trail
+
+**Error Code**: VAL-PR-605
+**Error Message**: "Please provide a reason for overriding the recommended vendor"
+**User Action**: Enter reason for selecting non-recommended vendor.
+
+**Test Cases**:
+- ✅ Valid: Override with reason "Vendor B has faster delivery"
+- ❌ Invalid: Override without reason → Validation error
+- ✅ Valid: Accept recommendation → No reason required
+
+---
+
+### VAL-PR-606: Auto-Pricing Role Access
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: Auto-pricing features must respect role-based access control.
+
+**Business Justification**: Ensures only authorized roles can view pricing and select vendors.
+
+**Validation Logic**:
+| Role | View Prices | View Comparison | Select Vendor | Override |
+|------|-------------|-----------------|---------------|----------|
+| Requestor | ❌ | ❌ | ❌ | ❌ |
+| Approver | ✅ (read-only) | ✅ (read-only) | ❌ | ❌ |
+| Purchasing Staff | ✅ | ✅ | ✅ | ✅ |
+
+**Error Code**: VAL-PR-606
+**Error Message**: "You do not have permission to modify vendor selection"
+**User Action**: Contact purchasing staff for vendor changes.
+
+**Test Cases**:
+- ✅ Valid: Purchasing Staff changes vendor → Allowed
+- ❌ Invalid: Requestor accesses price comparison → Hidden
+- ✅ Valid: Approver views prices → Read-only display
+
+---
+
+### 9.1 Auto-Pricing Validation Summary
+
+| Code | Rule Name | Type | Client | Server | Priority | Status |
+|------|-----------|------|--------|--------|----------|--------|
+| VAL-PR-600 | MOQ Base Unit Conversion | Calculation | ✅ | ✅ | Critical | 🔧 |
+| VAL-PR-601 | MOQ Severity Display | UX | ✅ | ⚠️ | High | 🔧 |
+| VAL-PR-602 | Price Normalization | Calculation | ✅ | ✅ | Critical | 🔧 |
+| VAL-PR-603 | Vendor Scoring | Business | ✅ | ✅ | High | 🔧 |
+| VAL-PR-604 | Pricing Cache TTL | Performance | ✅ | ✅ | Medium | 🔧 |
+| VAL-PR-605 | Override Reason | Audit | ✅ | ✅ | High | 🔧 |
+| VAL-PR-606 | Role Access Control | Security | ✅ | ✅ | Critical | 🔧 |
+
+---
+
+## 10. Multi-Currency Display Validations (VAL-PR-650 to 699)
+
+This section defines validation rules for multi-currency display and exchange rate handling.
+
+### VAL-PR-650: Dual Currency Display
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: When transaction currency differs from base currency, both amounts must be displayed.
+
+**Business Justification**: Provides complete financial visibility for multi-currency operations.
+
+**Validation Logic**:
+- **Condition**: `showDualCurrency = transactionCurrency !== baseCurrency`
+- **Display Format**: "THB 1,250.00 (USD 35.00)"
+- **Client-Side**: Conditionally render both currency amounts
+- **Server-Side**: Always return both amounts in API response
+
+**Error Code**: VAL-PR-650
+**Error Message**: N/A (display logic, not error condition)
+**User Action**: None required.
+
+**Test Cases**:
+- ✅ Valid: Transaction THB, Base USD → Show "THB 1,250 (USD 35)"
+- ✅ Valid: Transaction USD, Base USD → Show "USD 35" only
+- ✅ Valid: Base currency amount in green text for emphasis
+
+---
+
+### VAL-PR-651: Exchange Rate Precision
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: Exchange rates must maintain 6 decimal places for accuracy.
+
+**Business Justification**: Prevents rounding errors in currency conversion calculations.
+
+**Validation Logic**:
+- **Precision**: 6 decimal places
+- **Client-Side**: Display rates with appropriate precision
+- **Server-Side**: Store and calculate with full precision
+- **Display**: Round to 4 decimals for display, maintain 6 for calculations
+
+**Error Code**: VAL-PR-651
+**Error Message**: "Invalid exchange rate precision"
+**User Action**: Exchange rate automatically formatted to correct precision.
+
+**Test Cases**:
+- ✅ Valid: Rate 35.125678 → Stored with full precision
+- ✅ Valid: Display "35.1257" → Rounded for readability
+- ❌ Invalid: Rate 35.12 → Missing precision for accurate conversion
+
+---
+
+### VAL-PR-652: Currency Conversion Calculation
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: Currency conversion must follow standard formula with base currency.
+
+**Business Justification**: Ensures consistent financial calculations across all modules.
+
+**Validation Logic**:
+- **Formula**: `convertedAmount = originalAmount × exchangeRate`
+- **Inverse**: `baseAmount = transactionAmount / exchangeRate`
+- **Rounding**: Round to 2 decimals for display, maintain precision in calculations
+
+**Error Code**: VAL-PR-652
+**Error Message**: "Currency conversion error - please verify exchange rate"
+**User Action**: Check exchange rate is current and correct.
+
+**Test Cases**:
+- ✅ Valid: THB 1,000 × 0.0286 = USD 28.60
+- ✅ Valid: USD 100 / 0.0286 = THB 3,496.50
+- ❌ Invalid: Division by zero when rate is 0
+
+---
+
+### VAL-PR-653: Base Currency Emphasis
+
+**Implementation Status**: 🔧 Partial
+
+**Rule Description**: Base currency amounts must be visually emphasized with green text color.
+
+**Business Justification**: Helps users quickly identify reporting currency amounts.
+
+**Validation Logic**:
+- **Client-Side**: Apply `text-green-700` class to base currency amounts
+- **Format**: Display in parentheses after transaction currency
+- **Accessibility**: Ensure sufficient color contrast (WCAG AA)
+
+**Error Code**: VAL-PR-653
+**Error Message**: N/A (styling rule, not validation error)
+**User Action**: None required.
+
+**Test Cases**:
+- ✅ Valid: Base currency (USD) displayed in green
+- ✅ Valid: Transaction currency displays in standard color
+- ✅ Valid: Color contrast meets accessibility standards
+
+---
+
+### VAL-PR-654: Currency Code Format
+
+**Implementation Status**: ✅ Implemented
+
+**Rule Description**: Currency codes must be valid ISO 4217 3-letter codes.
+
+**Business Justification**: Ensures standardized currency identification across systems.
+
+**Validation Logic**:
+- **Pattern**: Exactly 3 uppercase letters (A-Z)
+- **Supported Currencies**: USD, EUR, GBP, CAD, AUD, JPY, CNY, CHF, SGD, HKD, NZD, MXN, BRL, INR, THB
+- **Client-Side**: Dropdown selection prevents invalid codes
+- **Server-Side**: Validate against supported currency list
+
+**Error Code**: VAL-PR-654
+**Error Message**: "Invalid currency code. Please select a supported currency."
+**User Action**: Select currency from dropdown list.
+
+**Test Cases**:
+- ✅ Valid: "USD", "EUR", "THB" → Accepted
+- ❌ Invalid: "usd" (lowercase) → Error
+- ❌ Invalid: "DOLLAR" → Error (not ISO code)
+- ❌ Invalid: "XYZ" → Error (not supported)
+
+---
+
+### 10.1 Multi-Currency Validation Summary
+
+| Code | Rule Name | Type | Client | Server | Priority | Status |
+|------|-----------|------|--------|--------|----------|--------|
+| VAL-PR-650 | Dual Currency Display | UX | ✅ | ✅ | High | 🔧 |
+| VAL-PR-651 | Exchange Rate Precision | Data | ✅ | ✅ | High | 🔧 |
+| VAL-PR-652 | Conversion Calculation | Calculation | ✅ | ✅ | Critical | 🔧 |
+| VAL-PR-653 | Base Currency Emphasis | UX | ✅ | ⚠️ | Medium | 🔧 |
+| VAL-PR-654 | Currency Code Format | Field | ✅ | ✅ | High | ✅ |
+
+---
+
+## 11. Validation Matrix Summary
 
 | Code | Rule Name | Fields | Type | Client | Server | DB | Priority |
 |------|-----------|--------|------|--------|--------|----|----------|
@@ -2849,7 +3195,7 @@ availableBudget = totalBudget - softCommitmentDeptHead - softCommitmentPO - hard
 
 ---
 
-## 9. Implementation Summary
+## 12. Implementation Summary
 
 | Category | Total | ✅ | 🔧 | 🚧 | ⏳ |
 |----------|-------|----|----|----|-----|
@@ -2857,23 +3203,30 @@ availableBudget = totalBudget - softCommitmentDeptHead - softCommitmentPO - hard
 | Business Rules (101-199) | 8 | 0 | 2 | 6 | 0 |
 | Cross-Field Validations (201-299) | 3 | 0 | 2 | 1 | 0 |
 | Security Validations (301-399) | 7 | 0 | 1 | 6 | 0 |
-| **Total** | **41** | **0** | **26** | **15** | **0** |
+| Bulk Item Actions (400-499) | 10 | 0 | 10 | 0 | 0 |
+| Budget Tab CRUD (500-599) | 9 | 0 | 9 | 0 | 0 |
+| Auto-Pricing & MOQ (600-649) | 7 | 0 | 7 | 0 | 0 |
+| Multi-Currency Display (650-699) | 5 | 1 | 4 | 0 | 0 |
+| **Total** | **72** | **1** | **56** | **15** | **0** |
 
 **Implementation Notes**:
 - All field validations have client-side Zod schemas implemented
 - Server-side validation pending backend API development
 - Database constraints pending schema implementation
 - Security validations require authentication system integration
+- Auto-Pricing validations support MOQ handling and vendor scoring algorithm
+- Multi-Currency validations ensure dual currency display and exchange rate precision
 
 ---
 
-## 10. Related Documents
+## 13. Related Documents
 
 - **Business Requirements**: [BR-purchase-requests.md](./BR-purchase-requests.md)
 - **Use Cases**: [UC-purchase-requests.md](./UC-purchase-requests.md)
 - **Technical Specification**: [TS-purchase-requests.md](./TS-purchase-requests.md)
-- **Data Definition**: [DS-purchase-requests.md](./DS-purchase-requests.md)
+- **Data Definition**: [DD-purchase-requests.md](./DD-purchase-requests.md)
 - **Flow Diagrams**: [FD-purchase-requests.md](./FD-purchase-requests.md)
+- **Auto-Pricing Process**: [PR-AUTO-PRICING-PROCESS.md](./PR-AUTO-PRICING-PROCESS.md)
 
 ---
 
