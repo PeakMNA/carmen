@@ -59,6 +59,10 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
+import { Truck, Package, ShoppingCart } from 'lucide-react'
+import { mockStoreRequisitions } from '@/lib/mock-data/store-requisitions'
+import { GeneratedDocumentType, GeneratedDocumentReference } from '@/lib/types/store-requisition'
 
 interface Requisition {
   date: string
@@ -72,6 +76,7 @@ interface Requisition {
   workflowStage?: string
   totalAmount: number
   currency: string
+  generatedDocuments?: GeneratedDocumentReference[]
 }
 
 interface FilterCondition {
@@ -290,6 +295,71 @@ const getWorkflowStageStyle = (stage: string) => {
   }
 }
 
+// Helper function to get document type icon
+const getDocumentTypeIcon = (type: GeneratedDocumentType) => {
+  switch (type) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return <Truck className="h-3 w-3" />
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return <Package className="h-3 w-3" />
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return <ShoppingCart className="h-3 w-3" />
+    default:
+      return <FileText className="h-3 w-3" />
+  }
+}
+
+// Helper function to get document type badge color
+const getDocumentTypeBadgeClass = (type: GeneratedDocumentType): string => {
+  switch (type) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return 'bg-purple-50 text-purple-700 border-purple-200 hover:bg-purple-100'
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return 'bg-orange-50 text-orange-700 border-orange-200 hover:bg-orange-100'
+    default:
+      return 'bg-gray-50 text-gray-700 border-gray-200'
+  }
+}
+
+// Helper function to get document link path
+const getDocumentLinkPath = (doc: GeneratedDocumentReference): string => {
+  switch (doc.documentType) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return `/store-operations/stock-transfers/${doc.documentId}`
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return `/store-operations/stock-issues/${doc.documentId}`
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return `/procurement/purchase-requests/${doc.documentId}`
+    default:
+      return '#'
+  }
+}
+
+// Helper function to render generated documents badges
+const renderGeneratedDocuments = (documents: GeneratedDocumentReference[] | undefined) => {
+  if (!documents || documents.length === 0) {
+    return <span className="text-xs text-muted-foreground">—</span>
+  }
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {documents.map((doc) => (
+        <Link key={doc.id} href={getDocumentLinkPath(doc)}>
+          <Badge
+            variant="outline"
+            className={`gap-1 cursor-pointer text-xs ${getDocumentTypeBadgeClass(doc.documentType)}`}
+          >
+            {getDocumentTypeIcon(doc.documentType)}
+            {doc.refNo}
+          </Badge>
+        </Link>
+      ))}
+    </div>
+  )
+}
+
 export function StoreRequisitionListComponent() {
   const router = useRouter()
   const [statusFilter, setStatusFilter] = useState('all')
@@ -301,25 +371,46 @@ export function StoreRequisitionListComponent() {
   const [filters, setFilters] = useState<FilterCondition[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
 
-  // Sample data - would come from API in real implementation
-  // Transaction Code Format: SR-YYMM-NNNN (e.g., SR-2410-001 = Store Requisition #001, October 2024)
-  const requisitions: Requisition[] = [
-    { date: '2024-01-15', refNo: 'SR-2410-001', requestTo: 'M01', toLocation: 'Central Kitchen', storeName: 'Main Store', description: 'Monthly supplies request', requestedBy: 'Chef Maria Rodriguez', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 566.25, currency: 'BHT' },
-    { date: '2024-01-14', refNo: 'SR-2410-002', requestTo: 'B01', toLocation: 'Front Bar', storeName: 'Branch Store 1', description: 'Emergency stock replenishment', requestedBy: 'Bar Manager Tom', status: 'Complete', workflowStage: 'Complete', totalAmount: 1038.44, currency: 'BHT' },
-    { date: '2024-01-13', refNo: 'SR-2410-003', requestTo: 'M02', toLocation: 'Banquet Hall', storeName: 'Main Store', description: 'Draft Requisition', requestedBy: 'John Doe', status: 'Draft', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-12', refNo: 'SR-2410-004', requestTo: 'B02', toLocation: 'Coffee Station', storeName: 'Branch Store 2', description: 'Quarterly inventory update', requestedBy: 'Sarah Chen', status: 'In Process', workflowStage: 'Submission', totalAmount: 453.00, currency: 'BHT' },
-    { date: '2024-01-11', refNo: 'SR-2410-005', requestTo: 'M01', toLocation: 'Admin Office', storeName: 'Main Store', description: 'Office supplies restock', requestedBy: 'Admin Staff', status: 'Complete', workflowStage: 'Complete', totalAmount: 679.50, currency: 'BHT' },
-    { date: '2024-01-10', refNo: 'SR-2410-006', requestTo: 'B03', toLocation: 'Maintenance Room', storeName: 'Branch Store 3', description: 'Emergency equipment request', requestedBy: 'Mike Johnson', status: 'Reject', workflowStage: 'Rejected at HOD', totalAmount: 566.25, currency: 'BHT' },
-    { date: '2024-01-09', refNo: 'SR-2410-007', requestTo: 'M02', toLocation: 'IT Department', storeName: 'Main Store', description: 'IT department supplies', requestedBy: 'IT Support', status: 'In Process', workflowStage: 'HOD Approval', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-08', refNo: 'SR-2410-008', requestTo: 'B01', toLocation: 'Storage Area', storeName: 'Branch Store 1', description: 'Seasonal inventory preparation', requestedBy: 'Warehouse Staff', status: 'Draft', totalAmount: 415.25, currency: 'BHT' },
-    { date: '2024-01-07', refNo: 'SR-2410-009', requestTo: 'M01', toLocation: 'Workshop', storeName: 'Main Store', description: 'Maintenance tools request', requestedBy: 'Maintenance Team', status: 'Complete', workflowStage: 'Complete', totalAmount: 490.75, currency: 'BHT' },
-    { date: '2024-01-06', refNo: 'SR-2410-010', requestTo: 'B02', toLocation: 'Staff Lounge', storeName: 'Branch Store 2', description: 'Staff uniform order', requestedBy: 'HR Department', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 453.00, currency: 'BHT' },
-    { date: '2024-01-05', refNo: 'SR-2410-011', requestTo: 'M02', toLocation: 'Marketing Dept', storeName: 'Main Store', description: 'Marketing materials request', requestedBy: 'Marketing Team', status: 'Void', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-04', refNo: 'SR-2410-012', requestTo: 'B03', toLocation: 'Security Office', storeName: 'Branch Store 3', description: 'Safety equipment restock', requestedBy: 'Security Chief', status: 'Complete', workflowStage: 'Complete', totalAmount: 528.50, currency: 'BHT' },
-    { date: '2024-01-03', refNo: 'SR-2410-013', requestTo: 'M01', toLocation: 'Housekeeping', storeName: 'Main Store', description: 'Cleaning supplies order', requestedBy: 'Housekeeping Lead', status: 'In Process', workflowStage: 'Submission', totalAmount: 415.25, currency: 'BHT' },
-    { date: '2024-01-02', refNo: 'SR-2410-014', requestTo: 'B01', toLocation: 'R&D Lab', storeName: 'Branch Store 1', description: 'New product samples request', requestedBy: 'R&D Manager', status: 'Draft', totalAmount: 377.50, currency: 'BHT' },
-    { date: '2024-01-01', refNo: 'SR-2410-015', requestTo: 'M02', toLocation: 'Warehouse', storeName: 'Main Store', description: 'Year-end inventory count supplies', requestedBy: 'Warehouse Manager', status: 'Complete', workflowStage: 'Complete', totalAmount: 604.00, currency: 'BHT' },
+  // Convert mock data to display format with generated documents
+  // Combines local sample data with mock store requisitions that have generated documents
+  const statusMap: Record<string, 'In Process' | 'Complete' | 'Reject' | 'Void' | 'Draft'> = {
+    'draft': 'Draft',
+    'submitted': 'In Process',
+    'approved': 'In Process',
+    'processing': 'In Process',
+    'processed': 'In Process',
+    'partial_complete': 'In Process',
+    'completed': 'Complete',
+    'rejected': 'Reject',
+    'cancelled': 'Void'
+  }
+
+  // Map mock data to requisitions format
+  const mockRequisitions: Requisition[] = mockStoreRequisitions.map(sr => ({
+    date: sr.requestDate.toISOString().split('T')[0],
+    refNo: sr.refNo,
+    requestTo: sr.sourceLocationCode,
+    toLocation: sr.destinationLocationName,
+    storeName: sr.sourceLocationName,
+    description: sr.description || `${sr.workflowType} requisition`,
+    requestedBy: sr.requestedBy,
+    status: statusMap[sr.status] || 'Draft',
+    workflowStage: sr.status === 'completed' ? 'Complete' : sr.status === 'submitted' ? 'Submission' : undefined,
+    totalAmount: sr.estimatedValue.amount,
+    currency: sr.estimatedValue.currency,
+    generatedDocuments: sr.generatedDocuments
+  }))
+
+  // Sample data (without generated documents) + mock data (with generated documents)
+  const localRequisitions: Requisition[] = [
+    { date: '2024-01-15', refNo: 'SR-2410-008', requestTo: 'M01', toLocation: 'Central Kitchen', storeName: 'Main Store', description: 'Monthly supplies request', requestedBy: 'Chef Maria Rodriguez', status: 'In Process', workflowStage: 'Store Manager Approval', totalAmount: 566.25, currency: 'BHT' },
+    { date: '2024-01-14', refNo: 'SR-2410-009', requestTo: 'B01', toLocation: 'Front Bar', storeName: 'Branch Store 1', description: 'Emergency stock replenishment', requestedBy: 'Bar Manager Tom', status: 'Draft', totalAmount: 1038.44, currency: 'BHT' },
+    { date: '2024-01-10', refNo: 'SR-2410-010', requestTo: 'B03', toLocation: 'Maintenance Room', storeName: 'Branch Store 3', description: 'Emergency equipment request', requestedBy: 'Mike Johnson', status: 'Reject', workflowStage: 'Rejected at HOD', totalAmount: 566.25, currency: 'BHT' },
   ]
+
+  // Combine and sort by date (newest first)
+  const requisitions: Requisition[] = [...mockRequisitions, ...localRequisitions]
+    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
   const itemsPerPage = 10
   const totalPages = Math.ceil(requisitions.length / itemsPerPage)
@@ -465,6 +556,14 @@ export function StoreRequisitionListComponent() {
                   </div>
                 </div>
               </div>
+
+              {/* Generated Documents */}
+              {req.generatedDocuments && req.generatedDocuments.length > 0 && (
+                <div>
+                  <div className="font-medium text-muted-foreground text-xs mb-2">Generated Documents</div>
+                  {renderGeneratedDocuments(req.generatedDocuments)}
+                </div>
+              )}
             </div>
           </CardContent>
           <CardFooter className="p-3 sm:p-4 pt-3 bg-muted/20 border-t">
@@ -628,6 +727,7 @@ export function StoreRequisitionListComponent() {
                     <TableHead scope="col" className="min-w-[60px]">Currency</TableHead>
                     <TableHead scope="col" className="min-w-[100px]">Status</TableHead>
                     <TableHead scope="col" className="min-w-[120px]">Workflow Stage</TableHead>
+                    <TableHead scope="col" className="min-w-[150px]">Generated Docs</TableHead>
                     <TableHead scope="col" className="w-[50px]">
                       <span className="sr-only">Actions</span>
                     </TableHead>
@@ -678,6 +778,9 @@ export function StoreRequisitionListComponent() {
                         ) : (
                           <span className="text-sm text-muted-foreground">-</span>
                         )}
+                      </TableCell>
+                      <TableCell>
+                        {renderGeneratedDocuments(req.generatedDocuments)}
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>

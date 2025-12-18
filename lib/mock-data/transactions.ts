@@ -68,9 +68,11 @@ const reasons: Record<TransactionType, string[]> = {
 }
 
 // Reference types by transaction type
+// Updated to use new document architecture: ST (Stock Transfer), SI (Stock Issue)
+// Note: PO doesn't generate transactions - only GRN does when goods are received
 const referenceTypesByTransaction: Record<TransactionType, ReferenceType[]> = {
-  'IN': ['GRN', 'TRF', 'PO', 'PC', 'ADJ'],
-  'OUT': ['SO', 'TRF', 'SR', 'WO', 'WR', 'ADJ', 'PC']
+  'IN': ['GRN', 'ST', 'PC', 'ADJ'],
+  'OUT': ['SO', 'ST', 'SI', 'WO', 'WR', 'ADJ', 'PC']
 }
 
 // Helper function to generate a date string within a range
@@ -84,6 +86,15 @@ const getRandomDate = (daysBack: number = 30) => {
     dateString: date.toISOString().split('T')[0],
     timeString: date.toTimeString().split(' ')[0].substring(0, 5)
   }
+}
+
+// Generate reference number in standard format: PREFIX-YYMM-NNNN
+const generateReferenceNumber = (referenceType: ReferenceType, dateString: string, index: number): string => {
+  const date = new Date(dateString)
+  const year = date.getFullYear().toString().slice(-2)
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const sequence = String(index % 10000).padStart(4, '0')
+  return `${referenceType}-${year}${month}-${sequence}`
 }
 
 // Generate a single random transaction
@@ -125,7 +136,7 @@ const generateRandomTransaction = (index: number): TransactionRecord => {
     id: `txn-${String(index).padStart(5, '0')}`,
     date: dateString,
     time: timeString,
-    reference: `${referenceType}-${Math.floor(10000 + Math.random() * 90000)}`,
+    reference: generateReferenceNumber(referenceType, dateString, index),
     referenceType,
     locationId: location.id,
     locationName: location.name,
@@ -254,15 +265,14 @@ const calculateAnalytics = (records: TransactionRecord[]): TransactionAnalytics 
     ...data
   }))
 
-  // By reference type
-  const refTypeLabels: Record<ReferenceType, string> = {
+  // By reference type (only types that generate inventory transactions)
+  const refTypeLabels: Partial<Record<ReferenceType, string>> = {
     'GRN': 'Goods Received',
     'SO': 'Sales Order',
     'ADJ': 'Adjustment',
-    'TRF': 'Transfer',
-    'PO': 'Purchase Order',
+    'ST': 'Stock Transfer',
+    'SI': 'Stock Issue',
     'WO': 'Write Off',
-    'SR': 'Store Requisition',
     'PC': 'Physical Count',
     'WR': 'Wastage Report'
   }
@@ -277,7 +287,7 @@ const calculateAnalytics = (records: TransactionRecord[]): TransactionAnalytics 
 
   const byReferenceType = Array.from(refTypeMap.entries()).map(([referenceType, data]) => ({
     referenceType,
-    label: refTypeLabels[referenceType],
+    label: refTypeLabels[referenceType] || referenceType,
     ...data
   }))
 
@@ -402,8 +412,9 @@ export const getAvailableCategories = () => {
   return Array.from(uniqueCategories.entries()).map(([id, name]) => ({ id, name }))
 }
 
-// Export all reference types
-export const getAllReferenceTypes = (): ReferenceType[] => ['GRN', 'SO', 'ADJ', 'TRF', 'PO', 'WO', 'SR', 'PC', 'WR']
+// Export reference types that generate inventory transactions
+// Note: PO, SR, PR don't directly generate transactions - they trigger other documents (GRN, ST, SI)
+export const getAllReferenceTypes = (): ReferenceType[] => ['GRN', 'SO', 'ADJ', 'ST', 'SI', 'WO', 'PC', 'WR']
 
 // Export all transaction types
 export const getAllTransactionTypes = (): TransactionType[] => ['IN', 'OUT']

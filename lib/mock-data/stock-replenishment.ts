@@ -1,15 +1,11 @@
 /**
  * Stock Replenishment Mock Data
  *
- * Mock data for stock replenishment module, including items below par level,
- * transfer requests (transfers), and helper functions.
+ * Mock data for stock replenishment module, including items below par level
+ * and helper functions for PAR-level calculations.
  *
- * Transaction Code Format: TRF-YYMM-NNNN
- * - TRF: Transfer prefix (used for all stock transfers/replenishments)
- * - YY: Two-digit year (e.g., 24 for 2024)
- * - MM: Two-digit month (e.g., 10 for October)
- * - NNNN: Sequential number (e.g., 001, 002, etc.)
- * Example: TRF-2410-001 = Transfer #001 from October 2024
+ * Note: Stock Replenishment now creates Store Requisitions (SR) directly.
+ * See lib/mock-data/store-requisitions.ts for SR mock data.
  */
 
 import { mockProductLocationAssignments, mockInventoryLocations } from './inventory-locations'
@@ -18,8 +14,6 @@ import { InventoryLocationType } from '../types/location-management'
 // ====== TYPES ======
 
 export type TransferUrgency = 'critical' | 'warning' | 'low'
-export type TransferStatus = 'draft' | 'pending' | 'approved' | 'in_transit' | 'completed' | 'rejected'
-export type TransferPriority = 'standard' | 'urgent' | 'emergency'
 
 export interface TransferItem {
   id: string
@@ -40,54 +34,6 @@ export interface TransferItem {
   sourceLocationId?: string
   sourceLocationName?: string
   sourceAvailable?: number
-}
-
-export interface TransferRequest {
-  id: string
-  requestNumber: string
-  status: TransferStatus
-  priority: TransferPriority
-  // Requestor info
-  requestorId: string
-  requestorName: string
-  departmentId: string
-  departmentName: string
-  requestDate: string
-  requiredByDate?: string
-  // Locations
-  fromLocationId: string
-  fromLocationName: string
-  toLocationId: string
-  toLocationName: string
-  // Items
-  items: TransferRequestItem[]
-  // Totals
-  totalItems: number
-  totalQuantity: number
-  estimatedValue: number
-  // Notes
-  notes?: string
-  // Audit
-  createdAt: string
-  createdBy: string
-  approvedAt?: string
-  approvedBy?: string
-}
-
-export interface TransferRequestItem {
-  id: string
-  productId: string
-  productCode: string
-  productName: string
-  categoryName: string
-  unit: string
-  currentStock: number
-  parLevel: number
-  recommendedQty: number
-  requestedQty: number
-  sourceAvailable: number
-  unitCost: number
-  totalCost: number
 }
 
 // ====== HELPER FUNCTIONS ======
@@ -220,143 +166,6 @@ export function enrichItemsWithSourceAvailability(
   }))
 }
 
-// ====== MOCK REPLENISHMENT REQUESTS ======
-// Transaction codes use format: TRF-YYMM-NNNN (e.g., TRF-2410-001 = October 2024, Request #001)
-
-export const mockTransferRequests: TransferRequest[] = [
-  {
-    id: 'rep-001',
-    requestNumber: 'TRF-2410-001', // Transfer #001, October 2024
-    status: 'completed',
-    priority: 'standard',
-    requestorId: 'user-chef-001',
-    requestorName: 'Chef Maria Rodriguez',
-    departmentId: 'dept-003',
-    departmentName: 'Kitchen',
-    requestDate: '2024-10-15',
-    requiredByDate: '2024-10-17',
-    fromLocationId: 'loc-004',
-    fromLocationName: 'Main Warehouse',
-    toLocationId: 'loc-003',
-    toLocationName: 'Central Kitchen',
-    items: [
-      {
-        id: 'rep-001-item-001',
-        productId: 'prod-001',
-        productCode: 'RICE-JAS-01',
-        productName: 'Jasmine Rice Premium',
-        categoryName: 'Rice & Grains',
-        unit: 'kg',
-        currentStock: 40,
-        parLevel: 100,
-        recommendedQty: 60,
-        requestedQty: 50,
-        sourceAvailable: 650,
-        unitCost: 2.50,
-        totalCost: 125.00
-      }
-    ],
-    totalItems: 1,
-    totalQuantity: 50,
-    estimatedValue: 125.00,
-    notes: 'Regular weekly replenishment',
-    createdAt: '2024-10-15T09:30:00Z',
-    createdBy: 'user-chef-001',
-    approvedAt: '2024-10-15T10:00:00Z',
-    approvedBy: 'user-warehouse-001'
-  },
-  {
-    id: 'rep-002',
-    requestNumber: 'TRF-2410-002',
-    status: 'pending',
-    priority: 'urgent',
-    requestorId: 'user-chef-001',
-    requestorName: 'Chef Maria Rodriguez',
-    departmentId: 'dept-003',
-    departmentName: 'Kitchen',
-    requestDate: '2024-10-20',
-    requiredByDate: '2024-10-21',
-    fromLocationId: 'loc-004',
-    fromLocationName: 'Main Warehouse',
-    toLocationId: 'loc-003',
-    toLocationName: 'Central Kitchen',
-    items: [
-      {
-        id: 'rep-002-item-001',
-        productId: 'prod-002',
-        productCode: 'CHKN-BRST-01',
-        productName: 'Chicken Breast Fresh',
-        categoryName: 'Poultry',
-        unit: 'kg',
-        currentStock: 15,
-        parLevel: 50,
-        recommendedQty: 35,
-        requestedQty: 35,
-        sourceAvailable: 120,
-        unitCost: 8.50,
-        totalCost: 297.50
-      },
-      {
-        id: 'rep-002-item-002',
-        productId: 'prod-003',
-        productCode: 'BEEF-TND-01',
-        productName: 'Beef Tenderloin',
-        categoryName: 'Beef',
-        unit: 'kg',
-        currentStock: 5,
-        parLevel: 25,
-        recommendedQty: 20,
-        requestedQty: 20,
-        sourceAvailable: 80,
-        unitCost: 32.00,
-        totalCost: 640.00
-      }
-    ],
-    totalItems: 2,
-    totalQuantity: 55,
-    estimatedValue: 937.50,
-    notes: 'Urgent - Low stock on proteins for weekend banquet',
-    createdAt: '2024-10-20T14:00:00Z',
-    createdBy: 'user-chef-001'
-  },
-  {
-    id: 'rep-003',
-    requestNumber: 'TRF-2410-003',
-    status: 'draft',
-    priority: 'standard',
-    requestorId: 'user-bar-001',
-    requestorName: 'James Wilson',
-    departmentId: 'dept-fnb',
-    departmentName: 'Food & Beverage',
-    requestDate: '2024-10-21',
-    fromLocationId: 'loc-004',
-    fromLocationName: 'Main Warehouse',
-    toLocationId: 'loc-003',
-    toLocationName: 'Restaurant Bar Direct',
-    items: [
-      {
-        id: 'rep-003-item-001',
-        productId: 'prod-010',
-        productCode: 'WINE-RED-01',
-        productName: 'House Red Wine',
-        categoryName: 'Beverages',
-        unit: 'bottle',
-        currentStock: 4,
-        parLevel: 12,
-        recommendedQty: 8,
-        requestedQty: 8,
-        sourceAvailable: 48,
-        unitCost: 18.00,
-        totalCost: 144.00
-      }
-    ],
-    totalItems: 1,
-    totalQuantity: 8,
-    estimatedValue: 144.00,
-    createdAt: '2024-10-21T08:00:00Z',
-    createdBy: 'user-bar-001'
-  }
-]
 
 /**
  * Get items below par level for multiple locations, grouped by location
@@ -414,50 +223,20 @@ export function getItemsBelowParLevelByLocations(locationIds: string[]): {
 }
 
 /**
- * Get transfer requests for a location
+ * Get replenishment summary for a location (PAR-level based)
  */
-export function getTransferRequestsByLocation(toLocationId: string): TransferRequest[] {
-  return mockTransferRequests.filter(req => req.toLocationId === toLocationId)
-}
-
-/**
- * Get transfer requests by status
- */
-export function getTransferRequestsByStatus(status: TransferStatus): TransferRequest[] {
-  return mockTransferRequests.filter(req => req.status === status)
-}
-
-/**
- * Get all transfer requests
- */
-export function getAllTransferRequests(): TransferRequest[] {
-  return mockTransferRequests
-}
-
-/**
- * Get replenishment summary for a location
- */
-export function getTransferSummary(locationId: string): {
+export function getReplenishmentSummary(locationId: string): {
   totalItemsBelowPar: number
   criticalCount: number
   warningCount: number
   lowCount: number
-  pendingRequests: number
-  lastTransferDate: string | null
 } {
   const grouped = getItemsBelowParLevelGrouped(locationId)
-  const requests = getTransferRequestsByLocation(locationId)
-  const pendingRequests = requests.filter(r => r.status === 'pending' || r.status === 'approved' || r.status === 'in_transit')
-  const completedRequests = requests.filter(r => r.status === 'completed').sort((a, b) =>
-    new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-  )
 
   return {
     totalItemsBelowPar: grouped.critical.length + grouped.warning.length + grouped.low.length,
     criticalCount: grouped.critical.length,
     warningCount: grouped.warning.length,
-    lowCount: grouped.low.length,
-    pendingRequests: pendingRequests.length,
-    lastTransferDate: completedRequests[0]?.createdAt || null
+    lowCount: grouped.low.length
   }
 }

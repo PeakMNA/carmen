@@ -289,6 +289,9 @@ export * from './transaction-category'
 // Wastage report types (store operations)
 export * from './wastage'
 
+// Store Requisition, Stock Transfer, Stock Issue types
+export * from './store-requisition'
+
 // Unit conversion and PR auto-pricing types
 export * from './unit-conversion'
 

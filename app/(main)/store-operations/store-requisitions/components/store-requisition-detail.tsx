@@ -39,6 +39,7 @@ import {
   Building2,
   Store,
   FileText,
+  ShoppingCart,
   Tags,
   Hash,
   ListTodo,
@@ -75,6 +76,7 @@ import {
   getLocationTypeLabel,
 } from '@/lib/utils/location-type-helpers'
 import { LocationTypeBadge, LocationTypeAlert } from '@/components/location-type-badge'
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { Separator } from '@/components/ui/separator'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
@@ -89,7 +91,9 @@ import {
 import { Input } from '@/components/ui/input'
 import { ApprovalLogDialog } from './approval-log-dialog'
 import { JournalEntriesTab } from './tabs/journal-entries-tab'
+import { GeneratedDocumentsTab } from './tabs/generated-documents-tab'
 import { ApprovalWorkflow } from './approval-workflow'
+import { GeneratedDocumentReference, GeneratedDocumentType } from '@/lib/types/store-requisition'
 import { formatNumber, formatCurrency } from '@/lib/utils/formatters'
 import {
   Popover,
@@ -161,6 +165,70 @@ function getLocationTypeIcon(locationType: string) {
       return <DollarSign className="h-4 w-4" />
     case InventoryLocationType.CONSIGNMENT:
       return <Truck className="h-4 w-4" />
+  }
+}
+
+/**
+ * Get icon for document type
+ */
+function getDocumentTypeIcon(type: GeneratedDocumentType) {
+  switch (type) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return <Truck className="h-4 w-4" />
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return <Package className="h-4 w-4" />
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return <ShoppingCart className="h-4 w-4" />
+    default:
+      return <FileText className="h-4 w-4" />
+  }
+}
+
+/**
+ * Get badge styling for document type
+ */
+function getDocumentTypeBadgeStyle(type: GeneratedDocumentType): { bg: string; text: string; border: string } {
+  switch (type) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' }
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' }
+    default:
+      return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
+  }
+}
+
+/**
+ * Get document type label
+ */
+function getDocumentTypeLabel(type: GeneratedDocumentType): string {
+  switch (type) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return 'Stock Transfer'
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return 'Stock Issue'
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return 'Purchase Request'
+    default:
+      return 'Document'
+  }
+}
+
+/**
+ * Get link path for document type
+ */
+function getDocumentLinkPath(doc: GeneratedDocumentReference): string {
+  switch (doc.documentType) {
+    case GeneratedDocumentType.STOCK_TRANSFER:
+      return `/store-operations/stock-transfers/${doc.documentId}`
+    case GeneratedDocumentType.STOCK_ISSUE:
+      return `/store-operations/stock-issues/${doc.documentId}`
+    case GeneratedDocumentType.PURCHASE_REQUEST:
+      return `/procurement/purchase-requests/${doc.documentId}`
+    default:
+      return '#'
   }
 }
 
@@ -259,6 +327,8 @@ const mockRequisition: {
   process: string
   status: string
   items: RequisitionItem[]
+  generatedDocuments: GeneratedDocumentReference[]
+  sourceReplenishmentIds?: string[]
 } & Record<string, any> = {
   refNo: 'SR-2410-001',
   date: '2024-01-15',
@@ -507,6 +577,32 @@ const mockRequisition: {
       log: 'Store requisition created'
     }
   ],
+  generatedDocuments: [
+    {
+      id: 'gd-001',
+      documentType: GeneratedDocumentType.STOCK_TRANSFER,
+      documentId: 'st-001',
+      refNo: 'ST-2410-001',
+      status: 'completed',
+      lineItemIds: ['item-1', 'item-2', 'item-3'],
+      totalQuantity: 25,
+      totalValue: { amount: 2500.00, currency: 'USD' },
+      createdAt: new Date('2024-01-16')
+    },
+    {
+      id: 'gd-002',
+      documentType: GeneratedDocumentType.PURCHASE_REQUEST,
+      documentId: 'pr-001',
+      refNo: 'PR-2410-015',
+      status: 'pending',
+      lineItemIds: ['item-4'],
+      totalQuantity: 5,
+      totalValue: { amount: 600.00, currency: 'USD' },
+      createdAt: new Date('2024-01-16')
+    }
+  ],
+  // Source replenishment suggestions that triggered this SR
+  sourceReplenishmentIds: ['rep-004', 'rep-005'],
   approvalSteps: [
     {
       id: 'submission',
@@ -1500,31 +1596,70 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
         </div>
 
         <Separator className="my-4" />
+
+        {/* Generated Documents Section */}
+        {mockRequisition.generatedDocuments && mockRequisition.generatedDocuments.length > 0 && (
+          <div className="px-4 pb-4">
+            <Card className="border-slate-200 bg-slate-50/50">
+              <CardContent className="py-3">
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <FileText className="h-4 w-4" />
+                    <span>Generated Documents</span>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {mockRequisition.generatedDocuments.map((doc) => {
+                      const style = getDocumentTypeBadgeStyle(doc.documentType)
+                      return (
+                        <Link key={doc.id} href={getDocumentLinkPath(doc)}>
+                          <div className={`inline-flex items-center gap-2 px-3 py-2 rounded-md border ${style.bg} ${style.text} ${style.border} hover:opacity-80 transition-opacity cursor-pointer`}>
+                            {getDocumentTypeIcon(doc.documentType)}
+                            <div className="flex flex-col">
+                              <span className="text-sm font-medium">{doc.refNo}</span>
+                              <span className="text-xs opacity-75">{getDocumentTypeLabel(doc.documentType)}</span>
+                            </div>
+                            <StatusBadge status={doc.status === 'completed' ? 'Complete' : doc.status === 'pending' ? 'In Process' : 'Draft'} />
+                          </div>
+                        </Link>
+                      )
+                    })}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
         </CardHeader>
 
         <Tabs defaultValue="items" className="w-full">
           <CardHeader className="pb-0 pt-4 px-4">
-            <TabsList className="w-full grid grid-cols-4">
-              <TabsTrigger 
-                value="items" 
+            <TabsList className="w-full grid grid-cols-5">
+              <TabsTrigger
+                value="items"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 Items
               </TabsTrigger>
-              <TabsTrigger 
-                value="stock-movements" 
+              <TabsTrigger
+                value="stock-movements"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 Stock
               </TabsTrigger>
-              <TabsTrigger 
-                value="journal-entries" 
+              <TabsTrigger
+                value="journal-entries"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 Journal
               </TabsTrigger>
-              <TabsTrigger 
-                value="approval-workflow" 
+              <TabsTrigger
+                value="generated-documents"
+                className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
+              >
+                Documents
+              </TabsTrigger>
+              <TabsTrigger
+                value="approval-workflow"
                 className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground"
               >
                 Approval
@@ -2482,11 +2617,20 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
           </TabsContent>
 
           <TabsContent value="journal-entries" className="mt-0">
-            <JournalEntriesTab 
+            <JournalEntriesTab
               refNo={mockRequisition.refNo}
               date={mockRequisition.date}
               department={mockRequisition.department}
               description={mockRequisition.description}
+            />
+          </TabsContent>
+
+          <TabsContent value="generated-documents" className="mt-0">
+            <GeneratedDocumentsTab
+              requisitionId={mockRequisition.refNo}
+              refNo={mockRequisition.refNo}
+              generatedDocuments={mockRequisition.generatedDocuments}
+              status={mockRequisition.status}
             />
           </TabsContent>
 

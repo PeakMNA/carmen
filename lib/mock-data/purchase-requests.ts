@@ -613,5 +613,260 @@ export const samplePRItems: MockPurchaseRequestItem[] = [
   },
 ];
 
-export const mockPurchaseRequests: MockPurchaseRequest[] = [samplePRData];
-export const mockPurchaseRequestItems: MockPurchaseRequestItem[] = samplePRItems;
+// ====== SR-GENERATED PURCHASE REQUESTS ======
+// These PRs were generated from Store Requisitions when stock was insufficient
+
+/**
+ * PR-2412-015: Generated from SR-2412-002 (partial fulfillment)
+ * 30kg Organic Tomatoes shortage - stock had 20kg, needed 50kg
+ */
+export const prFromSR002: MockPurchaseRequest = {
+  id: 'pr-015',
+  refNumber: 'PR-2412-015',
+  requestNumber: 'PR-2412-015',
+  requestDate: new Date('2024-12-05'),
+  requiredDate: new Date('2024-12-08'),
+  requestType: 'General',
+  priority: 'normal',
+  justification: 'Stock shortage from Store Requisition SR-2412-002 - partial stock transfer completed, PR for remaining quantity',
+  requestedBy: 'user-chef-001',
+  departmentId: 'dept-003',
+  locationId: 'loc-003',
+  totalItems: 1,
+  estimatedTotal: { amount: 97.50, currency: 'USD' },
+  workflowStages: [],
+  requestor: {
+    name: 'Chef Maria Rodriguez',
+    department: 'Food & Beverage'
+  },
+  status: PRStatus.InProgress,
+  currentWorkflowStage: WorkflowStage.departmentHeadApproval,
+  location: 'Central Kitchen',
+  department: 'Food & Beverage',
+  currency: 'USD',
+  baseCurrencyCode: 'USD',
+  baseSubTotalPrice: 97.50,
+  subTotalPrice: 97.50,
+  baseNetAmount: 97.50,
+  netAmount: 97.50,
+  baseDiscAmount: 0,
+  discountAmount: 0,
+  baseTaxAmount: 0,
+  taxAmount: 0,
+  baseTotalAmount: 97.50,
+  totalAmount: 97.50,
+  // Source requisition tracking
+  sourceRequisitionId: 'sr-002',
+  sourceRequisitionRefNo: 'SR-2412-002',
+  sourceRequisitionItemIds: ['sri-002-01'],
+}
+
+export const prFromSR002Items: MockPurchaseRequestItem[] = [
+  {
+    id: 'PR-2412-015-01',
+    requestId: 'pr-015',
+    itemName: 'Organic Tomatoes',
+    location: 'Central Kitchen',
+    name: 'Organic Tomatoes',
+    description: 'Fresh organic tomatoes - shortage from store requisition',
+    unit: 'kg',
+    requestedQuantity: 30,
+    quantityRequested: 30,
+    quantityApproved: 0,
+    deliveryLocationId: 'loc-003',
+    requiredDate: new Date('2024-12-08'),
+    priority: 'normal' as const,
+    convertedToPO: false,
+    inventoryInfo: {
+      onHand: 20,
+      onOrdered: 0,
+      lastPrice: 3.00,
+      lastOrderDate: new Date('2024-11-20'),
+      lastVendor: 'Fresh Farm Produce',
+      reorderLevel: 15,
+      restockLevel: 50,
+      averageMonthlyUsage: 80,
+      inventoryUnit: 'kg',
+    },
+    currency: 'USD',
+    price: 3.25,
+    totalAmount: 97.50,
+    status: PRStatus.InProgress,
+    taxRate: 0,
+    taxAmount: 0,
+    discountRate: 0,
+    discountAmount: 0,
+    netAmount: 97.50,
+    deliveryDate: new Date('2024-12-08'),
+    deliveryPoint: 'Central Kitchen Storage',
+    createdDate: new Date('2024-12-05'),
+    updatedDate: new Date('2024-12-05'),
+    createdBy: 'System',
+    updatedBy: 'System',
+    itemCategory: 'Food & Beverage',
+    itemSubcategory: 'Fresh Vegetables',
+    vendor: 'Fresh Farm Produce',
+    comment: 'Generated from SR-2412-002 - stock shortage (had 20kg, needed 50kg)',
+    adjustments: {
+      discount: false,
+      tax: false,
+    },
+    taxIncluded: false,
+    currencyRate: 1,
+    foc: false,
+    accountCode: 'FB-VEG-001',
+  }
+]
+
+/**
+ * PR-2412-016: Generated from SR-2412-007 (zero stock - full PR)
+ * 100g Black Truffle - no stock available, full PR generation
+ */
+export const prFromSR007: MockPurchaseRequest = {
+  id: 'pr-016',
+  refNumber: 'PR-2412-016',
+  requestNumber: 'PR-2412-016',
+  requestDate: new Date('2024-12-17'),
+  requiredDate: new Date('2024-12-22'),
+  requestType: 'General',
+  priority: 'normal',
+  justification: 'Zero stock - Store Requisition SR-2412-007 requires full purchase',
+  requestedBy: 'user-chef-001',
+  departmentId: 'dept-003',
+  locationId: 'loc-003',
+  totalItems: 1,
+  estimatedTotal: { amount: 500.00, currency: 'USD' },
+  workflowStages: [],
+  requestor: {
+    name: 'Chef Maria Rodriguez',
+    department: 'Food & Beverage'
+  },
+  status: PRStatus.InProgress,
+  currentWorkflowStage: WorkflowStage.departmentHeadApproval,
+  location: 'Central Kitchen',
+  department: 'Food & Beverage',
+  currency: 'USD',
+  baseCurrencyCode: 'USD',
+  baseSubTotalPrice: 500.00,
+  subTotalPrice: 500.00,
+  baseNetAmount: 500.00,
+  netAmount: 500.00,
+  baseDiscAmount: 0,
+  discountAmount: 0,
+  baseTaxAmount: 0,
+  taxAmount: 0,
+  baseTotalAmount: 500.00,
+  totalAmount: 500.00,
+  // Source requisition tracking
+  sourceRequisitionId: 'sr-007',
+  sourceRequisitionRefNo: 'SR-2412-007',
+  sourceRequisitionItemIds: ['sri-007-01'],
+}
+
+export const prFromSR007Items: MockPurchaseRequestItem[] = [
+  {
+    id: 'PR-2412-016-01',
+    requestId: 'pr-016',
+    itemName: 'Black Truffle',
+    location: 'Central Kitchen',
+    name: 'Black Truffle',
+    description: 'Premium black truffle for holiday menu - specialty item',
+    unit: 'g',
+    requestedQuantity: 100,
+    quantityRequested: 100,
+    quantityApproved: 0,
+    deliveryLocationId: 'loc-003',
+    requiredDate: new Date('2024-12-22'),
+    priority: 'normal' as const,
+    convertedToPO: false,
+    inventoryInfo: {
+      onHand: 0,
+      onOrdered: 0,
+      lastPrice: 4.80,
+      lastOrderDate: new Date('2024-10-15'),
+      lastVendor: 'Gourmet Specialty Foods',
+      reorderLevel: 25,
+      restockLevel: 100,
+      averageMonthlyUsage: 50,
+      inventoryUnit: 'g',
+    },
+    currency: 'USD',
+    price: 5.00,
+    totalAmount: 500.00,
+    status: PRStatus.InProgress,
+    taxRate: 0,
+    taxAmount: 0,
+    discountRate: 0,
+    discountAmount: 0,
+    netAmount: 500.00,
+    deliveryDate: new Date('2024-12-22'),
+    deliveryPoint: 'Central Kitchen Cold Storage',
+    createdDate: new Date('2024-12-17'),
+    updatedDate: new Date('2024-12-17'),
+    createdBy: 'System',
+    updatedBy: 'System',
+    itemCategory: 'Food & Beverage',
+    itemSubcategory: 'Specialty Items',
+    vendor: 'Gourmet Specialty Foods',
+    comment: 'Generated from SR-2412-007 - zero stock, full PR for specialty item',
+    adjustments: {
+      discount: false,
+      tax: false,
+    },
+    taxIncluded: false,
+    currencyRate: 1,
+    foc: false,
+    accountCode: 'FB-SPE-001',
+  }
+]
+
+// ====== COMBINED EXPORTS ======
+
+export const mockPurchaseRequests: MockPurchaseRequest[] = [
+  samplePRData,
+  prFromSR002,
+  prFromSR007
+];
+
+export const mockPurchaseRequestItems: MockPurchaseRequestItem[] = [
+  ...samplePRItems,
+  ...prFromSR002Items,
+  ...prFromSR007Items
+];
+
+// ====== HELPER FUNCTIONS ======
+
+/**
+ * Get purchase request by ID
+ */
+export function getPurchaseRequestById(id: string): MockPurchaseRequest | undefined {
+  return mockPurchaseRequests.find(pr => pr.id === id)
+}
+
+/**
+ * Get purchase request by reference number
+ */
+export function getPurchaseRequestByRefNo(refNo: string): MockPurchaseRequest | undefined {
+  return mockPurchaseRequests.find(pr => pr.refNumber === refNo)
+}
+
+/**
+ * Get purchase requests generated from a specific store requisition
+ */
+export function getPurchaseRequestsBySourceRequisition(srId: string): MockPurchaseRequest[] {
+  return mockPurchaseRequests.filter(pr => pr.sourceRequisitionId === srId)
+}
+
+/**
+ * Get all purchase requests that were generated from store requisitions
+ */
+export function getSRGeneratedPurchaseRequests(): MockPurchaseRequest[] {
+  return mockPurchaseRequests.filter(pr => pr.sourceRequisitionId !== undefined)
+}
+
+/**
+ * Get purchase request items for a specific request
+ */
+export function getPurchaseRequestItems(requestId: string): MockPurchaseRequestItem[] {
+  return mockPurchaseRequestItems.filter(item => item.requestId === requestId)
+}

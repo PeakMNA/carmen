@@ -43,6 +43,9 @@ export {
 // Re-export Menu Engineering module
 export * from './menu-engineering-index'
 
+// Re-export Store Operations services
+export * from './store-operations'
+
 // Type definitions for service configuration
 export interface ServiceConfig {
   cache?: {

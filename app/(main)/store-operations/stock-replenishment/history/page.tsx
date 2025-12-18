@@ -61,10 +61,11 @@ import {
   Legend,
 } from 'recharts'
 
-// Mock data for transfer history
+// Mock data for requisition/transfer history
+// Note: These are Store Requisitions (SR) that generated Stock Transfers (ST)
 const transferHistoryData = [
   {
-    id: 'TR-2410-0089',
+    id: 'SR-2410-0089',
     fromLocation: 'Central Store',
     toLocation: 'Main Kitchen',
     requestedBy: 'John Smith',
@@ -77,7 +78,7 @@ const transferHistoryData = [
     deliveryTime: '4.5 hours',
   },
   {
-    id: 'TR-2410-0088',
+    id: 'SR-2410-0088',
     fromLocation: 'Central Store',
     toLocation: 'Pool Bar',
     requestedBy: 'Maria Garcia',
@@ -90,7 +91,7 @@ const transferHistoryData = [
     deliveryTime: '2.3 hours',
   },
   {
-    id: 'TR-2410-0087',
+    id: 'SR-2410-0087',
     fromLocation: 'Central Store',
     toLocation: 'Rooftop Restaurant',
     requestedBy: 'James Wilson',
@@ -103,7 +104,7 @@ const transferHistoryData = [
     deliveryTime: '6.2 hours',
   },
   {
-    id: 'TR-2410-0086',
+    id: 'SR-2410-0086',
     fromLocation: 'Central Store',
     toLocation: 'Lobby Café',
     requestedBy: 'Emma Brown',
@@ -116,7 +117,7 @@ const transferHistoryData = [
     deliveryTime: '1.8 hours',
   },
   {
-    id: 'TR-2410-0085',
+    id: 'SR-2410-0085',
     fromLocation: 'Central Store',
     toLocation: 'Banquet Hall',
     requestedBy: 'Robert Johnson',
@@ -129,7 +130,7 @@ const transferHistoryData = [
     rejectionReason: 'Insufficient stock in central store',
   },
   {
-    id: 'TR-2410-0084',
+    id: 'SR-2410-0084',
     fromLocation: 'Central Store',
     toLocation: 'Main Kitchen',
     requestedBy: 'John Smith',
@@ -142,7 +143,7 @@ const transferHistoryData = [
     deliveryTime: '3.1 hours',
   },
   {
-    id: 'TR-2410-0083',
+    id: 'SR-2410-0083',
     fromLocation: 'Central Store',
     toLocation: 'Pool Bar',
     requestedBy: 'Maria Garcia',
@@ -155,7 +156,7 @@ const transferHistoryData = [
     deliveryTime: '2.0 hours',
   },
   {
-    id: 'TR-2410-0082',
+    id: 'SR-2410-0082',
     fromLocation: 'Central Store',
     toLocation: 'Rooftop Restaurant',
     requestedBy: 'James Wilson',
@@ -168,7 +169,7 @@ const transferHistoryData = [
     deliveryTime: '5.5 hours',
   },
   {
-    id: 'TR-2410-0081',
+    id: 'SR-2410-0081',
     fromLocation: 'Central Store',
     toLocation: 'Lobby Café',
     requestedBy: 'Emma Brown',
@@ -181,7 +182,7 @@ const transferHistoryData = [
     cancellationReason: 'Duplicate request',
   },
   {
-    id: 'TR-2410-0080',
+    id: 'SR-2410-0080',
     fromLocation: 'Central Store',
     toLocation: 'Main Kitchen',
     requestedBy: 'John Smith',
@@ -239,7 +240,7 @@ function getStatusIcon(status: string) {
   }
 }
 
-export default function TransferHistoryPage() {
+export default function RequisitionHistoryPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [locationFilter, setLocationFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -282,10 +283,10 @@ export default function TransferHistoryPage() {
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
             <History className="h-7 w-7 text-green-600" />
-            Transfer History
+            Requisition History
           </h1>
           <p className="text-muted-foreground">
-            View and analyze historical internal stock transfers
+            View and analyze historical store requisitions and stock transfers
           </p>
         </div>
         <div className="flex gap-2">
@@ -483,7 +484,7 @@ export default function TransferHistoryPage() {
       <Card>
         <CardHeader>
           <div className="flex justify-between items-center">
-            <CardTitle>Transfer Records</CardTitle>
+            <CardTitle>Requisition Records</CardTitle>
             <p className="text-sm text-muted-foreground">
               Showing {filteredTransfers.length} of {transferHistoryData.length} records
             </p>
@@ -493,7 +494,7 @@ export default function TransferHistoryPage() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Transfer ID</TableHead>
+                <TableHead>Requisition ID</TableHead>
                 <TableHead>Destination</TableHead>
                 <TableHead>Requested By</TableHead>
                 <TableHead className="text-center">Items</TableHead>
@@ -509,7 +510,7 @@ export default function TransferHistoryPage() {
                 <TableRow key={transfer.id}>
                   <TableCell>
                     <Link
-                      href={`/store-operations/stock-replenishment/requests/${transfer.id}`}
+                      href={`/store-operations/store-requisitions/${transfer.id}`}
                       className="font-medium text-green-600 hover:underline"
                     >
                       {transfer.id}
@@ -558,7 +559,7 @@ export default function TransferHistoryPage() {
                         <DropdownMenuLabel>Actions</DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem asChild>
-                          <Link href={`/store-operations/stock-replenishment/requests/${transfer.id}`}>
+                          <Link href={`/store-operations/store-requisitions/${transfer.id}`}>
                             <Eye className="mr-2 h-4 w-4" />
                             View Details
                           </Link>

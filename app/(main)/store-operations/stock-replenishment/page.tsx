@@ -42,15 +42,17 @@ import {
   RefreshCw,
   CheckCircle2,
   TrendingDown,
-  Filter
+  Filter,
+  ExternalLink
 } from "lucide-react"
 import { useSimpleUser } from "@/lib/context/simple-user-context"
 import {
   getItemsBelowParLevelByLocations,
-  getAllTransferRequests,
+  mockStoreRequisitions,
   mockInventoryLocations,
   type TransferItem
 } from "@/lib/mock-data"
+import { type StoreRequisition, SRWorkflowType } from "@/lib/types/store-requisition"
 import { InventoryLocationType } from "@/lib/types/location-management"
 
 function getUrgencyBadge(urgency: string) {
@@ -71,11 +73,14 @@ function getUrgencyBadge(urgency: string) {
 function getStatusBadge(status: string) {
   const config: Record<string, { variant: "default" | "secondary" | "outline" | "destructive"; label: string }> = {
     draft: { variant: "outline", label: "Draft" },
-    pending: { variant: "secondary", label: "Pending" },
+    submitted: { variant: "secondary", label: "Submitted" },
     approved: { variant: "default", label: "Approved" },
-    in_transit: { variant: "outline", label: "In Transit" },
+    processing: { variant: "secondary", label: "Processing" },
+    processed: { variant: "default", label: "Processed" },
+    partial_complete: { variant: "secondary", label: "Partial" },
     completed: { variant: "outline", label: "Completed" },
-    rejected: { variant: "destructive", label: "Rejected" }
+    rejected: { variant: "destructive", label: "Rejected" },
+    cancelled: { variant: "outline", label: "Cancelled" }
   }
   const { variant, label } = config[status] || { variant: "outline", label: status }
   return <Badge variant={variant}>{label}</Badge>
@@ -140,9 +145,16 @@ export default function StockReplenishmentDashboard() {
     )
   }, [locationGroups])
 
-  // Get recent requests
+  // Get recent store requisitions (prioritize those from Stock Replenishment workflow)
   const recentRequests = useMemo(() => {
-    return getAllTransferRequests().slice(0, 5)
+    // Filter to show Main Store and Transfer Internal workflow types (relevant for replenishment)
+    return mockStoreRequisitions
+      .filter(sr =>
+        sr.workflowType === SRWorkflowType.MAIN_STORE ||
+        sr.workflowType === SRWorkflowType.TRANSFER_INTERNAL
+      )
+      .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
+      .slice(0, 5)
   }, [])
 
   // Filter items within each location group
@@ -270,7 +282,7 @@ export default function StockReplenishmentDashboard() {
           <ArrowLeftRight className="h-4 w-4 text-green-600" />
           <AlertDescription className="text-green-800">
             <strong>PAR LEVEL REPLENISHMENT:</strong> This module shows items across your assigned locations that are below their target (par) stock level.
-            Select items and create a transfer request to restock from another inventory location.
+            Select items and create a store requisition to restock from another inventory location.
           </AlertDescription>
         </Alert>
       )}
@@ -289,14 +301,14 @@ export default function StockReplenishmentDashboard() {
             </CardContent>
           </Card>
         </Link>
-        <Link href="/store-operations/stock-replenishment/requests">
+        <Link href="/store-operations/store-requisitions">
           <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
             <CardContent className="pt-6">
               <div className="flex flex-col items-center text-center gap-2">
                 <div className="p-3 bg-blue-100 rounded-lg">
                   <ClipboardList className="h-6 w-6 text-blue-600" />
                 </div>
-                <span className="font-medium">My Requests</span>
+                <span className="font-medium">My Requisitions</span>
               </div>
             </CardContent>
           </Card>
@@ -649,7 +661,7 @@ export default function StockReplenishmentDashboard() {
               >
                 <Button className="gap-2">
                   <Plus className="h-4 w-4" />
-                  Create Transfer Request
+                  Create Store Requisition
                 </Button>
               </Link>
             </div>
@@ -662,10 +674,10 @@ export default function StockReplenishmentDashboard() {
         <CardHeader>
           <div className="flex justify-between items-center">
             <div>
-              <CardTitle className="text-lg">Recent Transfer Requests</CardTitle>
-              <CardDescription>Your recent requests and their status</CardDescription>
+              <CardTitle className="text-lg">Recent Store Requisitions</CardTitle>
+              <CardDescription>Your recent requisitions and their status</CardDescription>
             </div>
-            <Link href="/store-operations/stock-replenishment/requests">
+            <Link href="/store-operations/store-requisitions">
               <Button variant="outline" size="sm">
                 View All
                 <ChevronRight className="h-4 w-4 ml-1" />
@@ -676,14 +688,14 @@ export default function StockReplenishmentDashboard() {
         <CardContent>
           {recentRequests.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
-              No transfer requests yet
+              No store requisitions yet
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Request #</TableHead>
+                    <TableHead>Requisition #</TableHead>
                     <TableHead>From Location</TableHead>
                     <TableHead>To Location</TableHead>
                     <TableHead className="text-center">Items</TableHead>
@@ -696,21 +708,21 @@ export default function StockReplenishmentDashboard() {
                   {recentRequests.map((request) => (
                     <TableRow key={request.id}>
                       <TableCell>
-                        <div className="font-medium">{request.requestNumber}</div>
+                        <div className="font-medium">{request.refNo}</div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Warehouse className="h-4 w-4 text-muted-foreground" />
-                          {request.fromLocationName}
+                          {request.sourceLocationName}
                         </div>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground" />
-                          {request.toLocationName}
+                          {request.destinationLocationName}
                         </div>
                       </TableCell>
-                      <TableCell className="text-center">{request.totalItems}</TableCell>
+                      <TableCell className="text-center">{request.items.length}</TableCell>
                       <TableCell>
                         <span className="text-sm text-muted-foreground">
                           {new Date(request.requestDate).toLocaleDateString()}
@@ -718,7 +730,7 @@ export default function StockReplenishmentDashboard() {
                       </TableCell>
                       <TableCell>{getStatusBadge(request.status)}</TableCell>
                       <TableCell>
-                        <Link href={`/store-operations/stock-replenishment/requests/${request.id}`}>
+                        <Link href={`/store-operations/store-requisitions/${request.id}`}>
                           <Button variant="ghost" size="sm">
                             Details
                             <ChevronRight className="h-4 w-4 ml-1" />

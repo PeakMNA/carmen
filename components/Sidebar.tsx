@@ -125,6 +125,8 @@ const menuItems: MenuItem[] = [
     subItems: [
       { name: "Store Requisitions", path: "/store-operations/store-requisitions" },
       { name: "Stock Replenishment", path: "/store-operations/stock-replenishment" },
+      { name: "Stock Transfers", path: "/store-operations/stock-transfers" },
+      { name: "Stock Issues", path: "/store-operations/stock-issues" },
       { name: "Wastage Reporting", path: "/store-operations/wastage-reporting" },
     ],
   },

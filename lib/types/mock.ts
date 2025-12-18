@@ -75,6 +75,11 @@ export interface MockPurchaseRequest extends Omit<PurchaseRequest, 'requestor' |
   currentWorkflowStage?: string;
   lastModified?: string;
 
+  // Source requisition tracking (for PRs generated from Store Requisitions)
+  sourceRequisitionId?: string;
+  sourceRequisitionRefNo?: string;
+  sourceRequisitionItemIds?: string[];
+
   // Items and activity
   items?: MockPurchaseRequestItem[];
   comments?: Comment[];

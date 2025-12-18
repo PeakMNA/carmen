@@ -1,6 +1,9 @@
 // Transaction Record Types for Inventory Transactions Page
 
-export type ReferenceType = 'GRN' | 'SO' | 'ADJ' | 'TRF' | 'PO' | 'WO' | 'SR' | 'PC' | 'WR'
+// Document reference types for inventory transactions
+// ST = Stock Transfer, SI = Stock Issue (generated from SR)
+// TRF kept for backward compatibility with legacy transfers
+export type ReferenceType = 'GRN' | 'SO' | 'ADJ' | 'ST' | 'SI' | 'PO' | 'WO' | 'SR' | 'PC' | 'WR' | 'PR'
 export type TransactionType = 'IN' | 'OUT'
 
 export interface TransactionRecord {
@@ -101,12 +104,14 @@ export const referenceTypeConfig: Record<ReferenceType, { label: string; color: 
   'GRN': { label: 'Goods Received Note', color: 'bg-green-100 text-green-800' },
   'SO': { label: 'Sales Order', color: 'bg-blue-100 text-blue-800' },
   'ADJ': { label: 'Adjustment', color: 'bg-amber-100 text-amber-800' },
-  'TRF': { label: 'Transfer', color: 'bg-purple-100 text-purple-800' },
+  'ST': { label: 'Stock Transfer', color: 'bg-purple-100 text-purple-800' },
+  'SI': { label: 'Stock Issue', color: 'bg-violet-100 text-violet-800' },
   'PO': { label: 'Purchase Order', color: 'bg-cyan-100 text-cyan-800' },
   'WO': { label: 'Write Off', color: 'bg-red-100 text-red-800' },
   'SR': { label: 'Store Requisition', color: 'bg-orange-100 text-orange-800' },
   'PC': { label: 'Physical Count', color: 'bg-indigo-100 text-indigo-800' },
-  'WR': { label: 'Wastage Report', color: 'bg-rose-100 text-rose-800' }
+  'WR': { label: 'Wastage Report', color: 'bg-rose-100 text-rose-800' },
+  'PR': { label: 'Purchase Request', color: 'bg-sky-100 text-sky-800' }
 }
 
 // Transaction type labels and colors

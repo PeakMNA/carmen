@@ -2,6 +2,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +17,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   FileIcon,
+  FileText,
   PrinterIcon,
   DownloadIcon,
   HashIcon,
@@ -486,6 +488,30 @@ export default function PRDetailPage({ prId: propPrId }: PRDetailPageProps) {
                 </div>
               </div>
             </CardHeader>
+
+            {/* Source Requisition Reference */}
+            {asMockPurchaseRequest(formData).sourceRequisitionRefNo && (
+              <div className="mx-6 mb-4">
+                <Card className="border-blue-200 bg-blue-50/50">
+                  <CardContent className="py-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <FileText className="h-5 w-5 text-blue-600" />
+                        <div>
+                          <div className="text-sm text-muted-foreground">Source Store Requisition</div>
+                          <div className="font-medium">{asMockPurchaseRequest(formData).sourceRequisitionRefNo}</div>
+                        </div>
+                      </div>
+                      <Link href={`/store-operations/store-requisitions/${asMockPurchaseRequest(formData).sourceRequisitionId}`}>
+                        <Button variant="outline" size="sm">
+                          View Requisition
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
 
             {/* Main Content */}
             <CardContent className="p-6">

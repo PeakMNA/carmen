@@ -367,8 +367,8 @@ Document Type → Workflow Configuration
 
 | Event | Source Location | Destination | Timing |
 |-------|-----------------|-------------|--------|
-| Transfer Issue | -Qty | — | On issue |
-| Transfer Receive | — | +Qty | On receive |
+| ST Status → Issued | -Qty | — | On status change to Issued |
+| ST Status → Received | — | +Qty | On status change to Received |
 | Stock Issue | -Qty | Expense | On issue |
 | PR → PO → GR | — | +Qty | On goods receipt |
 
@@ -378,7 +378,7 @@ Document Type → Workflow Configuration
 IF reservation enabled:
   - On SR Approval: Reserve stock at source
   - On Document Cancel: Release reservation
-  - On Transfer Issue: Convert reservation to movement
+  - On ST Issued: Convert reservation to movement
 ```
 
 ---
@@ -389,14 +389,17 @@ IF reservation enabled:
 
 ```
 StoreRequisition (SR-001)
-  ├── StockTransfer (ST-001)
-  │     ├── TransferIssue (TI-001)
-  │     └── TransferReceive (TR-001)
+  ├── StockTransfer (ST-001) [Status: Draft → Issued → In Transit → Received → Complete]
   ├── StockIssue (SI-001)
   └── PurchaseRequisition (PR-001)
         └── PurchaseOrder (PO-001)
               └── GoodsReceipt (GR-001)
 ```
+
+**Note:** Stock Transfer (ST) uses a status workflow instead of separate Issue/Receive documents.
+- **Issued**: Stock deducted from source location
+- **In Transit**: Stock in transit between locations
+- **Received**: Stock added to destination location
 
 ### 10.2 SR Completion Rules
 
