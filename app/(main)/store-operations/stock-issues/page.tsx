@@ -1,9 +1,50 @@
+/**
+ * Stock Issues List Page
+ *
+ * KEY ARCHITECTURE: Stock Issues are NOT separate documents.
+ * They are FILTERED VIEWS of Store Requisitions at the Issue/Complete stage
+ * with DIRECT type destinations (expense/direct locations).
+ *
+ * Filter Criteria:
+ * - SR stage = 'issue' OR 'complete'
+ * - destinationLocationType = 'DIRECT'
+ *
+ * This is a READ-ONLY view. All actions (approve, issue, complete) are
+ * performed on the underlying Store Requisition, not on this view.
+ *
+ * Key Differences from Stock Transfers:
+ * - Shows DIRECT destinations (expense locations) vs INVENTORY destinations
+ * - Includes Department column (required for expense allocation)
+ * - Purple color scheme vs blue for transfers
+ *
+ * Navigation:
+ * - Row click → navigates to Store Requisition detail page (not a separate SI detail)
+ * - "Go to Store Requisitions" → navigates to SR module for creating new issues
+ *
+ * Data Source:
+ * - Uses getStoreRequisitionsForStockIssue() which filters mockStoreRequisitions
+ * - No separate mockStockIssues data
+ *
+ * Status Display:
+ * - Uses SRStatus (draft, in_progress, completed, cancelled, voided)
+ * - Only in_progress and completed are typically visible in this view
+ *
+ * Summary Cards:
+ * - Total Issues: Count of all filtered SRs
+ * - In Progress: SRs at Issue stage with in_progress status
+ * - Completed: SRs at Complete stage
+ * - Total Value: Sum of estimatedValue from all filtered SRs
+ *
+ * @see docs/app/store-operations/stock-issues/FD-stock-issues.md
+ * @see docs/app/store-operations/stock-issues/DS-stock-issues.md
+ * @see docs/app/store-operations/sr-business-rules.md
+ */
 'use client'
 
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -28,28 +69,31 @@ import {
   ArrowRight,
   Clock,
   CheckCircle2,
-  AlertCircle,
-  XCircle,
   FileText,
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
   DollarSign,
-  Building2
+  Building2,
+  Info
 } from 'lucide-react'
-import { mockStockIssues } from '@/lib/mock-data/store-requisitions'
-import { StockIssue, IssueStatus, ISSUE_STATUS_LABELS } from '@/lib/types/store-requisition'
-import { formatCurrency, formatNumber } from '@/lib/utils/formatters'
+import { getStoreRequisitionsForStockIssue } from '@/lib/mock-data/store-requisitions'
+import { StoreRequisition, SRStatus, SR_STATUS_LABELS } from '@/lib/types/store-requisition'
+import { formatCurrency } from '@/lib/utils/formatters'
 import { cn } from '@/lib/utils'
 
-// Status badge styling
-const getStatusBadgeClass = (status: IssueStatus): string => {
+// Status badge styling for SR status
+const getStatusBadgeClass = (status: SRStatus): string => {
   switch (status) {
-    case IssueStatus.Issued:
+    case SRStatus.InProgress:
+      return 'bg-blue-100 text-blue-800 border-blue-200'
+    case SRStatus.Completed:
       return 'bg-green-100 text-green-800 border-green-200'
-    case IssueStatus.Pending:
+    case SRStatus.Draft:
       return 'bg-gray-100 text-gray-800 border-gray-200'
-    case IssueStatus.Cancelled:
+    case SRStatus.Cancelled:
+      return 'bg-red-100 text-red-800 border-red-200'
+    case SRStatus.Voided:
       return 'bg-red-100 text-red-800 border-red-200'
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200'
@@ -57,54 +101,58 @@ const getStatusBadgeClass = (status: IssueStatus): string => {
 }
 
 // Status icon
-const getStatusIcon = (status: IssueStatus) => {
+const getStatusIcon = (status: SRStatus) => {
   switch (status) {
-    case IssueStatus.Issued:
+    case SRStatus.InProgress:
+      return <Package className="h-4 w-4 text-blue-600" />
+    case SRStatus.Completed:
       return <CheckCircle2 className="h-4 w-4 text-green-600" />
-    case IssueStatus.Pending:
+    case SRStatus.Draft:
       return <Clock className="h-4 w-4 text-gray-600" />
-    case IssueStatus.Cancelled:
-      return <XCircle className="h-4 w-4 text-red-600" />
     default:
-      return <AlertCircle className="h-4 w-4 text-gray-600" />
+      return <Clock className="h-4 w-4 text-gray-600" />
   }
 }
 
-type SortField = 'refNo' | 'issueDate' | 'status' | 'fromLocationName' | 'toLocationName' | 'totalValue'
+type SortField = 'refNo' | 'requestDate' | 'status' | 'sourceLocationName' | 'destinationLocationName' | 'estimatedValue'
 type SortDirection = 'asc' | 'desc'
 
 export default function StockIssuesPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<IssueStatus | 'all'>('all')
-  const [sortField, setSortField] = useState<SortField>('issueDate')
+  const [statusFilter, setStatusFilter] = useState<SRStatus | 'all'>('all')
+  const [sortField, setSortField] = useState<SortField>('requestDate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // Get filtered SRs for Stock Issue view
+  // Stock Issues = SRs at Issue stage with DIRECT destination
+  const stockIssues = useMemo(() => getStoreRequisitionsForStockIssue(), [])
+
   // Filter and sort issues
   const filteredIssues = useMemo(() => {
-    let result = [...mockStockIssues]
+    let result = [...stockIssues]
 
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      result = result.filter(issue =>
-        issue.refNo.toLowerCase().includes(query) ||
-        issue.fromLocationName.toLowerCase().includes(query) ||
-        issue.toLocationName.toLowerCase().includes(query) ||
-        issue.departmentName.toLowerCase().includes(query) ||
-        issue.sourceRequisitionRefNo?.toLowerCase().includes(query)
+      result = result.filter((sr: StoreRequisition) =>
+        sr.refNo.toLowerCase().includes(query) ||
+        sr.sourceLocationName.toLowerCase().includes(query) ||
+        sr.destinationLocationName.toLowerCase().includes(query) ||
+        sr.departmentName.toLowerCase().includes(query) ||
+        sr.requestedBy.toLowerCase().includes(query)
       )
     }
 
     // Status filter
     if (statusFilter !== 'all') {
-      result = result.filter(issue => issue.status === statusFilter)
+      result = result.filter((sr: StoreRequisition) => sr.status === statusFilter)
     }
 
     // Sort
-    result.sort((a, b) => {
+    result.sort((a: StoreRequisition, b: StoreRequisition) => {
       let aValue: string | number | Date
       let bValue: string | number | Date
 
@@ -113,25 +161,25 @@ export default function StockIssuesPage() {
           aValue = a.refNo
           bValue = b.refNo
           break
-        case 'issueDate':
-          aValue = a.issueDate
-          bValue = b.issueDate
+        case 'requestDate':
+          aValue = a.requestDate
+          bValue = b.requestDate
           break
         case 'status':
           aValue = a.status
           bValue = b.status
           break
-        case 'fromLocationName':
-          aValue = a.fromLocationName
-          bValue = b.fromLocationName
+        case 'sourceLocationName':
+          aValue = a.sourceLocationName
+          bValue = b.sourceLocationName
           break
-        case 'toLocationName':
-          aValue = a.toLocationName
-          bValue = b.toLocationName
+        case 'destinationLocationName':
+          aValue = a.destinationLocationName
+          bValue = b.destinationLocationName
           break
-        case 'totalValue':
-          aValue = a.totalValue.amount
-          bValue = b.totalValue.amount
+        case 'estimatedValue':
+          aValue = a.estimatedValue.amount
+          bValue = b.estimatedValue.amount
           break
         default:
           return 0
@@ -143,7 +191,7 @@ export default function StockIssuesPage() {
     })
 
     return result
-  }, [mockStockIssues, searchQuery, statusFilter, sortField, sortDirection])
+  }, [stockIssues, searchQuery, statusFilter, sortField, sortDirection])
 
   // Pagination
   const totalPages = Math.ceil(filteredIssues.length / itemsPerPage)
@@ -154,11 +202,11 @@ export default function StockIssuesPage() {
 
   // Summary stats
   const summary = useMemo(() => ({
-    total: mockStockIssues.length,
-    pending: mockStockIssues.filter(i => i.status === IssueStatus.Pending).length,
-    issued: mockStockIssues.filter(i => i.status === IssueStatus.Issued).length,
-    totalValue: mockStockIssues.reduce((sum, i) => sum + i.totalValue.amount, 0)
-  }), [mockStockIssues])
+    total: stockIssues.length,
+    inProgress: stockIssues.filter((sr: StoreRequisition) => sr.status === SRStatus.InProgress).length,
+    completed: stockIssues.filter((sr: StoreRequisition) => sr.status === SRStatus.Completed).length,
+    totalValue: stockIssues.reduce((sum: number, sr: StoreRequisition) => sum + sr.estimatedValue.amount, 0)
+  }), [stockIssues])
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -180,10 +228,23 @@ export default function StockIssuesPage() {
             Stock Issues
           </h1>
           <p className="text-muted-foreground">
-            Manage direct stock issues to expense locations
+            View stock issues to expense/direct locations
           </p>
         </div>
       </div>
+
+      {/* Info Banner */}
+      <Card className="bg-purple-50 border-purple-200">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-purple-600 mt-0.5" />
+          <div className="text-sm text-purple-800">
+            <p className="font-medium">Stock Issues are Store Requisitions at the Issue stage</p>
+            <p className="mt-1 text-purple-600">
+              This view shows SRs with DIRECT destination locations (expense locations). To create or manage issues, use the Store Requisitions module.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -193,12 +254,12 @@ export default function StockIssuesPage() {
             <div className="text-sm text-muted-foreground">Total Issues</div>
           </CardContent>
         </Card>
-        <Card className="border-gray-200">
+        <Card className="border-blue-200">
           <CardContent className="p-4 flex items-center gap-3">
-            <Clock className="h-8 w-8 text-gray-500" />
+            <Package className="h-8 w-8 text-blue-600" />
             <div>
-              <div className="text-2xl font-bold text-gray-700">{summary.pending}</div>
-              <div className="text-sm text-gray-500">Pending</div>
+              <div className="text-2xl font-bold text-blue-700">{summary.inProgress}</div>
+              <div className="text-sm text-blue-600">In Progress</div>
             </div>
           </CardContent>
         </Card>
@@ -206,14 +267,14 @@ export default function StockIssuesPage() {
           <CardContent className="p-4 flex items-center gap-3">
             <CheckCircle2 className="h-8 w-8 text-green-600" />
             <div>
-              <div className="text-2xl font-bold text-green-700">{summary.issued}</div>
-              <div className="text-sm text-green-600">Issued</div>
+              <div className="text-2xl font-bold text-green-700">{summary.completed}</div>
+              <div className="text-sm text-green-600">Completed</div>
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardContent className="p-4 flex items-center gap-3">
-            <DollarSign className="h-8 w-8 text-blue-600" />
+            <DollarSign className="h-8 w-8 text-purple-600" />
             <div>
               <div className="text-2xl font-bold">{formatCurrency(summary.totalValue)}</div>
               <div className="text-sm text-muted-foreground">Total Value</div>
@@ -235,15 +296,14 @@ export default function StockIssuesPage() {
                 className="pl-9"
               />
             </div>
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as IssueStatus | 'all')}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as SRStatus | 'all')}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {Object.entries(ISSUE_STATUS_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
+                <SelectItem value={SRStatus.InProgress}>In Progress</SelectItem>
+                <SelectItem value={SRStatus.Completed}>Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -262,19 +322,19 @@ export default function StockIssuesPage() {
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('issueDate')}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('requestDate')}>
                   <div className="flex items-center gap-1">
                     Date
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('fromLocationName')}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('sourceLocationName')}>
                   <div className="flex items-center gap-1">
                     From Location
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('toLocationName')}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('destinationLocationName')}>
                   <div className="flex items-center gap-1">
                     To Location
                     <ArrowUpDown className="h-4 w-4" />
@@ -282,7 +342,7 @@ export default function StockIssuesPage() {
                 </TableHead>
                 <TableHead>Department</TableHead>
                 <TableHead className="text-center">Items</TableHead>
-                <TableHead className="text-right cursor-pointer" onClick={() => handleSort('totalValue')}>
+                <TableHead className="text-right cursor-pointer" onClick={() => handleSort('estimatedValue')}>
                   <div className="flex items-center justify-end gap-1">
                     Value
                     <ArrowUpDown className="h-4 w-4" />
@@ -294,77 +354,67 @@ export default function StockIssuesPage() {
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="text-center">Source</TableHead>
+                <TableHead>Requested By</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedIssues.length > 0 ? (
-                paginatedIssues.map((issue) => (
+                paginatedIssues.map((sr: StoreRequisition) => (
                   <TableRow
-                    key={issue.id}
+                    key={sr.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/store-operations/stock-issues/${issue.id}`)}
+                    onClick={() => router.push(`/store-operations/store-requisitions/${sr.id}`)}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4 text-purple-600" />
-                        {issue.refNo}
+                        {sr.refNo}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {issue.issueDate.toLocaleDateString('en-GB')}
+                      {sr.requestDate.toLocaleDateString('en-GB')}
                     </TableCell>
                     <TableCell>
                       <div>
-                        <div className="font-medium">{issue.fromLocationName}</div>
-                        <div className="text-xs text-muted-foreground">{issue.fromLocationCode}</div>
+                        <div className="font-medium">{sr.sourceLocationName}</div>
+                        <div className="text-xs text-muted-foreground">{sr.sourceLocationCode}</div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <ArrowRight className="h-4 w-4 text-gray-400" />
                         <div>
-                          <div className="font-medium">{issue.toLocationName}</div>
-                          <div className="text-xs text-muted-foreground">{issue.toLocationCode}</div>
+                          <div className="font-medium">{sr.destinationLocationName}</div>
+                          <div className="text-xs text-muted-foreground">{sr.destinationLocationCode}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4 text-gray-500" />
-                        <span className="text-sm">{issue.departmentName}</span>
+                        <span className="text-sm">{sr.departmentName}</span>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline">{issue.totalItems}</Badge>
+                      <Badge variant="outline">{sr.totalItems}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {formatCurrency(issue.totalValue.amount)}
+                      {formatCurrency(sr.estimatedValue.amount)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {getStatusIcon(issue.status)}
+                        {getStatusIcon(sr.status)}
                         <Badge
                           variant="outline"
-                          className={cn("border", getStatusBadgeClass(issue.status))}
+                          className={cn("border", getStatusBadgeClass(sr.status))}
                         >
-                          {ISSUE_STATUS_LABELS[issue.status]}
+                          {SR_STATUS_LABELS[sr.status]}
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      {issue.sourceRequisitionRefNo ? (
-                        <Link
-                          href={`/store-operations/store-requisitions/${issue.sourceRequisitionId}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-blue-600 hover:text-blue-700 hover:underline text-sm"
-                        >
-                          <FileText className="h-4 w-4 inline mr-1" />
-                          {issue.sourceRequisitionRefNo}
-                        </Link>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">-</span>
-                      )}
+                    <TableCell>
+                      <div className="text-sm">{sr.requestedBy}</div>
+                      <div className="text-xs text-muted-foreground">{sr.departmentName}</div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -374,8 +424,14 @@ export default function StockIssuesPage() {
                     <Package className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                     <p className="text-gray-500">No stock issues found</p>
                     <p className="text-sm text-gray-400 mt-1">
-                      Adjust your filters or search criteria
+                      Stock issues are created from Store Requisitions with DIRECT destinations
                     </p>
+                    <Link href="/store-operations/store-requisitions">
+                      <Button variant="outline" className="mt-4">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Go to Store Requisitions
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               )}

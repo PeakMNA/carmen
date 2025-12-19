@@ -1,3 +1,16 @@
+/**
+ * Generated Documents Tab Component
+ *
+ * Displays documents generated from a Store Requisition approval.
+ *
+ * SUPPORTED DOCUMENT TYPES:
+ * - Stock Transfer (ST): Moves stock between inventory locations
+ * - Stock Issue (SI): Issues stock to expense/direct locations
+ *
+ * NOTE: Purchase Request (PR) document type was removed from Store Requisitions.
+ * PR generation is now exclusively handled via Stock Replenishment module.
+ * The summary, flow diagram, and document type legend only show ST and SI.
+ */
 'use client'
 
 import React from 'react'
@@ -9,7 +22,6 @@ import {
   ExternalLink,
   Truck,
   Package,
-  ShoppingCart,
   FileText,
   CheckCircle2,
   Clock,
@@ -50,42 +62,39 @@ const getStatusBadgeClass = (status: string): string => {
 }
 
 // Document type icon
+// NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
 const getDocumentIcon = (type: GeneratedDocumentType) => {
   switch (type) {
     case GeneratedDocumentType.STOCK_TRANSFER:
       return <Truck className="h-4 w-4 text-blue-600" />
     case GeneratedDocumentType.STOCK_ISSUE:
       return <Package className="h-4 w-4 text-purple-600" />
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return <ShoppingCart className="h-4 w-4 text-orange-600" />
     default:
       return <FileText className="h-4 w-4 text-gray-600" />
   }
 }
 
 // Document type label
+// NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
 const getDocumentTypeLabel = (type: GeneratedDocumentType): string => {
   switch (type) {
     case GeneratedDocumentType.STOCK_TRANSFER:
       return 'Stock Transfer'
     case GeneratedDocumentType.STOCK_ISSUE:
       return 'Stock Issue'
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return 'Purchase Request'
     default:
       return 'Unknown'
   }
 }
 
 // Document type badge color
+// NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
 const getDocumentTypeBadgeClass = (type: GeneratedDocumentType): string => {
   switch (type) {
     case GeneratedDocumentType.STOCK_TRANSFER:
       return 'bg-blue-50 text-blue-700 border-blue-200'
     case GeneratedDocumentType.STOCK_ISSUE:
       return 'bg-purple-50 text-purple-700 border-purple-200'
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return 'bg-orange-50 text-orange-700 border-orange-200'
     default:
       return 'bg-gray-50 text-gray-700 border-gray-200'
   }
@@ -100,14 +109,12 @@ export function GeneratedDocumentsTab({
   // Group documents by type
   const stockTransfers = generatedDocuments.filter(d => d.documentType === GeneratedDocumentType.STOCK_TRANSFER)
   const stockIssues = generatedDocuments.filter(d => d.documentType === GeneratedDocumentType.STOCK_ISSUE)
-  const purchaseRequests = generatedDocuments.filter(d => d.documentType === GeneratedDocumentType.PURCHASE_REQUEST)
 
   // Calculate summary
   const summary = {
     total: generatedDocuments.length,
     stockTransfers: stockTransfers.length,
     stockIssues: stockIssues.length,
-    purchaseRequests: purchaseRequests.length,
     completed: generatedDocuments.filter(d =>
       ['completed', 'received', 'issued'].includes(d.status.toLowerCase())
     ).length,
@@ -199,15 +206,6 @@ export function GeneratedDocumentsTab({
               <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
                 <Package className="h-3 w-3 mr-1" />
                 {summary.stockIssues} SI
-              </Badge>
-            </>
-          )}
-          {summary.purchaseRequests > 0 && (
-            <>
-              {(summary.stockTransfers > 0 || summary.stockIssues > 0) && <span className="text-gray-400">+</span>}
-              <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                <ShoppingCart className="h-3 w-3 mr-1" />
-                {summary.purchaseRequests} PR
               </Badge>
             </>
           )}
@@ -320,13 +318,6 @@ export function GeneratedDocumentsTab({
             <div>
               <p className="font-medium text-purple-800">Stock Issue (SI)</p>
               <p className="text-gray-500">Issues stock to expense/direct locations</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-2">
-            <ShoppingCart className="h-4 w-4 text-orange-600 mt-0.5" />
-            <div>
-              <p className="font-medium text-orange-800">Purchase Request (PR)</p>
-              <p className="text-gray-500">Requests purchase for unavailable items</p>
             </div>
           </div>
         </div>

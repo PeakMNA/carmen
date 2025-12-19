@@ -1,9 +1,39 @@
 'use client'
 
+/**
+ * Stock Transfers List Page
+ *
+ * KEY ARCHITECTURE: Stock Transfers are NOT separate documents.
+ * They are FILTERED VIEWS of Store Requisitions at the Issue/Complete stage
+ * with INVENTORY type destinations.
+ *
+ * Filter Criteria:
+ * - SR stage = 'issue' OR 'complete'
+ * - destinationLocationType = 'INVENTORY'
+ *
+ * This is a READ-ONLY view. All actions (approve, issue, complete) are
+ * performed on the underlying Store Requisition, not on this view.
+ *
+ * Navigation:
+ * - Row click → navigates to Store Requisition detail page (not a separate ST detail)
+ * - "Go to Store Requisitions" → navigates to SR module for creating new transfers
+ *
+ * Data Source:
+ * - Uses getStoreRequisitionsForStockTransfer() which filters mockStoreRequisitions
+ * - No separate mockStockTransfers data
+ *
+ * Status Display:
+ * - Uses SRStatus (draft, in_progress, completed, cancelled, voided)
+ * - Only in_progress and completed are typically visible in this view
+ *
+ * @see docs/app/store-operations/stock-transfers/TS-stock-transfers.md
+ * @see docs/app/store-operations/sr-business-rules.md
+ */
+
 import { useState, useMemo } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -29,31 +59,32 @@ import {
   Package,
   Clock,
   CheckCircle2,
-  AlertCircle,
-  XCircle,
   FileText,
   ArrowUpDown,
   ChevronLeft,
   ChevronRight,
-  Send
+  Info
 } from 'lucide-react'
-import { mockStockTransfers } from '@/lib/mock-data/store-requisitions'
-import { StockTransfer, TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/types/store-requisition'
-import { formatCurrency, formatNumber } from '@/lib/utils/formatters'
+import { getStoreRequisitionsForStockTransfer } from '@/lib/mock-data/store-requisitions'
+import { StoreRequisition, SRStatus, SR_STATUS_LABELS } from '@/lib/types/store-requisition'
+import { formatCurrency } from '@/lib/utils/formatters'
 import { cn } from '@/lib/utils'
 
-// Status badge styling
-const getStatusBadgeClass = (status: TransferStatus): string => {
+/**
+ * Returns Tailwind CSS classes for status badge styling based on SR status.
+ * Maps SRStatus enum values to appropriate visual indicators.
+ */
+const getStatusBadgeClass = (status: SRStatus): string => {
   switch (status) {
-    case TransferStatus.Received:
-      return 'bg-green-100 text-green-800 border-green-200'
-    case TransferStatus.Issued:
+    case SRStatus.InProgress:
       return 'bg-blue-100 text-blue-800 border-blue-200'
-    case TransferStatus.InTransit:
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    case TransferStatus.Pending:
+    case SRStatus.Completed:
+      return 'bg-green-100 text-green-800 border-green-200'
+    case SRStatus.Draft:
       return 'bg-gray-100 text-gray-800 border-gray-200'
-    case TransferStatus.Cancelled:
+    case SRStatus.Cancelled:
+      return 'bg-red-100 text-red-800 border-red-200'
+    case SRStatus.Voided:
       return 'bg-red-100 text-red-800 border-red-200'
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200'
@@ -61,76 +92,57 @@ const getStatusBadgeClass = (status: TransferStatus): string => {
 }
 
 // Status icon
-const getStatusIcon = (status: TransferStatus) => {
+const getStatusIcon = (status: SRStatus) => {
   switch (status) {
-    case TransferStatus.Received:
+    case SRStatus.InProgress:
+      return <Truck className="h-4 w-4 text-blue-600" />
+    case SRStatus.Completed:
       return <CheckCircle2 className="h-4 w-4 text-green-600" />
-    case TransferStatus.Issued:
-      return <Send className="h-4 w-4 text-blue-600" />
-    case TransferStatus.InTransit:
-      return <Truck className="h-4 w-4 text-yellow-600" />
-    case TransferStatus.Pending:
+    case SRStatus.Draft:
       return <Clock className="h-4 w-4 text-gray-600" />
-    case TransferStatus.Cancelled:
-      return <XCircle className="h-4 w-4 text-red-600" />
     default:
-      return <AlertCircle className="h-4 w-4 text-gray-600" />
+      return <Clock className="h-4 w-4 text-gray-600" />
   }
 }
 
-// Priority badge
-const getPriorityBadgeClass = (priority: string): string => {
-  switch (priority) {
-    case 'emergency':
-      return 'bg-red-100 text-red-800 border-red-200'
-    case 'urgent':
-      return 'bg-orange-100 text-orange-800 border-orange-200'
-    case 'normal':
-    default:
-      return 'bg-gray-100 text-gray-800 border-gray-200'
-  }
-}
-
-type SortField = 'refNo' | 'transferDate' | 'status' | 'fromLocationName' | 'toLocationName' | 'totalValue'
+type SortField = 'refNo' | 'requestDate' | 'status' | 'sourceLocationName' | 'destinationLocationName' | 'estimatedValue'
 type SortDirection = 'asc' | 'desc'
 
 export default function StockTransfersPage() {
   const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
-  const [statusFilter, setStatusFilter] = useState<TransferStatus | 'all'>('all')
-  const [priorityFilter, setPriorityFilter] = useState<'normal' | 'urgent' | 'emergency' | 'all'>('all')
-  const [sortField, setSortField] = useState<SortField>('transferDate')
+  const [statusFilter, setStatusFilter] = useState<SRStatus | 'all'>('all')
+  const [sortField, setSortField] = useState<SortField>('requestDate')
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc')
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 10
 
+  // Get filtered SRs for Stock Transfer view
+  // Stock Transfers = SRs at Issue stage with INVENTORY destination
+  const stockTransfers = useMemo(() => getStoreRequisitionsForStockTransfer(), [])
+
   // Filter and sort transfers
   const filteredTransfers = useMemo(() => {
-    let result = [...mockStockTransfers]
+    let result = [...stockTransfers]
 
     // Search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase()
-      result = result.filter(transfer =>
-        transfer.refNo.toLowerCase().includes(query) ||
-        transfer.fromLocationName.toLowerCase().includes(query) ||
-        transfer.toLocationName.toLowerCase().includes(query) ||
-        transfer.sourceRequisitionRefNo?.toLowerCase().includes(query)
+      result = result.filter((sr: StoreRequisition) =>
+        sr.refNo.toLowerCase().includes(query) ||
+        sr.sourceLocationName.toLowerCase().includes(query) ||
+        sr.destinationLocationName.toLowerCase().includes(query) ||
+        sr.requestedBy.toLowerCase().includes(query)
       )
     }
 
     // Status filter
     if (statusFilter !== 'all') {
-      result = result.filter(transfer => transfer.status === statusFilter)
-    }
-
-    // Priority filter
-    if (priorityFilter !== 'all') {
-      result = result.filter(transfer => transfer.priority === priorityFilter)
+      result = result.filter((sr: StoreRequisition) => sr.status === statusFilter)
     }
 
     // Sort
-    result.sort((a, b) => {
+    result.sort((a: StoreRequisition, b: StoreRequisition) => {
       let aValue: string | number | Date
       let bValue: string | number | Date
 
@@ -139,25 +151,25 @@ export default function StockTransfersPage() {
           aValue = a.refNo
           bValue = b.refNo
           break
-        case 'transferDate':
-          aValue = a.transferDate
-          bValue = b.transferDate
+        case 'requestDate':
+          aValue = a.requestDate
+          bValue = b.requestDate
           break
         case 'status':
           aValue = a.status
           bValue = b.status
           break
-        case 'fromLocationName':
-          aValue = a.fromLocationName
-          bValue = b.fromLocationName
+        case 'sourceLocationName':
+          aValue = a.sourceLocationName
+          bValue = b.sourceLocationName
           break
-        case 'toLocationName':
-          aValue = a.toLocationName
-          bValue = b.toLocationName
+        case 'destinationLocationName':
+          aValue = a.destinationLocationName
+          bValue = b.destinationLocationName
           break
-        case 'totalValue':
-          aValue = a.totalValue.amount
-          bValue = b.totalValue.amount
+        case 'estimatedValue':
+          aValue = a.estimatedValue.amount
+          bValue = b.estimatedValue.amount
           break
         default:
           return 0
@@ -169,7 +181,7 @@ export default function StockTransfersPage() {
     })
 
     return result
-  }, [mockStockTransfers, searchQuery, statusFilter, priorityFilter, sortField, sortDirection])
+  }, [stockTransfers, searchQuery, statusFilter, sortField, sortDirection])
 
   // Pagination
   const totalPages = Math.ceil(filteredTransfers.length / itemsPerPage)
@@ -180,12 +192,11 @@ export default function StockTransfersPage() {
 
   // Summary stats
   const summary = useMemo(() => ({
-    total: mockStockTransfers.length,
-    pending: mockStockTransfers.filter(t => t.status === TransferStatus.Pending).length,
-    inTransit: mockStockTransfers.filter(t => t.status === TransferStatus.InTransit).length,
-    received: mockStockTransfers.filter(t => t.status === TransferStatus.Received).length,
-    totalValue: mockStockTransfers.reduce((sum, t) => sum + t.totalValue.amount, 0)
-  }), [mockStockTransfers])
+    total: stockTransfers.length,
+    inProgress: stockTransfers.filter((sr: StoreRequisition) => sr.status === SRStatus.InProgress).length,
+    completed: stockTransfers.filter((sr: StoreRequisition) => sr.status === SRStatus.Completed).length,
+    totalValue: stockTransfers.reduce((sum: number, sr: StoreRequisition) => sum + sr.estimatedValue.amount, 0)
+  }), [stockTransfers])
 
   // Handle sort
   const handleSort = (field: SortField) => {
@@ -207,34 +218,38 @@ export default function StockTransfersPage() {
             Stock Transfers
           </h1>
           <p className="text-muted-foreground">
-            Manage and track stock transfers between locations
+            View stock transfers between inventory locations
           </p>
         </div>
       </div>
 
+      {/* Info Banner */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium">Stock Transfers are Store Requisitions at the Issue stage</p>
+            <p className="mt-1 text-blue-600">
+              This view shows SRs with INVENTORY destination locations. To create or manage transfers, use the Store Requisitions module.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="p-4">
             <div className="text-2xl font-bold">{summary.total}</div>
             <div className="text-sm text-muted-foreground">Total Transfers</div>
           </CardContent>
         </Card>
-        <Card className="border-gray-200">
+        <Card className="border-blue-200">
           <CardContent className="p-4 flex items-center gap-3">
-            <Clock className="h-8 w-8 text-gray-500" />
+            <Truck className="h-8 w-8 text-blue-600" />
             <div>
-              <div className="text-2xl font-bold text-gray-700">{summary.pending}</div>
-              <div className="text-sm text-gray-500">Pending</div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="border-yellow-200">
-          <CardContent className="p-4 flex items-center gap-3">
-            <Truck className="h-8 w-8 text-yellow-600" />
-            <div>
-              <div className="text-2xl font-bold text-yellow-700">{summary.inTransit}</div>
-              <div className="text-sm text-yellow-600">In Transit</div>
+              <div className="text-2xl font-bold text-blue-700">{summary.inProgress}</div>
+              <div className="text-sm text-blue-600">In Progress</div>
             </div>
           </CardContent>
         </Card>
@@ -242,8 +257,8 @@ export default function StockTransfersPage() {
           <CardContent className="p-4 flex items-center gap-3">
             <CheckCircle2 className="h-8 w-8 text-green-600" />
             <div>
-              <div className="text-2xl font-bold text-green-700">{summary.received}</div>
-              <div className="text-sm text-green-600">Received</div>
+              <div className="text-2xl font-bold text-green-700">{summary.completed}</div>
+              <div className="text-sm text-green-600">Completed</div>
             </div>
           </CardContent>
         </Card>
@@ -268,26 +283,14 @@ export default function StockTransfersPage() {
                 className="pl-9"
               />
             </div>
-            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as TransferStatus | 'all')}>
+            <Select value={statusFilter} onValueChange={(v) => setStatusFilter(v as SRStatus | 'all')}>
               <SelectTrigger className="w-full md:w-[180px]">
                 <SelectValue placeholder="Status" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
-                {Object.entries(TRANSFER_STATUS_LABELS).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={priorityFilter} onValueChange={(v) => setPriorityFilter(v as typeof priorityFilter)}>
-              <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="Priority" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Priority</SelectItem>
-                <SelectItem value="normal">Normal</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-                <SelectItem value="emergency">Emergency</SelectItem>
+                <SelectItem value={SRStatus.InProgress}>In Progress</SelectItem>
+                <SelectItem value={SRStatus.Completed}>Completed</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -306,64 +309,63 @@ export default function StockTransfersPage() {
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('transferDate')}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('requestDate')}>
                   <div className="flex items-center gap-1">
                     Date
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('fromLocationName')}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('sourceLocationName')}>
                   <div className="flex items-center gap-1">
                     From Location
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="cursor-pointer" onClick={() => handleSort('toLocationName')}>
+                <TableHead className="cursor-pointer" onClick={() => handleSort('destinationLocationName')}>
                   <div className="flex items-center gap-1">
                     To Location
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
                 <TableHead className="text-center">Items</TableHead>
-                <TableHead className="text-right cursor-pointer" onClick={() => handleSort('totalValue')}>
+                <TableHead className="text-right cursor-pointer" onClick={() => handleSort('estimatedValue')}>
                   <div className="flex items-center justify-end gap-1">
                     Value
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead>Priority</TableHead>
                 <TableHead className="cursor-pointer" onClick={() => handleSort('status')}>
                   <div className="flex items-center gap-1">
                     Status
                     <ArrowUpDown className="h-4 w-4" />
                   </div>
                 </TableHead>
-                <TableHead className="text-center">Source</TableHead>
+                <TableHead>Requested By</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {paginatedTransfers.length > 0 ? (
-                paginatedTransfers.map((transfer) => (
+                paginatedTransfers.map((sr: StoreRequisition) => (
                   <TableRow
-                    key={transfer.id}
+                    key={sr.id}
                     className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => router.push(`/store-operations/stock-transfers/${transfer.id}`)}
+                    onClick={() => router.push(`/store-operations/store-requisitions/${sr.id}`)}
                   >
                     <TableCell className="font-medium">
                       <div className="flex items-center gap-2">
                         <Truck className="h-4 w-4 text-blue-600" />
-                        {transfer.refNo}
+                        {sr.refNo}
                       </div>
                     </TableCell>
                     <TableCell>
-                      {transfer.transferDate.toLocaleDateString('en-GB')}
+                      {sr.requestDate.toLocaleDateString('en-GB')}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <Package className="h-4 w-4 text-gray-500" />
                         <div>
-                          <div className="font-medium">{transfer.fromLocationName}</div>
-                          <div className="text-xs text-muted-foreground">{transfer.fromLocationCode}</div>
+                          <div className="font-medium">{sr.sourceLocationName}</div>
+                          <div className="text-xs text-muted-foreground">{sr.sourceLocationCode}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -371,60 +373,48 @@ export default function StockTransfersPage() {
                       <div className="flex items-center gap-2">
                         <ArrowRight className="h-4 w-4 text-gray-400" />
                         <div>
-                          <div className="font-medium">{transfer.toLocationName}</div>
-                          <div className="text-xs text-muted-foreground">{transfer.toLocationCode}</div>
+                          <div className="font-medium">{sr.destinationLocationName}</div>
+                          <div className="text-xs text-muted-foreground">{sr.destinationLocationCode}</div>
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <Badge variant="outline">{transfer.totalItems}</Badge>
+                      <Badge variant="outline">{sr.totalItems}</Badge>
                     </TableCell>
                     <TableCell className="text-right font-mono">
-                      {formatCurrency(transfer.totalValue.amount)}
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant="outline"
-                        className={cn("border capitalize", getPriorityBadgeClass(transfer.priority))}
-                      >
-                        {transfer.priority}
-                      </Badge>
+                      {formatCurrency(sr.estimatedValue.amount)}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2">
-                        {getStatusIcon(transfer.status)}
+                        {getStatusIcon(sr.status)}
                         <Badge
                           variant="outline"
-                          className={cn("border", getStatusBadgeClass(transfer.status))}
+                          className={cn("border", getStatusBadgeClass(sr.status))}
                         >
-                          {TRANSFER_STATUS_LABELS[transfer.status]}
+                          {SR_STATUS_LABELS[sr.status]}
                         </Badge>
                       </div>
                     </TableCell>
-                    <TableCell className="text-center">
-                      {transfer.sourceRequisitionRefNo ? (
-                        <Link
-                          href={`/store-operations/store-requisitions/${transfer.sourceRequisitionId}`}
-                          onClick={(e) => e.stopPropagation()}
-                          className="text-blue-600 hover:text-blue-700 hover:underline text-sm"
-                        >
-                          <FileText className="h-4 w-4 inline mr-1" />
-                          {transfer.sourceRequisitionRefNo}
-                        </Link>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">-</span>
-                      )}
+                    <TableCell>
+                      <div className="text-sm">{sr.requestedBy}</div>
+                      <div className="text-xs text-muted-foreground">{sr.departmentName}</div>
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={9} className="text-center py-12">
+                  <TableCell colSpan={8} className="text-center py-12">
                     <Truck className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p className="text-gray-500">No transfers found</p>
+                    <p className="text-gray-500">No stock transfers found</p>
                     <p className="text-sm text-gray-400 mt-1">
-                      Adjust your filters or search criteria
+                      Stock transfers are created from Store Requisitions with INVENTORY destinations
                     </p>
+                    <Link href="/store-operations/store-requisitions">
+                      <Button variant="outline" className="mt-4">
+                        <FileText className="h-4 w-4 mr-2" />
+                        Go to Store Requisitions
+                      </Button>
+                    </Link>
                   </TableCell>
                 </TableRow>
               )}

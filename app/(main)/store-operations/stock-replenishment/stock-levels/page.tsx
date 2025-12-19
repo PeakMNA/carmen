@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -33,6 +34,7 @@ import {
   TrendingDown,
   TrendingUp,
   MapPin,
+  ChevronLeft,
   ChevronRight,
   Download,
   RefreshCw,
@@ -183,6 +185,7 @@ function getProgressColor(percentage: number) {
 }
 
 export default function StockLevelsPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [locationFilter, setLocationFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -216,14 +219,25 @@ export default function StockLevelsPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Package className="h-7 w-7 text-green-600" />
-            Stock Levels by Location
-          </h1>
-          <p className="text-muted-foreground">
-            Monitor inventory levels across all hotel locations
-          </p>
+        <div className="flex items-start gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="mt-1 flex-shrink-0"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <Package className="h-7 w-7 text-green-600" />
+              Stock Levels by Location
+            </h1>
+            <p className="text-muted-foreground">
+              Monitor inventory levels across all hotel locations
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Button variant="outline" size="sm">

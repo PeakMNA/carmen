@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -44,6 +45,7 @@ import {
   Clock,
   TrendingUp,
   FileText,
+  ChevronLeft,
   ChevronRight,
   Warehouse,
   BarChart3,
@@ -241,6 +243,7 @@ function getStatusIcon(status: string) {
 }
 
 export default function RequisitionHistoryPage() {
+  const router = useRouter()
   const [searchQuery, setSearchQuery] = useState('')
   const [locationFilter, setLocationFilter] = useState('all')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -280,14 +283,25 @@ export default function RequisitionHistoryPage() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <History className="h-7 w-7 text-green-600" />
-            Requisition History
-          </h1>
-          <p className="text-muted-foreground">
-            View and analyze historical store requisitions and stock transfers
-          </p>
+        <div className="flex items-start gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() => router.back()}
+            aria-label="Go back"
+            className="mt-1 flex-shrink-0"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+              <History className="h-7 w-7 text-green-600" />
+              Requisition History
+            </h1>
+            <p className="text-muted-foreground">
+              View and analyze historical store requisitions and stock transfers
+            </p>
+          </div>
         </div>
         <div className="flex gap-2">
           <Select value={dateRange} onValueChange={setDateRange}>

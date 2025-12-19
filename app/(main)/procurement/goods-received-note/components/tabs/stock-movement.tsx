@@ -38,73 +38,73 @@ import {
 } from '@/lib/utils/location-type-helpers';
 
 interface StockMovement {
-  id: number;
-  lotNo: string;
-  location: string;
-  locationCode: string;
-  locationType: string;
-  product: string;
-  productDescription: string;
+  id: number | string;
+  lotNo?: string;
+  lotNumber?: string;
+  location: string | { type: string; code: string; name: string; displayType?: string };
+  locationCode?: string;
+  locationType?: string;
+  product?: string;
+  itemName?: string;
+  productDescription?: string;
+  itemDescription?: string;
   unit: string;
   quantity: number;
-  subtotal: number;
+  subtotal?: number;
+  netAmount?: number;
   extraCost: number;
+  totalAmount?: number;
 }
 
-export default function StockMovementContent() {
-  const movements: StockMovement[] = [
+interface StockMovementContentProps {
+  movements?: any[];
+  items?: any[];
+}
+
+export default function StockMovementContent({ movements: propMovements, items }: StockMovementContentProps) {
+  // Use provided movements or generate from items, or fallback to sample data
+  const movements: StockMovement[] = propMovements && propMovements.length > 0
+    ? propMovements.map((m, idx) => ({
+        id: m.id || idx + 1,
+        lotNo: m.lotNumber || m.lotNo || `L-${idx + 1}`,
+        location: typeof m.location === 'object' ? m.location.name : (m.toLocation || m.location || 'Unknown'),
+        locationCode: typeof m.location === 'object' ? m.location.code : (m.locationCode || ''),
+        locationType: typeof m.location === 'object' ? m.location.type : (m.locationType || 'INV'),
+        product: m.itemName || m.product || 'Unknown Product',
+        productDescription: m.itemDescription || m.productDescription || '',
+        unit: m.unit || 'unit',
+        quantity: m.quantity || 0,
+        subtotal: m.netAmount || m.subtotal || 0,
+        extraCost: m.extraCost || 0,
+      }))
+    : items && items.length > 0
+    ? items.map((item, idx) => ({
+        id: idx + 1,
+        lotNo: item.lotNumber || `L-${idx + 1}`,
+        location: item.location || 'Warehouse',
+        locationCode: 'WH-001',
+        locationType: 'INV',
+        product: item.name || 'Unknown Product',
+        productDescription: item.description || '',
+        unit: item.unit || 'unit',
+        quantity: item.receivedQuantity || item.quantity || 0,
+        subtotal: item.netAmount || item.totalAmount || 0,
+        extraCost: item.extraCost || 0,
+      }))
+    : [
+    // Default sample data when no data provided
     {
       id: 1,
       lotNo: 'L20240115-001',
       location: 'Main Warehouse',
       locationCode: 'WH-MAIN',
       locationType: 'INV',
-      product: 'Rice Jasmine 5kg',
-      productDescription: 'Premium grade Thai jasmine rice, vacuum sealed',
-      unit: 'Bag',
-      quantity: 100,
-      subtotal: 25000.00,
-      extraCost: 500.00
-    },
-    {
-      id: 2,
-      lotNo: 'L20240115-002',
-      location: 'Main Warehouse',
-      locationCode: 'WH-MAIN',
-      locationType: 'INV',
-      product: 'Rice Jasmine 5kg',
-      productDescription: 'Premium grade Thai jasmine rice, vacuum sealed',
-      unit: 'Bag',
-      quantity: 50,
-      subtotal: 12500.00,
-      extraCost: 250.00
-    },
-    {
-      id: 3,
-      lotNo: 'L20240115-003',
-      location: 'Store 1',
-      locationCode: 'ST-001',
-      locationType: 'CON',
-      product: 'Cooking Oil 2L',
-      productDescription: 'Pure vegetable cooking oil, cholesterol-free',
-      unit: 'Bottle',
-      quantity: 200,
-      subtotal: 16000.00,
-      extraCost: 400.00
-    },
-    // Example DIRECT location item - will be filtered out from stock movements
-    {
-      id: 4,
-      lotNo: 'L20240115-004',
-      location: 'Kitchen Direct',
-      locationCode: 'KIT-001',
-      locationType: 'DIR',
-      product: 'Fresh Vegetables Mix',
-      productDescription: 'Daily kitchen supplies - direct expense',
-      unit: 'Kg',
-      quantity: 50,
-      subtotal: 2500.00,
-      extraCost: 0.00
+      product: 'Sample Product',
+      productDescription: 'No stock movement data available',
+      unit: 'unit',
+      quantity: 0,
+      subtotal: 0,
+      extraCost: 0
     }
   ];
 
@@ -145,15 +145,15 @@ export default function StockMovementContent() {
 
   // Filter movements to only show those that create stock movements
   // DIRECT location items are excluded as they don't create inventory transactions
-  const filteredMovements = movements.filter(m => shouldShowMovement(m.locationType));
+  const filteredMovements = movements.filter(m => shouldShowMovement(m.locationType || 'INV'));
 
   // Count of direct expense items (filtered out)
-  const directExpenseCount = movements.filter(m => !shouldShowMovement(m.locationType)).length;
+  const directExpenseCount = movements.filter(m => !shouldShowMovement(m.locationType || 'INV')).length;
 
   const totals = {
-    quantity: filteredMovements.reduce((sum, m) => sum + m.quantity, 0),
-    subtotal: filteredMovements.reduce((sum, m) => sum + m.subtotal, 0),
-    extraCost: filteredMovements.reduce((sum, m) => sum + m.extraCost, 0)
+    quantity: filteredMovements.reduce((sum, m) => sum + (m.quantity || 0), 0),
+    subtotal: filteredMovements.reduce((sum, m) => sum + (m.subtotal || 0), 0),
+    extraCost: filteredMovements.reduce((sum, m) => sum + (m.extraCost || 0), 0)
   };
 
   /**
@@ -304,15 +304,15 @@ export default function StockMovementContent() {
                   <tr key={movement.id}>
                     <td className="px-2 py-4 whitespace-nowrap">
                       <div className="flex flex-col gap-1">
-                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLocationBadgeClass(movement.locationType)}`}>
-                          {movement.location}
+                        <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getLocationBadgeClass(movement.locationType || 'INV')}`}>
+                          {typeof movement.location === 'string' ? movement.location : movement.location?.name || 'Unknown'}
                         </div>
                         <div className="flex items-center gap-1 text-xs text-gray-500">
-                          <span>{movement.locationCode}</span>
+                          <span>{movement.locationCode || ''}</span>
                           <span className="text-gray-300">|</span>
                           <div className="flex items-center gap-0.5">
-                            {getLocationIcon(movement.locationType)}
-                            <span>{getLocationTypeLabelLocal(movement.locationType)}</span>
+                            {getLocationIcon(movement.locationType || 'INV')}
+                            <span>{getLocationTypeLabelLocal(movement.locationType || 'INV')}</span>
                           </div>
                         </div>
                       </div>
@@ -320,15 +320,15 @@ export default function StockMovementContent() {
                     <td className="px-2 py-4 whitespace-nowrap">
                       <div className="flex flex-col gap-1">
                         <div className="text-sm text-gray-900">
-                          {movement.product}
+                          {movement.product || movement.itemName || 'Unknown Product'}
                         </div>
                         <div className="text-xs text-gray-500">
-                          {movement.productDescription}
+                          {movement.productDescription || movement.itemDescription || ''}
                         </div>
                       </div>
                     </td>
                     <td className="px-2 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {movement.lotNo}
+                      {movement.lotNo || movement.lotNumber || '-'}
                     </td>
                     <td className="px-2 py-4 whitespace-nowrap text-sm text-gray-900">
                       {movement.unit}
@@ -346,15 +346,15 @@ export default function StockMovementContent() {
                     <td className="px-2 py-4 whitespace-nowrap text-sm text-gray-900">
                       <div className="flex flex-col items-end">
                         <div>
-                          {(movement.subtotal / movement.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                          {movement.quantity ? ((movement.subtotal || 0) / movement.quantity).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'}
                         </div>
                       </div>
                     </td>
                     <td className="px-2 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {movement.extraCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {(movement.extraCost || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                     <td className="px-2 py-4 whitespace-nowrap text-sm text-gray-900 text-right">
-                      {(movement.subtotal + movement.extraCost).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                      {((movement.subtotal || 0) + (movement.extraCost || 0)).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                     </td>
                   </tr>
                 ))}

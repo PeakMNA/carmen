@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Label } from '@/components/ui/label'
-import { GoodsReceiveNoteItems } from './tabs/GoodsReceiveNoteItems'
+import { GRNItemsHierarchical } from './tabs/GRNItemsHierarchical'
 import { GoodsReceiveNote, GoodsReceiveNoteItem, GRNStatus } from '@/lib/types'
 import { ExtraCostsTab } from './tabs/ExtraCostsTab'
 import { GoodsReceiveNoteItemsBulkActions } from './tabs/GoodsReceiveNoteItemsBulkActions'
@@ -121,9 +121,14 @@ export function GoodsReceiveNoteDetail({ id, mode = 'view', onModeChange, initia
     handleModeChange('edit');
   }
 
-  const handleExtraCostsChange = (costs: any[]) => {
+  const handleExtraCostsChange = (costs: any[], distributionMethod?: any) => {
     setExtraCosts(costs);
-    setFormData(prev => ({ ...prev, extraCosts: costs }));
+    setFormData(prev => ({
+      ...prev,
+      extraCosts: costs,
+      ...(distributionMethod && { costDistributionMethod: distributionMethod })
+    }));
+    setHasUnsavedChanges(true);
   };
 
   const handleItemSelection = (itemId: string, isSelected: boolean) => {
@@ -391,15 +396,7 @@ export function GoodsReceiveNoteDetail({ id, mode = 'view', onModeChange, initia
           <TabsTrigger value="financial-summary">Financial Summary</TabsTrigger>
         </TabsList>
         <TabsContent value="items">
-          {!isReadOnly && selectedItems.length > 0 && (
-            <div className="mb-4">
-              <GoodsReceiveNoteItemsBulkActions
-                selectedItems={selectedItems}
-                onBulkAction={handleBulkAction}
-              />
-            </div>
-          )}
-          <GoodsReceiveNoteItems
+          <GRNItemsHierarchical
             mode={currentMode === 'confirm' ? 'view' : currentMode}
             items={(formData as any).items}
             onItemsChange={handleItemsChange}
@@ -408,6 +405,14 @@ export function GoodsReceiveNoteDetail({ id, mode = 'view', onModeChange, initia
             exchangeRate={(formData as any).exchangeRate}
             baseCurrency={(formData as any).baseCurrency}
             currency={(formData as any).currency}
+            bulkActions={
+              !isReadOnly && selectedItems.length > 0 ? (
+                <GoodsReceiveNoteItemsBulkActions
+                  selectedItems={selectedItems}
+                  onBulkAction={handleBulkAction}
+                />
+              ) : undefined
+            }
           />
         </TabsContent>
         <TabsContent value="extra-costs">
@@ -419,6 +424,8 @@ export function GoodsReceiveNoteDetail({ id, mode = 'view', onModeChange, initia
         </TabsContent>
         <TabsContent value="stock-movement">
           <StockMovementContent
+            movements={(formData as any).stockMovements}
+            items={(formData as any).items}
           />
         </TabsContent>
         <TabsContent value="financial-summary">

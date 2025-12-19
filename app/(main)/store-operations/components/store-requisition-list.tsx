@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -63,6 +63,7 @@ import Link from 'next/link'
 import { Truck, Package, ShoppingCart } from 'lucide-react'
 import { mockStoreRequisitions } from '@/lib/mock-data/store-requisitions'
 import { GeneratedDocumentType, GeneratedDocumentReference } from '@/lib/types/store-requisition'
+import { SRQuickFilters, QuickFilterOption } from './sr-quick-filters'
 
 interface Requisition {
   date: string
@@ -370,19 +371,26 @@ export function StoreRequisitionListComponent() {
   const [sortBy, setSortBy] = useState('date')
   const [filters, setFilters] = useState<FilterCondition[]>([])
   const [viewMode, setViewMode] = useState<'table' | 'card'>('table')
+  const [quickFilter, setQuickFilter] = useState<QuickFilterOption | null>(null)
 
   // Convert mock data to display format with generated documents
   // Combines local sample data with mock store requisitions that have generated documents
+  // Map SRStatus values to display status
   const statusMap: Record<string, 'In Process' | 'Complete' | 'Reject' | 'Void' | 'Draft'> = {
     'draft': 'Draft',
-    'submitted': 'In Process',
-    'approved': 'In Process',
-    'processing': 'In Process',
-    'processed': 'In Process',
-    'partial_complete': 'In Process',
+    'in_progress': 'In Process',
     'completed': 'Complete',
-    'rejected': 'Reject',
-    'cancelled': 'Void'
+    'cancelled': 'Void',
+    'voided': 'Void'
+  }
+
+  // Map SRStage to workflow stage display
+  const stageMap: Record<string, string | undefined> = {
+    'draft': 'Draft',
+    'submit': 'Submitted',
+    'approve': 'Approved',
+    'issue': 'Issue',
+    'complete': 'Complete'
   }
 
   // Map mock data to requisitions format
@@ -395,7 +403,7 @@ export function StoreRequisitionListComponent() {
     description: sr.description || `${sr.workflowType} requisition`,
     requestedBy: sr.requestedBy,
     status: statusMap[sr.status] || 'Draft',
-    workflowStage: sr.status === 'completed' ? 'Complete' : sr.status === 'submitted' ? 'Submission' : undefined,
+    workflowStage: stageMap[sr.stage],
     totalAmount: sr.estimatedValue.amount,
     currency: sr.estimatedValue.currency,
     generatedDocuments: sr.generatedDocuments
@@ -412,10 +420,89 @@ export function StoreRequisitionListComponent() {
   const requisitions: Requisition[] = [...mockRequisitions, ...localRequisitions]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
 
-  const itemsPerPage = 10
-  const totalPages = Math.ceil(requisitions.length / itemsPerPage)
+  // Apply quick filter and other filters to data
+  const filteredRequisitions = useMemo(() => {
+    let result = requisitions
 
-  const paginatedRequisitions = requisitions.slice(
+    // Apply quick filter first
+    if (quickFilter) {
+      result = result.filter((item) => {
+        switch (quickFilter.type) {
+          case 'document':
+            if (quickFilter.value === 'my-pending') {
+              // Filter for actionable items requiring user attention
+              // Includes: Draft, In Process, Reject statuses
+              return ['Draft', 'In Process', 'Reject'].includes(item.status)
+            }
+            return true // 'all-documents' shows everything
+          case 'status':
+            if (quickFilter.value === 'all-status') return true
+            const statusMap: Record<string, string> = {
+              'draft': 'Draft',
+              'in-process': 'In Process',
+              'complete': 'Complete',
+              'reject': 'Reject',
+              'void': 'Void'
+            }
+            return item.status === statusMap[quickFilter.value] || item.status === quickFilter.value
+          case 'stage':
+            if (quickFilter.value === 'all-stage') return true
+            if (!item.workflowStage) return false
+            const stageMap: Record<string, string[]> = {
+              'submission': ['Submission'],
+              'hod-approval': ['HOD', 'HOD Approval'],
+              'store-manager': ['Store Manager', 'Store Manager Approval'],
+              'complete': ['Complete'],
+              'rejected': ['Rejected', 'Rejected at HOD']
+            }
+            const stageMatches = stageMap[quickFilter.value] || []
+            return stageMatches.some(s => item.workflowStage?.includes(s))
+          case 'requester':
+            if (quickFilter.value === 'all-requester') return true
+            return item.requestedBy?.toLowerCase().includes(quickFilter.value.replace('-', ' '))
+          default:
+            return true
+        }
+      })
+    }
+
+    // Apply status filter (from dropdown)
+    if (statusFilter && statusFilter !== 'all') {
+      const statusFilterMap: Record<string, string> = {
+        'draft': 'Draft',
+        'in-process': 'In Process',
+        'complete': 'Complete',
+        'reject': 'Reject',
+        'void': 'Void'
+      }
+      result = result.filter(item => item.status === statusFilterMap[statusFilter])
+    }
+
+    // Apply search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase()
+      result = result.filter(item =>
+        item.refNo.toLowerCase().includes(term) ||
+        item.description.toLowerCase().includes(term) ||
+        item.requestedBy.toLowerCase().includes(term) ||
+        item.storeName.toLowerCase().includes(term) ||
+        item.toLocation.toLowerCase().includes(term)
+      )
+    }
+
+    return result
+  }, [requisitions, quickFilter, statusFilter, searchTerm])
+
+  // Handle quick filter changes
+  const handleQuickFilter = (filter: QuickFilterOption) => {
+    setQuickFilter(filter)
+    setCurrentPage(1) // Reset to first page when filter changes
+  }
+
+  const itemsPerPage = 10
+  const totalPages = Math.ceil(filteredRequisitions.length / itemsPerPage)
+
+  const paginatedRequisitions = filteredRequisitions.slice(
     (currentPage - 1) * itemsPerPage,
     currentPage * itemsPerPage
   )
@@ -610,7 +697,7 @@ export function StoreRequisitionListComponent() {
 
           {/* Search, Filters and Controls Row */}
           <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
-            {/* Left Side - Search and Status Filter */}
+            {/* Left Side - Search */}
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
               {/* Search Bar */}
               <div className="relative max-w-md">
@@ -623,25 +710,15 @@ export function StoreRequisitionListComponent() {
                   aria-label="Search store requisitions"
                 />
               </div>
-              
-              {/* Status Filter */}
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="All Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="draft">Draft</SelectItem>
-                  <SelectItem value="in-process">In Process</SelectItem>
-                  <SelectItem value="complete">Complete</SelectItem>
-                  <SelectItem value="reject">Reject</SelectItem>
-                  <SelectItem value="void">Void</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
-            {/* Right Side - Filter Actions and View Toggle */}
-            <div className="flex gap-2 items-center">
+            {/* Right Side - Quick Filters, Filter Actions and View Toggle */}
+            <div className="flex gap-2 items-center flex-wrap">
+              <SRQuickFilters
+                onQuickFilter={handleQuickFilter}
+                activeFilter={quickFilter}
+              />
+
               <Button variant="outline" size="sm" className="hidden sm:inline-flex">
                 Saved Filters
               </Button>
@@ -718,16 +795,13 @@ export function StoreRequisitionListComponent() {
                   <TableRow>
                     <TableHead scope="col" className="min-w-[120px]">SR #</TableHead>
                     <TableHead scope="col" className="min-w-[100px]">Date</TableHead>
-                    <TableHead scope="col" className="min-w-[80px]">Request From</TableHead>
                     <TableHead scope="col" className="min-w-[120px]">To Location</TableHead>
-                    <TableHead scope="col" className="min-w-[120px]">Store Name</TableHead>
-                    <TableHead scope="col" className="min-w-[150px]">Requested By</TableHead>
+                    <TableHead scope="col" className="min-w-[150px]">Request From</TableHead>
                     <TableHead scope="col" className="min-w-[200px]">Description</TableHead>
                     <TableHead scope="col" className="min-w-[100px] text-right">Amount</TableHead>
                     <TableHead scope="col" className="min-w-[60px]">Currency</TableHead>
                     <TableHead scope="col" className="min-w-[100px]">Status</TableHead>
                     <TableHead scope="col" className="min-w-[120px]">Workflow Stage</TableHead>
-                    <TableHead scope="col" className="min-w-[150px]">Generated Docs</TableHead>
                     <TableHead scope="col" className="w-[50px]">
                       <span className="sr-only">Actions</span>
                     </TableHead>
@@ -737,7 +811,7 @@ export function StoreRequisitionListComponent() {
                   {paginatedRequisitions.map((req) => (
                     <TableRow key={req.refNo} className="hover:bg-muted/50">
                       <TableCell className="font-medium">
-                        <button 
+                        <button
                           onClick={() => handleViewClick(req.refNo)}
                           className="text-primary hover:text-primary/80 hover:underline font-medium cursor-pointer"
                         >
@@ -745,10 +819,8 @@ export function StoreRequisitionListComponent() {
                         </button>
                       </TableCell>
                       <TableCell className="font-mono text-sm">{formatDate(req.date)}</TableCell>
-                      <TableCell>{req.requestTo}</TableCell>
                       <TableCell className="max-w-[120px] truncate">{req.toLocation}</TableCell>
                       <TableCell className="max-w-[150px] truncate">{req.storeName}</TableCell>
-                      <TableCell className="max-w-[150px] truncate" title={req.requestedBy}>{req.requestedBy}</TableCell>
                       <TableCell className="max-w-[200px] truncate" title={req.description}>{req.description}</TableCell>
                       <TableCell className="text-right font-medium">
                         {new Intl.NumberFormat('en-US', {
@@ -778,9 +850,6 @@ export function StoreRequisitionListComponent() {
                         ) : (
                           <span className="text-sm text-muted-foreground">-</span>
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {renderGeneratedDocuments(req.generatedDocuments)}
                       </TableCell>
                       <TableCell onClick={(e) => e.stopPropagation()}>
                         <DropdownMenu>

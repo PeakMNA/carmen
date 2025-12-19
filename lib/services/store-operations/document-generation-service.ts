@@ -1,52 +1,42 @@
 /**
  * Document Generation Service
  *
- * Service for generating documents (Stock Transfer, Stock Issue, Purchase Request)
- * from approved Store Requisitions.
+ * Service for processing approved Store Requisitions to the Issue stage.
+ * In the new architecture:
+ * - ST (Stock Transfer) = SR at Issue stage with INVENTORY destination (filtered view)
+ * - SI (Stock Issue) = SR at Issue stage with DIRECT destination (filtered view)
+ * - PR (Purchase Request) = Still created separately for shortages
  *
  * Core Functions:
- * - determineDocumentType: Determine document type based on locations
- * - generateDocumentPlan: Create a plan of documents to generate
- * - executeDocumentGeneration: Create the actual documents
- *
- * Document Type Determination:
- * - Source has stock + Destination is INVENTORY → Stock Transfer (ST)
- * - Source has stock + Destination is DIRECT → Stock Issue (SI)
- * - No source stock → Purchase Requisition (PR)
- * - Partial stock → ST/SI for available + PR for shortage
+ * - determineDocumentType: Determine outcome type based on locations
+ * - generateDocumentPlan: Create a plan showing what will happen
+ * - executeIssueStage: Advance SR to Issue stage
  *
  * @see docs/app/store-operations/sr-business-rules.md
  */
 
 import {
   StoreRequisition,
-  StoreRequisitionItem,
-  StockTransfer,
-  StockTransferItem,
-  StockIssue,
-  StockIssueItem,
   DocumentGenerationPlan,
   PendingStockTransfer,
   PendingStockIssue,
   PendingPurchaseRequest,
   GeneratedDocumentType,
   GeneratedDocumentReference,
-  TransferStatus,
-  IssueStatus,
-  SRStatus
+  SRStatus,
+  SRStage
 } from '@/lib/types/store-requisition'
 import { InventoryLocationType } from '@/lib/types/location-management'
 import { getNextDocumentNumber } from '@/lib/mock-data/document-sequences'
-import { stockAvailabilityService } from './stock-availability-service'
 
 // ====== SERVICE TYPES ======
 
-export interface DocumentGenerationResult {
+export interface IssueStageResult {
   success: boolean
   requisitionId: string
+  newStage: SRStage
+  documentType: 'transfer' | 'issue'
   generatedDocuments: GeneratedDocumentReference[]
-  stockTransfers: StockTransfer[]
-  stockIssues: StockIssue[]
   purchaseRequestIds: string[]
   errors: string[]
 }
@@ -238,76 +228,68 @@ export class DocumentGenerationService {
   }
 
   /**
-   * Execute document generation from an approved Store Requisition
+   * Execute Issue stage - advances the SR to Issue stage
+   * In the new architecture, ST/SI are filtered views of SRs at Issue stage
    */
-  async executeDocumentGeneration(
+  async executeIssueStage(
     requisition: StoreRequisition
-  ): Promise<DocumentGenerationResult> {
+  ): Promise<IssueStageResult> {
     const errors: string[] = []
     const generatedDocuments: GeneratedDocumentReference[] = []
-    const stockTransfers: StockTransfer[] = []
-    const stockIssues: StockIssue[] = []
     const purchaseRequestIds: string[] = []
 
-    // Validate requisition status
-    if (requisition.status !== SRStatus.Approved && requisition.status !== SRStatus.Processing) {
+    // Validate requisition status and stage
+    if (requisition.status !== SRStatus.InProgress) {
       return {
         success: false,
         requisitionId: requisition.id,
+        newStage: requisition.stage,
+        documentType: 'transfer',
         generatedDocuments: [],
-        stockTransfers: [],
-        stockIssues: [],
         purchaseRequestIds: [],
-        errors: [`Cannot generate documents for requisition with status: ${requisition.status}`]
+        errors: [`Cannot issue requisition with status: ${requisition.status}`]
+      }
+    }
+
+    if (requisition.stage !== SRStage.Approve) {
+      return {
+        success: false,
+        requisitionId: requisition.id,
+        newStage: requisition.stage,
+        documentType: 'transfer',
+        generatedDocuments: [],
+        purchaseRequestIds: [],
+        errors: [`Requisition must be at Approve stage to issue. Current stage: ${requisition.stage}`]
       }
     }
 
     // Generate document plan
     const plan = await this.generateDocumentPlan(requisition)
 
-    // Generate Stock Transfers
-    for (const pending of plan.stockTransfers) {
-      try {
-        const transfer = await this.createStockTransfer(pending, requisition)
-        stockTransfers.push(transfer)
-        generatedDocuments.push({
-          id: `gd-${transfer.id}`,
-          documentType: GeneratedDocumentType.STOCK_TRANSFER,
-          refNo: transfer.refNo,
-          status: transfer.status,
-          lineItemIds: pending.items.map(i => i.sourceItemId),
-          totalQuantity: pending.totalQuantity,
-          totalValue: { amount: pending.totalValue, currency: 'USD' },
-          createdAt: new Date(),
-          documentId: transfer.id
-        })
-      } catch (error) {
-        errors.push(`Failed to create stock transfer: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      }
-    }
+    // Determine document type based on destination
+    const documentType: 'transfer' | 'issue' =
+      requisition.destinationLocationType === InventoryLocationType.DIRECT ? 'issue' : 'transfer'
 
-    // Generate Stock Issues
-    for (const pending of plan.stockIssues) {
-      try {
-        const issue = await this.createStockIssue(pending, requisition)
-        stockIssues.push(issue)
-        generatedDocuments.push({
-          id: `gd-${issue.id}`,
-          documentType: GeneratedDocumentType.STOCK_ISSUE,
-          refNo: issue.refNo,
-          status: issue.status,
-          lineItemIds: pending.items.map(i => i.sourceItemId),
-          totalQuantity: pending.totalQuantity,
-          totalValue: { amount: pending.totalValue, currency: 'USD' },
-          createdAt: new Date(),
-          documentId: issue.id
-        })
-      } catch (error) {
-        errors.push(`Failed to create stock issue: ${error instanceof Error ? error.message : 'Unknown error'}`)
-      }
-    }
+    // Track the SR itself as the "generated document"
+    // In new architecture, the SR at Issue stage IS the stock transfer or issue
+    const totalQuantity = requisition.items.reduce((sum, item) => sum + item.approvedQty, 0)
+    const totalValue = requisition.items.reduce((sum, item) => sum + item.totalCost, 0)
 
-    // Generate Purchase Requests
+    generatedDocuments.push({
+      id: `gd-${requisition.id}`,
+      documentType: documentType === 'transfer'
+        ? GeneratedDocumentType.STOCK_TRANSFER
+        : GeneratedDocumentType.STOCK_ISSUE,
+      refNo: requisition.refNo,
+      status: 'issued',
+      lineItemIds: requisition.items.map(i => i.id),
+      totalQuantity,
+      totalValue: { amount: totalValue, currency: 'USD' },
+      createdAt: new Date(),
+      documentId: requisition.id
+    })
+
+    // Generate Purchase Requests if needed
     for (const pending of plan.purchaseRequests) {
       try {
         const prId = await this.createPurchaseRequest(pending, requisition)
@@ -331,111 +313,11 @@ export class DocumentGenerationService {
     return {
       success: errors.length === 0,
       requisitionId: requisition.id,
+      newStage: SRStage.Issue,
+      documentType,
       generatedDocuments,
-      stockTransfers,
-      stockIssues,
       purchaseRequestIds,
       errors
-    }
-  }
-
-  /**
-   * Create a Stock Transfer document
-   */
-  private async createStockTransfer(
-    pending: PendingStockTransfer,
-    requisition: StoreRequisition
-  ): Promise<StockTransfer> {
-    const id = `st-${Date.now()}`
-    const refNo = getNextDocumentNumber('ST')
-
-    const items: StockTransferItem[] = pending.items.map((item, index) => ({
-      id: `sti-${id}-${index + 1}`,
-      transferId: id,
-      productId: item.productId,
-      productCode: item.productId, // Would be looked up in production
-      productName: item.productName,
-      unit: 'unit', // Would be looked up in production
-      requestedQty: item.quantity,
-      issuedQty: 0,
-      receivedQty: 0,
-      unitCost: { amount: item.unitCost, currency: 'USD' },
-      totalValue: { amount: item.quantity * item.unitCost, currency: 'USD' },
-      sourceRequisitionId: requisition.id,
-      sourceRequisitionItemId: item.sourceItemId
-    }))
-
-    return {
-      id,
-      refNo,
-      transferDate: new Date(),
-      status: TransferStatus.Pending,
-      fromLocationId: pending.fromLocationId,
-      fromLocationCode: pending.fromLocationId,
-      fromLocationName: pending.fromLocationName,
-      fromLocationType: InventoryLocationType.INVENTORY,
-      toLocationId: pending.toLocationId,
-      toLocationCode: pending.toLocationId,
-      toLocationName: pending.toLocationName,
-      toLocationType: requisition.destinationLocationType,
-      items,
-      totalItems: items.length,
-      totalQuantity: pending.totalQuantity,
-      totalValue: { amount: pending.totalValue, currency: 'USD' },
-      priority: 'normal',
-      sourceRequisitionId: requisition.id,
-      sourceRequisitionRefNo: requisition.refNo,
-      createdAt: new Date(),
-      createdBy: 'system'
-    }
-  }
-
-  /**
-   * Create a Stock Issue document
-   */
-  private async createStockIssue(
-    pending: PendingStockIssue,
-    requisition: StoreRequisition
-  ): Promise<StockIssue> {
-    const id = `si-${Date.now()}`
-    const refNo = getNextDocumentNumber('SI')
-
-    const items: StockIssueItem[] = pending.items.map((item, index) => ({
-      id: `sii-${id}-${index + 1}`,
-      issueId: id,
-      productId: item.productId,
-      productCode: item.productId,
-      productName: item.productName,
-      unit: 'unit',
-      requestedQty: item.quantity,
-      issuedQty: 0,
-      unitCost: { amount: item.unitCost, currency: 'USD' },
-      totalValue: { amount: item.quantity * item.unitCost, currency: 'USD' },
-      sourceRequisitionId: requisition.id,
-      sourceRequisitionItemId: item.sourceItemId
-    }))
-
-    return {
-      id,
-      refNo,
-      issueDate: new Date(),
-      status: IssueStatus.Pending,
-      fromLocationId: pending.fromLocationId,
-      fromLocationCode: pending.fromLocationId,
-      fromLocationName: pending.fromLocationName,
-      toLocationId: pending.toLocationId,
-      toLocationCode: pending.toLocationId,
-      toLocationName: pending.toLocationName,
-      items,
-      totalItems: items.length,
-      totalQuantity: pending.totalQuantity,
-      totalValue: { amount: pending.totalValue, currency: 'USD' },
-      departmentId: pending.departmentId,
-      departmentName: requisition.departmentName,
-      sourceRequisitionId: requisition.id,
-      sourceRequisitionRefNo: requisition.refNo,
-      createdAt: new Date(),
-      createdBy: 'system'
     }
   }
 
@@ -477,9 +359,9 @@ export class DocumentGenerationService {
   }
 
   /**
-   * Validate a requisition can have documents generated
+   * Validate a requisition can be issued
    */
-  validateForGeneration(requisition: StoreRequisition): {
+  validateForIssue(requisition: StoreRequisition): {
     valid: boolean
     errors: string[]
   } {
@@ -493,8 +375,12 @@ export class DocumentGenerationService {
       errors.push('Requisition has no items')
     }
 
-    if (requisition.status !== SRStatus.Approved && requisition.status !== SRStatus.Processing) {
-      errors.push(`Invalid status for document generation: ${requisition.status}`)
+    if (requisition.status !== SRStatus.InProgress) {
+      errors.push(`Invalid status for issuing: ${requisition.status}`)
+    }
+
+    if (requisition.stage !== SRStage.Approve) {
+      errors.push(`Requisition must be at Approve stage. Current: ${requisition.stage}`)
     }
 
     // Check each item has fulfillment data

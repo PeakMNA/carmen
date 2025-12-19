@@ -30,7 +30,7 @@ export {
 } from './document-generation-service'
 
 export type {
-  DocumentGenerationResult,
+  IssueStageResult,
   DocumentTypeResult
 } from './document-generation-service'
 
@@ -55,7 +55,8 @@ export {
 export type {
   WorkflowDecision,
   ApproverInfo,
-  WorkflowConfig
+  WorkflowConfig,
+  StageTransition
 } from './workflow-bypass-service'
 
 // Import services for use in factory and default export

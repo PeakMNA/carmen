@@ -59,7 +59,7 @@ import {
   GoodsReceiveNoteItem,
   GRNStatus,
 } from "@/lib/types";
-import { GoodsReceiveNoteItems } from "./tabs/GoodsReceiveNoteItems";
+import { GRNItemsHierarchical } from "./tabs/GRNItemsHierarchical";
 import {
   Table,
   TableBody,
@@ -768,9 +768,9 @@ export function GoodsReceiveNoteComponent({
                   <TabsTrigger value="financials">Financials</TabsTrigger>
                 </TabsList>
                 <TabsContent value="items" className="mt-4">
-                  <GoodsReceiveNoteItems
+                  <GRNItemsHierarchical
                     mode={childMode}
-                    items={(formData as any).items || [] || []}
+                    items={(formData as any).items || []}
                     onItemsChange={handleItemsChange}
                     selectedItems={selectedItems}
                     onItemSelect={handleItemSelect}
@@ -786,17 +786,22 @@ export function GoodsReceiveNoteComponent({
                   />
                 </TabsContent>
                 <TabsContent value="stock-movements" className="mt-4">
-                  <StockMovementContent/>
+                  <StockMovementContent
+                    movements={(formData as any).stockMovements}
+                    items={(formData as any).items}
+                  />
                 </TabsContent>
                 <TabsContent value="extra-costs" className="mt-4">
                   <ExtraCostsTab
                      mode={childMode}
                      initialCosts={(formData as any).extraCosts || []}
-                     onCostsChange={(newCosts) => {
+                     onCostsChange={(newCosts, distributionMethod) => {
                        setFormData((prev) => ({
                          ...prev,
                          extraCosts: newCosts,
+                         ...(distributionMethod && { costDistributionMethod: distributionMethod })
                        }));
+                       setHasUnsavedChanges(true);
                      }}
                  />
                 </TabsContent>

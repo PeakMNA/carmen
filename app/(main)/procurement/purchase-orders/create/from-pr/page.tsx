@@ -3,8 +3,8 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
+import { ArrowLeft, FileText, Package, ChevronRight, Info } from "lucide-react";
 import CreatePOFromPR from "../../components/createpofrompr";
 import { PurchaseRequest } from "@/lib/types";
 
@@ -27,7 +27,7 @@ export default function CreatePOFromPRPage() {
           deliveryDate: (pr as any).deliveryDate
         })) || []
       );
-      
+
       // Group items by vendor + currency + deliveryDate - each group becomes a separate PO
       const groupedItems = allItems.reduce((groups, item) => {
         const key = `${item.vendor}-${item.currency}-${item.deliveryDate}`;
@@ -46,10 +46,10 @@ export default function CreatePOFromPRPage() {
         groups[key].totalAmount += item.totalAmount || 0;
         groups[key].sourcePRs.add(item.prNumber);
         return groups;
-      }, {} as Record<string, { 
-        vendor: string; 
-        vendorId: number; 
-        currency: string; 
+      }, {} as Record<string, {
+        vendor: string;
+        vendorId: number;
+        currency: string;
         deliveryDate: Date;
         items: any[];
         totalAmount: number;
@@ -90,7 +90,7 @@ export default function CreatePOFromPRPage() {
       } catch (error) {
         console.error('Error storing grouped items:', error);
       }
-      
+
       // Navigate to PO creation page with grouped data
       const groupCount = Object.keys(groupedItems).length;
       if (groupCount === 1) {
@@ -109,26 +109,59 @@ export default function CreatePOFromPRPage() {
 
   return (
     <div className="max-w-7xl mx-auto p-6">
+      {/* Header Section */}
       <div className="mb-6">
-        <div className="flex items-center space-x-4 mb-4">
-          <Button variant="ghost" onClick={handleBack}>
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Purchase Orders
-          </Button>
+        <Button variant="ghost" size="sm" onClick={handleBack} className="mb-4">
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Purchase Orders
+        </Button>
+
+        <div className="flex items-start gap-4">
+          <div className="p-3 rounded-lg bg-primary/10">
+            <Package className="h-6 w-6 text-primary" />
+          </div>
           <div>
-            <h1 className="text-2xl font-bold">Create Purchase Orders from Purchase Requests</h1>
-            <p className="text-muted-foreground">
-              Select approved Purchase Requests to convert into Purchase Orders. Items will be automatically grouped by vendor, currency, and delivery date.
+            <h1 className="text-2xl font-bold tracking-tight">Create PO from Purchase Requests</h1>
+            <p className="text-muted-foreground mt-1">
+              Select approved Purchase Requests to convert into Purchase Orders
             </p>
           </div>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Select Purchase Requests</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {/* Info Banner */}
+      <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 text-blue-800 px-4 py-3 rounded-lg mb-6">
+        <Info className="h-5 w-5 flex-shrink-0" />
+        <div className="text-sm">
+          <span className="font-medium">Automatic Grouping:</span> Selected PRs will be automatically grouped by{" "}
+          <span className="font-medium">vendor</span> and <span className="font-medium">currency</span> to create separate Purchase Orders.
+        </div>
+      </div>
+
+      {/* Workflow Indicator */}
+      <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground bg-muted/50 px-4 py-3 rounded-lg mb-6">
+        <div className="flex items-center gap-2">
+          <FileText className="h-4 w-4" />
+          <span>Select PRs</span>
+        </div>
+        <ChevronRight className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          <span>Review Summary</span>
+        </div>
+        <ChevronRight className="h-4 w-4" />
+        <div className="flex items-center gap-2">
+          <Package className="h-4 w-4" />
+          <span>Create PO(s)</span>
+        </div>
+      </div>
+
+      {/* Main Content Card */}
+      <Card className="border-l-4 border-l-primary">
+        <CardContent className="p-6">
+          <div className="flex items-center gap-2 mb-4">
+            <FileText className="h-5 w-5 text-muted-foreground" />
+            <h2 className="font-semibold">Approved Purchase Requests</h2>
+          </div>
           <CreatePOFromPR onSelectPRs={handleSelectPRs} />
         </CardContent>
       </Card>

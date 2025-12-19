@@ -57,7 +57,7 @@ export const mockInventoryLocations: InventoryLocation[] = [
   },
   // Direct Type Locations
   {
-    id: 'loc-003',
+    id: 'loc-dir-001',
     code: 'BAR-001',
     name: 'Restaurant Bar Direct',
     description: 'Bar area with direct expense on receipt',
@@ -74,7 +74,7 @@ export const mockInventoryLocations: InventoryLocation[] = [
     createdBy: 'admin'
   },
   {
-    id: 'loc-004',
+    id: 'loc-dir-002',
     code: 'MAINT-001',
     name: 'Maintenance Direct',
     description: 'Maintenance supplies with direct expense treatment',
@@ -305,6 +305,62 @@ export const mockShelves: Shelf[] = [
 // ====== MOCK USER LOCATION ASSIGNMENTS ======
 
 export const mockUserLocationAssignments: UserLocationAssignment[] = [
+  // John Doe (user-default-001) - Inventory, Direct, and Consignment location assignments
+  {
+    id: 'ula-jd-001',
+    userId: 'user-default-001',
+    userName: 'John Doe',
+    userEmail: 'john@example.com',
+    locationId: 'loc-006', // Corporate Office - INVENTORY type
+    roleAtLocation: 'inventory_controller',
+    permissions: [
+      'location:view',
+      'inventory:view',
+      'inventory:receive',
+      'inventory:issue',
+      'inventory:adjust',
+      'count:view',
+      'count:participate'
+    ],
+    isPrimary: true,
+    isActive: true,
+    assignedAt: new Date('2024-01-05'),
+    assignedBy: 'admin'
+  },
+  {
+    id: 'ula-jd-002',
+    userId: 'user-default-001',
+    userName: 'John Doe',
+    userEmail: 'john@example.com',
+    locationId: 'loc-dir-001', // Direct location
+    roleAtLocation: 'receiver',
+    permissions: [
+      'location:view',
+      'inventory:view',
+      'inventory:receive',
+      'inventory:issue'
+    ],
+    isPrimary: false,
+    isActive: true,
+    assignedAt: new Date('2024-02-15'),
+    assignedBy: 'admin'
+  },
+  {
+    id: 'ula-jd-003',
+    userId: 'user-default-001',
+    userName: 'John Doe',
+    userEmail: 'john@example.com',
+    locationId: 'loc-005', // Beverage Consignment - CONSIGNMENT type
+    roleAtLocation: 'viewer',
+    permissions: [
+      'location:view',
+      'inventory:view'
+    ],
+    isPrimary: false,
+    isActive: true,
+    assignedAt: new Date('2024-03-01'),
+    assignedBy: 'admin'
+  },
   // Central Kitchen assignments
   {
     id: 'ula-001',

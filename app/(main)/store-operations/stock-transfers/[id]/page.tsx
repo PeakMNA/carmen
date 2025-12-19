@@ -1,12 +1,47 @@
+/**
+ * Stock Transfer Detail Page
+ *
+ * KEY ARCHITECTURE: Stock Transfers are NOT separate documents.
+ * This page displays a FILTERED VIEW of a Store Requisition at the Issue/Complete
+ * stage with an INVENTORY type destination.
+ *
+ * View Criteria:
+ * - SR stage = 'issue' OR 'complete'
+ * - destinationLocationType = 'INVENTORY'
+ *
+ * This is a READ-ONLY view displaying SR data in a "transfer" layout.
+ * All actions (approve, issue, complete, cancel) are performed on the
+ * underlying Store Requisition, accessed via the "View Full SR" button.
+ *
+ * Data Loading:
+ * - Uses getStoreRequisitionForStockTransferById(id) which:
+ *   1. Finds SR by ID in mockStoreRequisitions
+ *   2. Validates it matches stock transfer criteria (stage + destination type)
+ *   3. Returns null if not found or doesn't match criteria
+ *
+ * Display Sections:
+ * - Header: SR reference, status, stage badges, navigation
+ * - Info Banner: Explains this is a view of an SR
+ * - Location Cards: Source and destination with issue/complete timestamps
+ * - Request Info: Requester, department, dates
+ * - Items Table: Product details with requested/approved/issued quantities
+ * - Notes: Optional SR notes
+ * - Audit Info: Created/updated timestamps
+ *
+ * Navigation:
+ * - Back → Stock Transfers list
+ * - View Full SR → Store Requisition detail page for actions
+ *
+ * @see docs/app/store-operations/stock-transfers/FD-stock-transfers.md
+ * @see docs/app/store-operations/stock-transfers/DS-stock-transfers.md
+ */
 'use client'
 
-import { useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Separator } from '@/components/ui/separator'
 import {
   Table,
   TableBody,
@@ -23,46 +58,46 @@ import {
   Clock,
   CheckCircle2,
   AlertCircle,
-  XCircle,
   FileText,
   Send,
   User,
   Calendar,
   MapPin,
   Printer,
-  Box
+  Box,
+  Info,
+  ExternalLink
 } from 'lucide-react'
-import { mockStockTransfers } from '@/lib/mock-data/store-requisitions'
-import { TransferStatus, TRANSFER_STATUS_LABELS } from '@/lib/types/store-requisition'
+import { getStoreRequisitionForStockTransferById } from '@/lib/mock-data/store-requisitions'
+import { SRStatus, SR_STATUS_LABELS, SRStage, SR_STAGE_LABELS } from '@/lib/types/store-requisition'
 import { formatCurrency, formatNumber } from '@/lib/utils/formatters'
 import { cn } from '@/lib/utils'
 
-// Status badge styling
-const getStatusBadgeClass = (status: TransferStatus): string => {
+// Status badge styling for SR status
+const getStatusBadgeClass = (status: SRStatus): string => {
   switch (status) {
-    case TransferStatus.Received:
-      return 'bg-green-100 text-green-800 border-green-200'
-    case TransferStatus.Issued:
+    case SRStatus.InProgress:
       return 'bg-blue-100 text-blue-800 border-blue-200'
-    case TransferStatus.InTransit:
-      return 'bg-yellow-100 text-yellow-800 border-yellow-200'
-    case TransferStatus.Pending:
+    case SRStatus.Completed:
+      return 'bg-green-100 text-green-800 border-green-200'
+    case SRStatus.Draft:
       return 'bg-gray-100 text-gray-800 border-gray-200'
-    case TransferStatus.Cancelled:
+    case SRStatus.Cancelled:
+      return 'bg-red-100 text-red-800 border-red-200'
+    case SRStatus.Voided:
       return 'bg-red-100 text-red-800 border-red-200'
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200'
   }
 }
 
-// Priority badge
-const getPriorityBadgeClass = (priority: string): string => {
-  switch (priority) {
-    case 'emergency':
-      return 'bg-red-100 text-red-800 border-red-200'
-    case 'urgent':
-      return 'bg-orange-100 text-orange-800 border-orange-200'
-    case 'normal':
+// Stage badge styling
+const getStageBadgeClass = (stage: SRStage): string => {
+  switch (stage) {
+    case SRStage.Issue:
+      return 'bg-purple-100 text-purple-800 border-purple-200'
+    case SRStage.Complete:
+      return 'bg-green-100 text-green-800 border-green-200'
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200'
   }
@@ -73,10 +108,10 @@ export default function StockTransferDetailPage() {
   const router = useRouter()
   const transferId = params.id as string
 
-  // Find the transfer
-  const transfer = mockStockTransfers.find(t => t.id === transferId)
+  // Find the SR that matches stock transfer criteria
+  const sr = getStoreRequisitionForStockTransferById(transferId)
 
-  if (!transfer) {
+  if (!sr) {
     return (
       <div className="container mx-auto py-6">
         <Card>
@@ -84,7 +119,7 @@ export default function StockTransferDetailPage() {
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
             <h2 className="text-lg font-medium">Transfer Not Found</h2>
             <p className="text-muted-foreground mt-1">
-              The stock transfer you&apos;re looking for doesn&apos;t exist.
+              The stock transfer you&apos;re looking for doesn&apos;t exist or is not at the Issue stage.
             </p>
             <Button
               variant="outline"
@@ -102,10 +137,10 @@ export default function StockTransferDetailPage() {
 
   // Calculate totals
   const totals = {
-    requestedQty: transfer.items.reduce((sum, item) => sum + item.requestedQty, 0),
-    issuedQty: transfer.items.reduce((sum, item) => sum + item.issuedQty, 0),
-    receivedQty: transfer.items.reduce((sum, item) => sum + item.receivedQty, 0),
-    totalValue: transfer.items.reduce((sum, item) => sum + item.totalValue.amount, 0)
+    requestedQty: sr.items.reduce((sum, item) => sum + item.requestedQty, 0),
+    approvedQty: sr.items.reduce((sum, item) => sum + item.approvedQty, 0),
+    issuedQty: sr.items.reduce((sum, item) => sum + item.issuedQty, 0),
+    totalValue: sr.items.reduce((sum, item) => sum + item.totalCost, 0)
   }
 
   return (
@@ -129,22 +164,22 @@ export default function StockTransferDetailPage() {
             </div>
             <div>
               <div className="flex items-center gap-3">
-                <h1 className="text-2xl font-bold">{transfer.refNo}</h1>
+                <h1 className="text-2xl font-bold">{sr.refNo}</h1>
                 <Badge
                   variant="outline"
-                  className={cn("border", getStatusBadgeClass(transfer.status))}
+                  className={cn("border", getStatusBadgeClass(sr.status))}
                 >
-                  {TRANSFER_STATUS_LABELS[transfer.status]}
+                  {SR_STATUS_LABELS[sr.status]}
                 </Badge>
                 <Badge
                   variant="outline"
-                  className={cn("border capitalize", getPriorityBadgeClass(transfer.priority))}
+                  className={cn("border", getStageBadgeClass(sr.stage))}
                 >
-                  {transfer.priority}
+                  Stage: {SR_STAGE_LABELS[sr.stage]}
                 </Badge>
               </div>
               <p className="text-muted-foreground">
-                Stock Transfer &bull; {transfer.transferDate.toLocaleDateString('en-GB')}
+                Stock Transfer View &bull; {sr.requestDate.toLocaleDateString('en-GB')}
               </p>
             </div>
           </div>
@@ -154,20 +189,28 @@ export default function StockTransferDetailPage() {
             <Printer className="h-4 w-4 mr-2" />
             Print
           </Button>
-          {transfer.status === TransferStatus.Pending && (
-            <Button size="sm">
-              <Send className="h-4 w-4 mr-2" />
-              Issue Transfer
+          <Link href={`/store-operations/store-requisitions/${sr.id}`}>
+            <Button variant="outline" size="sm">
+              <ExternalLink className="h-4 w-4 mr-2" />
+              View Full SR
             </Button>
-          )}
-          {transfer.status === TransferStatus.InTransit && (
-            <Button size="sm" className="bg-green-600 hover:bg-green-700">
-              <CheckCircle2 className="h-4 w-4 mr-2" />
-              Confirm Receipt
-            </Button>
-          )}
+          </Link>
         </div>
       </div>
+
+      {/* Info Banner */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="p-4 flex items-start gap-3">
+          <Info className="h-5 w-5 text-blue-600 mt-0.5" />
+          <div className="text-sm text-blue-800">
+            <p className="font-medium">This is a Stock Transfer view of Store Requisition {sr.refNo}</p>
+            <p className="mt-1 text-blue-600">
+              Stock Transfers show SRs at the Issue stage with INVENTORY destinations.
+              To manage this transfer, use the Store Requisition detail page.
+            </p>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Info Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -182,18 +225,18 @@ export default function StockTransferDetailPage() {
                 <Package className="h-5 w-5 text-gray-600" />
               </div>
               <div>
-                <div className="font-semibold">{transfer.fromLocationName}</div>
-                <div className="text-sm text-muted-foreground">{transfer.fromLocationCode}</div>
+                <div className="font-semibold">{sr.sourceLocationName}</div>
+                <div className="text-sm text-muted-foreground">{sr.sourceLocationCode}</div>
               </div>
             </div>
-            {transfer.issuedAt && (
+            {sr.issuedAt && (
               <div className="mt-4 pt-4 border-t text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <Send className="h-4 w-4" />
                   Issued
                 </div>
-                <div>{transfer.issuedAt.toLocaleString('en-GB')}</div>
-                <div className="text-muted-foreground">{transfer.issuedBy}</div>
+                <div>{sr.issuedAt.toLocaleString('en-GB')}</div>
+                <div className="text-muted-foreground">{sr.issuedBy}</div>
               </div>
             )}
           </CardContent>
@@ -201,12 +244,12 @@ export default function StockTransferDetailPage() {
 
         {/* Transfer Arrow */}
         <Card>
-          <CardContent className="flex items-center justify-center h-full">
+          <CardContent className="flex items-center justify-center h-full py-6">
             <div className="text-center">
               <ArrowRight className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-              <div className="text-2xl font-bold">{transfer.totalItems}</div>
+              <div className="text-2xl font-bold">{sr.totalItems}</div>
               <div className="text-sm text-muted-foreground">Items</div>
-              <div className="text-lg font-semibold mt-2">{formatCurrency(transfer.totalValue.amount)}</div>
+              <div className="text-lg font-semibold mt-2">{formatCurrency(sr.estimatedValue.amount)}</div>
               <div className="text-sm text-muted-foreground">Total Value</div>
             </div>
           </CardContent>
@@ -223,45 +266,47 @@ export default function StockTransferDetailPage() {
                 <MapPin className="h-5 w-5 text-green-600" />
               </div>
               <div>
-                <div className="font-semibold">{transfer.toLocationName}</div>
-                <div className="text-sm text-muted-foreground">{transfer.toLocationCode}</div>
+                <div className="font-semibold">{sr.destinationLocationName}</div>
+                <div className="text-sm text-muted-foreground">{sr.destinationLocationCode}</div>
               </div>
             </div>
-            {transfer.receivedAt && (
+            {sr.completedAt && (
               <div className="mt-4 pt-4 border-t text-sm">
                 <div className="flex items-center gap-2 text-muted-foreground mb-1">
                   <CheckCircle2 className="h-4 w-4" />
-                  Received
+                  Completed
                 </div>
-                <div>{transfer.receivedAt.toLocaleString('en-GB')}</div>
-                <div className="text-muted-foreground">{transfer.receivedBy}</div>
+                <div>{sr.completedAt.toLocaleString('en-GB')}</div>
+                <div className="text-muted-foreground">{sr.completedBy}</div>
               </div>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Source Requisition */}
-      {transfer.sourceRequisitionRefNo && (
-        <Card>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <FileText className="h-5 w-5 text-blue-600" />
-                <div>
-                  <div className="text-sm text-muted-foreground">Source Requisition</div>
-                  <div className="font-medium">{transfer.sourceRequisitionRefNo}</div>
-                </div>
-              </div>
-              <Link href={`/store-operations/store-requisitions/${transfer.sourceRequisitionId}`}>
-                <Button variant="outline" size="sm">
-                  View Requisition
-                </Button>
-              </Link>
+      {/* Request Info */}
+      <Card>
+        <CardContent className="py-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <div className="text-sm text-muted-foreground">Requested By</div>
+              <div className="font-medium">{sr.requestedBy}</div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <div>
+              <div className="text-sm text-muted-foreground">Department</div>
+              <div className="font-medium">{sr.departmentName}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Request Date</div>
+              <div className="font-medium">{sr.requestDate.toLocaleDateString('en-GB')}</div>
+            </div>
+            <div>
+              <div className="text-sm text-muted-foreground">Required Date</div>
+              <div className="font-medium">{sr.requiredDate.toLocaleDateString('en-GB')}</div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Items Table */}
       <Card>
@@ -278,14 +323,14 @@ export default function StockTransferDetailPage() {
                 <TableHead>Product</TableHead>
                 <TableHead>Unit</TableHead>
                 <TableHead className="text-right">Requested</TableHead>
+                <TableHead className="text-right">Approved</TableHead>
                 <TableHead className="text-right">Issued</TableHead>
-                <TableHead className="text-right">Received</TableHead>
                 <TableHead className="text-right">Unit Cost</TableHead>
                 <TableHead className="text-right">Total Value</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transfer.items.map((item) => (
+              {sr.items.map((item) => (
                 <TableRow key={item.id}>
                   <TableCell>
                     <div>
@@ -298,22 +343,22 @@ export default function StockTransferDetailPage() {
                     {formatNumber(item.requestedQty)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {item.issuedQty > 0 ? formatNumber(item.issuedQty) : '-'}
+                    {item.approvedQty > 0 ? formatNumber(item.approvedQty) : '-'}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {item.receivedQty > 0 ? (
+                    {item.issuedQty > 0 ? (
                       <span className={cn(
-                        item.receivedQty < item.issuedQty ? 'text-orange-600' : 'text-green-600'
+                        item.issuedQty < item.approvedQty ? 'text-orange-600' : 'text-green-600'
                       )}>
-                        {formatNumber(item.receivedQty)}
+                        {formatNumber(item.issuedQty)}
                       </span>
                     ) : '-'}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatCurrency(item.unitCost.amount)}
+                    {formatCurrency(item.unitCost)}
                   </TableCell>
                   <TableCell className="text-right font-mono font-medium">
-                    {formatCurrency(item.totalValue.amount)}
+                    {formatCurrency(item.totalCost)}
                   </TableCell>
                 </TableRow>
               ))}
@@ -324,10 +369,10 @@ export default function StockTransferDetailPage() {
                   {formatNumber(totals.requestedQty)}
                 </TableCell>
                 <TableCell className="text-right font-mono">
-                  {formatNumber(totals.issuedQty)}
+                  {formatNumber(totals.approvedQty)}
                 </TableCell>
                 <TableCell className="text-right font-mono">
-                  {formatNumber(totals.receivedQty)}
+                  {formatNumber(totals.issuedQty)}
                 </TableCell>
                 <TableCell></TableCell>
                 <TableCell className="text-right font-mono">
@@ -340,13 +385,13 @@ export default function StockTransferDetailPage() {
       </Card>
 
       {/* Notes */}
-      {transfer.notes && (
+      {sr.notes && (
         <Card>
           <CardHeader>
             <CardTitle className="text-sm">Notes</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-muted-foreground">{transfer.notes}</p>
+            <p className="text-muted-foreground">{sr.notes}</p>
           </CardContent>
         </Card>
       )}
@@ -357,16 +402,16 @@ export default function StockTransferDetailPage() {
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
               <User className="h-4 w-4" />
-              Created by {transfer.createdBy}
+              Created by {sr.createdBy}
             </div>
             <div className="flex items-center gap-2">
               <Calendar className="h-4 w-4" />
-              {transfer.createdAt.toLocaleString('en-GB')}
+              {sr.createdAt.toLocaleString('en-GB')}
             </div>
-            {transfer.updatedAt && (
+            {sr.updatedAt && (
               <div className="flex items-center gap-2">
                 <Clock className="h-4 w-4" />
-                Updated {transfer.updatedAt.toLocaleString('en-GB')}
+                Updated {sr.updatedAt.toLocaleString('en-GB')}
               </div>
             )}
           </div>

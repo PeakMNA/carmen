@@ -15,7 +15,26 @@ interface FinancialSummaryTabProps {
 }
 
 export function FinancialSummaryTab({ mode, summary, currency, baseCurrency }: FinancialSummaryTabProps) {
-  if (!summary) return null
+  if (!summary) {
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <Calculator className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+        <p>No financial summary available yet.</p>
+        <p className="text-sm mt-2">Financial entries will be generated when the GRN is posted.</p>
+      </div>
+    )
+  }
+
+  // Helper to safely format date
+  const formatDate = (date: any): string => {
+    if (!date) return 'N/A'
+    try {
+      const d = date instanceof Date ? date : new Date(date)
+      return d.toLocaleDateString()
+    } catch {
+      return 'N/A'
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -24,7 +43,7 @@ export function FinancialSummaryTab({ mode, summary, currency, baseCurrency }: F
         <div className="flex items-center space-x-4">
           <h2 className="text-lg font-medium">Journal Entries</h2>
           <div className="px-2 py-1 text-sm text-blue-600 bg-blue-50 rounded-full">
-            {summary.jvNumber}
+            {summary.jvNumber || 'Pending'}
           </div>
         </div>
         <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -41,18 +60,18 @@ export function FinancialSummaryTab({ mode, summary, currency, baseCurrency }: F
         </div>
         <div>
           <div className="text-sm text-gray-500">Transaction Date</div>
-          <div className="font-medium">{summary.jvDate.toLocaleDateString()}</div>
+          <div className="font-medium">{formatDate(summary.jvDate)}</div>
         </div>
         <div>
           <div className="text-sm text-gray-500">Journal Status</div>
           <div className="flex items-center gap-2">
-            <div className={`w-2 h-2 rounded-full ${summary.jvStatus === 'Posted' ? 'bg-green-500' : 'bg-yellow-500'}`} />
-            <span className="font-medium">{summary.jvStatus}</span>
+            <div className={`w-2 h-2 rounded-full ${summary.jvStatus === 'Posted' || summary.jvStatus === 'posted' ? 'bg-green-500' : 'bg-yellow-500'}`} />
+            <span className="font-medium">{summary.jvStatus || 'Pending'}</span>
           </div>
         </div>
         <div>
           <div className="text-sm text-gray-500">Journal Reference</div>
-          <div className="font-medium">{summary.jvReference}</div>
+          <div className="font-medium">{summary.jvReference || '-'}</div>
         </div>
         <div>
           <div className="text-sm text-gray-500">Source</div>
@@ -60,7 +79,7 @@ export function FinancialSummaryTab({ mode, summary, currency, baseCurrency }: F
         </div>
         <div>
           <div className="text-sm text-gray-500">Description</div>
-          <div className="font-medium">{summary.jvDescription}</div>
+          <div className="font-medium">{summary.jvDescription || '-'}</div>
         </div>
       </div>
 
@@ -73,90 +92,100 @@ export function FinancialSummaryTab({ mode, summary, currency, baseCurrency }: F
                 <TableHead className="w-[200px]">Account</TableHead>
                 <TableHead className="w-[180px]">Department</TableHead>
                 <TableHead>Description</TableHead>
-                <TableHead className="text-right w-[130px]">Debit ({currency})</TableHead>
-                <TableHead className="text-right w-[130px]">Credit ({currency})</TableHead>
-                <TableHead className="text-right w-[130px]">Base Debit ({baseCurrency})</TableHead>
-                <TableHead className="text-right w-[130px]">Base Credit ({baseCurrency})</TableHead>
+                <TableHead className="text-right w-[130px]">Debit ({currency || 'USD'})</TableHead>
+                <TableHead className="text-right w-[130px]">Credit ({currency || 'USD'})</TableHead>
+                <TableHead className="text-right w-[130px]">Base Debit ({baseCurrency || 'USD'})</TableHead>
+                <TableHead className="text-right w-[130px]">Base Credit ({baseCurrency || 'USD'})</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {summary.jvDetail?.map((entry: any, index: number) => (
-                <TableRow key={index}>
-                  <TableCell className="w-[200px]">
-                    <div className="font-medium">{entry.accountName}</div>
-                    <div className="text-sm text-gray-500">{entry.accountCode.code}</div>
-                  </TableCell>
-                  <TableCell className="w-[180px]">
-                    <div>{entry.department.name}</div>
-                    <div className="text-sm text-gray-500">ID: {entry.department.id}</div>
-                  </TableCell>
-                  <TableCell>{summary.jvDescription}</TableCell>
-                  <TableCell className="text-right w-[130px] font-mono">
-                    {entry.debit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell className="text-right w-[130px] font-mono">
-                    {entry.credit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell className="text-right w-[130px] font-mono">
-                    {entry.baseDebit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                  </TableCell>
-                  <TableCell className="text-right w-[130px] font-mono">
-                    {entry.baseCredit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
+              {summary.jvDetail && summary.jvDetail.length > 0 ? (
+                summary.jvDetail.map((entry: any, index: number) => (
+                  <TableRow key={index}>
+                    <TableCell className="w-[200px]">
+                      <div className="font-medium">{entry.accountName || 'Unknown'}</div>
+                      <div className="text-sm text-gray-500">{entry.accountCode?.code || '-'}</div>
+                    </TableCell>
+                    <TableCell className="w-[180px]">
+                      <div>{entry.department?.name || '-'}</div>
+                      <div className="text-sm text-gray-500">ID: {entry.department?.id || '-'}</div>
+                    </TableCell>
+                    <TableCell>{summary.jvDescription || '-'}</TableCell>
+                    <TableCell className="text-right w-[130px] font-mono">
+                      {(entry.debit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-right w-[130px] font-mono">
+                      {(entry.credit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-right w-[130px] font-mono">
+                      {(entry.baseDebit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                    <TableCell className="text-right w-[130px] font-mono">
+                      {(entry.baseCredit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </TableCell>
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                    No journal entries available. Entries will be generated when the GRN is posted.
                   </TableCell>
                 </TableRow>
-              ))}
+              )}
             </TableBody>
           </Table>
         </div>
 
         {/* Totals and Balance Status */}
-        <div className="border-t p-4 bg-gray-50">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex gap-8">
-              <div>
-                <span className="text-sm text-gray-500 mr-2">Total ({currency}):</span>
-                <span className="font-medium font-mono">
-                  DR: {summary.jvTotal.debit.toLocaleString('en-US', { minimumFractionDigits: 2 })} / 
-                  CR: {summary.jvTotal.credit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-              <div>
-                <span className="text-sm text-gray-500 mr-2">Total Base ({baseCurrency}):</span>
-                <span className="font-medium font-mono">
-                  DR: {summary.jvTotal.baseDebit.toLocaleString('en-US', { minimumFractionDigits: 2 })} / 
-                  CR: {summary.jvTotal.baseCredit.toLocaleString('en-US', { minimumFractionDigits: 2 })}
-                </span>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex gap-4">
+        {summary.jvTotal && (
+          <div className="border-t p-4 bg-gray-50">
+            <div className="flex justify-between items-center mb-4">
+              <div className="flex gap-8">
                 <div>
-                  <span className="text-sm text-gray-500 mr-2">Difference ({currency}):</span>
+                  <span className="text-sm text-gray-500 mr-2">Total ({currency || 'USD'}):</span>
                   <span className="font-medium font-mono">
-                    {(summary.jvTotal.debit - summary.jvTotal.credit).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    DR: {(summary.jvTotal.debit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} /
+                    CR: {(summary.jvTotal.credit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
                 <div>
-                  <span className="text-sm text-gray-500 mr-2">Base Difference ({baseCurrency}):</span>
+                  <span className="text-sm text-gray-500 mr-2">Total Base ({baseCurrency || 'USD'}):</span>
                   <span className="font-medium font-mono">
-                    {(summary.jvTotal.baseDebit - summary.jvTotal.baseCredit).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    DR: {(summary.jvTotal.baseDebit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })} /
+                    CR: {(summary.jvTotal.baseCredit || 0).toLocaleString('en-US', { minimumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
-              {summary.jvTotal.debit === summary.jvTotal.credit && summary.jvTotal.baseDebit === summary.jvTotal.baseCredit ? (
-                <div className="flex items-center text-green-700 bg-green-50 px-3 py-1 rounded-full">
-                  <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
-                  <span className="text-sm font-medium">Balanced</span>
+              <div className="flex items-center gap-4">
+                <div className="flex gap-4">
+                  <div>
+                    <span className="text-sm text-gray-500 mr-2">Difference ({currency || 'USD'}):</span>
+                    <span className="font-medium font-mono">
+                      {((summary.jvTotal.debit || 0) - (summary.jvTotal.credit || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500 mr-2">Base Difference ({baseCurrency || 'USD'}):</span>
+                    <span className="font-medium font-mono">
+                      {((summary.jvTotal.baseDebit || 0) - (summary.jvTotal.baseCredit || 0)).toLocaleString('en-US', { minimumFractionDigits: 2 })}
+                    </span>
+                  </div>
                 </div>
-              ) : (
-                <div className="flex items-center text-red-700 bg-red-50 px-3 py-1 rounded-full">
-                  <div className="w-2 h-2 bg-red-500 rounded-full mr-2" />
-                  <span className="text-sm font-medium">Unbalanced</span>
-                </div>
-              )}
+                {(summary.jvTotal.debit || 0) === (summary.jvTotal.credit || 0) && (summary.jvTotal.baseDebit || 0) === (summary.jvTotal.baseCredit || 0) ? (
+                  <div className="flex items-center text-green-700 bg-green-50 px-3 py-1 rounded-full">
+                    <div className="w-2 h-2 bg-green-500 rounded-full mr-2" />
+                    <span className="text-sm font-medium">Balanced</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center text-red-700 bg-red-50 px-3 py-1 rounded-full">
+                    <div className="w-2 h-2 bg-red-500 rounded-full mr-2" />
+                    <span className="text-sm font-medium">Unbalanced</span>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   )

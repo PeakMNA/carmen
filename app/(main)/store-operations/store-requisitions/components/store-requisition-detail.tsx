@@ -3,6 +3,14 @@
  *
  * Displays and manages individual store requisition records with full workflow support.
  *
+ * GENERATED DOCUMENTS:
+ * - Stock Transfer (ST): Moves stock between inventory locations
+ * - Stock Issue (SI): Issues stock to expense/direct locations
+ *
+ * NOTE: Purchase Request (PR) document type was removed from Store Requisitions.
+ * PR generation is now exclusively handled via Stock Replenishment module.
+ * This component only displays ST and SI document references.
+ *
  * LOCATION TYPE AWARE ISSUE PROCESSING:
  * The issue process handles items differently based on the destination location type:
  *
@@ -39,7 +47,6 @@ import {
   Building2,
   Store,
   FileText,
-  ShoppingCart,
   Tags,
   Hash,
   ListTodo,
@@ -110,6 +117,7 @@ import {
 } from '@/components/ui/command'
 import { mockProducts } from '@/lib/mock-data/products'
 import { mockDepartments } from '@/lib/mock-data'
+import { mockUserLocationAssignments, mockInventoryLocations } from '@/lib/mock-data/inventory-locations'
 import { ChevronsUpDown, Search } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import {
@@ -170,6 +178,7 @@ function getLocationTypeIcon(locationType: string) {
 
 /**
  * Get icon for document type
+ * NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
  */
 function getDocumentTypeIcon(type: GeneratedDocumentType) {
   switch (type) {
@@ -177,8 +186,6 @@ function getDocumentTypeIcon(type: GeneratedDocumentType) {
       return <Truck className="h-4 w-4" />
     case GeneratedDocumentType.STOCK_ISSUE:
       return <Package className="h-4 w-4" />
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return <ShoppingCart className="h-4 w-4" />
     default:
       return <FileText className="h-4 w-4" />
   }
@@ -186,6 +193,7 @@ function getDocumentTypeIcon(type: GeneratedDocumentType) {
 
 /**
  * Get badge styling for document type
+ * NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
  */
 function getDocumentTypeBadgeStyle(type: GeneratedDocumentType): { bg: string; text: string; border: string } {
   switch (type) {
@@ -193,8 +201,6 @@ function getDocumentTypeBadgeStyle(type: GeneratedDocumentType): { bg: string; t
       return { bg: 'bg-blue-50', text: 'text-blue-700', border: 'border-blue-200' }
     case GeneratedDocumentType.STOCK_ISSUE:
       return { bg: 'bg-purple-50', text: 'text-purple-700', border: 'border-purple-200' }
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return { bg: 'bg-orange-50', text: 'text-orange-700', border: 'border-orange-200' }
     default:
       return { bg: 'bg-gray-50', text: 'text-gray-700', border: 'border-gray-200' }
   }
@@ -202,6 +208,7 @@ function getDocumentTypeBadgeStyle(type: GeneratedDocumentType): { bg: string; t
 
 /**
  * Get document type label
+ * NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
  */
 function getDocumentTypeLabel(type: GeneratedDocumentType): string {
   switch (type) {
@@ -209,8 +216,6 @@ function getDocumentTypeLabel(type: GeneratedDocumentType): string {
       return 'Stock Transfer'
     case GeneratedDocumentType.STOCK_ISSUE:
       return 'Stock Issue'
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return 'Purchase Request'
     default:
       return 'Document'
   }
@@ -218,6 +223,7 @@ function getDocumentTypeLabel(type: GeneratedDocumentType): string {
 
 /**
  * Get link path for document type
+ * NOTE: PURCHASE_REQUEST case was removed - PR workflow moved to Stock Replenishment
  */
 function getDocumentLinkPath(doc: GeneratedDocumentReference): string {
   switch (doc.documentType) {
@@ -225,8 +231,6 @@ function getDocumentLinkPath(doc: GeneratedDocumentReference): string {
       return `/store-operations/stock-transfers/${doc.documentId}`
     case GeneratedDocumentType.STOCK_ISSUE:
       return `/store-operations/stock-issues/${doc.documentId}`
-    case GeneratedDocumentType.PURCHASE_REQUEST:
-      return `/procurement/purchase-requests/${doc.documentId}`
     default:
       return '#'
   }
@@ -588,17 +592,6 @@ const mockRequisition: {
       totalQuantity: 25,
       totalValue: { amount: 2500.00, currency: 'USD' },
       createdAt: new Date('2024-01-16')
-    },
-    {
-      id: 'gd-002',
-      documentType: GeneratedDocumentType.PURCHASE_REQUEST,
-      documentId: 'pr-001',
-      refNo: 'PR-2410-015',
-      status: 'pending',
-      lineItemIds: ['item-4'],
-      totalQuantity: 5,
-      totalValue: { amount: 600.00, currency: 'USD' },
-      createdAt: new Date('2024-01-16')
     }
   ],
   // Source replenishment suggestions that triggered this SR
@@ -942,6 +935,10 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
   // State for department (header level)
   const [departmentId, setDepartmentId] = useState<string>('dept-003') // F&B Operations
 
+  // State for destination location (To Location)
+  const [destinationLocationId, setDestinationLocationId] = useState<string>('loc-003') // Central Kitchen
+  const [destinationOpen, setDestinationOpen] = useState(false)
+
   // Lookup dropdown open states
   const [departmentOpen, setDepartmentOpen] = useState(false)
 
@@ -961,6 +958,19 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
 
   // Get display value for department
   const selectedDepartment = mockDepartments.find(d => d.id === departmentId)
+
+  // Get user's assigned locations for destination selection
+  // Using a default user ID - in production, this would come from auth context
+  const currentUserId = 'user-default-001'
+  const userAssignedLocationIds = mockUserLocationAssignments
+    .filter(ua => ua.userId === currentUserId && ua.isActive)
+    .map(ua => ua.locationId)
+  const userAssignedLocations = mockInventoryLocations.filter(
+    loc => userAssignedLocationIds.includes(loc.id) && loc.status === 'active'
+  )
+
+  // Get selected destination location
+  const selectedDestinationLocation = mockInventoryLocations.find(loc => loc.id === destinationLocationId)
 
   // CRUD handlers for Job Codes
   const handleAddJobCode = () => {
@@ -1516,7 +1526,54 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                 <Building2 className="w-4 h-4" />
                 <span>To Location</span>
               </div>
-              <p className="font-semibold">Central Kitchen</p>
+              {isEditMode ? (
+                <Popover open={destinationOpen} onOpenChange={setDestinationOpen}>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      role="combobox"
+                      aria-expanded={destinationOpen}
+                      className="w-full justify-between h-8 text-sm font-semibold"
+                    >
+                      {selectedDestinationLocation?.name || 'Select location...'}
+                      <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-[280px] p-0" align="start">
+                    <Command>
+                      <CommandInput placeholder="Search location..." />
+                      <CommandList>
+                        <CommandEmpty>No location found.</CommandEmpty>
+                        <CommandGroup>
+                          {userAssignedLocations.map((loc) => (
+                            <CommandItem
+                              key={loc.id}
+                              value={`${loc.name} ${loc.code}`}
+                              onSelect={() => {
+                                setDestinationLocationId(loc.id)
+                                setDestinationOpen(false)
+                              }}
+                            >
+                              <Check
+                                className={cn(
+                                  "mr-2 h-4 w-4",
+                                  destinationLocationId === loc.id ? "opacity-100" : "opacity-0"
+                                )}
+                              />
+                              <div className="flex flex-col">
+                                <span className="font-medium">{loc.name}</span>
+                                <span className="text-xs text-muted-foreground">{loc.code}</span>
+                              </div>
+                            </CommandItem>
+                          ))}
+                        </CommandGroup>
+                      </CommandList>
+                    </Command>
+                  </PopoverContent>
+                </Popover>
+              ) : (
+                <p className="font-semibold">{selectedDestinationLocation?.name || 'Central Kitchen'}</p>
+              )}
             </div>
             
             <div className="space-y-2">

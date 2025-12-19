@@ -1,8 +1,8 @@
 /**
  * Store Requisition Types
  *
- * Types and interfaces for Store Requisition (SR) operations,
- * Stock Transfers (ST), Stock Issues (SI), and related functionality.
+ * Types and interfaces for Store Requisition (SR) operations.
+ * Stock Transfers (ST) and Stock Issues (SI) are filtered views of SRs at the Issue stage.
  *
  * @see docs/app/store-operations/sr-business-rules.md
  */
@@ -15,18 +15,14 @@ import { InventoryLocationType } from './location-management'
 /**
  * Store Requisition Status
  *
- * Defines the lifecycle stages of a Store Requisition
+ * Simplified status values for SR lifecycle
  */
 export enum SRStatus {
   Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Processing = 'processing',
-  Processed = 'processed',
-  PartialComplete = 'partial_complete',
+  InProgress = 'in_progress',
   Completed = 'completed',
-  Rejected = 'rejected',
-  Cancelled = 'cancelled'
+  Cancelled = 'cancelled',
+  Voided = 'voided'
 }
 
 /**
@@ -34,14 +30,46 @@ export enum SRStatus {
  */
 export const SR_STATUS_LABELS: Record<SRStatus, string> = {
   [SRStatus.Draft]: 'Draft',
-  [SRStatus.Submitted]: 'Submitted',
-  [SRStatus.Approved]: 'Approved',
-  [SRStatus.Processing]: 'Processing',
-  [SRStatus.Processed]: 'Processed',
-  [SRStatus.PartialComplete]: 'Partial Complete',
+  [SRStatus.InProgress]: 'In Progress',
   [SRStatus.Completed]: 'Completed',
-  [SRStatus.Rejected]: 'Rejected',
-  [SRStatus.Cancelled]: 'Cancelled'
+  [SRStatus.Cancelled]: 'Cancelled',
+  [SRStatus.Voided]: 'Voided'
+}
+
+/**
+ * Store Requisition Stage
+ *
+ * Workflow stages that an SR progresses through.
+ * Multiple stages can map to the same status (e.g., Submit, Approve, Issue all map to InProgress)
+ */
+export enum SRStage {
+  Draft = 'draft',
+  Submit = 'submit',
+  Approve = 'approve',
+  Issue = 'issue',
+  Complete = 'complete'
+}
+
+/**
+ * SR Stage Labels for UI display
+ */
+export const SR_STAGE_LABELS: Record<SRStage, string> = {
+  [SRStage.Draft]: 'Draft',
+  [SRStage.Submit]: 'Submitted',
+  [SRStage.Approve]: 'Approved',
+  [SRStage.Issue]: 'Issue',
+  [SRStage.Complete]: 'Complete'
+}
+
+/**
+ * Maps SRStage to SRStatus
+ */
+export const STAGE_TO_STATUS: Record<SRStage, SRStatus> = {
+  [SRStage.Draft]: SRStatus.Draft,
+  [SRStage.Submit]: SRStatus.InProgress,
+  [SRStage.Approve]: SRStatus.InProgress,
+  [SRStage.Issue]: SRStatus.InProgress,
+  [SRStage.Complete]: SRStatus.Completed
 }
 
 /**
@@ -82,45 +110,9 @@ export enum GeneratedDocumentType {
   PURCHASE_REQUEST = 'PR'
 }
 
-/**
- * Stock Transfer Status
- */
-export enum TransferStatus {
-  Pending = 'pending',
-  Issued = 'issued',
-  InTransit = 'in_transit',
-  Received = 'received',
-  Cancelled = 'cancelled'
-}
-
-/**
- * Stock Transfer Status Labels
- */
-export const TRANSFER_STATUS_LABELS: Record<TransferStatus, string> = {
-  [TransferStatus.Pending]: 'Pending',
-  [TransferStatus.Issued]: 'Issued',
-  [TransferStatus.InTransit]: 'In Transit',
-  [TransferStatus.Received]: 'Received',
-  [TransferStatus.Cancelled]: 'Cancelled'
-}
-
-/**
- * Stock Issue Status
- */
-export enum IssueStatus {
-  Pending = 'pending',
-  Issued = 'issued',
-  Cancelled = 'cancelled'
-}
-
-/**
- * Stock Issue Status Labels
- */
-export const ISSUE_STATUS_LABELS: Record<IssueStatus, string> = {
-  [IssueStatus.Pending]: 'Pending',
-  [IssueStatus.Issued]: 'Issued',
-  [IssueStatus.Cancelled]: 'Cancelled'
-}
+// Note: TransferStatus and IssueStatus enums have been removed.
+// Stock Transfers and Stock Issues are now filtered views of Store Requisitions at the Issue stage.
+// Use SRStatus and SRStage for status tracking.
 
 // ====== FULFILLMENT TYPES ======
 
@@ -214,8 +206,10 @@ export interface StoreRequisition {
   /** Dates */
   requestDate: Date
   requiredDate: Date
-  /** Status */
+  /** Status and Stage */
   status: SRStatus
+  /** Current workflow stage */
+  stage: SRStage
   /** Workflow type */
   workflowType: SRWorkflowType
   /** Source location (From) */
@@ -250,8 +244,17 @@ export interface StoreRequisition {
   rejectedAt?: Date
   rejectedBy?: string
   rejectionReason?: string
+  /** Issue tracking (when stage moves to Issue) */
+  issuedAt?: Date
+  issuedBy?: string
+  /** Completion tracking */
+  completedAt?: Date
+  completedBy?: string
   /** Source replenishment suggestion IDs (if SR was created from replenishment) */
   sourceReplenishmentIds?: string[]
+  /** Expense allocation (for Direct Issue workflow) */
+  expenseAccountId?: string
+  expenseAccountName?: string
   /** Audit fields */
   createdAt: Date
   createdBy: string
@@ -277,154 +280,17 @@ export interface GeneratedDocumentReference {
   documentId: string
 }
 
-// ====== STOCK TRANSFER TYPES ======
+// Note: StockTransfer and StockTransferItem interfaces have been removed.
+// Stock Transfers are now filtered views of Store Requisitions where:
+// - stage === SRStage.Issue
+// - destinationLocationType === InventoryLocationType.INVENTORY
+// Use the StoreRequisition interface for all data access.
 
-/**
- * Stock Transfer Line Item
- */
-export interface StockTransferItem {
-  id: string
-  transferId: string
-  /** Product reference */
-  productId: string
-  productCode: string
-  productName: string
-  unit: string
-  /** Quantities */
-  requestedQty: number
-  issuedQty: number
-  receivedQty: number
-  /** Costing */
-  unitCost: Money
-  totalValue: Money
-  /** Lot tracking */
-  batchNo?: string
-  lotNo?: string
-  expiryDate?: Date
-  /** Notes */
-  notes?: string
-  /** Source SR reference */
-  sourceRequisitionId?: string
-  sourceRequisitionItemId?: string
-}
-
-/**
- * Stock Transfer Header
- */
-export interface StockTransfer {
-  id: string
-  /** Document reference: ST-YYMM-NNNN */
-  refNo: string
-  transferDate: Date
-  status: TransferStatus
-  /** Source location */
-  fromLocationId: string
-  fromLocationCode: string
-  fromLocationName: string
-  fromLocationType: InventoryLocationType
-  /** Destination location */
-  toLocationId: string
-  toLocationCode: string
-  toLocationName: string
-  toLocationType: InventoryLocationType
-  /** Line items */
-  items: StockTransferItem[]
-  /** Totals */
-  totalItems: number
-  totalQuantity: number
-  totalValue: Money
-  /** Priority */
-  priority: 'normal' | 'urgent' | 'emergency'
-  /** Notes */
-  notes?: string
-  /** Source reference */
-  sourceRequisitionId?: string
-  sourceRequisitionRefNo?: string
-  /** Issue tracking */
-  issuedAt?: Date
-  issuedBy?: string
-  /** Receipt tracking */
-  receivedAt?: Date
-  receivedBy?: string
-  /** Audit fields */
-  createdAt: Date
-  createdBy: string
-  updatedAt?: Date
-  updatedBy?: string
-}
-
-// ====== STOCK ISSUE TYPES ======
-
-/**
- * Stock Issue Line Item
- */
-export interface StockIssueItem {
-  id: string
-  issueId: string
-  /** Product reference */
-  productId: string
-  productCode: string
-  productName: string
-  unit: string
-  /** Quantities */
-  requestedQty: number
-  issuedQty: number
-  /** Costing */
-  unitCost: Money
-  totalValue: Money
-  /** Lot tracking */
-  batchNo?: string
-  lotNo?: string
-  expiryDate?: Date
-  /** Notes */
-  notes?: string
-  /** Source SR reference */
-  sourceRequisitionId?: string
-  sourceRequisitionItemId?: string
-}
-
-/**
- * Stock Issue Header
- */
-export interface StockIssue {
-  id: string
-  /** Document reference: SI-YYMM-NNNN */
-  refNo: string
-  issueDate: Date
-  status: IssueStatus
-  /** Source location (inventory) */
-  fromLocationId: string
-  fromLocationCode: string
-  fromLocationName: string
-  /** Destination (direct/expense) */
-  toLocationId: string
-  toLocationCode: string
-  toLocationName: string
-  /** Line items */
-  items: StockIssueItem[]
-  /** Totals */
-  totalItems: number
-  totalQuantity: number
-  totalValue: Money
-  /** Expense allocation */
-  expenseAccountId?: string
-  expenseAccountName?: string
-  departmentId: string
-  departmentName: string
-  /** Notes */
-  notes?: string
-  /** Source reference */
-  sourceRequisitionId?: string
-  sourceRequisitionRefNo?: string
-  /** Issue tracking */
-  issuedAt?: Date
-  issuedBy?: string
-  /** Audit fields */
-  createdAt: Date
-  createdBy: string
-  updatedAt?: Date
-  updatedBy?: string
-}
+// Note: StockIssue and StockIssueItem interfaces have been removed.
+// Stock Issues are now filtered views of Store Requisitions where:
+// - stage === SRStage.Issue
+// - destinationLocationType === InventoryLocationType.DIRECT
+// Use the StoreRequisition interface for all data access.
 
 // ====== REPLENISHMENT TYPES ======
 
@@ -521,40 +387,21 @@ export interface StoreRequisitionItemFormData {
 export interface StoreRequisitionFilters {
   search: string
   status: SRStatus | 'all'
+  /** Filter by workflow stage */
+  stage: SRStage | 'all'
   workflowType: SRWorkflowType | 'all'
   sourceLocationId: string | 'all'
   destinationLocationId: string | 'all'
+  /** Filter by destination location type (for ST/SI views) */
+  destinationLocationType?: InventoryLocationType | 'all'
   departmentId: string | 'all'
   dateFrom?: Date
   dateTo?: Date
   hasGeneratedDocuments: boolean | 'all'
 }
 
-/**
- * Stock Transfer list filters
- */
-export interface StockTransferFilters {
-  search: string
-  status: TransferStatus | 'all'
-  fromLocationId: string | 'all'
-  toLocationId: string | 'all'
-  priority: 'normal' | 'urgent' | 'emergency' | 'all'
-  dateFrom?: Date
-  dateTo?: Date
-}
-
-/**
- * Stock Issue list filters
- */
-export interface StockIssueFilters {
-  search: string
-  status: IssueStatus | 'all'
-  fromLocationId: string | 'all'
-  toLocationId: string | 'all'
-  departmentId: string | 'all'
-  dateFrom?: Date
-  dateTo?: Date
-}
+// Note: StockTransferFilters and StockIssueFilters interfaces have been removed.
+// Stock Transfers and Stock Issues use StoreRequisitionFilters with additional stage filtering.
 
 // ====== CONFIGURATION TYPES ======
 

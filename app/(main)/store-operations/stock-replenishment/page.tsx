@@ -2,12 +2,13 @@
 
 import { useState, useMemo } from "react"
 import Link from "next/link"
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Checkbox } from "@/components/ui/checkbox"
+import { Progress } from "@/components/ui/progress"
 import {
   Select,
   SelectContent,
@@ -25,71 +26,61 @@ import {
 } from "@/components/ui/table"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger
+} from "@/components/ui/tooltip"
+import {
   Warehouse,
-  ArrowLeftRight,
   Package,
   AlertTriangle,
   AlertCircle,
   Search,
   Plus,
-  Clock,
   MapPin,
-  ChevronRight,
   ChevronDown,
-  History,
-  ClipboardList,
-  Truck,
   RefreshCw,
   CheckCircle2,
   TrendingDown,
   Filter,
-  ExternalLink
+  BarChart3,
+  ArrowUpRight,
+  PackageCheck,
+  PackageX,
+  Truck
 } from "lucide-react"
 import { useSimpleUser } from "@/lib/context/simple-user-context"
 import {
   getItemsBelowParLevelByLocations,
-  mockStoreRequisitions,
   mockInventoryLocations,
   type TransferItem
 } from "@/lib/mock-data"
-import { type StoreRequisition, SRWorkflowType } from "@/lib/types/store-requisition"
 import { InventoryLocationType } from "@/lib/types/location-management"
 
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
 function getUrgencyBadge(urgency: string) {
-  const config: Record<string, { variant: "destructive" | "default" | "secondary" | "outline"; label: string; icon: React.ReactNode }> = {
+  const config: Record<string, { variant: "destructive" | "default" | "secondary" | "outline"; label: string; icon: React.ReactNode; className?: string }> = {
     critical: { variant: "destructive", label: "Critical", icon: <AlertCircle className="h-3 w-3" /> },
-    warning: { variant: "default", label: "Warning", icon: <AlertTriangle className="h-3 w-3" /> },
+    warning: { variant: "outline", label: "Warning", icon: <AlertTriangle className="h-3 w-3" />, className: "border-amber-300 bg-amber-50 text-amber-700" },
     low: { variant: "secondary", label: "Low", icon: <TrendingDown className="h-3 w-3" /> }
   }
-  const { variant, label, icon } = config[urgency] || { variant: "outline", label: urgency, icon: null }
+  const { variant, label, icon, className } = config[urgency] || { variant: "outline", label: urgency, icon: null }
   return (
-    <Badge variant={variant} className="gap-1">
+    <Badge variant={variant} className={`gap-1 ${className || ''}`}>
       {icon}
       {label}
     </Badge>
   )
 }
 
-function getStatusBadge(status: string) {
-  const config: Record<string, { variant: "default" | "secondary" | "outline" | "destructive"; label: string }> = {
-    draft: { variant: "outline", label: "Draft" },
-    submitted: { variant: "secondary", label: "Submitted" },
-    approved: { variant: "default", label: "Approved" },
-    processing: { variant: "secondary", label: "Processing" },
-    processed: { variant: "default", label: "Processed" },
-    partial_complete: { variant: "secondary", label: "Partial" },
-    completed: { variant: "outline", label: "Completed" },
-    rejected: { variant: "destructive", label: "Rejected" },
-    cancelled: { variant: "outline", label: "Cancelled" }
-  }
-  const { variant, label } = config[status] || { variant: "outline", label: status }
-  return <Badge variant={variant}>{label}</Badge>
-}
-
 function getLocationTypeIcon(type: string) {
   switch (type) {
     case InventoryLocationType.INVENTORY:
-      return <Warehouse className="h-4 w-4 text-green-600" />
+      return <Warehouse className="h-4 w-4 text-emerald-600" />
     case InventoryLocationType.DIRECT:
       return <Package className="h-4 w-4 text-blue-600" />
     case InventoryLocationType.CONSIGNMENT:
@@ -99,6 +90,10 @@ function getLocationTypeIcon(type: string) {
   }
 }
 
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
+
 export default function StockReplenishmentDashboard() {
   const { user } = useSimpleUser()
   const [searchQuery, setSearchQuery] = useState("")
@@ -107,11 +102,9 @@ export default function StockReplenishmentDashboard() {
   const [locationFilter, setLocationFilter] = useState<string>("all")
   const [expandedLocations, setExpandedLocations] = useState<Set<string>>(new Set())
 
-  // Get user's assigned locations (from user.locations array)
+  // Get user's assigned inventory locations
   const userAssignedLocations = useMemo(() => {
-    // Use user's assigned locations if available, otherwise fall back to available locations
     const locations = user?.locations || user?.availableLocations || []
-    // Filter to only include inventory-type locations from mockInventoryLocations
     return locations.filter(loc => {
       const inventoryLoc = mockInventoryLocations.find(il => il.id === loc.id)
       return inventoryLoc && inventoryLoc.type === InventoryLocationType.INVENTORY
@@ -144,18 +137,6 @@ export default function StockReplenishmentDashboard() {
       { totalItemsBelowPar: 0, criticalCount: 0, warningCount: 0, lowCount: 0, locationsWithIssues: 0 }
     )
   }, [locationGroups])
-
-  // Get recent store requisitions (prioritize those from Stock Replenishment workflow)
-  const recentRequests = useMemo(() => {
-    // Filter to show Main Store and Transfer Internal workflow types (relevant for replenishment)
-    return mockStoreRequisitions
-      .filter(sr =>
-        sr.workflowType === SRWorkflowType.MAIN_STORE ||
-        sr.workflowType === SRWorkflowType.TRANSFER_INTERNAL
-      )
-      .sort((a, b) => new Date(b.requestDate).getTime() - new Date(a.requestDate).getTime())
-      .slice(0, 5)
-  }, [])
 
   // Filter items within each location group
   const filteredLocationGroups = useMemo(() => {
@@ -230,12 +211,11 @@ export default function StockReplenishmentDashboard() {
     setExpandedLocations(newExpanded)
   }
 
-  // Expand all locations
+  // Expand/Collapse all
   const expandAllLocations = () => {
     setExpandedLocations(new Set(filteredLocationGroups.map(g => g.locationId)))
   }
 
-  // Collapse all locations
   const collapseAllLocations = () => {
     setExpandedLocations(new Set())
   }
@@ -244,8 +224,15 @@ export default function StockReplenishmentDashboard() {
     return new Intl.NumberFormat('en-US').format(value)
   }
 
-  // Check if user has any assigned inventory locations
   const hasAssignedLocations = userAssignedLocations.length > 0
+
+  // Calculate stock health percentage
+  const stockHealthPercent = useMemo(() => {
+    const totalItems = overallSummary.totalItemsBelowPar
+    if (totalItems === 0) return 100
+    const healthyRatio = overallSummary.lowCount / totalItems
+    return Math.round(healthyRatio * 100)
+  }, [overallSummary])
 
   return (
     <div className="container mx-auto py-6 space-y-6">
@@ -253,181 +240,168 @@ export default function StockReplenishmentDashboard() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-            <Warehouse className="h-7 w-7 text-green-600" />
+            <Warehouse className="h-7 w-7 text-emerald-600" />
             Stock Replenishment
           </h1>
-          <p className="text-sm text-muted-foreground">
-            Restock items to par level across your assigned locations
+          <p className="text-sm text-muted-foreground mt-1">
+            Monitor and manage inventory levels across your assigned locations
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="gap-1 text-sm py-1.5">
-            <MapPin className="h-4 w-4" />
-            {userAssignedLocations.length} Assigned Location{userAssignedLocations.length !== 1 ? 's' : ''}
-          </Badge>
+          <Button variant="outline" size="sm" className="gap-1">
+            <RefreshCw className="h-4 w-4" />
+            Refresh
+          </Button>
+          <Link href="/store-operations/stock-replenishment/new">
+            <Button size="sm" className="gap-1 bg-emerald-600 hover:bg-emerald-700">
+              <Plus className="h-4 w-4" />
+              New Request
+            </Button>
+          </Link>
         </div>
       </div>
 
       {/* Warning when no assigned locations */}
-      {!hasAssignedLocations ? (
+      {!hasAssignedLocations && (
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertDescription>
-            <strong>No inventory locations assigned.</strong> You do not have access to any inventory locations.
-            Please contact your administrator to assign inventory locations to your account.
-          </AlertDescription>
-        </Alert>
-      ) : (
-        <Alert className="border-green-200 bg-green-50">
-          <ArrowLeftRight className="h-4 w-4 text-green-600" />
-          <AlertDescription className="text-green-800">
-            <strong>PAR LEVEL REPLENISHMENT:</strong> This module shows items across your assigned locations that are below their target (par) stock level.
-            Select items and create a store requisition to restock from another inventory location.
+            <strong>No inventory locations assigned.</strong> Please contact your administrator to assign inventory locations.
           </AlertDescription>
         </Alert>
       )}
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <Link href="/store-operations/stock-replenishment/new">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full border-green-200 hover:border-green-400">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="p-3 bg-green-100 rounded-lg">
-                  <Plus className="h-6 w-6 text-green-600" />
-                </div>
-                <span className="font-medium">New Request</span>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/store-operations/store-requisitions">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="p-3 bg-blue-100 rounded-lg">
-                  <ClipboardList className="h-6 w-6 text-blue-600" />
-                </div>
-                <span className="font-medium">My Requisitions</span>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/store-operations/stock-replenishment/stock-levels">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="p-3 bg-purple-100 rounded-lg">
-                  <Package className="h-6 w-6 text-purple-600" />
-                </div>
-                <span className="font-medium">Stock Levels</span>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-        <Link href="/store-operations/stock-replenishment/history">
-          <Card className="hover:bg-muted/50 transition-colors cursor-pointer h-full">
-            <CardContent className="pt-6">
-              <div className="flex flex-col items-center text-center gap-2">
-                <div className="p-3 bg-orange-100 rounded-lg">
-                  <History className="h-6 w-6 text-orange-600" />
-                </div>
-                <span className="font-medium">History</span>
-              </div>
-            </CardContent>
-          </Card>
-        </Link>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <Card>
+      {/* Stock Overview Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {/* Stock Health Card */}
+        <Card className="md:col-span-1 bg-gradient-to-br from-emerald-50 to-white border-emerald-200">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <MapPin className="h-4 w-4 text-purple-500" />
-              Locations
+            <CardTitle className="text-sm font-medium text-emerald-700 flex items-center gap-2">
+              <BarChart3 className="h-4 w-4" />
+              Stock Health
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-purple-600">{overallSummary.locationsWithIssues}</div>
-            <p className="text-xs text-muted-foreground">With items below par</p>
+            <div className="flex items-end gap-2">
+              <span className="text-3xl font-bold text-emerald-700">
+                {overallSummary.totalItemsBelowPar === 0 ? '100%' : `${overallSummary.totalItemsBelowPar}`}
+              </span>
+              {overallSummary.totalItemsBelowPar > 0 && (
+                <span className="text-sm text-muted-foreground mb-1">items need attention</span>
+              )}
+            </div>
+            {overallSummary.totalItemsBelowPar === 0 ? (
+              <div className="flex items-center gap-1 text-sm text-emerald-600 mt-2">
+                <CheckCircle2 className="h-4 w-4" />
+                All items at optimal levels
+              </div>
+            ) : (
+              <Progress value={stockHealthPercent} className="h-2 mt-3" />
+            )}
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Critical Items */}
+        <Card className={overallSummary.criticalCount > 0 ? "border-red-200 bg-red-50/30" : ""}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-red-500" />
-              Critical Items
+              Critical
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-red-600">{overallSummary.criticalCount}</div>
-            <p className="text-xs text-muted-foreground">Below minimum level</p>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-bold ${overallSummary.criticalCount > 0 ? 'text-red-600' : 'text-gray-400'}`}>
+                {overallSummary.criticalCount}
+              </span>
+              <span className="text-sm text-muted-foreground">items</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Below minimum stock level</p>
+            {overallSummary.criticalCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 h-7 px-2 text-xs text-red-600 hover:text-red-700 hover:bg-red-100"
+                onClick={() => handleSelectByUrgency("critical")}
+              >
+                Select all critical
+                <ArrowUpRight className="h-3 w-3 ml-1" />
+              </Button>
+            )}
           </CardContent>
         </Card>
 
-        <Card>
+        {/* Warning Items */}
+        <Card className={overallSummary.warningCount > 0 ? "border-amber-200 bg-amber-50/30" : ""}>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <AlertTriangle className="h-4 w-4 text-amber-500" />
-              Warning Items
+              Warning
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-amber-600">{overallSummary.warningCount}</div>
-            <p className="text-xs text-muted-foreground">Below reorder point</p>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-bold ${overallSummary.warningCount > 0 ? 'text-amber-600' : 'text-gray-400'}`}>
+                {overallSummary.warningCount}
+              </span>
+              <span className="text-sm text-muted-foreground">items</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Below reorder point</p>
+            {overallSummary.warningCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="mt-2 h-7 px-2 text-xs text-amber-600 hover:text-amber-700 hover:bg-amber-100"
+                onClick={() => handleSelectByUrgency("warning")}
+              >
+                Select all warning
+                <ArrowUpRight className="h-3 w-3 ml-1" />
+              </Button>
+            )}
           </CardContent>
         </Card>
 
+        {/* Low Stock Items */}
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
+            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
               <TrendingDown className="h-4 w-4 text-blue-500" />
-              Low Stock Items
+              Low Stock
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{overallSummary.lowCount}</div>
-            <p className="text-xs text-muted-foreground">Below par level</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-1">
-              <Clock className="h-4 w-4 text-gray-500" />
-              Total Items
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{overallSummary.totalItemsBelowPar}</div>
-            <p className="text-xs text-muted-foreground">Need replenishment</p>
+            <div className="flex items-baseline gap-2">
+              <span className={`text-3xl font-bold ${overallSummary.lowCount > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
+                {overallSummary.lowCount}
+              </span>
+              <span className="text-sm text-muted-foreground">items</span>
+            </div>
+            <p className="text-xs text-muted-foreground mt-1">Below par level</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
       <Card>
-        <CardContent className="pt-4">
+        <CardContent className="p-4">
           <div className="flex flex-col md:flex-row justify-between gap-4">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search items..."
-                  className="pl-9 w-[200px]"
+                  placeholder="Search products..."
+                  className="pl-9 w-[220px] h-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Select value={locationFilter} onValueChange={setLocationFilter}>
-                <SelectTrigger className="w-[200px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue placeholder="Filter by Location" />
+                <SelectTrigger className="w-[180px] h-9">
+                  <MapPin className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="All Locations" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All My Locations ({userAssignedLocations.length})</SelectItem>
+                  <SelectItem value="all">All Locations ({userAssignedLocations.length})</SelectItem>
                   {userAssignedLocations.map(loc => (
                     <SelectItem key={loc.id} value={loc.id}>
                       {loc.name}
@@ -436,8 +410,9 @@ export default function StockReplenishmentDashboard() {
                 </SelectContent>
               </Select>
               <Select value={urgencyFilter} onValueChange={setUrgencyFilter}>
-                <SelectTrigger className="w-[150px]">
-                  <SelectValue placeholder="Urgency" />
+                <SelectTrigger className="w-[140px] h-9">
+                  <Filter className="h-4 w-4 mr-2 text-muted-foreground" />
+                  <SelectValue placeholder="All Urgency" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Urgency</SelectItem>
@@ -446,330 +421,248 @@ export default function StockReplenishmentDashboard() {
                   <SelectItem value="low">Low</SelectItem>
                 </SelectContent>
               </Select>
-              <Button variant="outline" size="icon">
-                <RefreshCw className="h-4 w-4" />
-              </Button>
             </div>
-            <div className="flex gap-2">
+            <div className="flex items-center gap-2">
+              {selectedItems.size > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedItems(new Set())}
+                  className="text-muted-foreground"
+                >
+                  Clear ({selectedItems.size})
+                </Button>
+              )}
               <Button variant="outline" size="sm" onClick={expandAllLocations}>
                 Expand All
               </Button>
               <Button variant="outline" size="sm" onClick={collapseAllLocations}>
-                Collapse All
+                Collapse
               </Button>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Quick Select Buttons */}
-      <div className="flex flex-wrap gap-2">
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleSelectByUrgency("critical")}
-          className="text-red-600 border-red-200 hover:bg-red-50"
-        >
-          <AlertCircle className="h-4 w-4 mr-1" />
-          Select All Critical ({overallSummary.criticalCount})
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => handleSelectByUrgency("warning")}
-          className="text-amber-600 border-amber-200 hover:bg-amber-50"
-        >
-          <AlertTriangle className="h-4 w-4 mr-1" />
-          Select All Warning ({overallSummary.warningCount})
-        </Button>
-        {selectedItems.size > 0 && (
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSelectedItems(new Set())}
-          >
-            Clear Selection ({selectedItems.size})
-          </Button>
-        )}
-      </div>
-
       {/* Items Grouped by Location */}
-      <div className="space-y-4">
+      <div className="space-y-3">
         {filteredLocationGroups.length === 0 ? (
-          <Card>
+          <Card className="border-emerald-200 bg-emerald-50/50">
             <CardContent className="py-12 text-center">
-              <CheckCircle2 className="h-12 w-12 text-green-500 mx-auto" />
-              <h3 className="mt-4 text-lg font-medium">All items are at par level!</h3>
-              <p className="mt-2 text-sm text-muted-foreground">
-                No items need replenishment across your assigned locations.
+              <div className="mx-auto w-16 h-16 rounded-full bg-emerald-100 flex items-center justify-center mb-4">
+                <PackageCheck className="h-8 w-8 text-emerald-600" />
+              </div>
+              <h3 className="text-lg font-semibold text-emerald-800">All Stock Levels Optimal</h3>
+              <p className="mt-2 text-sm text-emerald-600">
+                No items require replenishment at this time.
               </p>
             </CardContent>
           </Card>
         ) : (
-          filteredLocationGroups.map((group) => (
-            <Card key={group.locationId} className={group.summary.critical > 0 ? "border-red-200" : ""}>
-              <Collapsible
-                open={expandedLocations.has(group.locationId)}
-                onOpenChange={() => toggleLocationExpansion(group.locationId)}
+          filteredLocationGroups.map((group) => {
+            const isExpanded = expandedLocations.has(group.locationId)
+            const hasCritical = group.filteredSummary.critical > 0
+
+            return (
+              <Card
+                key={group.locationId}
+                className={hasCritical ? "border-red-200" : ""}
               >
-                <CollapsibleTrigger className="w-full">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className="h-10 w-10 rounded-lg bg-gray-100 flex items-center justify-center">
-                          {getLocationTypeIcon(group.locationType || '')}
+                <Collapsible
+                  open={isExpanded}
+                  onOpenChange={() => toggleLocationExpansion(group.locationId)}
+                >
+                  <CollapsibleTrigger className="w-full text-left">
+                    <CardHeader className="py-3 px-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                            hasCritical ? 'bg-red-100' : 'bg-gray-100'
+                          }`}>
+                            {getLocationTypeIcon(group.locationType || '')}
+                          </div>
+                          <div>
+                            <h3 className="font-semibold">{group.locationName}</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {group.filteredSummary.total} items below par
+                            </p>
+                          </div>
                         </div>
-                        <div className="text-left">
-                          <CardTitle className="text-lg">{group.locationName}</CardTitle>
-                          <p className="text-sm text-muted-foreground">
-                            {group.filteredSummary.total} items below par
-                          </p>
+                        <div className="flex items-center gap-3">
+                          <div className="hidden md:flex gap-2">
+                            {group.filteredSummary.critical > 0 && (
+                              <Badge variant="destructive" className="font-normal">
+                                {group.filteredSummary.critical} critical
+                              </Badge>
+                            )}
+                            {group.filteredSummary.warning > 0 && (
+                              <Badge variant="outline" className="font-normal border-amber-300 bg-amber-50 text-amber-700">
+                                {group.filteredSummary.warning} warning
+                              </Badge>
+                            )}
+                            {group.filteredSummary.low > 0 && (
+                              <Badge variant="secondary" className="font-normal">
+                                {group.filteredSummary.low} low
+                              </Badge>
+                            )}
+                          </div>
+                          <ChevronDown className={`h-5 w-5 text-muted-foreground transition-transform ${isExpanded ? '' : '-rotate-90'}`} />
                         </div>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <div className="flex gap-2">
-                          {group.filteredSummary.critical > 0 && (
-                            <Badge variant="destructive">{group.filteredSummary.critical} Critical</Badge>
-                          )}
-                          {group.filteredSummary.warning > 0 && (
-                            <Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">{group.filteredSummary.warning} Warning</Badge>
-                          )}
-                          {group.filteredSummary.low > 0 && (
-                            <Badge variant="secondary">{group.filteredSummary.low} Low</Badge>
-                          )}
-                        </div>
-                        {expandedLocations.has(group.locationId) ? (
-                          <ChevronDown className="h-5 w-5 text-muted-foreground" />
-                        ) : (
-                          <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                    </CardHeader>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent>
+                    <CardContent className="pt-0 px-4 pb-4">
+                      {/* Progress Bar */}
+                      <div className="flex gap-0.5 h-1.5 rounded-full overflow-hidden bg-gray-100 mb-4">
+                        {group.summary.critical > 0 && (
+                          <div
+                            className="bg-red-500"
+                            style={{ width: `${(group.summary.critical / group.summary.total) * 100}%` }}
+                          />
+                        )}
+                        {group.summary.warning > 0 && (
+                          <div
+                            className="bg-amber-500"
+                            style={{ width: `${(group.summary.warning / group.summary.total) * 100}%` }}
+                          />
+                        )}
+                        {group.summary.low > 0 && (
+                          <div
+                            className="bg-blue-400"
+                            style={{ width: `${(group.summary.low / group.summary.total) * 100}%` }}
+                          />
                         )}
                       </div>
-                    </div>
-                  </CardHeader>
-                </CollapsibleTrigger>
 
-                <CollapsibleContent>
-                  <CardContent className="pt-0">
-                    {/* Stock Overview Bar */}
-                    <div className="flex gap-1 h-2 rounded-full overflow-hidden bg-gray-100 mb-4">
-                      <div
-                        className="bg-red-500 transition-all"
-                        style={{ width: `${group.summary.total > 0 ? (group.summary.critical / group.summary.total) * 100 : 0}%` }}
-                      />
-                      <div
-                        className="bg-amber-500 transition-all"
-                        style={{ width: `${group.summary.total > 0 ? (group.summary.warning / group.summary.total) * 100 : 0}%` }}
-                      />
-                      <div
-                        className="bg-blue-500 transition-all"
-                        style={{ width: `${group.summary.total > 0 ? (group.summary.low / group.summary.total) * 100 : 0}%` }}
-                      />
-                    </div>
-
-                    {/* Items Table */}
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead className="w-[50px]">
-                              <Checkbox
-                                checked={group.items.length > 0 && group.items.every(item => selectedItems.has(item.id))}
-                                onCheckedChange={(checked) => handleSelectAllInLocation(group.items, checked as boolean)}
-                              />
-                            </TableHead>
-                            <TableHead>Product</TableHead>
-                            <TableHead>Category</TableHead>
-                            <TableHead className="text-right">Current</TableHead>
-                            <TableHead className="text-right">Par Level</TableHead>
-                            <TableHead className="text-right">Needed</TableHead>
-                            <TableHead>Urgency</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {group.items.length === 0 ? (
-                            <TableRow>
-                              <TableCell colSpan={7} className="text-center py-6">
-                                <p className="text-sm text-muted-foreground">
-                                  No items match the current filters
-                                </p>
-                              </TableCell>
+                      {/* Items Table */}
+                      <div className="rounded-md border overflow-hidden">
+                        <Table>
+                          <TableHeader>
+                            <TableRow className="bg-muted/50">
+                              <TableHead className="w-[40px]">
+                                <Checkbox
+                                  checked={group.items.length > 0 && group.items.every(item => selectedItems.has(item.id))}
+                                  onCheckedChange={(checked) => handleSelectAllInLocation(group.items, checked as boolean)}
+                                />
+                              </TableHead>
+                              <TableHead className="font-medium">Product</TableHead>
+                              <TableHead className="font-medium hidden md:table-cell">Category</TableHead>
+                              <TableHead className="font-medium text-right">Current</TableHead>
+                              <TableHead className="font-medium text-right">Par Level</TableHead>
+                              <TableHead className="font-medium text-right">Needed</TableHead>
+                              <TableHead className="font-medium">Status</TableHead>
                             </TableRow>
-                          ) : (
-                            group.items.map((item) => (
-                              <TableRow
-                                key={item.id}
-                                className={selectedItems.has(item.id) ? "bg-muted/50" : ""}
-                              >
-                                <TableCell>
-                                  <Checkbox
-                                    checked={selectedItems.has(item.id)}
-                                    onCheckedChange={(checked) => handleItemSelect(item.id, checked as boolean)}
-                                  />
-                                </TableCell>
-                                <TableCell>
-                                  <div>
-                                    <div className="font-medium">{item.productName}</div>
-                                    <div className="text-xs text-muted-foreground">{item.productCode}</div>
-                                  </div>
-                                </TableCell>
-                                <TableCell>
-                                  <span className="text-sm">{item.categoryName}</span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <span className={item.urgency === "critical" ? "text-red-600 font-medium" : ""}>
-                                    {formatNumber(item.currentStock)} {item.unit}
-                                  </span>
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  {formatNumber(item.parLevel)} {item.unit}
-                                </TableCell>
-                                <TableCell className="text-right">
-                                  <span className="font-medium text-green-600">
-                                    +{formatNumber(item.recommendedQty)} {item.unit}
-                                  </span>
-                                </TableCell>
-                                <TableCell>
-                                  {getUrgencyBadge(item.urgency)}
+                          </TableHeader>
+                          <TableBody>
+                            {group.items.length === 0 ? (
+                              <TableRow>
+                                <TableCell colSpan={7} className="text-center py-8">
+                                  <PackageX className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                                  <p className="text-sm text-muted-foreground">
+                                    No items match the current filters
+                                  </p>
                                 </TableCell>
                               </TableRow>
-                            ))
-                          )}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </CollapsibleContent>
-              </Collapsible>
-            </Card>
-          ))
+                            ) : (
+                              group.items.map((item) => (
+                                <TableRow
+                                  key={item.id}
+                                  className={`${selectedItems.has(item.id) ? "bg-emerald-50" : ""} hover:bg-muted/30`}
+                                >
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedItems.has(item.id)}
+                                      onCheckedChange={(checked) => handleItemSelect(item.id, checked as boolean)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <div>
+                                      <p className="font-medium">{item.productName}</p>
+                                      <p className="text-xs text-muted-foreground">{item.productCode}</p>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="hidden md:table-cell">
+                                    <span className="text-sm text-muted-foreground">{item.categoryName}</span>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <TooltipProvider>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
+                                          <span className={`font-mono ${
+                                            item.urgency === "critical" ? "text-red-600 font-semibold" :
+                                            item.urgency === "warning" ? "text-amber-600" : ""
+                                          }`}>
+                                            {formatNumber(item.currentStock)}
+                                          </span>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>{item.unit}</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                    </TooltipProvider>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <span className="font-mono text-muted-foreground">
+                                      {formatNumber(item.parLevel)}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <span className="font-mono font-medium text-emerald-600">
+                                      +{formatNumber(item.recommendedQty)}
+                                    </span>
+                                  </TableCell>
+                                  <TableCell>
+                                    {getUrgencyBadge(item.urgency)}
+                                  </TableCell>
+                                </TableRow>
+                              ))
+                            )}
+                          </TableBody>
+                        </Table>
+                      </div>
+                    </CardContent>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
+            )
+          })
         )}
       </div>
 
-      {/* Action Bar */}
+      {/* Floating Action Bar */}
       {selectedItems.size > 0 && (
-        <Card className="sticky bottom-4 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-green-200">
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <span className="font-medium">{selectedItems.size}</span> items selected across locations
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+          <Card className="shadow-lg border-emerald-200 bg-white/95 backdrop-blur">
+            <CardContent className="py-3 px-4">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <Package className="h-4 w-4 text-emerald-600" />
+                  </div>
+                  <div className="text-sm">
+                    <span className="font-semibold">{selectedItems.size}</span>
+                    <span className="text-muted-foreground"> items selected</span>
+                  </div>
+                </div>
+                <div className="h-6 w-px bg-border" />
+                <Link
+                  href={{
+                    pathname: "/store-operations/stock-replenishment/new",
+                    query: { items: Array.from(selectedItems).join(",") }
+                  }}
+                >
+                  <Button className="gap-2 bg-emerald-600 hover:bg-emerald-700">
+                    <Plus className="h-4 w-4" />
+                    Create Replenishment Request
+                  </Button>
+                </Link>
               </div>
-              <Link
-                href={{
-                  pathname: "/store-operations/stock-replenishment/new",
-                  query: { items: Array.from(selectedItems).join(",") }
-                }}
-              >
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Create Store Requisition
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        </div>
       )}
-
-      {/* Recent Requests */}
-      <Card>
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <div>
-              <CardTitle className="text-lg">Recent Store Requisitions</CardTitle>
-              <CardDescription>Your recent requisitions and their status</CardDescription>
-            </div>
-            <Link href="/store-operations/store-requisitions">
-              <Button variant="outline" size="sm">
-                View All
-                <ChevronRight className="h-4 w-4 ml-1" />
-              </Button>
-            </Link>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {recentRequests.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No store requisitions yet
-            </div>
-          ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Requisition #</TableHead>
-                    <TableHead>From Location</TableHead>
-                    <TableHead>To Location</TableHead>
-                    <TableHead className="text-center">Items</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-[100px]">Action</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {recentRequests.map((request) => (
-                    <TableRow key={request.id}>
-                      <TableCell>
-                        <div className="font-medium">{request.refNo}</div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Warehouse className="h-4 w-4 text-muted-foreground" />
-                          {request.sourceLocationName}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <MapPin className="h-4 w-4 text-muted-foreground" />
-                          {request.destinationLocationName}
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-center">{request.items.length}</TableCell>
-                      <TableCell>
-                        <span className="text-sm text-muted-foreground">
-                          {new Date(request.requestDate).toLocaleDateString()}
-                        </span>
-                      </TableCell>
-                      <TableCell>{getStatusBadge(request.status)}</TableCell>
-                      <TableCell>
-                        <Link href={`/store-operations/store-requisitions/${request.id}`}>
-                          <Button variant="ghost" size="sm">
-                            Details
-                            <ChevronRight className="h-4 w-4 ml-1" />
-                          </Button>
-                        </Link>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Cross-Navigation */}
-      <Card className="bg-blue-50 border-blue-200">
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div className="flex items-start gap-3">
-              <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0">
-                <Truck className="h-5 w-5 text-blue-600" />
-              </div>
-              <div>
-                <p className="font-medium text-blue-900">Need to order from suppliers?</p>
-                <p className="text-sm text-blue-700">
-                  For external purchases, use Supplier Reorder Planning in Inventory Planning.
-                </p>
-              </div>
-            </div>
-            <Link href="/operational-planning/inventory-planning/reorder">
-              <Button variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                Go to Supplier Reorder Planning
-                <ChevronRight className="h-4 w-4 ml-2" />
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }

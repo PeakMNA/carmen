@@ -23,6 +23,7 @@ import {
   StoreRequisition,
   StoreRequisitionItem,
   SRStatus,
+  SRStage,
   SRWorkflowType,
   GeneratedDocumentType,
   ReplenishmentMode
@@ -360,17 +361,23 @@ export class ReplenishmentService {
     const totalQuantity = items.reduce((sum, i) => sum + i.requestedQty, 0)
     const estimatedValue = items.reduce((sum, i) => sum + i.totalCost, 0)
 
-    // Determine initial status based on mode
+    // Determine initial status and stage based on mode
+    // New architecture: status is draft/in_progress/completed/cancelled/voided
+    // stage tracks workflow position: draft/submit/approve/issue/complete
     let status: SRStatus
+    let stage: SRStage
     switch (mode) {
       case ReplenishmentMode.AUTO_APPROVE:
-        status = SRStatus.Approved
+        status = SRStatus.InProgress
+        stage = SRStage.Approve
         break
       case ReplenishmentMode.AUTO_DRAFT:
-        status = SRStatus.Submitted
+        status = SRStatus.InProgress
+        stage = SRStage.Submit
         break
       default:
         status = SRStatus.Draft
+        stage = SRStage.Draft
     }
 
     // Create requisition
@@ -380,6 +387,7 @@ export class ReplenishmentService {
       requestDate: new Date(),
       requiredDate: new Date(Date.now() + 2 * 24 * 60 * 60 * 1000), // 2 days from now
       status,
+      stage,
       workflowType: SRWorkflowType.MAIN_STORE,
       sourceLocationId,
       sourceLocationCode: 'WH-001',

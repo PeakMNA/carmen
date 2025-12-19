@@ -4,6 +4,10 @@
  * Service for determining when Store Requisitions can bypass approval
  * and be processed directly.
  *
+ * New Architecture:
+ * - SRStatus: draft, in_progress, completed, cancelled, voided (5 values)
+ * - SRStage: draft, submit, approve, issue, complete (5 stages)
+ *
  * Bypass Rules:
  * - Store-to-Store transfers between INVENTORY locations: No approval required
  * - Main Store transfers: Standard approval workflow
@@ -15,7 +19,8 @@
 import {
   StoreRequisition,
   SRWorkflowType,
-  SRStatus
+  SRStatus,
+  SRStage
 } from '@/lib/types/store-requisition'
 import { InventoryLocationType } from '@/lib/types/location-management'
 
@@ -26,6 +31,7 @@ export interface WorkflowDecision {
   bypassReason?: string
   requiredApprovers: ApproverInfo[]
   workflowType: SRWorkflowType
+  autoTransitionToStage?: SRStage
   autoTransitionToStatus?: SRStatus
 }
 
@@ -50,6 +56,11 @@ export interface WorkflowConfig {
     }
   }[]
   autoProcessOnSubmit: boolean
+}
+
+export interface StageTransition {
+  status: SRStatus
+  stage: SRStage
 }
 
 // ====== WORKFLOW CONFIGURATIONS ======
@@ -194,7 +205,9 @@ export class WorkflowBypassService {
 
     if (bypassApproval) {
       decision.bypassReason = this.getBypassReason(workflowType)
-      decision.autoTransitionToStatus = SRStatus.Approved
+      // Bypass goes directly to Approve stage (skipping Submit)
+      decision.autoTransitionToStatus = SRStatus.InProgress
+      decision.autoTransitionToStage = SRStage.Approve
     } else {
       decision.requiredApprovers = this.getRequiredApprovers(requisition)
     }
@@ -264,72 +277,78 @@ export class WorkflowBypassService {
   }
 
   /**
-   * Get the next status after an action
+   * Get the next status/stage after an action
+   * New architecture uses both status and stage
    */
-  getNextStatus(
-    currentStatus: SRStatus,
-    action: 'submit' | 'approve' | 'reject' | 'process' | 'complete',
+  getNextTransition(
+    currentStage: SRStage,
+    action: 'submit' | 'approve' | 'reject' | 'issue' | 'complete' | 'cancel' | 'void',
     requisition: StoreRequisition
-  ): SRStatus {
+  ): StageTransition {
     switch (action) {
       case 'submit':
         if (this.canAutoProcessOnSubmit(requisition)) {
-          return SRStatus.Approved // Auto-approve for store-to-store
+          // Auto-approve for store-to-store - skip to Approve stage
+          return { status: SRStatus.InProgress, stage: SRStage.Approve }
         }
-        return SRStatus.Submitted
+        return { status: SRStatus.InProgress, stage: SRStage.Submit }
 
       case 'approve':
-        return SRStatus.Approved
+        return { status: SRStatus.InProgress, stage: SRStage.Approve }
 
       case 'reject':
-        return SRStatus.Rejected
+        // Rejection cancels the requisition
+        return { status: SRStatus.Cancelled, stage: currentStage }
 
-      case 'process':
-        return SRStatus.Processing
+      case 'issue':
+        return { status: SRStatus.InProgress, stage: SRStage.Issue }
 
       case 'complete':
-        return SRStatus.Completed
+        return { status: SRStatus.Completed, stage: SRStage.Complete }
+
+      case 'cancel':
+        return { status: SRStatus.Cancelled, stage: currentStage }
+
+      case 'void':
+        return { status: SRStatus.Voided, stage: currentStage }
 
       default:
-        return currentStatus
+        return { status: requisition.status, stage: currentStage }
     }
   }
 
   /**
-   * Validate if a status transition is allowed
+   * Validate if a stage transition is allowed
+   * New architecture: Stage transitions (not status)
    */
   isValidTransition(
-    fromStatus: SRStatus,
-    toStatus: SRStatus,
+    fromStage: SRStage,
+    toStage: SRStage,
     requisition: StoreRequisition
   ): { valid: boolean; reason?: string } {
-    // Define valid transitions
-    const validTransitions: Record<SRStatus, SRStatus[]> = {
-      [SRStatus.Draft]: [SRStatus.Submitted, SRStatus.Cancelled, SRStatus.Approved],
-      [SRStatus.Submitted]: [SRStatus.Approved, SRStatus.Rejected],
-      [SRStatus.Approved]: [SRStatus.Processing, SRStatus.Cancelled],
-      [SRStatus.Processing]: [SRStatus.Processed],
-      [SRStatus.Processed]: [SRStatus.Completed, SRStatus.PartialComplete],
-      [SRStatus.PartialComplete]: [SRStatus.Completed],
-      [SRStatus.Completed]: [],
-      [SRStatus.Rejected]: [],
-      [SRStatus.Cancelled]: []
+    // Define valid stage transitions
+    const validStageTransitions: Record<SRStage, SRStage[]> = {
+      [SRStage.Draft]: [SRStage.Submit, SRStage.Approve], // Approve for bypass
+      [SRStage.Submit]: [SRStage.Approve, SRStage.Draft], // Draft for rejection/revision
+      [SRStage.Approve]: [SRStage.Issue, SRStage.Draft], // Draft for cancellation before issue
+      [SRStage.Issue]: [SRStage.Complete],
+      [SRStage.Complete]: [] // Terminal stage
     }
 
-    // Check for store-to-store bypass (Draft -> Approved is allowed)
+    // Check for store-to-store bypass (Draft -> Approve is allowed)
     if (
-      fromStatus === SRStatus.Draft &&
-      toStatus === SRStatus.Approved &&
+      fromStage === SRStage.Draft &&
+      toStage === SRStage.Approve &&
       requisition.workflowType === SRWorkflowType.STORE_TO_STORE
     ) {
       return { valid: true }
     }
 
-    const allowedTransitions = validTransitions[fromStatus] || []
-    if (!allowedTransitions.includes(toStatus)) {
+    const allowedTransitions = validStageTransitions[fromStage] || []
+    if (!allowedTransitions.includes(toStage)) {
       return {
         valid: false,
-        reason: `Cannot transition from ${fromStatus} to ${toStatus}`
+        reason: `Cannot transition from ${fromStage} to ${toStage}`
       }
     }
 
@@ -337,7 +356,8 @@ export class WorkflowBypassService {
   }
 
   /**
-   * Get available actions for a requisition based on status
+   * Get available actions for a requisition based on stage
+   * New architecture uses stage for workflow, status for overall state
    */
   getAvailableActions(
     requisition: StoreRequisition,
@@ -345,13 +365,20 @@ export class WorkflowBypassService {
   ): string[] {
     const actions: string[] = []
 
-    switch (requisition.status) {
-      case SRStatus.Draft:
+    // Check status first - cancelled/voided/completed have no actions
+    if (requisition.status === SRStatus.Cancelled ||
+        requisition.status === SRStatus.Voided ||
+        requisition.status === SRStatus.Completed) {
+      return actions
+    }
+
+    switch (requisition.stage) {
+      case SRStage.Draft:
         actions.push('submit')
         actions.push('cancel')
         break
 
-      case SRStatus.Submitted:
+      case SRStage.Submit:
         // Check if user can approve
         const approvers = this.getRequiredApprovers(requisition)
         if (approvers.some(a => a.role === userRole)) {
@@ -360,21 +387,18 @@ export class WorkflowBypassService {
         }
         break
 
-      case SRStatus.Approved:
-        actions.push('process')
+      case SRStage.Approve:
+        actions.push('issue')
         actions.push('cancel')
         break
 
-      case SRStatus.Processing:
-        // Usually system-driven
-        break
-
-      case SRStatus.Processed:
+      case SRStage.Issue:
         actions.push('complete')
         break
 
-      case SRStatus.PartialComplete:
-        actions.push('complete')
+      case SRStage.Complete:
+        // Can void completed requisitions
+        actions.push('void')
         break
     }
 

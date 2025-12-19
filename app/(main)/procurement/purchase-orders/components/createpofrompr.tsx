@@ -12,17 +12,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, FileText, Package, Building2, Calendar, DollarSign, ChevronRight, Search, CheckCircle2 } from "lucide-react";
 import { PurchaseRequest } from "@/lib/types";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Input } from "@/components/ui/input";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 // Import the actual sample PR data from purchase-requests - using the same data from PR list
 const sampleData = [
@@ -275,6 +278,15 @@ export default function CreatePOFromPR({ onSelectPRs }: CreatePOFromPRProps) {
     key: "requestDate",
     direction: "asc",
   });
+  const [showSummary, setShowSummary] = useState(false);
+  const [poSummary, setPOSummary] = useState<Array<{
+    vendor: string;
+    vendorId: number;
+    currency: string;
+    deliveryDate: Date;
+    prs: any[];
+    totalAmount: number;
+  }>>([]);
 
   const filteredAndSortedPurchaseRequests = useMemo(() => {
     return sampleData
@@ -330,166 +342,252 @@ export default function CreatePOFromPR({ onSelectPRs }: CreatePOFromPRProps) {
     }));
   };
 
+  // Handle Create button - show summary dialog
+  const handleCreateClick = () => {
+    const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
+
+    // Group PRs by vendor + currency
+    const groupedPRs = selectedPRs.reduce((groups, pr) => {
+      const key = `${pr.vendor}-${pr.currency}`;
+      if (!groups[key]) {
+        groups[key] = {
+          vendor: pr.vendor,
+          vendorId: pr.vendorId,
+          currency: pr.currency,
+          deliveryDate: pr.deliveryDate,
+          prs: [],
+          totalAmount: 0
+        };
+      }
+      groups[key].prs.push(pr);
+      groups[key].totalAmount += pr.totalAmount;
+      return groups;
+    }, {} as Record<string, { vendor: string; vendorId: number; currency: string; deliveryDate: Date; prs: any[]; totalAmount: number }>);
+
+    setPOSummary(Object.values(groupedPRs));
+    setShowSummary(true);
+  };
+
+  // Confirm and proceed with PO creation
+  const handleConfirmCreate = () => {
+    const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
+    setShowSummary(false);
+    onSelectPRs(selectedPRs as any);
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="mb-4 space-y-3">
-        <Input
-          placeholder="Search PRs..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-        />
-        <div className="text-sm text-muted-foreground bg-muted/30 p-3 rounded-md">
-          <p className="font-medium mb-2">🎯 Grouping Logic:</p>
-          <p>PRs with the same <strong>vendor</strong> and <strong>currency</strong> will be grouped into one PO. Each row is color-coded by vendor+currency combination.</p>
+      {/* Search Section */}
+      <div className="mb-4">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by PR#, description..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
         </div>
       </div>
-      <ScrollArea className="flex-1 min-h-0">
+
+      {/* Selection Table */}
+      <ScrollArea className="flex-1 min-h-0 border rounded-lg bg-card">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/50">
               <TableHead className="w-[50px]">
                 <Checkbox
                   checked={
-                    selectedPRIds.length ===
-                    filteredAndSortedPurchaseRequests.length
+                    selectedPRIds.length > 0 &&
+                    selectedPRIds.length === filteredAndSortedPurchaseRequests.length
                   }
                   onCheckedChange={handleSelectAll}
                 />
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" onClick={() => handleSort("refNumber")}>
-                  Requisition <ArrowUpDown className="ml-2 h-4 w-4" />
+              <TableHead className="w-[140px]">
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleSort("refNumber")}>
+                  PR# <ArrowUpDown className="ml-1 h-3 w-3" />
+                </Button>
+              </TableHead>
+              <TableHead className="w-[120px]">
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleSort("date")}>
+                  Date <ArrowUpDown className="ml-1 h-3 w-3" />
                 </Button>
               </TableHead>
               <TableHead>
-                <Button variant="ghost" onClick={() => handleSort("date")}>
-                  Date <ArrowUpDown className="ml-2 h-4 w-4" />
+                <Button variant="ghost" size="sm" className="h-8 px-2" onClick={() => handleSort("description")}>
+                  Description <ArrowUpDown className="ml-1 h-3 w-3" />
                 </Button>
               </TableHead>
-              <TableHead>
-                <Button variant="ghost" onClick={() => handleSort("vendor")}>
-                  Vendor <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("description")}
-                >
-                  Description <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("deliveryDate")}
-                >
-                  Delivery Date <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead>
-                <Button
-                  variant="ghost"
-                  onClick={() => handleSort("totalAmount")}
-                >
-                  Amount <ArrowUpDown className="ml-2 h-4 w-4" />
-                </Button>
-              </TableHead>
-              <TableHead>Currency</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredAndSortedPurchaseRequests.map((pr, index) => {
-              // Create a visual grouping by vendor+currency
-              const vendorCurrencyKey = `${pr.vendor}-${pr.currency}`;
-              const isSelected = selectedPRIds.includes(pr.id);
-              const groupColor = vendorCurrencyKey.split('').reduce((a, b) => a + b.charCodeAt(0), 0) % 5;
-              const groupStyles = [
-                'border-l-4 border-l-blue-200 bg-blue-50/30',
-                'border-l-4 border-l-green-200 bg-green-50/30',
-                'border-l-4 border-l-purple-200 bg-purple-50/30',
-                'border-l-4 border-l-orange-200 bg-orange-50/30',
-                'border-l-4 border-l-pink-200 bg-pink-50/30'
-              ];
-              
-              return (
-                <TableRow 
-                  key={pr.id} 
-                  className={`${groupStyles[groupColor]} ${isSelected ? 'bg-primary/5' : ''} hover:bg-muted/20`}
-                >
-                  <TableCell>
-                    <Checkbox
-                      checked={selectedPRIds.includes(pr.id)}
-                      onCheckedChange={(checked) =>
-                        handleSelectPR(pr.id, checked as boolean)
-                      }
-                    />
-                  </TableCell>
-                  <TableCell>{pr.refNumber}</TableCell>
-                  <TableCell>{pr.date.toLocaleDateString()}</TableCell>
-                  <TableCell className="font-medium">{pr.vendor}</TableCell>
-                  <TableCell>{pr.description}</TableCell>
-                  <TableCell>{pr.deliveryDate.toLocaleDateString()}</TableCell>
-                  <TableCell className="text-right font-medium">
-                    {pr.currency} {pr.totalAmount.toFixed(2)}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline" className="font-mono">{pr.currency}</Badge>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            {filteredAndSortedPurchaseRequests.length > 0 ? (
+              filteredAndSortedPurchaseRequests.map((pr) => {
+                const isSelected = selectedPRIds.includes(pr.id);
+
+                return (
+                  <TableRow
+                    key={pr.id}
+                    className={`cursor-pointer transition-colors ${isSelected ? 'bg-primary/5 border-l-2 border-l-primary' : 'hover:bg-muted/50'}`}
+                    onClick={() => handleSelectPR(pr.id, !isSelected)}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Checkbox
+                        checked={isSelected}
+                        onCheckedChange={(checked) =>
+                          handleSelectPR(pr.id, checked as boolean)
+                        }
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <FileText className="h-4 w-4 text-muted-foreground" />
+                        <span className="font-medium">{pr.refNumber}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {pr.date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}
+                    </TableCell>
+                    <TableCell className="max-w-[400px] truncate">
+                      {pr.description}
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            ) : (
+              <TableRow>
+                <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                  No approved purchase requests found
+                </TableCell>
+              </TableRow>
+            )}
           </TableBody>
         </Table>
       </ScrollArea>
-      <div className="flex justify-between items-center mt-4">
-        <div className="text-sm text-muted-foreground">
-          {selectedPRIds.length > 0 && (
-            <div>
-              <p className="font-medium">Selected PRs will be grouped by vendor and currency:</p>
-              {(() => {
-                const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
-                const groupedPRs = selectedPRs.reduce((groups, pr) => {
-                  const key = `${pr.vendor}-${pr.currency}`;
-                  if (!groups[key]) {
-                    groups[key] = {
-                      vendor: pr.vendor,
-                      currency: pr.currency,
-                      prs: [],
-                      totalAmount: 0
-                    };
-                  }
-                  groups[key].prs.push(pr);
-                  groups[key].totalAmount += pr.totalAmount;
-                  return groups;
-                }, {} as Record<string, { vendor: string; currency: string; prs: any[]; totalAmount: number }>);
-                
-                return (
-                  <ul className="mt-2 space-y-1">
-                    {Object.values(groupedPRs).map((group, index) => (
-                      <li key={index} className="text-xs">
-                        • <strong>{group.vendor}</strong> ({group.currency}) - {group.prs.length} PR{group.prs.length > 1 ? 's' : ''} - Total: {group.currency} {group.totalAmount.toFixed(2)}
-                      </li>
-                    ))}
-                  </ul>
-                );
-              })()}
+
+      {/* PO Summary Dialog */}
+      <Dialog open={showSummary} onOpenChange={setShowSummary}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="flex items-center gap-2">
+              <Package className="h-5 w-5" />
+              Purchase Order Summary
+            </DialogTitle>
+            <DialogDescription>
+              Review the Purchase Orders that will be created from the selected PRs
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="flex-1 overflow-y-auto min-h-0 -mx-6 px-6">
+            <div className="space-y-4 py-4">
+              <div className="flex items-center justify-between text-sm text-muted-foreground bg-muted/50 px-4 py-2 rounded-lg">
+                <span>{selectedPRIds.length} Purchase Request{selectedPRIds.length > 1 ? 's' : ''} selected</span>
+                <ChevronRight className="h-4 w-4" />
+                <span className="font-medium text-foreground">{poSummary.length} Purchase Order{poSummary.length > 1 ? 's' : ''} will be created</span>
+              </div>
+
+              <div className="space-y-3">
+                {poSummary.map((po, index) => (
+                  <Card key={index} className="border-l-4 border-l-primary">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Badge variant="outline" className="font-mono">
+                            PO #{index + 1}
+                          </Badge>
+                          <span className="text-sm text-muted-foreground">
+                            (will be auto-generated)
+                          </span>
+                        </div>
+                        <Badge className="bg-green-100 text-green-800 hover:bg-green-100">
+                          {po.currency} {po.totalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </Badge>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-start gap-2">
+                          <Building2 className="h-4 w-4 text-muted-foreground mt-0.5" />
+                          <div>
+                            <div className="text-muted-foreground text-xs">Vendor</div>
+                            <div className="font-medium">{po.vendor}</div>
+                          </div>
+                        </div>
+                        <div className="flex items-start gap-2">
+                          <Calendar className="h-4 w-4 text-muted-foreground mt-0.5" />
+                          <div>
+                            <div className="text-muted-foreground text-xs">Delivery Date</div>
+                            <div className="font-medium">{po.deliveryDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })}</div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Separator className="my-3" />
+
+                      <div>
+                        <div className="text-xs text-muted-foreground mb-2">Source Purchase Requests:</div>
+                        <div className="flex flex-wrap gap-1">
+                          {po.prs.map((pr: any) => (
+                            <Badge key={pr.id} variant="secondary" className="text-xs">
+                              {pr.refNumber}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+
+              {poSummary.length > 1 && (
+                <div className="flex items-center justify-between text-sm bg-blue-50 px-4 py-3 rounded-lg border border-blue-200">
+                  <div className="flex items-center gap-2 text-blue-800">
+                    <DollarSign className="h-4 w-4" />
+                    <span className="font-medium">Grand Total:</span>
+                  </div>
+                  <span className="font-bold text-blue-800">
+                    {poSummary.reduce((sum, po) => sum + po.totalAmount, 0).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter className="flex-shrink-0 gap-2 pt-4 border-t">
+            <Button variant="outline" onClick={() => setShowSummary(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleConfirmCreate}>
+              Confirm & Create {poSummary.length > 1 ? `${poSummary.length} POs` : 'PO'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Footer with selection count and Create button */}
+      <div className="flex justify-between items-center mt-4 pt-4 border-t">
+        <div className="flex items-center gap-3">
+          {selectedPRIds.length > 0 ? (
+            <div className="flex items-center gap-2 bg-green-50 text-green-800 px-3 py-1.5 rounded-lg border border-green-200">
+              <CheckCircle2 className="h-4 w-4" />
+              <span className="text-sm font-medium">
+                {selectedPRIds.length} PR{selectedPRIds.length > 1 ? 's' : ''} selected
+              </span>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <FileText className="h-4 w-4" />
+              <span>Select purchase requests to create PO</span>
             </div>
           )}
         </div>
         <Button
           type="button"
-          onClick={() => {
-            const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
-            onSelectPRs(selectedPRs as any);
-          }}
+          onClick={handleCreateClick}
           disabled={selectedPRIds.length === 0}
+          className="gap-2"
         >
-          Create PO{selectedPRIds.length > 0 ? `s (${(() => {
-            const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
-            const uniqueGroups = new Set(selectedPRs.map(pr => `${pr.vendor}-${pr.currency}`));
-            return uniqueGroups.size;
-          })()})` : ''}
+          <Package className="h-4 w-4" />
+          Create PO{selectedPRIds.length > 1 ? 's' : ''}
         </Button>
       </div>
     </div>

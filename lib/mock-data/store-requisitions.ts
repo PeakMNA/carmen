@@ -1,11 +1,10 @@
 /**
- * Mock Data - Store Requisitions, Stock Transfers, Stock Issues
+ * Mock Data - Store Requisitions
  *
- * Sample data for the integrated Store Requisition system supporting:
- * - Store Requisitions with various statuses and workflow types
- * - Stock Transfers (ST) - between inventory locations
- * - Stock Issues (SI) - to direct/expense locations
- * - Generated document references and fulfillment tracking
+ * Sample data for the integrated Store Requisition system.
+ * Stock Transfers (ST) and Stock Issues (SI) are now filtered views of SRs at the Issue stage:
+ * - ST: SRs where stage = Issue AND destinationLocationType = INVENTORY
+ * - SI: SRs where stage = Issue AND destinationLocationType = DIRECT
  *
  * @see docs/app/store-operations/sr-business-rules.md
  */
@@ -13,14 +12,9 @@
 import {
   StoreRequisition,
   StoreRequisitionItem,
-  StockTransfer,
-  StockTransferItem,
-  StockIssue,
-  StockIssueItem,
   SRStatus,
+  SRStage,
   SRWorkflowType,
-  TransferStatus,
-  IssueStatus,
   GeneratedDocumentType,
   GeneratedDocumentReference,
   SRLineItemFulfillment,
@@ -40,6 +34,7 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     requestDate: new Date('2024-12-01'),
     requiredDate: new Date('2024-12-03'),
     status: SRStatus.Completed,
+    stage: SRStage.Complete,
     workflowType: SRWorkflowType.MAIN_STORE,
     // Source: Main Warehouse
     sourceLocationId: 'loc-004',
@@ -124,19 +119,24 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     description: 'Weekly kitchen restock',
     approvedAt: new Date('2024-12-01'),
     approvedBy: 'Department Manager',
+    issuedAt: new Date('2024-12-01T09:00:00'),
+    issuedBy: 'Warehouse Staff',
+    completedAt: new Date('2024-12-01T10:30:00'),
+    completedBy: 'System',
     // Links to source replenishment suggestions
     sourceReplenishmentIds: ['rep-004', 'rep-005'],
     createdAt: new Date('2024-12-01'),
     createdBy: 'user-chef-001'
   },
 
-  // SR-002: Approved with Partial Fulfillment (needs PR)
+  // SR-002: At Issue stage with Partial Fulfillment (needs PR)
   {
     id: 'sr-002',
     refNo: 'SR-2412-002',
     requestDate: new Date('2024-12-05'),
     requiredDate: new Date('2024-12-08'),
-    status: SRStatus.PartialComplete,
+    status: SRStatus.InProgress,
+    stage: SRStage.Issue,
     workflowType: SRWorkflowType.MAIN_STORE,
     sourceLocationId: 'loc-004',
     sourceLocationCode: 'WH-001',
@@ -206,17 +206,20 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     description: 'Weekend prep - tomatoes for sauce production',
     approvedAt: new Date('2024-12-05'),
     approvedBy: 'Department Manager',
+    issuedAt: new Date('2024-12-05T08:00:00'),
+    issuedBy: 'Warehouse Staff',
     createdAt: new Date('2024-12-05'),
     createdBy: 'user-chef-001'
   },
 
-  // SR-003: Store-to-Store Transfer (No Approval Required)
+  // SR-003: Store-to-Store Transfer (No Approval Required) - Completed
   {
     id: 'sr-003',
     refNo: 'SR-2412-003',
     requestDate: new Date('2024-12-10'),
     requiredDate: new Date('2024-12-10'),
     status: SRStatus.Completed,
+    stage: SRStage.Complete,
     workflowType: SRWorkflowType.STORE_TO_STORE,
     sourceLocationId: 'loc-003',
     sourceLocationCode: 'CK-001',
@@ -270,17 +273,22 @@ export const mockStoreRequisitions: StoreRequisition[] = [
       }
     ],
     notes: 'For corporate event',
+    issuedAt: new Date('2024-12-10T14:00:00'),
+    issuedBy: 'Kitchen Staff',
+    completedAt: new Date('2024-12-10T15:00:00'),
+    completedBy: 'System',
     createdAt: new Date('2024-12-10'),
     createdBy: 'user-default-001'
   },
 
-  // SR-004: Direct Issue (Stock Issue to Expense)
+  // SR-004: Direct Issue (Stock Issue to Expense) - Completed
   {
     id: 'sr-004',
     refNo: 'SR-2412-004',
     requestDate: new Date('2024-12-12'),
     requiredDate: new Date('2024-12-12'),
     status: SRStatus.Completed,
+    stage: SRStage.Complete,
     workflowType: SRWorkflowType.DIRECT_ISSUE,
     sourceLocationId: 'loc-004',
     sourceLocationCode: 'WH-001',
@@ -336,6 +344,12 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     description: 'Bar restock - direct expense',
     approvedAt: new Date('2024-12-12'),
     approvedBy: 'F&B Manager',
+    issuedAt: new Date('2024-12-12T16:00:00'),
+    issuedBy: 'Warehouse Staff',
+    completedAt: new Date('2024-12-12T16:30:00'),
+    completedBy: 'System',
+    expenseAccountId: 'exp-fnb-001',
+    expenseAccountName: 'F&B Cost - Bar',
     createdAt: new Date('2024-12-12'),
     createdBy: 'user-bar-001'
   },
@@ -347,6 +361,7 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     requestDate: new Date('2024-12-15'),
     requiredDate: new Date('2024-12-18'),
     status: SRStatus.Draft,
+    stage: SRStage.Draft,
     workflowType: SRWorkflowType.MAIN_STORE,
     sourceLocationId: 'loc-004',
     sourceLocationCode: 'WH-001',
@@ -392,13 +407,14 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     createdBy: 'user-chef-001'
   },
 
-  // SR-006: Submitted - Awaiting Approval
+  // SR-006: Submitted - Awaiting Approval (stage: Submit, status: InProgress)
   {
     id: 'sr-006',
     refNo: 'SR-2412-006',
     requestDate: new Date('2024-12-16'),
     requiredDate: new Date('2024-12-19'),
-    status: SRStatus.Submitted,
+    status: SRStatus.InProgress,
+    stage: SRStage.Submit,
     workflowType: SRWorkflowType.MAIN_STORE,
     sourceLocationId: 'loc-004',
     sourceLocationCode: 'WH-001',
@@ -465,13 +481,14 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     createdBy: 'user-sous-001'
   },
 
-  // SR-007: Zero Stock - Full PR Generation
+  // SR-007: Zero Stock - Full PR Generation (stage: Issue, status: InProgress)
   {
     id: 'sr-007',
     refNo: 'SR-2412-007',
     requestDate: new Date('2024-12-17'),
     requiredDate: new Date('2024-12-22'),
-    status: SRStatus.Processed,
+    status: SRStatus.InProgress,
+    stage: SRStage.Issue,
     workflowType: SRWorkflowType.MAIN_STORE,
     sourceLocationId: 'loc-004',
     sourceLocationCode: 'WH-001',
@@ -528,296 +545,164 @@ export const mockStoreRequisitions: StoreRequisition[] = [
     description: 'Special order - truffle for holiday menu',
     approvedAt: new Date('2024-12-17'),
     approvedBy: 'Executive Chef',
+    issuedAt: new Date('2024-12-17T10:00:00'),
+    issuedBy: 'System',
     createdAt: new Date('2024-12-17'),
     createdBy: 'user-chef-001'
-  }
-]
-
-// ====== MOCK STOCK TRANSFERS ======
-
-export const mockStockTransfers: StockTransfer[] = [
-  {
-    id: 'st-001',
-    refNo: 'ST-2412-001',
-    transferDate: new Date('2024-12-01'),
-    status: TransferStatus.Received,
-    fromLocationId: 'loc-004',
-    fromLocationCode: 'WH-001',
-    fromLocationName: 'Main Warehouse',
-    fromLocationType: InventoryLocationType.INVENTORY,
-    toLocationId: 'loc-003',
-    toLocationCode: 'CK-001',
-    toLocationName: 'Central Kitchen',
-    toLocationType: InventoryLocationType.INVENTORY,
-    items: [
-      {
-        id: 'sti-001-01',
-        transferId: 'st-001',
-        productId: 'product-001',
-        productCode: 'OIL-OLIVE-001',
-        productName: 'Premium Olive Oil',
-        unit: 'bottle',
-        requestedQty: 10,
-        issuedQty: 10,
-        receivedQty: 10,
-        unitCost: { amount: 8.50, currency: 'USD' },
-        totalValue: { amount: 85.00, currency: 'USD' },
-        sourceRequisitionId: 'sr-001',
-        sourceRequisitionItemId: 'sri-001-01'
-      },
-      {
-        id: 'sti-001-02',
-        transferId: 'st-001',
-        productId: 'product-003',
-        productCode: 'DRY-FLR-003',
-        productName: 'All-Purpose Flour',
-        unit: 'kg',
-        requestedQty: 25,
-        issuedQty: 25,
-        receivedQty: 25,
-        unitCost: { amount: 2.10, currency: 'USD' },
-        totalValue: { amount: 52.50, currency: 'USD' },
-        sourceRequisitionId: 'sr-001',
-        sourceRequisitionItemId: 'sri-001-02'
-      }
-    ],
-    totalItems: 2,
-    totalQuantity: 35,
-    totalValue: { amount: 137.50, currency: 'USD' },
-    priority: 'normal',
-    sourceRequisitionId: 'sr-001',
-    sourceRequisitionRefNo: 'SR-2412-001',
-    issuedAt: new Date('2024-12-01T09:00:00'),
-    issuedBy: 'Warehouse Staff',
-    receivedAt: new Date('2024-12-01T10:30:00'),
-    receivedBy: 'Kitchen Staff',
-    createdAt: new Date('2024-12-01'),
-    createdBy: 'system'
   },
-  {
-    id: 'st-002',
-    refNo: 'ST-2412-002',
-    transferDate: new Date('2024-12-05'),
-    status: TransferStatus.Received,
-    fromLocationId: 'loc-004',
-    fromLocationCode: 'WH-001',
-    fromLocationName: 'Main Warehouse',
-    fromLocationType: InventoryLocationType.INVENTORY,
-    toLocationId: 'loc-003',
-    toLocationCode: 'CK-001',
-    toLocationName: 'Central Kitchen',
-    toLocationType: InventoryLocationType.INVENTORY,
-    items: [
-      {
-        id: 'sti-002-01',
-        transferId: 'st-002',
-        productId: 'product-002',
-        productCode: 'VEG-TOM-002',
-        productName: 'Organic Tomatoes',
-        unit: 'kg',
-        requestedQty: 50,
-        issuedQty: 20,
-        receivedQty: 20,
-        unitCost: { amount: 3.25, currency: 'USD' },
-        totalValue: { amount: 65.00, currency: 'USD' },
-        notes: 'Partial transfer - 30kg pending from PR',
-        sourceRequisitionId: 'sr-002',
-        sourceRequisitionItemId: 'sri-002-01'
-      }
-    ],
-    totalItems: 1,
-    totalQuantity: 20,
-    totalValue: { amount: 65.00, currency: 'USD' },
-    priority: 'normal',
-    notes: 'Partial fulfillment - remainder via PR-2412-015',
-    sourceRequisitionId: 'sr-002',
-    sourceRequisitionRefNo: 'SR-2412-002',
-    issuedAt: new Date('2024-12-05T08:00:00'),
-    issuedBy: 'Warehouse Staff',
-    receivedAt: new Date('2024-12-05T09:00:00'),
-    receivedBy: 'Kitchen Staff',
-    createdAt: new Date('2024-12-05'),
-    createdBy: 'system'
-  },
-  {
-    id: 'st-003',
-    refNo: 'ST-2412-003',
-    transferDate: new Date('2024-12-10'),
-    status: TransferStatus.Received,
-    fromLocationId: 'loc-003',
-    fromLocationCode: 'CK-001',
-    fromLocationName: 'Central Kitchen',
-    fromLocationType: InventoryLocationType.INVENTORY,
-    toLocationId: 'loc-006',
-    toLocationCode: 'CORP-001',
-    toLocationName: 'Corporate Office',
-    toLocationType: InventoryLocationType.INVENTORY,
-    items: [
-      {
-        id: 'sti-003-01',
-        transferId: 'st-003',
-        productId: 'product-001',
-        productCode: 'OIL-OLIVE-001',
-        productName: 'Premium Olive Oil',
-        unit: 'bottle',
-        requestedQty: 2,
-        issuedQty: 2,
-        receivedQty: 2,
-        unitCost: { amount: 8.50, currency: 'USD' },
-        totalValue: { amount: 17.00, currency: 'USD' },
-        sourceRequisitionId: 'sr-003',
-        sourceRequisitionItemId: 'sri-003-01'
-      }
-    ],
-    totalItems: 1,
-    totalQuantity: 2,
-    totalValue: { amount: 17.00, currency: 'USD' },
-    priority: 'normal',
-    notes: 'Store-to-store transfer for corporate event',
-    sourceRequisitionId: 'sr-003',
-    sourceRequisitionRefNo: 'SR-2412-003',
-    issuedAt: new Date('2024-12-10T14:00:00'),
-    issuedBy: 'Kitchen Staff',
-    receivedAt: new Date('2024-12-10T15:00:00'),
-    receivedBy: 'Office Admin',
-    createdAt: new Date('2024-12-10'),
-    createdBy: 'system'
-  },
-  {
-    id: 'st-004',
-    refNo: 'ST-2412-004',
-    transferDate: new Date('2024-12-17'),
-    status: TransferStatus.InTransit,
-    fromLocationId: 'loc-004',
-    fromLocationCode: 'WH-001',
-    fromLocationName: 'Main Warehouse',
-    fromLocationType: InventoryLocationType.INVENTORY,
-    toLocationId: 'loc-003',
-    toLocationCode: 'CK-001',
-    toLocationName: 'Central Kitchen',
-    toLocationType: InventoryLocationType.INVENTORY,
-    items: [
-      {
-        id: 'sti-004-01',
-        transferId: 'st-004',
-        productId: 'product-005',
-        productCode: 'DRY-RIC-001',
-        productName: 'Jasmine Rice',
-        unit: 'kg',
-        requestedQty: 50,
-        issuedQty: 50,
-        receivedQty: 0,
-        unitCost: { amount: 3.00, currency: 'USD' },
-        totalValue: { amount: 150.00, currency: 'USD' }
-      }
-    ],
-    totalItems: 1,
-    totalQuantity: 50,
-    totalValue: { amount: 150.00, currency: 'USD' },
-    priority: 'urgent',
-    issuedAt: new Date('2024-12-17T07:00:00'),
-    issuedBy: 'Warehouse Staff',
-    createdAt: new Date('2024-12-17'),
-    createdBy: 'system'
-  }
-]
 
-// ====== MOCK STOCK ISSUES ======
-
-export const mockStockIssues: StockIssue[] = [
+  // SR-008: Direct Issue at Issue stage (for Stock Issue view testing)
   {
-    id: 'si-001',
-    refNo: 'SI-2412-001',
-    issueDate: new Date('2024-12-12'),
-    status: IssueStatus.Issued,
-    fromLocationId: 'loc-004',
-    fromLocationCode: 'WH-001',
-    fromLocationName: 'Main Warehouse',
-    toLocationId: 'loc-bar-direct',
-    toLocationCode: 'BAR-001',
-    toLocationName: 'Restaurant Bar Direct',
+    id: 'sr-008',
+    refNo: 'SR-2412-008',
+    requestDate: new Date('2024-12-18'),
+    requiredDate: new Date('2024-12-18'),
+    status: SRStatus.InProgress,
+    stage: SRStage.Issue,
+    workflowType: SRWorkflowType.DIRECT_ISSUE,
+    sourceLocationId: 'loc-004',
+    sourceLocationCode: 'WH-001',
+    sourceLocationName: 'Main Warehouse',
+    sourceLocationType: InventoryLocationType.INVENTORY,
+    destinationLocationId: 'loc-maint-direct',
+    destinationLocationCode: 'MAINT-001',
+    destinationLocationName: 'Maintenance Direct',
+    destinationLocationType: InventoryLocationType.DIRECT,
+    requestedBy: 'Maintenance Manager',
+    requestorId: 'user-maint-001',
+    departmentId: 'dept-006',
+    departmentName: 'Maintenance',
     items: [
       {
-        id: 'sii-001-01',
-        issueId: 'si-001',
-        productId: 'product-wine-001',
-        productCode: 'BEV-WIN-001',
-        productName: 'House Red Wine',
-        unit: 'bottle',
-        requestedQty: 12,
-        issuedQty: 12,
-        unitCost: { amount: 15.00, currency: 'USD' },
-        totalValue: { amount: 180.00, currency: 'USD' },
-        sourceRequisitionId: 'sr-004',
-        sourceRequisitionItemId: 'sri-004-01'
-      }
-    ],
-    totalItems: 1,
-    totalQuantity: 12,
-    totalValue: { amount: 180.00, currency: 'USD' },
-    expenseAccountId: 'exp-fnb-001',
-    expenseAccountName: 'F&B Cost - Bar',
-    departmentId: 'dept-003',
-    departmentName: 'Food & Beverage',
-    notes: 'Bar restock - direct expense to F&B',
-    sourceRequisitionId: 'sr-004',
-    sourceRequisitionRefNo: 'SR-2412-004',
-    issuedAt: new Date('2024-12-12T16:00:00'),
-    issuedBy: 'Warehouse Staff',
-    createdAt: new Date('2024-12-12'),
-    createdBy: 'system'
-  },
-  {
-    id: 'si-002',
-    refNo: 'SI-2412-002',
-    issueDate: new Date('2024-12-15'),
-    status: IssueStatus.Issued,
-    fromLocationId: 'loc-004',
-    fromLocationCode: 'WH-001',
-    fromLocationName: 'Main Warehouse',
-    toLocationId: 'loc-maint-direct',
-    toLocationCode: 'MAINT-001',
-    toLocationName: 'Maintenance Direct',
-    items: [
-      {
-        id: 'sii-002-01',
-        issueId: 'si-002',
+        id: 'sri-008-01',
         productId: 'product-clean-001',
         productCode: 'SUP-CLN-001',
         productName: 'Industrial Cleaner',
         unit: 'liter',
         requestedQty: 20,
+        approvedQty: 20,
         issuedQty: 20,
-        unitCost: { amount: 4.50, currency: 'USD' },
-        totalValue: { amount: 90.00, currency: 'USD' }
+        unitCost: 4.50,
+        totalCost: 90.00,
+        sourceAvailableQty: 50,
+        fulfillment: {
+          fromStock: 20,
+          toPurchase: 0,
+          documentType: GeneratedDocumentType.STOCK_ISSUE,
+          sourceLocationId: 'loc-004',
+          sourceLocationName: 'Main Warehouse'
+        },
+        approvalStatus: 'approved' as ApprovalStatus
       },
       {
-        id: 'sii-002-02',
-        issueId: 'si-002',
+        id: 'sri-008-02',
         productId: 'product-gloves-001',
         productCode: 'SUP-GLV-001',
         productName: 'Disposable Gloves',
         unit: 'box',
         requestedQty: 10,
+        approvedQty: 10,
         issuedQty: 10,
-        unitCost: { amount: 12.00, currency: 'USD' },
-        totalValue: { amount: 120.00, currency: 'USD' }
+        unitCost: 12.00,
+        totalCost: 120.00,
+        sourceAvailableQty: 30,
+        fulfillment: {
+          fromStock: 10,
+          toPurchase: 0,
+          documentType: GeneratedDocumentType.STOCK_ISSUE,
+          sourceLocationId: 'loc-004',
+          sourceLocationName: 'Main Warehouse'
+        },
+        approvalStatus: 'approved' as ApprovalStatus
       }
     ],
     totalItems: 2,
     totalQuantity: 30,
-    totalValue: { amount: 210.00, currency: 'USD' },
+    estimatedValue: { amount: 210.00, currency: 'USD' },
+    generatedDocuments: [],
+    description: 'Monthly maintenance supplies',
+    approvedAt: new Date('2024-12-18T08:00:00'),
+    approvedBy: 'Facilities Manager',
+    issuedAt: new Date('2024-12-18T10:00:00'),
+    issuedBy: 'Warehouse Staff',
     expenseAccountId: 'exp-maint-001',
     expenseAccountName: 'Maintenance Supplies',
-    departmentId: 'dept-006',
-    departmentName: 'Maintenance',
-    notes: 'Monthly maintenance supplies',
-    issuedAt: new Date('2024-12-15T10:00:00'),
+    createdAt: new Date('2024-12-18'),
+    createdBy: 'user-maint-001'
+  },
+
+  // SR-009: Transfer at Issue stage (for Stock Transfer view testing)
+  {
+    id: 'sr-009',
+    refNo: 'SR-2412-009',
+    requestDate: new Date('2024-12-17'),
+    requiredDate: new Date('2024-12-17'),
+    status: SRStatus.InProgress,
+    stage: SRStage.Issue,
+    workflowType: SRWorkflowType.MAIN_STORE,
+    sourceLocationId: 'loc-004',
+    sourceLocationCode: 'WH-001',
+    sourceLocationName: 'Main Warehouse',
+    sourceLocationType: InventoryLocationType.INVENTORY,
+    destinationLocationId: 'loc-003',
+    destinationLocationCode: 'CK-001',
+    destinationLocationName: 'Central Kitchen',
+    destinationLocationType: InventoryLocationType.INVENTORY,
+    requestedBy: 'Chef Maria Rodriguez',
+    requestorId: 'user-chef-001',
+    departmentId: 'dept-003',
+    departmentName: 'Food & Beverage',
+    items: [
+      {
+        id: 'sri-009-01',
+        productId: 'product-005',
+        productCode: 'DRY-RIC-001',
+        productName: 'Jasmine Rice',
+        unit: 'kg',
+        requestedQty: 50,
+        approvedQty: 50,
+        issuedQty: 50,
+        unitCost: 3.00,
+        totalCost: 150.00,
+        sourceAvailableQty: 100,
+        fulfillment: {
+          fromStock: 50,
+          toPurchase: 0,
+          documentType: GeneratedDocumentType.STOCK_TRANSFER,
+          sourceLocationId: 'loc-004',
+          sourceLocationName: 'Main Warehouse'
+        },
+        approvalStatus: 'approved' as ApprovalStatus
+      }
+    ],
+    totalItems: 1,
+    totalQuantity: 50,
+    estimatedValue: { amount: 150.00, currency: 'USD' },
+    generatedDocuments: [],
+    description: 'Urgent rice restock',
+    approvedAt: new Date('2024-12-17T06:30:00'),
+    approvedBy: 'F&B Manager',
+    issuedAt: new Date('2024-12-17T07:00:00'),
     issuedBy: 'Warehouse Staff',
-    createdAt: new Date('2024-12-15'),
-    createdBy: 'system'
+    createdAt: new Date('2024-12-17'),
+    createdBy: 'user-chef-001'
   }
 ]
+
+// ====== STOCK TRANSFER & STOCK ISSUE FILTERED VIEWS ======
+//
+// IMPORTANT: Stock Transfers (ST) and Stock Issues (SI) are NOT separate entities.
+// They are filtered views of Store Requisitions at the Issue stage.
+//
+// Stock Transfer View: SRs where stage = Issue AND destinationLocationType = INVENTORY
+// Stock Issue View: SRs where stage = Issue AND destinationLocationType = DIRECT
+//
+// Use the helper functions below to get the filtered data:
+// - getStoreRequisitionsForStockTransfer()
+// - getStoreRequisitionsForStockIssue()
+
+// The old mockStockTransfers and mockStockIssues arrays have been removed.
+// See the helper functions below for filtered views.
 
 // ====== MOCK REPLENISHMENT SUGGESTIONS ======
 
@@ -1025,46 +910,62 @@ export function getStoreRequisitionsByRequestor(requestorId: string): StoreRequi
   return mockStoreRequisitions.filter(sr => sr.requestorId === requestorId)
 }
 
+// ====== FILTERED VIEW HELPER FUNCTIONS ======
+// Stock Transfers and Stock Issues are filtered views of Store Requisitions
+
 /**
- * Get stock transfer by ID
+ * Get store requisitions for Stock Transfer view
+ *
+ * Stock Transfers are SRs at the Issue stage with INVENTORY destination.
+ * These represent transfers between inventory locations.
  */
-export function getStockTransferById(id: string): StockTransfer | undefined {
-  return mockStockTransfers.find(st => st.id === id)
+export function getStoreRequisitionsForStockTransfer(): StoreRequisition[] {
+  return mockStoreRequisitions.filter(
+    sr => sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.INVENTORY
+  )
 }
 
 /**
- * Get stock transfers by status
+ * Get store requisitions for Stock Issue view
+ *
+ * Stock Issues are SRs at the Issue stage with DIRECT destination.
+ * These represent issues to expense/direct locations.
  */
-export function getStockTransfersByStatus(status: TransferStatus): StockTransfer[] {
-  return mockStockTransfers.filter(st => st.status === status)
+export function getStoreRequisitionsForStockIssue(): StoreRequisition[] {
+  return mockStoreRequisitions.filter(
+    sr => sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT
+  )
 }
 
 /**
- * Get stock transfers by source location
+ * Get store requisition by ID for Stock Transfer view
+ * Returns SR if it qualifies as a Stock Transfer (Issue stage + INVENTORY destination)
  */
-export function getStockTransfersBySource(locationId: string): StockTransfer[] {
-  return mockStockTransfers.filter(st => st.fromLocationId === locationId)
+export function getStoreRequisitionForStockTransferById(id: string): StoreRequisition | undefined {
+  const sr = mockStoreRequisitions.find(sr => sr.id === id)
+  if (sr && sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.INVENTORY) {
+    return sr
+  }
+  return undefined
 }
 
 /**
- * Get stock transfers by destination location
+ * Get store requisition by ID for Stock Issue view
+ * Returns SR if it qualifies as a Stock Issue (Issue stage + DIRECT destination)
  */
-export function getStockTransfersByDestination(locationId: string): StockTransfer[] {
-  return mockStockTransfers.filter(st => st.toLocationId === locationId)
+export function getStoreRequisitionForStockIssueById(id: string): StoreRequisition | undefined {
+  const sr = mockStoreRequisitions.find(sr => sr.id === id)
+  if (sr && sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT) {
+    return sr
+  }
+  return undefined
 }
 
 /**
- * Get stock issue by ID
+ * Get store requisitions by stage
  */
-export function getStockIssueById(id: string): StockIssue | undefined {
-  return mockStockIssues.find(si => si.id === id)
-}
-
-/**
- * Get stock issues by status
- */
-export function getStockIssuesByStatus(status: IssueStatus): StockIssue[] {
-  return mockStockIssues.filter(si => si.status === status)
+export function getStoreRequisitionsByStage(stage: SRStage): StoreRequisition[] {
+  return mockStoreRequisitions.filter(sr => sr.stage === stage)
 }
 
 /**
@@ -1091,19 +992,6 @@ export function getPendingReplenishmentSuggestions(): ReplenishmentSuggestion[] 
 }
 
 /**
- * Get documents linked to a store requisition
- */
-export function getDocumentsForRequisition(srId: string): {
-  transfers: StockTransfer[]
-  issues: StockIssue[]
-} {
-  return {
-    transfers: mockStockTransfers.filter(st => st.sourceRequisitionId === srId),
-    issues: mockStockIssues.filter(si => si.sourceRequisitionId === srId)
-  }
-}
-
-/**
  * Get all generated document references for a store requisition
  * Returns ST, SI, and PR document references
  */
@@ -1112,26 +1000,11 @@ export function getGeneratedDocumentReferences(srId: string): GeneratedDocumentR
   return sr?.generatedDocuments || []
 }
 
-/**
- * Get stock transfer by source requisition ID
- */
-export function getStockTransfersByRequisition(srId: string): StockTransfer[] {
-  return mockStockTransfers.filter(st => st.sourceRequisitionId === srId)
-}
-
-/**
- * Get stock issues by source requisition ID
- */
-export function getStockIssuesByRequisition(srId: string): StockIssue[] {
-  return mockStockIssues.filter(si => si.sourceRequisitionId === srId)
-}
-
 // Initialize sequence counters with existing document numbers
 // Note: PR sequence numbers are managed separately in purchase-requests.ts
+// ST/SI reference numbers are no longer separate - they use SR reference numbers
 initializeSequenceCounters([
   ...mockStoreRequisitions.map(sr => sr.refNo),
-  ...mockStockTransfers.map(st => st.refNo),
-  ...mockStockIssues.map(si => si.refNo),
   // Include PRs referenced in generated documents
   'PR-2412-015',
   'PR-2412-016'

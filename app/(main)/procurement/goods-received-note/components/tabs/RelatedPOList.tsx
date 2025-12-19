@@ -1,41 +1,57 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { PurchaseOrder, PurchaseOrderStatus } from '@/lib/types'; // Import PurchaseOrderStatus
+import { PurchaseOrder, PurchaseOrderStatus } from '@/lib/types';
 import { Table, TableBody, TableCell, TableHeader, TableHead, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ExternalLink } from 'lucide-react';
+import { ExternalLink, FileText } from 'lucide-react';
+import { Mock_purchaseOrders } from '@/lib/mock/mock_purchaseOrder';
 
-// --- Placeholder Fetch Function ---
-// Replace with your actual API call to get PO summaries
+/**
+ * Get PO summary by order number (poRef)
+ * Looks up from mock data using orderNumber field
+ */
 async function getPurchaseOrderSummary(poRef: string): Promise<Partial<PurchaseOrder> | null> {
-    console.log(`[API CALL] Fetching PO Summary for Ref: ${poRef}`);
-    await new Promise(resolve => setTimeout(resolve, 200)); // Simulate network delay
+    // Simulate network delay for realistic behavior
+    await new Promise(resolve => setTimeout(resolve, 100));
 
-    // Mock data based on ref - replace with real fetch
-    if (poRef === 'PO-2310-006') {
+    // Find PO by orderNumber in mock data
+    const po = Mock_purchaseOrders.find(
+        p => p.orderNumber === poRef || p.id === poRef
+    );
+
+    if (po) {
         return {
-            poId: 'PO006',
-            number: poRef,
-            vendorName: 'Professional Kitchen Supplies',
-            orderDate: new Date('2023-08-01'),
-            status: PurchaseOrderStatus.CLOSED,
-        } as any;
-    } else if (poRef === 'PO-2310-007') {
-         return {
-            poId: 'PO007',
-            number: poRef,
-            vendorName: 'General Foodstuffs Inc.',
-            orderDate: new Date('2023-08-05'),
-            status: PurchaseOrderStatus.OPEN,
-        } as any;
+            id: po.id,
+            orderNumber: po.orderNumber,
+            vendorName: po.vendorName,
+            orderDate: po.orderDate,
+            expectedDeliveryDate: po.expectedDeliveryDate,
+            status: po.status,
+            totalAmount: po.totalAmount,
+            totalItems: po.totalItems,
+            receivedItems: po.receivedItems,
+            pendingItems: po.pendingItems,
+        } as Partial<PurchaseOrder>;
     }
+
+    // If not found in mock data, generate placeholder based on ref
+    // This handles cases where GRN references POs not in our mock data
+    if (poRef && poRef.startsWith('PO-')) {
+        return {
+            id: poRef,
+            orderNumber: poRef,
+            vendorName: 'Vendor (Data Pending)',
+            orderDate: new Date(),
+            status: 'pending' as any,
+        } as Partial<PurchaseOrder>;
+    }
+
     return null;
 }
-// --- End Placeholder ---
 
 interface RelatedPOListProps {
     poRefs: string[];
@@ -64,18 +80,74 @@ export function RelatedPOList({ poRefs }: RelatedPOListProps) {
         }
     }, [poRefs]);
 
+    // Helper to format date safely
+    const formatDate = (date: any): string => {
+        if (!date) return 'N/A';
+        try {
+            const d = date instanceof Date ? date : new Date(date);
+            return d.toLocaleDateString();
+        } catch {
+            return 'N/A';
+        }
+    };
+
+    // Helper to get status badge variant
+    const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
+        switch (status?.toLowerCase()) {
+            case 'closed':
+            case 'completed':
+            case 'received':
+                return 'secondary';
+            case 'sent':
+            case 'approved':
+            case 'open':
+                return 'default';
+            case 'cancelled':
+            case 'rejected':
+                return 'destructive';
+            default:
+                return 'outline';
+        }
+    };
+
+    // Helper to format status label
+    const formatStatus = (status: string): string => {
+        if (!status) return 'N/A';
+        return status.charAt(0).toUpperCase() + status.slice(1).toLowerCase();
+    };
+
     if (isLoading) {
-        return <div>Loading related purchase orders...</div>;
+        return (
+            <Card>
+                <CardContent className="p-8 text-center">
+                    <div className="animate-pulse flex flex-col items-center gap-4">
+                        <FileText className="h-8 w-8 text-gray-300" />
+                        <p className="text-gray-500">Loading related purchase orders...</p>
+                    </div>
+                </CardContent>
+            </Card>
+        );
     }
 
     if (!poSummaries || poSummaries.length === 0) {
-        return <p>No related purchase orders found for this Goods Receive Note.</p>;
+        return (
+            <Card>
+                <CardContent className="p-8 text-center">
+                    <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p className="text-gray-500">No related purchase orders found for this Goods Receive Note.</p>
+                    <p className="text-sm text-gray-400 mt-2">Purchase order references will appear here when items are received against POs.</p>
+                </CardContent>
+            </Card>
+        );
     }
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Related Purchase Orders</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Related Purchase Orders ({poSummaries.length})
+                </CardTitle>
             </CardHeader>
             <CardContent>
                 <Table>
@@ -84,21 +156,35 @@ export function RelatedPOList({ poRefs }: RelatedPOListProps) {
                             <TableHead>PO Number</TableHead>
                             <TableHead>Vendor</TableHead>
                             <TableHead>Order Date</TableHead>
+                            <TableHead>Items</TableHead>
                             <TableHead>Status</TableHead>
                             <TableHead>Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
                         {poSummaries.map((po) => (
-                            <TableRow key={(po as any).poId || po.id}>
-                                <TableCell>{(po as any).number || po.orderNumber || 'N/A'}</TableCell>
-                                <TableCell>{(po as any).vendorName || 'N/A'}</TableCell>
-                                <TableCell>{((po as any).orderDate || po.expectedDeliveryDate) ? new Date((po as any).orderDate || po.expectedDeliveryDate).toLocaleDateString() : 'N/A'}</TableCell>
-                                <TableCell><Badge variant={(po as any).status === 'Closed' ? 'secondary' : 'default'}>{(po as any).status || 'N/A'}</Badge></TableCell>
+                            <TableRow key={po.id || po.orderNumber}>
+                                <TableCell className="font-medium">{po.orderNumber || 'N/A'}</TableCell>
+                                <TableCell>{po.vendorName || 'N/A'}</TableCell>
+                                <TableCell>{formatDate(po.orderDate)}</TableCell>
                                 <TableCell>
-                                    {((po as any).poId || po.id) && (
+                                    {po.totalItems !== undefined ? (
+                                        <span className="text-sm">
+                                            {po.receivedItems || 0}/{po.totalItems} received
+                                        </span>
+                                    ) : (
+                                        'N/A'
+                                    )}
+                                </TableCell>
+                                <TableCell>
+                                    <Badge variant={getStatusVariant(po.status as string)}>
+                                        {formatStatus(po.status as string)}
+                                    </Badge>
+                                </TableCell>
+                                <TableCell>
+                                    {po.id && (
                                         <Button variant="outline" size="sm" asChild>
-                                            <Link href={`/procurement/purchase-orders/${(po as any).poId || po.id}`} target="_blank">
+                                            <Link href={`/procurement/purchase-orders/${po.id}`} target="_blank">
                                                 View PO <ExternalLink className="ml-2 h-3 w-3" />
                                             </Link>
                                         </Button>

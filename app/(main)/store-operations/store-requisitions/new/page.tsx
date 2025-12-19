@@ -3,6 +3,20 @@
  *
  * Creates new store requisitions to request materials from stores/warehouses.
  *
+ * SUPPORTED WORKFLOWS:
+ * - STORE_TO_STORE: Transfer between inventory locations (generates Stock Transfer)
+ * - MAIN_STORE: Transfer from main warehouse (generates Stock Transfer)
+ * - DIRECT_ISSUE: Issue to direct/expense locations (generates Stock Issue)
+ * - TRANSFER_INTERNAL: Internal transfers between locations (generates Stock Transfer)
+ *
+ * GENERATED DOCUMENTS:
+ * - Stock Transfer (ST): Moves stock between inventory locations
+ * - Stock Issue (SI): Issues stock to expense/direct locations
+ *
+ * NOTE: Purchase Request (PR) generation was removed from Store Requisitions.
+ * PR workflow is now exclusively handled via Stock Replenishment module.
+ * This simplifies the SR workflow to focus on internal stock movements only.
+ *
  * LOCATION TYPE HANDLING:
  * The issue process handles items differently based on the destination location type:
  *
@@ -87,6 +101,7 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { useSimpleUser } from "@/lib/context/simple-user-context"
 import { mockInventoryLocations } from "@/lib/mock-data"
+import { mockUserLocationAssignments } from "@/lib/mock-data/inventory-locations"
 import { mockProducts } from "@/lib/mock-data/products"
 import { mockDepartments } from "@/lib/mock-data"
 import { InventoryLocationType } from "@/lib/types/location-management"
@@ -98,9 +113,7 @@ import { stockAvailabilityService } from "@/lib/services/store-operations/stock-
 import { workflowBypassService } from "@/lib/services/store-operations/workflow-bypass-service"
 import { SRWorkflowType, GeneratedDocumentType, SRLineItemFulfillment, StockAvailabilityResult } from "@/lib/types/store-requisition"
 
-// Special constant for "None" source - indicates PR-only workflow
-const NONE_SOURCE_ID = "none"
-import { AlertCircle, ArrowRight, AlertTriangle, CheckCircle2, ShoppingCart, Truck, FileOutput } from "lucide-react"
+import { AlertCircle, ArrowRight, AlertTriangle, CheckCircle2, Truck, FileOutput } from "lucide-react"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 
@@ -213,14 +226,31 @@ export default function NewStoreRequisitionPage() {
   const [newProject, setNewProject] = useState({ code: '', name: '', description: '' })
 
   // Get user's current location (destination for items)
-  const userLocationId = user?.context?.currentLocation?.id || "loc-006"
+  const defaultUserLocationId = user?.context?.currentLocation?.id || "loc-006"
   const userName = user?.name || "John Doe"
   const userDepartment = user?.context?.currentDepartment?.name || "Administration"
 
-  // Get user's inventory location details
+  // State for destination location (user can change from their assigned locations)
+  const [destinationLocationId, setDestinationLocationId] = useState(defaultUserLocationId)
+
+  // Get user's assigned locations for destination selection
+  const currentUserId = user?.id || 'user-default-001'
+  const userAssignedLocationIds = useMemo(() => {
+    return mockUserLocationAssignments
+      .filter(ua => ua.userId === currentUserId && ua.isActive)
+      .map(ua => ua.locationId)
+  }, [currentUserId])
+
+  const userAssignedLocations = useMemo(() => {
+    return mockInventoryLocations.filter(
+      loc => userAssignedLocationIds.includes(loc.id) && loc.status === 'active'
+    )
+  }, [userAssignedLocationIds])
+
+  // Get selected destination location details
   const userInventoryLocation = useMemo(() => {
-    return mockInventoryLocations.find(loc => loc.id === userLocationId)
-  }, [userLocationId])
+    return mockInventoryLocations.find(loc => loc.id === destinationLocationId)
+  }, [destinationLocationId])
 
   const userLocationName = userInventoryLocation?.name || user?.context?.currentLocation?.name || "Corporate Office"
   const userLocationCode = userInventoryLocation?.code || "CORP-001"
@@ -230,10 +260,10 @@ export default function NewStoreRequisitionPage() {
   const sourceLocations = useMemo(() => {
     return mockInventoryLocations.filter(loc =>
       loc.status === 'active' &&
-      loc.id !== userLocationId &&
+      loc.id !== destinationLocationId &&
       (loc.type === InventoryLocationType.INVENTORY || loc.type === InventoryLocationType.CONSIGNMENT)
     )
-  }, [userLocationId])
+  }, [destinationLocationId])
 
   // Selected source location
   const selectedSourceLocation = useMemo(() => {
@@ -266,14 +296,9 @@ export default function NewStoreRequisitionPage() {
   }, [items])
 
   // Determine workflow type based on source and destination locations
+  // NOTE: PR-only workflow (NONE_SOURCE_ID) was removed - PR generation now handled via Stock Replenishment
   const workflowType = useMemo((): SRWorkflowType | null => {
     if (!requestFromId) return null
-
-    // If "None" is selected, this is a PR-only workflow (no source location)
-    if (requestFromId === NONE_SOURCE_ID) {
-      return SRWorkflowType.TRANSFER_INTERNAL // Will generate PR only
-    }
-
     if (!selectedSourceLocation) return null
 
     // Check if source is main warehouse
@@ -348,15 +373,9 @@ export default function NewStoreRequisitionPage() {
     return summary
   }, [items])
 
-  // Check if this is a PR-only workflow (no source location)
-  const isPROnlyWorkflow = requestFromId === NONE_SOURCE_ID
-
-  // Get workflow type label
+  // Get workflow type display label
+  // NOTE: "Purchase Request Only" case was removed - PR workflow moved to Stock Replenishment
   const getWorkflowTypeLabel = (type: SRWorkflowType | null): string => {
-    // Special case for PR-only workflow
-    if (isPROnlyWorkflow) {
-      return 'Purchase Request Only'
-    }
     switch (type) {
       case SRWorkflowType.STORE_TO_STORE:
         return 'Store-to-Store Transfer'
@@ -372,11 +391,8 @@ export default function NewStoreRequisitionPage() {
   }
 
   // Get workflow type badge color
+  // NOTE: Pink/rose styling for PR-only workflow was removed
   const getWorkflowTypeBadgeClass = (type: SRWorkflowType | null): string => {
-    // Special case for PR-only workflow
-    if (isPROnlyWorkflow) {
-      return 'bg-orange-100 text-orange-800 border-orange-200'
-    }
     switch (type) {
       case SRWorkflowType.STORE_TO_STORE:
         return 'bg-green-100 text-green-800 border-green-200'
@@ -415,42 +431,20 @@ export default function NewStoreRequisitionPage() {
     if (!selectedProduct || newItemQty <= 0 || !requestFromId) return
 
     const costPerUnit = selectedProduct.standardCost?.amount || 0
-    let availability: StockAvailabilityResult
-    let fulfillment: SRLineItemFulfillment
 
-    // Handle PR-only workflow (no source location)
-    if (requestFromId === NONE_SOURCE_ID) {
-      // All items go to Purchase Request - create a mock availability result
-      availability = {
-        productId: selectedProduct.id,
-        productCode: selectedProduct.productCode || '',
-        productName: selectedProduct.productName,
-        requestedQty: newItemQty,
-        availableQty: 0,
-        shortageQty: newItemQty,
-        sourceLocation: null,
-        alternativeLocations: []
-      }
-      fulfillment = {
-        fromStock: 0,
-        toPurchase: newItemQty,
-        documentType: GeneratedDocumentType.PURCHASE_REQUEST
-      }
-    } else {
-      // Check stock availability at source location
-      availability = await stockAvailabilityService.checkStockAvailability(
-        selectedProduct.id,
-        newItemQty,
-        requestFromId,
-        userLocationId
-      )
+    // Check stock availability at source location
+    const availability = await stockAvailabilityService.checkStockAvailability(
+      selectedProduct.id,
+      newItemQty,
+      requestFromId,
+      destinationLocationId
+    )
 
-      // Calculate fulfillment based on destination type
-      fulfillment = stockAvailabilityService.calculateFulfillment(
-        availability,
-        userLocationType
-      )
-    }
+    // Calculate fulfillment based on destination type
+    const fulfillment = stockAvailabilityService.calculateFulfillment(
+      availability,
+      userLocationType
+    )
 
     const newItem: RequisitionItem = {
       id: items.length + 1,
@@ -490,24 +484,11 @@ export default function NewStoreRequisitionPage() {
     setNewItemJobCodeId('job-001')
     setNewItemProjectId('proj-001')
 
-    // Show appropriate toast based on fulfillment status
-    if (requestFromId === NONE_SOURCE_ID) {
-      toast({
-        title: "Item Added (PR Only)",
-        description: `${selectedProduct.productName} added. Will generate Purchase Request for ${newItemQty} units.`
-      })
-    } else if (fulfillment.toPurchase > 0) {
-      toast({
-        title: "Item Added (Partial Stock)",
-        description: `${selectedProduct.productName} added. ${fulfillment.fromStock} from stock, ${fulfillment.toPurchase} will require PR.`,
-        variant: fulfillment.fromStock === 0 ? "destructive" : "default"
-      })
-    } else {
-      toast({
-        title: "Item Added",
-        description: `${selectedProduct.productName} added to requisition (${fulfillment.fromStock} available)`
-      })
-    }
+    // Show toast for item added
+    toast({
+      title: "Item Added",
+      description: `${selectedProduct.productName} added to requisition (${fulfillment.fromStock} available)`
+    })
   }
 
   const handleRemoveItem = (itemId: number) => {
@@ -524,42 +505,19 @@ export default function NewStoreRequisitionPage() {
     const item = items.find(i => i.id === itemId)
     if (!item || !requestFromId) return
 
-    let availability: StockAvailabilityResult
-    let fulfillment: SRLineItemFulfillment
+    // Recalculate stock availability for new quantity
+    const availability = await stockAvailabilityService.checkStockAvailability(
+      item.productId,
+      newQty,
+      requestFromId,
+      destinationLocationId
+    )
 
-    // Handle PR-only workflow (no source location)
-    if (requestFromId === NONE_SOURCE_ID) {
-      // All items go to Purchase Request - create a mock availability result
-      availability = {
-        productId: item.productId,
-        productCode: '',
-        productName: item.description,
-        requestedQty: newQty,
-        availableQty: 0,
-        shortageQty: newQty,
-        sourceLocation: null,
-        alternativeLocations: []
-      }
-      fulfillment = {
-        fromStock: 0,
-        toPurchase: newQty,
-        documentType: GeneratedDocumentType.PURCHASE_REQUEST
-      }
-    } else {
-      // Recalculate stock availability for new quantity
-      availability = await stockAvailabilityService.checkStockAvailability(
-        item.productId,
-        newQty,
-        requestFromId,
-        userLocationId
-      )
-
-      // Recalculate fulfillment
-      fulfillment = stockAvailabilityService.calculateFulfillment(
-        availability,
-        userLocationType
-      )
-    }
+    // Recalculate fulfillment
+    const fulfillment = stockAvailabilityService.calculateFulfillment(
+      availability,
+      userLocationType
+    )
 
     setItems(items.map(i => {
       if (i.id === itemId) {
@@ -579,32 +537,13 @@ export default function NewStoreRequisitionPage() {
   const recalculateAllItems = async (newSourceId: string) => {
     if (items.length === 0) return
 
-    // Handle PR-only workflow (no source location)
-    if (newSourceId === NONE_SOURCE_ID) {
-      const updatedItems = items.map((item) => ({
-        ...item,
-        sourceAvailableQty: 0,
-        inventory: {
-          ...item.inventory,
-          onHand: 0
-        },
-        fulfillment: {
-          fromStock: 0,
-          toPurchase: item.qtyRequired,
-          documentType: GeneratedDocumentType.PURCHASE_REQUEST
-        }
-      }))
-      setItems(updatedItems)
-      return
-    }
-
     const updatedItems = await Promise.all(
       items.map(async (item) => {
         const availability = await stockAvailabilityService.checkStockAvailability(
           item.productId,
           item.qtyRequired,
           newSourceId,
-          userLocationId
+          destinationLocationId
         )
         const fulfillment = stockAvailabilityService.calculateFulfillment(
           availability,
@@ -872,10 +811,6 @@ export default function NewStoreRequisitionPage() {
                         <SelectValue placeholder="Select store/warehouse" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value={NONE_SOURCE_ID} className="text-orange-600 font-medium">
-                          None (Generate Purchase Request Only)
-                        </SelectItem>
-                        <Separator className="my-1" />
                         {sourceLocations.map(loc => (
                           <SelectItem key={loc.id} value={loc.id}>
                             {loc.code} : {loc.name}
@@ -890,7 +825,18 @@ export default function NewStoreRequisitionPage() {
                       <MapPin className="h-3 w-3" />
                       Deliver To (Destination)
                     </Label>
-                    <p className="font-medium">{userLocationCode} : {userLocationName}</p>
+                    <Select value={destinationLocationId} onValueChange={setDestinationLocationId}>
+                      <SelectTrigger className="h-9">
+                        <SelectValue placeholder="Select destination" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {userAssignedLocations.map(loc => (
+                          <SelectItem key={loc.id} value={loc.id}>
+                            {loc.code} : {loc.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
                   <div className="space-y-1.5">
@@ -1038,9 +984,6 @@ export default function NewStoreRequisitionPage() {
                                           <div className="text-xs space-y-1">
                                             <p>Available at source: {item.sourceAvailableQty}</p>
                                             <p>From stock: {item.fulfillment.fromStock}</p>
-                                            {item.fulfillment.toPurchase > 0 && (
-                                              <p className="text-red-500">Requires PR: {item.fulfillment.toPurchase}</p>
-                                            )}
                                           </div>
                                         </TooltipContent>
                                       </Tooltip>
@@ -1271,13 +1214,13 @@ export default function NewStoreRequisitionPage() {
                                 Document Generation Preview
                               </h4>
 
-                              {/* Warning for items requiring purchase */}
+                              {/* Warning for items with insufficient stock */}
                               {fulfillmentSummary.requiresPurchase > 0 && (
                                 <Alert variant="destructive" className="bg-red-50 border-red-200">
                                   <AlertCircle className="h-4 w-4" />
                                   <AlertTitle>Stock Shortage</AlertTitle>
                                   <AlertDescription>
-                                    {fulfillmentSummary.requiresPurchase} item(s) have no stock available and will require Purchase Requisition.
+                                    {fulfillmentSummary.requiresPurchase} item(s) have no stock available at the source location.
                                   </AlertDescription>
                                 </Alert>
                               )}
@@ -1287,7 +1230,7 @@ export default function NewStoreRequisitionPage() {
                                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                                   <AlertTitle className="text-amber-800">Partial Stock</AlertTitle>
                                   <AlertDescription className="text-amber-700">
-                                    {fulfillmentSummary.partiallyFulfillable} item(s) have partial stock. These will be split between stock and PR.
+                                    {fulfillmentSummary.partiallyFulfillable} item(s) have partial stock availability.
                                   </AlertDescription>
                                 </Alert>
                               )}
@@ -1312,24 +1255,8 @@ export default function NewStoreRequisitionPage() {
                                   </div>
                                 )}
 
-                                {/* Purchase Request Card */}
-                                {fulfillmentSummary.toPurchase > 0 && (
-                                  <div className="p-4 rounded-lg border bg-orange-50 border-orange-200">
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <ShoppingCart className="h-4 w-4 text-orange-600" />
-                                      <span className="text-sm font-medium text-orange-800">Purchase Request</span>
-                                    </div>
-                                    <div className="text-2xl font-bold text-orange-900">
-                                      {fulfillmentSummary.toPurchase} units
-                                    </div>
-                                    <p className="text-xs text-orange-600 mt-1">
-                                      {fulfillmentSummary.requiresPurchase + fulfillmentSummary.partiallyFulfillable} item(s) need purchase
-                                    </p>
-                                  </div>
-                                )}
-
                                 {/* All Available Card */}
-                                {fulfillmentSummary.toPurchase === 0 && fulfillmentSummary.fromStock > 0 && (
+                                {fulfillmentSummary.fromStock > 0 && fulfillmentSummary.requiresPurchase === 0 && (
                                   <div className="p-4 rounded-lg border bg-green-50 border-green-200">
                                     <div className="flex items-center gap-2 mb-2">
                                       <CheckCircle2 className="h-4 w-4 text-green-600" />
@@ -1350,16 +1277,8 @@ export default function NewStoreRequisitionPage() {
                                 <Badge variant="outline">Store Requisition</Badge>
                                 <ArrowRight className="h-4 w-4" />
                                 {fulfillmentSummary.fromStock > 0 && (
-                                  <>
-                                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                                      {userLocationType === InventoryLocationType.DIRECT ? 'SI' : 'ST'}
-                                    </Badge>
-                                    {fulfillmentSummary.toPurchase > 0 && <span className="text-muted-foreground">+</span>}
-                                  </>
-                                )}
-                                {fulfillmentSummary.toPurchase > 0 && (
-                                  <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                                    PR
+                                  <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                                    {userLocationType === InventoryLocationType.DIRECT ? 'SI' : 'ST'}
                                   </Badge>
                                 )}
                               </div>
