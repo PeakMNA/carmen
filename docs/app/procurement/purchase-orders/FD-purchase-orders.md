@@ -4,8 +4,8 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Orders
 - **Document Type**: Flow Diagrams (FD)
-- **Version**: 2.4.0
-- **Last Updated**: 2025-12-03
+- **Version**: 2.5.0
+- **Last Updated**: 2025-12-19
 - **Status**: Approved
 
 **Document History**:
@@ -23,6 +23,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.5.0 | 2025-12-19 | System Analyst | Added Diagram 11: Simplified Create PO from PR flow showing new PO Summary dialog workflow with vendor + currency grouping |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.4.0 | 2025-12-03 | System | Mermaid 8.8.2 compatibility fixes: Updated stateDiagram to stateDiagram-v2, removed unsupported subgraph styling |
 | 2.3.0 | 2025-12-02 | System Analyst | Added Diagram 10: QR Code Generation for Mobile Receiving flow, updated PO creation flow (Diagram 1) to include QR code generation step |
@@ -651,6 +652,65 @@ graph TD
 
 ---
 
+## 11. Create PO from PR Flow (Simplified v1.4.0)
+
+```mermaid
+graph TD
+    Start([User Opens<br>Create PO from PR]) --> AccessPoint{Access<br>Point?}
+
+    AccessPoint -->|Dialog| OpenDialog[Open CreatePOFromPR<br>Dialog on PO List]
+    AccessPoint -->|Page| OpenPage[Navigate to<br>/create/from-pr]
+
+    OpenDialog --> ShowPRTable[Display PR<br>Selection Interface]
+    OpenPage --> ShowPRTable
+
+    ShowPRTable --> DisplayHeader[Show Header with<br>Package Icon in<br>bg-primary/10 circle]
+    DisplayHeader --> DisplayBanner[Show Info Banner<br>bg-blue-50 border-blue-200<br>explaining automatic grouping]
+    DisplayBanner --> DisplayWorkflow[Show Workflow Indicator<br>Select PRs → Review Summary → Create PO]
+    DisplayWorkflow --> DisplayTable[Display Simplified Table:<br>Checkbox | PR# | Date | Description]
+
+    DisplayTable --> UserSearch{User<br>Searches?}
+    UserSearch -->|Yes| FilterPRs[Filter PRs by<br>PR# or Description]
+    FilterPRs --> DisplayTable
+    UserSearch -->|No| UserSelect[User Selects PRs]
+
+    UserSelect --> UpdateBadge[Update Selection Badge<br>Green with CheckCircle]
+    UpdateBadge --> MoreSelect{More<br>Selections?}
+    MoreSelect -->|Yes| UserSelect
+    MoreSelect -->|No| ClickCreate[User Clicks<br>Create PO Button]
+
+    ClickCreate --> GroupPRs[Group PRs by<br>Vendor + Currency]
+    GroupPRs --> ShowSummary[Display PO<br>Summary Dialog]
+
+    ShowSummary --> DialogContent[Show Dialog:<br>- Header: X PRs → Y POs<br>- Card per PO with:<br>  * Vendor with Building icon<br>  * Delivery date with Calendar<br>  * Total with green badge<br>  * Source PR badges]
+    DialogContent --> UserReview{User<br>Reviews}
+
+    UserReview -->|Cancel| CloseDialog[Close Dialog<br>Return to Selection]
+    CloseDialog --> DisplayTable
+
+    UserReview -->|Confirm| StoreData[Store Grouped Data<br>in localStorage]
+    StoreData --> CheckGroups{Group<br>Count?}
+
+    CheckGroups -->|Single| NavSingle[Navigate to:<br>/create?mode=fromPR&grouped=true]
+    CheckGroups -->|Multiple| NavBulk[Navigate to:<br>/create/bulk]
+
+    NavSingle --> CreateSingle([Create Single PO])
+    NavBulk --> CreateBulk([Create Multiple POs])
+```
+
+**Description**: Simplified workflow (v1.4.0) for creating Purchase Orders from approved Purchase Requests. Shows the streamlined PR selection interface with simplified table (PR#, Date, Description only), PO Summary dialog for reviewing grouped POs before creation, and navigation to single or bulk creation pages.
+
+**Key Implementation Details**:
+- **Component**: `CreatePOFromPR` at `app/(main)/procurement/purchase-orders/components/createpofrompr.tsx`
+- **Page**: `/create/from-pr` at `app/(main)/procurement/purchase-orders/create/from-pr/page.tsx`
+- **Simplified Table**: Removed Vendor, Delivery Date, Amount, Currency columns for cleaner selection experience
+- **Grouping**: By vendor + currency only (NOT delivery date)
+- **Design Language**: Consistent styling with `border-l-4 border-l-primary`, green badges, blue info banners
+- **localStorage Keys**: `groupedPurchaseRequests`, `selectedPurchaseRequests`
+- **Dialog Scrolling**: Uses `overflow-y-auto` with `min-h-0` for flex layout (not ScrollArea)
+
+---
+
 ## Summary
 
 This document provides comprehensive visual representations of all major purchase order workflows including:
@@ -665,6 +725,7 @@ This document provides comprehensive visual representations of all major purchas
 8. **GRN Integration**: Automatic status updates on receipt
 9. **Line Item Details View**: Item details dialog with inventory status and sub-dialogs
 10. **QR Code Generation**: Automatic QR code generation for mobile receiving integration
+11. **Create PO from PR (Simplified)**: New streamlined workflow with simplified PR table and PO Summary dialog
 
 These diagrams serve as reference for developers, testers, and stakeholders to understand system behavior and data flows.
 
@@ -679,3 +740,4 @@ These diagrams serve as reference for developers, testers, and stakeholders to u
 | 2.2.0 | 2025-12-01 | System | Added Line Item Details View Flow (Diagram 9) showing item details dialog with inventory status indicators, sub-dialogs for On Hand Breakdown, Pending POs, and GRN History |
 | 2.3.0 | 2025-12-02 | System Analyst | Added Diagram 10: QR Code Generation for Mobile Receiving flow with complete desktop and mobile integration, updated Diagram 1 to include QR code generation step |
 | 2.4.0 | 2025-12-03 | System | Mermaid 8.8.2 compatibility fixes: Updated stateDiagram to stateDiagram-v2, removed unsupported subgraph styling |
+| 2.5.0 | 2025-12-19 | System Analyst | Added Diagram 11: Simplified Create PO from PR flow showing new PO Summary dialog workflow with vendor + currency grouping |

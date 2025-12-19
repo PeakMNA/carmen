@@ -4,8 +4,8 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Orders
 - **Document Type**: Use Cases (UC)
-- **Version**: 2.5.0
-- **Last Updated**: 2025-12-03
+- **Version**: 2.6.0
+- **Last Updated**: 2025-12-19
 - **Status**: Approved
 
 ## Related Documents
@@ -19,6 +19,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.6.0 | 2025-12-19 | System Analyst | Updated UC-PO-001 with simplified PR selection table (PR#, Date, Description only), PO Summary dialog workflow, grouping by vendor + currency only (removed delivery date), design language documentation |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.5.0 | 2025-12-03 | System | Converted ASCII use case diagram to Mermaid format with three diagrams: Primary Actor Use Cases, System/Integration Use Cases, and Use Case Relationships |
 | 2.4.0 | 2025-12-02 | System Analyst | Added UC-PO-020: Download QR Code for Mobile Receiving, updated UC-PO-006 to include QR Code section display |
@@ -239,75 +240,100 @@ This table provides a quick reference of all 14 use cases in the Purchase Orders
 
 **Main Flow**:
 1. User navigates to Purchase Orders module
-2. User clicks "Create Purchase Order" button
-3. System displays "Select Purchase Requests" dialog
-4. System shows list of approved purchase requests not yet converted to PO
-5. User filters list by vendor, department, or date range (optional)
-6. User selects one or more purchase requests to include
-7. System validates all selected PRs have same vendor
-8. System displays "Create Purchase Order" form with:
-   - Vendor information (pre-filled from PR)
-   - Delivery location selector
-   - Expected delivery date field
-   - Payment terms (pre-filled from vendor master)
-   - Delivery terms selector
-   - Line items table (pre-populated from selected PRs)
-9. User reviews and modifies information as needed:
-   - Adjusts delivery date if needed
-   - Modifies payment terms if needed
-   - Adds notes or special instructions
-   - Reviews line items (quantity, price, specifications)
-10. System calculates totals (subtotal, tax, shipping, grand total)
-11. System validates budget availability for grand total
-12. User clicks "Create Purchase Order"
-13. System validates all required fields
-14. System creates purchase order with status "Draft"
-15. System generates unique PO number
-16. System creates budget encumbrance
-17. System updates source PR status to "Converted to PO"
-18. System displays success message with PO number
-19. System navigates to purchase order detail page
+2. User clicks "New PO" dropdown button
+3. System displays dropdown menu with options:
+   - "Create Blank PO" - navigate to manual PO creation
+   - "Create from Purchase Requests" - open PR selection dialog
+4. User clicks "Create from Purchase Requests"
+5. System displays "Create PO from Purchase Requests" page with:
+   - Page header with icon and description
+   - Info banner explaining automatic grouping by vendor and currency
+   - Workflow indicator showing: Select PRs → Review Summary → Create PO(s)
+   - Simplified PR selection table with columns: Checkbox, PR#, Date, Description
+   - Search input with icon for filtering PRs
+   - Selection count badge (green when PRs selected)
+   - "Create PO" button (disabled until PRs selected)
+6. User searches/filters PRs using the search input (optional)
+7. User selects one or more purchase requests by clicking rows or checkboxes
+8. System updates selection count badge showing number of PRs selected
+9. User clicks "Create PO" button
+10. System groups selected PRs by vendor + currency combination
+11. System displays "PO Summary" dialog showing:
+    - Count of PRs selected → Count of POs to be created
+    - For each PO to be created:
+      * PO number placeholder (will be auto-generated)
+      * Vendor name with Building icon
+      * Delivery date with Calendar icon
+      * Total amount with currency badge (green)
+      * List of source PR numbers as badges
+    - Grand total (if multiple POs)
+    - Cancel and "Confirm & Create" buttons
+12. User reviews the PO summary
+13. User clicks "Confirm & Create" button
+14. System stores grouped PR data in session storage
+15. System navigates to PO creation page with pre-populated data:
+    - Single PO: Direct to create page with mode=fromPR
+    - Multiple POs: Navigate to bulk creation page
+16. System creates purchase order(s) with status "Draft"
+17. System generates unique PO number(s)
+18. System creates budget encumbrance
+19. System updates source PR status to "Converted to PO"
+20. System displays success message with PO number(s)
 
-**Alternative Flow 3a: No Approved Purchase Requests**:
-- 3a1. System displays message "No approved purchase requests available"
-- 3a2. System offers option to create PO directly (if user has permission)
-- 3a3. Use case ends or continues to UC-PO-002
+**Alternative Flow 5a: No Approved Purchase Requests**:
+- 5a1. System displays empty state message "No approved purchase requests found"
+- 5a2. User can close dialog and create PO directly (if user has permission)
+- 5a3. Use case ends or continues to UC-PO-002
 
-**Alternative Flow 7a: Mixed Vendors Selected**:
-- 7a1. System displays error "Selected purchase requests have different vendors"
-- 7a2. System highlights PRs with conflicting vendors
-- 7a3. User deselects conflicting PRs or groups by vendor
-- 7a4. Flow returns to step 7
+**Alternative Flow 10a: PRs with Different Vendors/Currencies**:
+- 10a1. System detects PRs have different vendor/currency combinations
+- 10a2. System automatically groups PRs by vendor + currency
+- 10a3. System shows multiple PO cards in summary dialog (one per group)
+- 10a4. User can proceed to create multiple POs at once
+- 10a5. Flow continues to step 11
 
-**Alternative Flow 11a: Insufficient Budget**:
-- 11a1. System displays error "Insufficient budget available"
-- 11a2. System shows available budget vs. required amount
-- 11a3. User can:
-   - Reduce quantities to fit budget
+**Alternative Flow 12a: User Cancels Summary**:
+- 12a1. User clicks "Cancel" on summary dialog
+- 12a2. System closes summary dialog
+- 12a3. User returns to PR selection with current selections preserved
+- 12a4. User can modify selections and try again
+
+**Alternative Flow 14a: Insufficient Budget**:
+- 14a1. System displays error "Insufficient budget available"
+- 14a2. System shows available budget vs. required amount
+- 14a3. User can:
+   - Return to selection and reduce selected PRs
    - Request budget increase (separate process)
    - Cancel PO creation
-- 11a4. If reduced, flow returns to step 10
-- 11a5. If cancelled, use case ends
+- 14a4. If reduced, flow returns to step 9
+- 14a5. If cancelled, use case ends
 
-**Exception Flow 13a: Validation Errors**:
-- 13a1. System displays validation errors
-- 13a2. System highlights fields with errors
-- 13a3. User corrects errors
-- 13a4. Flow returns to step 12
+**Exception Flow 16a: Validation Errors**:
+- 16a1. System displays validation errors
+- 16a2. System highlights fields with errors
+- 16a3. User corrects errors
+- 16a4. Flow returns to step 13
 
 **Postconditions**:
-- Purchase order created in Draft status
-- Budget encumbered for PO amount
+- Purchase order(s) created in Draft status
+- Budget encumbered for PO amount(s)
 - Source purchase requests marked as "Converted to PO"
 - PR-PO linkage established in database
 - Audit log entry created
 
 **Business Rules**:
 - Only approved PRs can be converted to POs
-- All line items on selected PRs must have same vendor
+- PRs are automatically grouped by vendor + currency (one PO per group)
 - Budget must be available for total PO amount
-- PO number generated using format: PO-{YEAR}-{SEQUENCE}
+- PO number generated using format: PO-{YYMM}-{SEQUENCE}
 - Expected delivery date must be at least 3 days in future
+- Summary dialog must be confirmed before PO creation proceeds
+
+**UI Components**:
+- **PR Selection Table**: Simplified view showing only PR#, Date, Description (removed: Vendor, Delivery Date, Amount, Currency columns for cleaner selection experience)
+- **Selection Badge**: Green badge with CheckCircle icon showing count of selected PRs
+- **PO Summary Dialog**: Scrollable dialog with card-based layout for each PO to be created
+- **Workflow Indicator**: Visual step indicator showing current position in creation flow
 
 ---
 

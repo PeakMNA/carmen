@@ -1,3 +1,27 @@
+/**
+ * Purchase Orders List Page
+ *
+ * @description Main listing page for Purchase Orders with support for:
+ * - Table and card view modes
+ * - Filtering, sorting, and search capabilities
+ * - Creating new POs (blank or from approved Purchase Requests)
+ * - Export and print functionality
+ *
+ * @implementation
+ * - Uses PurchaseOrdersDataTable for main data display with integrated filtering
+ * - CreatePOFromPR component handles PR selection in a dialog
+ * - PRs are automatically grouped by vendor + currency for PO creation
+ * - Grouped data stored in localStorage for cross-page state management
+ *
+ * @workflow Create PO from PR:
+ * 1. User clicks "New PO" > "Create from Purchase Requests"
+ * 2. Dialog opens with CreatePOFromPR component showing approved PRs
+ * 3. User selects PRs (simplified table: PR#, Date, Description only)
+ * 4. On submit, PRs are grouped by vendor + currency
+ * 5. Single group → direct to create page; Multiple groups → bulk create page
+ *
+ * @see UC-PO-001 in docs/app/procurement/purchase-orders/UC-purchase-orders.md
+ */
 "use client"
 
 import { useState } from "react"
@@ -9,7 +33,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
@@ -27,11 +50,23 @@ export default function PurchaseOrdersPage() {
   const [selectedPOs, setSelectedPOs] = useState<string[]>([])
   const [showCreateFromPRDialog, setShowCreateFromPRDialog] = useState(false)
 
+  /**
+   * Handle PR selection from CreatePOFromPR component
+   *
+   * Groups selected PRs by vendor + currency combination. Each unique
+   * combination creates a separate PO to maintain vendor/currency consistency.
+   *
+   * @param selectedPRs - Array of selected Purchase Requests from the dialog
+   *
+   * @note The grouping logic works at PR level (not item level) since PRs
+   * are pre-assigned to vendors with specific currency during approval.
+   */
   const handleSelectPRs = (selectedPRs: PurchaseRequest[]) => {
     setShowCreateFromPRDialog(false)
 
     if (selectedPRs.length > 0) {
-      // Group PRs by vendor and currency - each group becomes a separate PO
+      // Group PRs by vendor + currency - each unique combination becomes a separate PO
+      // This ensures each PO has consistent vendor and currency for proper invoicing
       // Note: vendor, currency, vendorId, totalAmount exist in mock data but not in PurchaseRequest interface
       const groupedPRs = selectedPRs.reduce((groups, pr) => {
         const prAny = pr as any
@@ -109,15 +144,8 @@ export default function PurchaseOrdersPage() {
                 <span className="text-xs">Create Blank PO</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-xs">PO Templates</DropdownMenuLabel>
               <DropdownMenuItem onClick={() => setShowCreateFromPRDialog(true)}>
                 <span className="text-xs">Create from Purchase Requests</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span className="text-xs">Create from Template</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <span className="text-xs">Create Recurring PO</span>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -133,8 +161,14 @@ export default function PurchaseOrdersPage() {
         cardView={<PurchaseOrderCardView data={mockPurchaseOrders} selectedIds={selectedPOs} onSelectionChange={() => {}} />}
       />
       
-      <Dialog 
-        open={showCreateFromPRDialog} 
+      {/*
+        Create PO from PR Dialog
+        - Uses flex layout with min-h-0 for proper scrolling in flex children
+        - max-h-[90vh] prevents dialog from exceeding viewport height
+        - CreatePOFromPR component manages its own selection state and summary
+      */}
+      <Dialog
+        open={showCreateFromPRDialog}
         onOpenChange={(open) => {
           if (!open) setShowCreateFromPRDialog(false)
         }}

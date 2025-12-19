@@ -1,3 +1,32 @@
+/**
+ * CreatePOFromPR Component
+ *
+ * @description Provides an interface for selecting approved Purchase Requests
+ * and converting them into Purchase Orders. Features a simplified table view
+ * and a summary dialog before creation.
+ *
+ * @implementation
+ * - Simplified table showing only: PR#, Date, Description (per user feedback)
+ * - Automatic grouping by vendor + currency for PO creation
+ * - Summary dialog shows PO preview with grouped PR information
+ * - Uses flex layout with overflow-y-auto for proper scrolling in dialogs
+ *
+ * @design-language
+ * - border-l-4 border-l-primary: Left accent on selected rows and summary cards
+ * - Green badge (bg-green-50, text-green-800): Selection count indicator
+ * - Blue info banner: Summary totals and informational messages
+ * - Package icon: Associated with PO-related actions
+ * - FileText icon: Associated with PR references
+ *
+ * @workflow
+ * 1. User searches/filters approved PRs
+ * 2. User selects PRs via checkboxes (row click or checkbox)
+ * 3. User clicks "Create PO(s)" button
+ * 4. Summary dialog shows grouped POs preview
+ * 5. User confirms and PRs are passed to parent via onSelectPRs callback
+ *
+ * @see UC-PO-001 in docs/app/procurement/purchase-orders/UC-purchase-orders.md
+ */
 "use client";
 
 import React, { useState, useMemo } from "react";
@@ -342,11 +371,20 @@ export default function CreatePOFromPR({ onSelectPRs }: CreatePOFromPRProps) {
     }));
   };
 
-  // Handle Create button - show summary dialog
+  /**
+   * Handle Create button click - shows summary dialog before proceeding
+   *
+   * Groups selected PRs by vendor + currency combination to preview
+   * how many POs will be created. Each unique combination = 1 PO.
+   *
+   * @note This is a preview step - actual PR selection is passed to parent
+   * only after user confirms in the summary dialog.
+   */
   const handleCreateClick = () => {
     const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
 
-    // Group PRs by vendor + currency
+    // Group PRs by vendor + currency - each unique combination becomes a separate PO
+    // This ensures proper vendor/currency consistency for invoicing and payments
     const groupedPRs = selectedPRs.reduce((groups, pr) => {
       const key = `${pr.vendor}-${pr.currency}`;
       if (!groups[key]) {
@@ -368,7 +406,12 @@ export default function CreatePOFromPR({ onSelectPRs }: CreatePOFromPRProps) {
     setShowSummary(true);
   };
 
-  // Confirm and proceed with PO creation
+  /**
+   * Confirm PO creation and pass selected PRs to parent component
+   *
+   * Called when user clicks "Confirm & Create" in the summary dialog.
+   * Closes the summary dialog and triggers the parent's onSelectPRs callback.
+   */
   const handleConfirmCreate = () => {
     const selectedPRs = filteredAndSortedPurchaseRequests.filter(pr => selectedPRIds.includes(pr.id));
     setShowSummary(false);
@@ -466,7 +509,19 @@ export default function CreatePOFromPR({ onSelectPRs }: CreatePOFromPRProps) {
         </Table>
       </ScrollArea>
 
-      {/* PO Summary Dialog */}
+      {/*
+        PO Summary Dialog
+        - Shows preview of POs that will be created from selected PRs
+        - Groups PRs by vendor + currency with visual cards
+        - Uses flex layout with overflow-y-auto for scrollable content
+        - Fixed header/footer with scrollable body section
+
+        Design Language:
+        - border-l-4 border-l-primary: Accent on PO preview cards
+        - Green badge: Total amount display
+        - Blue info banner: Grand total summary
+        - Package icon: PO-related header
+      */}
       <Dialog open={showSummary} onOpenChange={setShowSummary}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden flex flex-col">
           <DialogHeader className="flex-shrink-0">

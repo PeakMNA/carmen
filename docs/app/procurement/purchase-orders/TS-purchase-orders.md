@@ -4,8 +4,8 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Orders
 - **Document Type**: Technical Specification (TS)
-- **Version**: 2.3.0
-- **Last Updated**: 2025-12-02
+- **Version**: 2.4.0
+- **Last Updated**: 2025-12-19
 - **Status**: Approved
 
 **Document History**:
@@ -24,6 +24,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.4.0 | 2025-12-19 | System Analyst | Updated CreatePOFromPR component: simplified PR table (PR#, Date, Description), PO Summary dialog, grouping by vendor + currency only, design language documentation, removed template/recurring UI options |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.3.0 | 2025-12-02 | System Analyst | Added QR Code Generation section with QRCodeSection component, lib/utils/qr-code.ts utilities, qrcode library v1.5.3 integration, and mobile receiving integration details |
 | 2.2.0 | 2025-12-01 | System | Added PO Item Details Dialog documentation (DetailDialog9) with inventory status indicators (On Hand, On Order, Received), related PR links, and financial summary; Added sub-dialogs for On Hand Breakdown, Pending POs, and GRN History |
@@ -533,85 +534,67 @@ graph TD
 
 ---
 
-#### 2. Create from PR Page
-**Route**: `/procurement/purchase-orders/create`
-**File**: `app/(main)/procurement/purchase-orders/create/page.tsx`
-**Purpose**: Convert approved purchase requests into purchase orders with vendor grouping and splitting capability
+#### 2. Create from PR Component and Page
+**Component**: `CreatePOFromPR` - Reusable component for PR selection and grouping
+**Page Route**: `/procurement/purchase-orders/create/from-pr`
+**Page File**: `app/(main)/procurement/purchase-orders/create/from-pr/page.tsx`
+**Component File**: `app/(main)/procurement/purchase-orders/components/createpofrompr.tsx`
+**Purpose**: Convert approved purchase requests into purchase orders with automatic vendor + currency grouping
 
-**Sections**:
-- **Header**: Page title ("Create PO from Purchase Request"), breadcrumb, help text
-- **Progress Indicator**: Multi-step wizard (1. Select PRs → 2. Group by Vendor → 3. PO Details → 4. Budget & Send)
-- **Form Container**: Tabbed interface with validation indicators
-- **Footer**: Step navigation (Previous, Next, Cancel), total PO amount display
+**Access Points**:
+- **Dialog Mode**: "New PO" dropdown menu → "Create from Purchase Requests" opens dialog on list page
+- **Page Mode**: `/procurement/purchase-orders/create/from-pr` provides full-page experience
 
-**Tabs**:
-- **Select PRs** (Step 1 - Required):
-  - Content: Approved PR list with search and filter
-  - Fields: PR search, Department filter, Date range filter
-  - Features: Multi-select PRs, preview selected items, show PR totals
-  - Validation: At least one PR must be selected
-  - Actions: Next (proceeds to vendor grouping)
+**Page Design Language** (consistent styling):
+- Page header with Package icon in `bg-primary/10` circle
+- Info banner (`bg-blue-50`, `border-blue-200`) explaining automatic grouping
+- Workflow indicator showing: Select PRs → Review Summary → Create PO(s)
+- Main card with `border-l-4 border-l-primary` accent
 
-- **Vendor Grouping** (Step 2 - Required):
-  - Content: PR items automatically grouped by vendor
-  - Features: View groups, split items to multiple POs, combine items from multiple PRs
-  - Display: Vendor name, item count, total amount per group
-  - Actions: Split Group, Combine Groups, Previous, Next
+**Component Sections**:
+- **Search Input**: Search icon with filter input for PR# and description
+- **Simplified PR Table**:
+  * Columns: Checkbox, PR#, Date, Description (simplified from full detail view)
+  * Row click toggles selection
+  * Alternating row colors for readability
+- **Selection Badge**: Green badge with CheckCircle icon showing selected count
+- **Create PO Button**: Disabled until PRs selected, triggers PO Summary dialog
 
-- **PO Details** (Step 3 - Required):
-  - Content: PO form for each vendor group
-  - Fields: Vendor (pre-filled), Order Date, Expected Delivery Date, Delivery Location, Payment Terms, Delivery Terms
-  - Line Items: Automatically populated from PR items (editable)
-  - Features: Edit quantities, adjust prices, set item delivery dates, add specifications
-  - Validation: All required fields, quantities > 0, delivery date >= order date
-  - Actions: Previous, Next
-
-- **Budget Allocation** (Step 4 - Required):
-  - Content: Budget account allocation interface
-  - Fields: Budget account selection, allocation percentage/amount per account
-  - Features: Real-time budget availability check, allocation calculator
-  - Display: Total PO amount, allocated amount, remaining to allocate
-  - Validation: Allocations must sum to 100%, budget must be available
-  - Actions: Previous, Save as Draft, Send to Vendor
+**Automatic Grouping Logic**:
+- Groups PRs by vendor + currency (NOT delivery date)
+- Each unique vendor+currency combination creates ONE purchase order
+- Example: 5 PRs with 2 vendor/currency combinations → 2 POs created
 
 **Dialogs**:
-- **PR Selection Dialog** (Modal - Large)
-  - Trigger: Click "Select PRs" in Step 1
-  - Content: Searchable PR list with filters, multi-select capability
-  - Features: PR details preview, item list preview, budget availability indicator
-  - Actions: "Add Selected", "Cancel"
-  - Validation: Only approved PRs can be selected
+- **PO Summary Dialog** (Modal - Medium)
+  - Trigger: Click "Create PO" button after selecting PRs
+  - Header: "X PRs selected → Y PO(s) will be created"
+  - Content: Card-based layout showing each PO to be created:
+    * PO number placeholder (auto-generated on save)
+    * Vendor name with Building icon
+    * Delivery date with Calendar icon
+    * Total amount with green currency badge
+    * Source PR numbers as badges
+  - Grand total if multiple POs
+  - Design: Scrollable body with `overflow-y-auto` and `min-h-0`, `border-l-4 border-l-primary` on cards
+  - Actions: "Cancel", "Confirm & Create"
+  - Success: Stores grouped data in localStorage, navigates to create page
 
-- **Split PO Dialog** (Modal - Medium)
-  - Trigger: Click "Split" on a vendor group in Step 2
-  - Content: Item grouping interface (by vendor, delivery date, or custom)
-  - Features: Drag-and-drop items between groups, automatic total calculation
-  - Actions: "Create Split POs", "Cancel"
-  - Result: Creates multiple PO forms for same vendor
+**Navigation Flow**:
+1. User selects PRs in simplified table
+2. Clicks "Create PO" → PO Summary dialog opens
+3. Reviews grouped POs → Clicks "Confirm & Create"
+4. Single PO → `/procurement/purchase-orders/create?mode=fromPR&grouped=true`
+5. Multiple POs → `/procurement/purchase-orders/create/bulk`
 
-- **Budget Check Dialog** (Modal - Medium)
-  - Trigger: Click "Send to Vendor" in Step 4 - auto-triggered
-  - Content: Budget availability verification results
-  - States: "Checking budget...", "Budget available ✓", "Insufficient budget ✗"
-  - Actions: "Proceed to Send" (if available), "Review Allocation", "Cancel"
-  - Error: Shows budget details and shortfall amount
-
-- **Send to Vendor Dialog** (Modal - Large)
-  - Trigger: Budget check succeeds in Step 4
-  - Content: Email composition form with PO PDF preview
-  - Fields: Recipient (vendor contact), CC, Subject, Body, Additional attachments
-  - Features: Pre-filled email template, PDF preview, attachment selection
-  - Actions: "Send PO", "Save as Draft", "Cancel"
-  - Success: Creates PO, sends email, updates PR status
-
-- **Cancel Confirm Dialog** (Modal - Small)
-  - Trigger: Click "Cancel" with unsaved changes
-  - Content: "You have unsaved changes. Discard PO creation?" warning
-  - Actions: "Save as Draft", "Discard and Leave", "Stay on Page"
+**Data Storage**:
+- `localStorage.groupedPurchaseRequests`: JSON of grouped PR data by vendor+currency
+- `localStorage.selectedPurchaseRequests`: JSON of selected PRs array
 
 **Navigation Targets**:
-- **To List Page**: Click "Cancel" (with confirmation if unsaved changes)
-- **To Detail Page**: After successful PO creation (redirects to newly created PO)
+- **To List Page**: Click "Cancel" or back button
+- **To Create Page**: After confirming PO summary (single PO)
+- **To Bulk Create Page**: After confirming PO summary (multiple POs)
 
 ---
 

@@ -1,3 +1,34 @@
+/**
+ * Create PO from Purchase Requests Page
+ *
+ * @description Dedicated page for creating Purchase Orders from approved
+ * Purchase Requests. Provides a full-page experience with workflow guidance.
+ *
+ * @implementation
+ * - Uses CreatePOFromPR component for PR selection and summary
+ * - Groups PRs by vendor + currency for automatic PO creation
+ * - Stores grouped data in localStorage for cross-page navigation
+ * - Routes to single PO create or bulk create based on group count
+ *
+ * @design-language (consistent with PO Summary dialog)
+ * - Header with Package icon in bg-primary/10 circle
+ * - Info banner (bg-blue-50, border-blue-200): Explains automatic grouping
+ * - Workflow indicator (bg-muted/50): Shows 3-step process visually
+ * - Main card with border-l-4 border-l-primary accent
+ *
+ * @workflow
+ * 1. User navigates from "New PO" > "Create from Purchase Requests"
+ * 2. Page shows info banner explaining automatic grouping
+ * 3. Workflow indicator shows: Select PRs → Review Summary → Create PO(s)
+ * 4. User selects PRs in the embedded CreatePOFromPR component
+ * 5. On create, data is stored and user is routed to appropriate create page
+ *
+ * @navigation
+ * - Single vendor+currency group → /procurement/purchase-orders/create?mode=fromPR&grouped=true
+ * - Multiple groups → /procurement/purchase-orders/create/bulk
+ *
+ * @see UC-PO-001 in docs/app/procurement/purchase-orders/UC-purchase-orders.md
+ */
 "use client";
 
 import React, { useState } from "react";
@@ -11,88 +42,61 @@ import { PurchaseRequest } from "@/lib/types";
 export default function CreatePOFromPRPage() {
   const router = useRouter();
 
+  /**
+   * Handle PR selection callback from CreatePOFromPR component
+   *
+   * Groups selected PRs by vendor + currency, stores in localStorage,
+   * and navigates to the appropriate creation page.
+   *
+   * @param selectedPRs - Array of selected Purchase Requests
+   *
+   * @note Uses localStorage for cross-page state management since
+   * URL parameters would become unwieldy with complex PR data.
+   */
   const handleSelectPRs = (selectedPRs: PurchaseRequest[]) => {
     if (selectedPRs.length > 0) {
-      // Extract all items from selected PRs
-      // Note: items array exists in mock data but not in PurchaseRequest interface
-      const allItems = selectedPRs.flatMap(pr =>
-        (pr as any).items?.map((item: any) => ({
-          ...item,
-          sourcePR: pr,
-          prId: pr.id,
-          prNumber: (pr as any).refNumber,
-          vendor: (pr as any).vendor,
-          vendorId: (pr as any).vendorId,
-          currency: (pr as any).currency,
-          deliveryDate: (pr as any).deliveryDate
-        })) || []
-      );
-
-      // Group items by vendor + currency + deliveryDate - each group becomes a separate PO
-      const groupedItems = allItems.reduce((groups, item) => {
-        const key = `${item.vendor}-${item.currency}-${item.deliveryDate}`;
+      // Group PRs by vendor + currency - each unique combination becomes a separate PO
+      // This ensures each PO has consistent vendor and currency for proper invoicing
+      const groupedPRs = selectedPRs.reduce((groups, pr) => {
+        const prData = pr as any;
+        const key = `${prData.vendor}-${prData.currency}`;
         if (!groups[key]) {
           groups[key] = {
-            vendor: item.vendor,
-            vendorId: item.vendorId,
-            currency: item.currency,
-            deliveryDate: item.deliveryDate,
-            items: [],
+            vendor: prData.vendor,
+            vendorId: prData.vendorId,
+            currency: prData.currency,
+            deliveryDate: prData.deliveryDate,
+            prs: [],
             totalAmount: 0,
-            sourcePRs: new Set()
+            sourcePRs: [] as string[]
           };
         }
-        groups[key].items.push(item);
-        groups[key].totalAmount += item.totalAmount || 0;
-        groups[key].sourcePRs.add(item.prNumber);
+        groups[key].prs.push(prData);
+        groups[key].totalAmount += prData.totalAmount || 0;
+        groups[key].sourcePRs.push(prData.refNumber);
         return groups;
       }, {} as Record<string, {
         vendor: string;
         vendorId: number;
         currency: string;
         deliveryDate: Date;
-        items: any[];
+        prs: any[];
         totalAmount: number;
-        sourcePRs: Set<string>;
+        sourcePRs: string[];
       }>);
 
-      // Convert Set to Array for serialization
-      type GroupType = {
-        vendor: string;
-        vendorId: number;
-        currency: string;
-        deliveryDate: Date;
-        items: any[];
-        totalAmount: number;
-        sourcePRs: Set<string>;
-      };
-
-      const serializedGroups = (Object.entries(groupedItems) as [string, GroupType][]).reduce((acc, [key, group]) => {
-        // Explicitly extract object properties to avoid spread type error
-        acc[key] = {
-          vendor: group.vendor,
-          vendorId: group.vendorId,
-          currency: group.currency,
-          deliveryDate: group.deliveryDate,
-          items: group.items,
-          totalAmount: group.totalAmount,
-          sourcePRs: Array.from(group.sourcePRs)
-        };
-        return acc;
-      }, {} as Record<string, any>);
-
-      // Store grouped items for PO creation
+      // Store grouped PRs for PO creation
       try {
         if (typeof window !== 'undefined') {
-          localStorage.setItem('groupedPurchaseRequests', JSON.stringify(serializedGroups));
-          localStorage.setItem('selectedPurchaseRequests', JSON.stringify(selectedPRs)); // Keep for compatibility
+          localStorage.setItem('groupedPurchaseRequests', JSON.stringify(groupedPRs));
+          localStorage.setItem('selectedPurchaseRequests', JSON.stringify(selectedPRs));
         }
       } catch (error) {
-        console.error('Error storing grouped items:', error);
+        console.error('Error storing grouped PRs:', error);
       }
 
       // Navigate to PO creation page with grouped data
-      const groupCount = Object.keys(groupedItems).length;
+      const groupCount = Object.keys(groupedPRs).length;
       if (groupCount === 1) {
         // Single PO - go directly to creation page
         router.push('/procurement/purchase-orders/create?mode=fromPR&grouped=true');

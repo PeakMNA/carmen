@@ -4,14 +4,15 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Orders
 - **Route**: `/procurement/purchase-orders`
-- **Version**: 1.3.0
-- **Last Updated**: 2025-12-02
+- **Version**: 1.4.0
+- **Last Updated**: 2025-12-19
 - **Owner**: Procurement Team
 - **Status**: Approved
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.4.0 | 2025-12-19 | System Analyst | Simplified FR-PO-002 PR selection table (PR#, Date, Description only), added PO Summary dialog workflow, removed "Create from Template" and "Create Recurring PO" UI options (FR-PO-015 marked as backend-only), updated grouping to vendor + currency (not delivery date) |
 | 1.3.0 | 2025-12-02 | System Analyst | Added FR-PO-017: QR Code Generation for Mobile Receiving Integration with implementation details, updated PDF generation section, updated dependencies with qrcode library v1.5.3 |
 | 1.2.0 | 2025-12-01 | System | Enhanced PO Item Details dialog with inventory indicators (On Hand, On Order, Received), Related PR section, Order Summary with financial calculations, and linked mock data with sourceRequestId |
 | 1.1.0 | 2025-12-01 | System | Added Comments & Attachments sidebar feature; Updated page layout to match PR page pattern |
@@ -100,37 +101,57 @@ The system provides comprehensive tracking of PO status progression (draft → s
 **Entry Point**:
 - "New PO" dropdown menu → "Create from Purchase Requests" option
 
-**PR Selection Dialog**:
+**PR Selection Interface**:
+- **Access Points**:
+  * Dialog mode: "New PO" dropdown menu → "Create from Purchase Requests" opens dialog
+  * Page mode: `/procurement/purchase-orders/create/from-pr` provides full-page experience
 - Display list of all approved Purchase Requests (status = 'approved')
 - Filter out PRs already fully converted to POs
-- Show PR details: PR Number, Request Date, Vendor Name, Description, Expected Delivery Date, Total Amount, Currency Code
-- Multi-select checkboxes with "Select All" option
-- Search/filter by PR number, vendor, description
-- Sort by any column
-- Visual grouping indicators:
-  * Color-code PR rows by vendor+currency combination
-  * 5 distinct colors cycling through combinations
-  * Same vendor+currency = same color border
-  * Makes grouping logic immediately visible
+- **Simplified Table Columns** (cleaner selection experience):
+  * Checkbox (selection)
+  * PR# (purchase request number)
+  * Date (request date)
+  * Description (PR description)
+- Multi-select checkboxes with row-click selection
+- Search/filter by PR number, description
+- **Design Language** (consistent with PO Summary dialog):
+  * Page header with Package icon in `bg-primary/10` circle
+  * Info banner: `bg-blue-50`, `border-blue-200` explaining automatic grouping
+  * Workflow indicator: Shows "Select PRs → Review Summary → Create PO(s)"
+  * Main card with `border-l-4 border-l-primary` accent
+  * Selection badge: Green badge with CheckCircle icon showing count
 
-**Real-Time Grouping Preview**:
-- Display informational panel:
-  * "Selected PRs will be grouped by vendor and currency:"
-  * List each group: Vendor Name (Currency) - X PRs - Total: $amount
-  * Example: "Office Supplies Co. (USD) - 3 PRs - Total: USD 4,250.00"
-- Update preview dynamically as PRs selected/deselected
+**PO Summary Dialog** (displayed before creation):
+- Triggered when user clicks "Create PO" button
+- Shows grouped PRs with creation preview:
+  * Header: "X PRs selected → Y PO(s) will be created"
+  * For each PO to be created:
+    - PO number placeholder (auto-generated on save)
+    - Vendor name with Building icon
+    - Delivery date with Calendar icon
+    - Total amount with currency badge (green)
+    - List of source PR numbers as badges
+  * Grand total (if multiple POs)
+- **Design Language**:
+  * Scrollable dialog body with `overflow-y-auto` and `min-h-0` for flex layout
+  * Card-based layout per PO group
+  * `border-l-4 border-l-primary` accent on each card
+  * Green badges for currency amounts
+- Action buttons: "Cancel" and "Confirm & Create"
+- User must confirm before navigation to create page
 
 **Automatic Grouping Logic**:
-- Group selected PRs by three criteria:
+- Group selected PRs by two criteria:
   1. Vendor ID (must match exactly)
   2. Currency Code (must match exactly)
-  3. Delivery Date (must match exactly)
-- Each unique combination creates ONE purchase order
-- Example: 10 PRs with 3 different vendor/currency/date combinations → 3 POs created
+- Each unique vendor+currency combination creates ONE purchase order
+- Example: 10 PRs with 3 different vendor/currency combinations → 3 POs created
+- Note: Delivery date is NOT a grouping criterion (PRs with same vendor+currency but different dates go to same PO)
 
-**Create Button Intelligence**:
-- Button text updates: "Create PO" (1 group) or "Create POs (3)" (multiple groups)
+**Create Button Behavior**:
+- Button text: "Create PO" (always, regardless of group count)
 - Disabled if no PRs selected
+- Opens PO Summary dialog on click (not direct navigation)
 
 **Two Creation Paths**:
 
@@ -1434,15 +1455,20 @@ The system provides comprehensive tracking of PO status progression (draft → s
 
 ### FR-PO-015: Purchase Order Templates and Recurring POs
 **Priority**: Low
+**Implementation Status**: Backend-only (UI options removed as of v1.4.0)
+
+> **Note**: As of version 1.4.0, the "Create from Template" and "Create Recurring PO" options have been removed from the "New PO" dropdown menu. The backend functionality described below remains available for future implementation or API access, but the UI entry points are currently disabled. The dropdown now only shows:
+> - "Create Blank PO"
+> - "Create from Purchase Requests"
 
 **User Story**: As a purchasing staff member, I want to create PO templates for commonly ordered items and set up recurring POs for regular suppliers so that I can reduce repetitive data entry and ensure consistency.
 
 **Requirements**:
 
-**PO Templates**:
+**PO Templates** (Backend-only):
 
 *Create Template*:
-- "Save as Template" button on PO detail page
+- "Save as Template" button on PO detail page (future implementation)
 - Template metadata:
   * Template name (required)
   * Description
@@ -1456,9 +1482,9 @@ The system provides comprehensive tracking of PO status progression (draft → s
   * Standard notes/instructions
   * Does NOT store: Vendor (selectable at creation), Dates (set at creation), PO number (auto-generated)
 
-*Use Template*:
-- "Create from Template" option in New PO dropdown
-- Template selection dialog:
+*Use Template* (UI disabled):
+- ~~"Create from Template" option in New PO dropdown~~ (Removed in v1.4.0)
+- Template selection dialog (available for future implementation):
   * Search templates by name, category
   * Preview template items and details
   * Template card shows: Name, Category, Item count, Last used date, Use count
@@ -1469,18 +1495,18 @@ The system provides comprehensive tracking of PO status progression (draft → s
 - Review/adjust quantities and prices
 - Save as draft or send
 
-*Manage Templates*:
+*Manage Templates* (Future implementation):
 - Templates management page: /procurement/templates
 - List all templates with search/filter
 - Actions: Edit, Delete, Duplicate, Deactivate
 - Template usage statistics
 - Version control (track template changes)
 
-**Recurring POs**:
+**Recurring POs** (Backend-only):
 
-*Setup Recurring PO*:
-- "Create Recurring PO" option in New PO dropdown
-- Recurring PO setup form:
+*Setup Recurring PO* (UI disabled):
+- ~~"Create Recurring PO" option in New PO dropdown~~ (Removed in v1.4.0)
+- Recurring PO setup form (available for future implementation):
   * Base PO template (select existing template or create new)
   * Vendor (required)
   * Recurrence pattern:

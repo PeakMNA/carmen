@@ -4,8 +4,8 @@
 - **Module**: Procurement
 - **Sub-Module**: Purchase Orders
 - **Document Type**: Validations (VAL)
-- **Version**: 2.3.0
-- **Last Updated**: 2025-12-02
+- **Version**: 2.4.0
+- **Last Updated**: 2025-12-19
 - **Status**: Approved
 
 ## Related Documents
@@ -19,6 +19,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.4.0 | 2025-12-19 | System Analyst | Updated VAL-PO-101 PR selection validations to reflect simplified table (PR#, Date, Description), vendor + currency grouping (removed delivery date), and PO Summary dialog workflow |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.3.0 | 2025-12-02 | System Analyst | Added VAL-PO-016: QR Code Generation and Format validations for mobile receiving integration |
 | 2.2.0 | 2025-12-01 | System | Added PO Item Details Dialog validations (VAL-PO-013 through VAL-PO-015) for inventory status indicators, source PR references, and financial calculations |
