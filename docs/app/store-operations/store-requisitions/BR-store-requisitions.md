@@ -3,8 +3,8 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.3.0
-- **Last Updated**: 2025-12-13
+- **Version**: 1.4.0
+- **Last Updated**: 2025-12-19
 - **Status**: Active - Implementation Complete
 
 ## Related Documents
@@ -24,6 +24,7 @@
 | 1.1.0 | 2025-12-05 | Documentation Team | Added Section 10: Backend Requirements (consolidated from BE document), added shared methods references |
 | 1.2.0 | 2025-12-10 | Documentation Team | Synced with implemented source code - verified status values, item approval workflow, UI tabs configuration |
 | 1.3.0 | 2025-12-13 | Documentation Team | Added new requisition creation page with inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling (INVENTORY/DIRECT/CONSIGNMENT) |
+| 1.4.0 | 2025-12-19 | Documentation Team | Added stage-based field editability (BR-SR-014), receipt signature requirement for Issue workflow (BR-SR-015), updated FR-SR-004 with signature capture |
 
 ## 1. Executive Summary
 
@@ -196,6 +197,12 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
    - Issued by (storekeeper name)
    - Received by (department representative)
    - Batch/lot numbers if applicable
+7. **Receipt Signature Capture** (v1.4.0):
+   - Store staff shall capture requestor's signature before completing issue
+   - Signature dialog displays item summary of items to be issued
+   - Digital signature captured on canvas-based signature pad
+   - Timestamp recorded with signature data
+   - Issue cannot complete until signature is captured
 
 **Acceptance Criteria**:
 - ✅ Stock levels update immediately upon issuance
@@ -204,6 +211,8 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
 - ✅ System prevents over-issuance beyond available stock
 - ✅ Partial issuance is supported with tracking
 - ✅ Requisition status updates to Complete when fully issued
+- ✅ Requestor signature is captured before issue completion (v1.4.0)
+- ✅ Signature data and timestamp are stored with issuance record (v1.4.0)
 
 ---
 
@@ -569,6 +578,30 @@ The Store Requisitions module enables hotel departments (F&B Operations, Houseke
 - Emergency justification is mandatory
 - Emergency requisitions cannot bypass final financial approval
 - Monthly reports on emergency requisition usage sent to management
+
+### BR-SR-014: Stage-Based Field Editability (v1.4.0)
+- **Workflow Stages**: Draft → Submit → Approve → Issue → Complete
+- **Approve Stage**:
+  - `qtyApproved` field is editable (approver can adjust approved quantities)
+  - `qtyIssued` field is read-only
+  - Workflow button displays "Approve" label
+- **Issue Stage**:
+  - `qtyApproved` field is read-only (locked after approval)
+  - `qtyIssued` field is editable (store staff records actual issued quantities)
+  - Workflow button displays "Issue" label
+- Edit mode must be enabled to modify any quantity fields
+- Stage determines which quantity fields are accessible regardless of edit mode
+
+### BR-SR-015: Receipt Signature Requirement (v1.4.0)
+- Clicking "Issue" button in Issue stage opens Receipt Signature Dialog
+- Signature dialog displays summary of approved items to be issued
+- Requestor must sign on digital signature canvas to confirm receipt
+- Store staff captures signature (requestor signs, staff witnesses)
+- Signature data (base64 PNG) and timestamp captured on confirmation
+- Issue action cannot complete without valid signature
+- Signature stored with issuance record for audit trail
+- Clear button allows signature canvas reset before confirmation
+- Cancel closes dialog without completing issue
 
 ---
 

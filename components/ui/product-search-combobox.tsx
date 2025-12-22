@@ -5,14 +5,24 @@
  *
  * Searchable dropdown for selecting products from a list
  * Displays products in "CODE - NAME" format
- * Auto-populates category, subcategory, and tax rate
+ * Uses Command component for better focus handling in dialogs
  *
  * Created: 2025-11-17
+ * Updated: 2025-12-20
  */
 
 import * as React from "react"
-import { Check, ChevronsUpDown } from "lucide-react"
+import { Check, ChevronsUpDown, Search } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { Button } from "@/components/ui/button"
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command"
 import {
   Popover,
   PopoverContent,
@@ -43,23 +53,11 @@ export function ProductSearchCombobox({
   className
 }: ProductSearchComboboxProps) {
   const [open, setOpen] = React.useState(false)
-  const [searchValue, setSearchValue] = React.useState("")
 
   // Format product for display: "CODE - NAME"
   const formatProduct = (product: Product) => {
     return `${product.productCode} - ${product.productName}`
   }
-
-  // Filter products based on search
-  const filteredProducts = React.useMemo(() => {
-    if (!searchValue) return products
-
-    const search = searchValue.toLowerCase()
-    return products.filter(product =>
-      product.productCode.toLowerCase().includes(search) ||
-      product.productName.toLowerCase().includes(search)
-    )
-  }, [products, searchValue])
 
   // Get display value
   const displayValue = value ? formatProduct(value) : ""
@@ -72,53 +70,47 @@ export function ProductSearchCombobox({
           {required && <span className="text-red-500 ml-1">*</span>}
         </Label>
       )}
-      <Popover open={open} onOpenChange={setOpen}>
+      <Popover open={open} onOpenChange={setOpen} modal={true}>
         <PopoverTrigger asChild>
-          <div className="relative">
-            <input
-              type="text"
-              value={displayValue || searchValue}
-              onChange={(e) => {
-                setSearchValue(e.target.value)
-                if (!open) setOpen(true)
-                if (value) onChange(null) // Clear selection when typing
-              }}
-              onFocus={() => setOpen(true)}
-              placeholder={placeholder}
-              disabled={disabled}
-              className={cn(
-                "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
-                className
-              )}
-            />
-            <ChevronsUpDown className="absolute right-3 top-3 h-4 w-4 opacity-50 pointer-events-none" />
-          </div>
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            disabled={disabled}
+            className={cn(
+              "w-full justify-between h-10 font-normal",
+              !value && "text-muted-foreground"
+            )}
+          >
+            <span className="truncate">
+              {displayValue || placeholder}
+            </span>
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+          </Button>
         </PopoverTrigger>
-        <PopoverContent className="w-[500px] p-0 z-[200]" align="start">
-          <div className="max-h-[300px] overflow-auto">
-            {filteredProducts.length === 0 ? (
-              <div className="py-6 text-center text-sm text-muted-foreground">
-                No product found.
-              </div>
-            ) : (
-              <div className="p-1">
-                {filteredProducts.map((product) => {
+        <PopoverContent
+          className="w-[500px] p-0"
+          align="start"
+          sideOffset={4}
+          style={{ zIndex: 9999 }}
+        >
+          <Command shouldFilter={true}>
+            <CommandInput placeholder="Search by code or name..." />
+            <CommandList>
+              <CommandEmpty>No product found.</CommandEmpty>
+              <CommandGroup>
+                {products.map((product) => {
                   const isSelected = value?.id === product.id
                   const displayText = formatProduct(product)
 
                   return (
-                    <div
+                    <CommandItem
                       key={product.id}
-                      onMouseDown={(e) => {
-                        e.preventDefault() // Prevent input blur
-                        onChange(product)
-                        setSearchValue("")
+                      value={displayText}
+                      onSelect={() => {
+                        onChange(isSelected ? null : product)
                         setOpen(false)
                       }}
-                      className={cn(
-                        "relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground",
-                        isSelected && "bg-accent"
-                      )}
                     >
                       <Check
                         className={cn(
@@ -134,12 +126,12 @@ export function ProductSearchCombobox({
                           </span>
                         )}
                       </div>
-                    </div>
+                    </CommandItem>
                   )
                 })}
-              </div>
-            )}
-          </div>
+              </CommandGroup>
+            </CommandList>
+          </Command>
         </PopoverContent>
       </Popover>
     </div>

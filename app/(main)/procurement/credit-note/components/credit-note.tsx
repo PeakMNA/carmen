@@ -11,19 +11,15 @@
 
 "use client";
 
+import * as React from "react";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/custom-dialog";
 import {
   Edit,
   Save,
@@ -34,13 +30,20 @@ import {
   PanelRightClose,
   History,
   ChevronLeft,
-  XIcon,
   Paperclip,
-  Plus,
-  Info,
   Package,
   FileText,
-  MoreVertical,
+  X,
+  Download,
+  Share,
+  CheckSquare,
+  CalendarIcon,
+  TagIcon,
+  UserIcon,
+  BuildingIcon,
+  DollarSign as DollarSignIcon,
+  FileQuestion,
+  ClipboardList,
 } from "lucide-react";
 import {
   Select,
@@ -49,47 +52,66 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 import { Button } from "@/components/ui/button";
-import { CnLotApplication } from "./cn-lot-application";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { useState } from "react";
-import Inventory from "./inventory"
-import JournalEntries  from "./journal-entries"
-import TaxEntries  from "./tax-entries"
-import { StockMovementTab } from "./StockMovementTab"
+import Inventory from "./inventory";
+import JournalEntries from "./journal-entries";
+import TaxEntries from "./tax-entries";
 import StockMovementContent from "./stock-movement";
-import StatusBadge from "@/components/ui/custom-status-badge"
+import StatusBadge from "@/components/ui/custom-status-badge";
+import { CNItemsHierarchical } from "./CNItemsHierarchical";
+import { CreditNoteItem as HierarchicalCreditNoteItem } from "../lib/groupItems";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { ModernTransactionSummary } from "@/components/ui/modern-transaction-summary";
 
 type CreditNoteType = "QUANTITY_RETURN" | "AMOUNT_DISCOUNT";
 type CreditNoteStatus = "DRAFT" | "POSTED" | "VOID";
-type CreditNoteReason =
-  | "PRICING_ERROR"
-  | "DAMAGED_GOODS"
-  | "RETURN"
-  | "DISCOUNT_AGREEMENT"
-  | "OTHER";
+type CreditNoteMode = "view" | "edit" | "add";
 
-interface CreditNoteHeaderProps {
+interface CreditNoteItem {
+  id: number;
+  location: {
+    code: string;
+    name: string;
+  };
+  product: {
+    code: string;
+    name: string;
+    description: string;
+  };
+  quantity: {
+    primary: number;
+    secondary: number;
+  };
+  unit: {
+    primary: string;
+    secondary: string;
+  };
+  price: {
+    unit: number;
+    secondary: number;
+  };
+  amounts: {
+    net: number;
+    tax: number;
+    total: number;
+    baseNet: number;
+    baseTax: number;
+    baseTotal: number;
+  };
+}
+
+interface CreditNoteFormData {
   creditNoteNumber: string;
   date: string;
   type: CreditNoteType;
@@ -106,287 +128,20 @@ interface CreditNoteHeaderProps {
   grnDate: string;
   reason: string;
   description: string;
-  onHeaderChange: (field: string, value: string) => void;
-  showPanel: boolean;
-  setShowPanel: (show: boolean) => void;
-}
-
-function CreditNoteHeader({
-  creditNoteNumber,
-  date,
-  type,
-  status,
-  vendorName,
-  vendorCode,
-  currency,
-  exchangeRate,
-  invoiceReference,
-  invoiceDate,
-  taxInvoiceReference,
-  taxDate,
-  grnReference,
-  grnDate,
-  reason,
-  description,
-  onHeaderChange,
-  showPanel,
-  setShowPanel,
-}: CreditNoteHeaderProps) {
-  return (
-    <Card className="w-full mb-4">
-      <CardHeader>
-        <div className="flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <Button variant="ghost" size="icon" className="h-8 w-8">
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex items-center space-x-2">
-              <h2 className="text-lg font-semibold">Credit Note</h2>
-              <span
-                className={`px-2 py-1 text-xs font-medium rounded-full ${
-                  status === 'DRAFT'
-                  ? 'bg-gray-100 text-gray-800'
-                  : status === 'POSTED'
-                  ? 'bg-green-100 text-green-800'
-                  : 'bg-red-100 text-red-800'
-                }`}>
-                {status}
-              </span>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="default" size="sm">
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
-            <Button variant="destructive" size="sm">
-              <Trash2 className="h-4 w-4 mr-2" />
-              Delete
-            </Button>
-            <Button variant="default" size="sm">
-              <Save className="h-4 w-4 mr-2" />
-              Commit
-            </Button>
-            <Button variant="outline" size="sm">
-              <Printer className="h-4 w-4 mr-2" />
-              Print
-            </Button>
-            <Button variant="outline" size="sm">
-              <Send className="h-4 w-4 mr-2" />
-              Send
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowPanel(!showPanel)}
-            >
-              {showPanel ? (
-                <PanelRightClose className="h-4 w-4" />
-              ) : (
-                <PanelRightOpen className="h-4 w-4" />
-              )}
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 px-6">
-          <div className="space-y-2">
-            <Label htmlFor="creditNoteNumber">Credit Note #</Label>
-            <Input
-              id="creditNoteNumber"
-              value={creditNoteNumber}
-              onChange={(e) =>
-                onHeaderChange("creditNoteNumber", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="date">Date</Label>
-            <Input
-              id="date"
-              type="date"
-              value={date}
-              onChange={(e) => onHeaderChange("date", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              value={type}
-              onValueChange={(value) => onHeaderChange("type", value)}
-            >
-              <SelectTrigger id="type">
-                <SelectValue placeholder="Select type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="QUANTITY_RETURN">Quantity Return</SelectItem>
-                <SelectItem value="AMOUNT_DISCOUNT">Amount Discount</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="vendorName">Vendor</Label>
-            <Input
-              id="vendorName"
-              value={`${vendorName} (${vendorCode})`}
-              onChange={(e) => {
-                const value = e.target.value;
-                const match = value.match(/(.*?)\s*\((.*?)\)/);
-                if (match) {
-                  onHeaderChange("vendorName", match[1].trim());
-                  onHeaderChange("vendorCode", match[2].trim());
-                } else {
-                  onHeaderChange("vendorName", value);
-                }
-              }}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="currency">Currency</Label>
-            <Input
-              id="currency"
-              value={`${currency} (${exchangeRate})`}
-              onChange={(e) => {
-                const value = e.target.value;
-                const match = value.match(/(.*?)\s*\((.*?)\)/);
-                if (match) {
-                  onHeaderChange("currency", match[1].trim());
-                  onHeaderChange("exchangeRate", match[2].trim());
-                } else {
-                  onHeaderChange("currency", value);
-                }
-              }}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="grnReference">GRN #</Label>
-            <Input
-              id="grnReference"
-              value={grnReference}
-              onChange={(e) => onHeaderChange("grnReference", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="grnDate">GRN Date</Label>
-            <Input
-              id="grnDate"
-              value={grnDate}
-              onChange={(e) => onHeaderChange("grnDate", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2 sm:col-span-2">
-            <Label htmlFor="reason">Reason</Label>
-            <Select
-              value={reason}
-              onValueChange={(value) => onHeaderChange("reason", value)}
-            >
-              <SelectTrigger id="reason">
-                <SelectValue placeholder="Select reason" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="DAMAGED">Damaged</SelectItem>
-                <SelectItem value="EXPIRED">Expired</SelectItem>
-                <SelectItem value="WRONG_DELIVERY">Wrong Delivery</SelectItem>
-                <SelectItem value="QUALITY_ISSUE">Quality Issue</SelectItem>
-                <SelectItem value="PRICE_ADJUSTMENT">Price Adjustment</SelectItem>
-                <SelectItem value="OTHER">Other</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="invoiceReference">Invoice #</Label>
-            <Input
-              id="invoiceReference"
-              value={invoiceReference}
-              onChange={(e) =>
-                onHeaderChange("invoiceReference", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="invoiceDate">Invoice Date</Label>
-            <Input
-              id="invoiceDate"
-              type="date"
-              value={invoiceDate}
-              onChange={(e) => onHeaderChange("invoiceDate", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="taxInvoiceReference">Tax Invoice #</Label>
-            <Input
-              id="taxInvoiceReference"
-              value={taxInvoiceReference}
-              onChange={(e) =>
-                onHeaderChange("taxInvoiceReference", e.target.value)
-              }
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="taxDate">Tax Invoice Date</Label>
-            <Input
-              id="taxDate"
-              value={taxDate}
-              onChange={(e) => onHeaderChange("taxDate", e.target.value)}
-            />
-          </div>
-          <div className="space-y-2 col-span-full">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => onHeaderChange("description", e.target.value)}
-              placeholder="Enter a detailed description..."
-              className="min-h-[100px]"
-            />
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
-
-interface CreditNoteItem {
-  id: number
-  location: {
-    code: string
-    name: string
-  }
-  product: {
-    code: string
-    name: string
-    description: string
-  }
-  quantity: {
-    primary: number
-    secondary: number
-  }
-  unit: {
-    primary: string
-    secondary: string
-  }
-  price: {
-    unit: number
-    secondary: number
-  }
-  amounts: {
-    net: number
-    tax: number
-    total: number
-    baseNet: number
-    baseTax: number
-    baseTotal: number
-  }
 }
 
 export function CreditNoteComponent() {
-  const [showPanel, setShowPanel] = useState(false);
-  const [headerData, setHeaderData] = useState({
+  const router = useRouter();
+  const [internalMode, setInternalMode] = useState<CreditNoteMode>("view");
+  const [isSidebarVisible, setIsSidebarVisible] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
+  const [formData, setFormData] = useState<CreditNoteFormData>({
     creditNoteNumber: "CN-2410-001",
     date: "2024-03-20",
-    type: "QUANTITY_RETURN" as CreditNoteType,
-    status: "DRAFT" as CreditNoteStatus,
+    type: "QUANTITY_RETURN",
+    status: "DRAFT",
     vendorName: "Thai Beverage Co.",
     vendorCode: "VEN-001",
     currency: "THB",
@@ -398,36 +153,82 @@ export function CreditNoteComponent() {
     grnReference: "GRN-2410-0089",
     grnDate: "2024-03-10",
     reason: "",
-    description: "Credit note for damaged beverage products received in last shipment. Items show signs of mishandling during transport.",
+    description:
+      "Credit note for damaged beverage products received in last shipment. Items show signs of mishandling during transport.",
   });
 
-  const handleHeaderChange = (field: string, value: string) => {
-    setHeaderData((prev) => ({ ...prev, [field]: value }));
+  const isEditable = internalMode === "edit" || internalMode === "add";
+  const isViewing = internalMode === "view";
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setHasUnsavedChanges(true);
   };
 
-  const [openInfo, setOpenInfo] = useState(Boolean);
-
-  const handleOpeninfo = () => {
-    setOpenInfo(!openInfo);
+  const handleSelectChange = (name: string, value: string) => {
+    setFormData((prev) => ({ ...prev, [name]: value }));
+    setHasUnsavedChanges(true);
   };
 
-  const [newComment, setNewComment] = useState('');
+  const handleSave = async () => {
+    setIsLoading(true);
+    try {
+      console.log("Saving data:", formData);
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+      setHasUnsavedChanges(false);
+      setInternalMode("view");
+    } catch (error) {
+      console.error("Error saving Credit Note:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setHasUnsavedChanges(false);
+    setInternalMode("view");
+  };
+
+  const handleDelete = () => {
+    if (
+      confirm(
+        "Are you sure you want to delete this Credit Note? This action cannot be undone."
+      )
+    ) {
+      console.log("Deleting Credit Note:", formData.creditNoteNumber);
+      alert("Credit Note deleted successfully!");
+      router.push("/procurement/credit-note");
+    }
+  };
+
+  const handleGoBack = () => {
+    router.back();
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarVisible(!isSidebarVisible);
+  };
+
+  const [newComment, setNewComment] = useState("");
   const [comments, setComments] = useState([
     {
-      id: '1',
-      user: 'John Doe',
-      avatar: '/avatars/john-doe.png',
-      content: 'Vendor confirmed the return details.',
-      timestamp: '2024-03-20 09:30 AM',
-      attachments: ['return_confirmation.pdf'],
+      id: "1",
+      user: "John Doe",
+      avatar: "/avatars/john-doe.png",
+      content: "Vendor confirmed the return details.",
+      timestamp: "2024-03-20 09:30 AM",
+      attachments: ["return_confirmation.pdf"],
     },
     {
-      id: '2',
-      user: 'Jane Smith',
-      avatar: '/avatars/jane-smith.png',
-      content: 'Quality inspection completed on returned items.',
-      timestamp: '2024-03-20 02:15 PM',
-      attachments: ['inspection_report.pdf', 'damage_photos.zip'],
+      id: "2",
+      user: "Jane Smith",
+      avatar: "/avatars/jane-smith.png",
+      content: "Quality inspection completed on returned items.",
+      timestamp: "2024-03-20 02:15 PM",
+      attachments: ["inspection_report.pdf", "damage_photos.zip"],
     },
   ]);
 
@@ -435,456 +236,802 @@ export function CreditNoteComponent() {
     if (newComment.trim()) {
       const newCommentObj = {
         id: Date.now().toString(),
-        user: 'Current User',
-        avatar: '/avatars/current-user.png',
+        user: "Current User",
+        avatar: "/avatars/current-user.png",
         content: newComment,
         timestamp: new Date().toLocaleString(),
-        attachments: [], // Initialize with empty attachments array
+        attachments: [],
       };
       setComments([...comments, newCommentObj]);
-      setNewComment('');
+      setNewComment("");
     }
   };
 
-  const mockStockMovements = [
-    {
-      id: 1,
-      commitDate: '2024-01-15',
-      postingDate: '2024-01-15',
-      movementType: 'CREDIT_NOTE',
-      sourceDocument: 'CN-2410-001', 
-      store: 'WH-001',
-      status: 'Posted',
-      items: [
-        {
-          id: 1,
-          productName: 'Coffee mate 450 g.',
-          sku: 'BEV-CM450-001',
-          uom: 'Bag',
-          beforeQty: 200,
-          inQty: 0,
-          outQty: 50,
-          afterQty: 150,
-          unitCost: 125.00,
-          totalCost: -6250.00,
-          location: {
-            type: 'INV',
-            code: 'WH-001',
-            name: 'Main Warehouse',
-            displayType: 'Inventory'
-          },
-          lots: [
-            {
-              lotNo: 'L20240115-001',
-              quantity: -30,
-              uom: 'Bag'
-            },
-            {
-              lotNo: 'L20240115-002', 
-              quantity: -20,
-              uom: 'Bag'
-            }
-          ]
-        },
-        {
-          id: 2,
-          productName: 'Heineken Beer 330ml',
-          sku: 'BEV-HB330-002',
-          uom: 'Bottle',
-          beforeQty: 470,
-          inQty: 0,
-          outQty: 120,
-          afterQty: 350,
-          unitCost: 85.00,
-          totalCost: -10200.00,
-          location: {
-            type: 'DIR',
-            code: 'BAR-001',
-            name: 'Main Bar',
-            displayType: 'Direct'
-          },
-          lots: [
-            {
-              lotNo: 'L20240115-003',
-              quantity: -120,
-              uom: 'Bottle'
-            }
-          ]
-        },
-        {
-          id: 3,
-          productName: 'Bath Towel Premium White',
-          sku: 'HK-BT700-001',
-          uom: 'Piece',
-          beforeQty: 250,
-          inQty: 0,
-          outQty: 50,
-          afterQty: 200,
-          unitCost: 450.00,
-          totalCost: -22500.00,
-          location: {
-            type: 'DIR',
-            code: 'HK-001',
-            name: 'Housekeeping Store',
-            displayType: 'Direct'
-          },
-          lots: [
-            {
-              lotNo: 'L20240115-004',
-              quantity: -50,
-              uom: 'Piece'
-            }
-          ]
-        }
-      ],
-      totals: {
-        inQty: 0,
-        outQty: 220,
-        totalCost: -38950.00,
-        lotCount: 4
-      },
-      movement: {
-        source: 'Multiple',
-        sourceName: 'Multiple Locations',
-        destination: 'Supplier',
-        destinationName: 'Thai Beverage Co.',
-        type: 'Stock Return'
-      }
-    }
-  ]
-
-  const mockItems: CreditNoteItem[] = [
+  const initialMockItems: HierarchicalCreditNoteItem[] = [
     {
       id: 1,
       location: {
-        code: 'WH-001',
-        name: 'Main Warehouse'
+        code: "WH-001",
+        name: "Main Warehouse",
       },
       product: {
-        code: 'BEV-CM450-001',
-        name: 'Coffee mate 450 g.',
-        description: 'Non-dairy coffee creamer'
+        code: "BEV-CM450-001",
+        name: "Coffee mate 450 g.",
+        description: "Non-dairy coffee creamer",
       },
       quantity: {
         primary: 10,
-        secondary: 100
+        secondary: 100,
       },
       unit: {
-        primary: 'Box',
-        secondary: 'Bag'
+        primary: "Box",
+        secondary: "Bag",
       },
       price: {
-        unit: 1250.00,
-        secondary: 125.00
+        unit: 1250.0,
+        secondary: 125.0,
       },
       amounts: {
-        net: 12500.00,
-        tax: 875.00,
-        total: 13375.00,
-        baseNet: 437500.00,
-        baseTax: 30625.00,
-        baseTotal: 468125.00
-      }
+        net: 12500.0,
+        tax: 875.0,
+        total: 13375.0,
+        baseNet: 437500.0,
+        baseTax: 30625.0,
+        baseTotal: 468125.0,
+      },
+      grnReference: "GRN-2410-0089",
+      grnDate: "2024-03-10",
+      originalQuantity: 50,
+      returnQuantity: 10,
     },
     {
       id: 2,
       location: {
-        code: 'WH-001',
-        name: 'Main Warehouse'
+        code: "WH-001",
+        name: "Main Warehouse",
       },
       product: {
-        code: 'BEV-HB330-002',
-        name: 'Heineken Beer 330ml',
-        description: 'Premium lager beer'
+        code: "BEV-HB330-002",
+        name: "Heineken Beer 330ml",
+        description: "Premium lager beer",
       },
       quantity: {
         primary: 5,
-        secondary: 120
+        secondary: 120,
       },
       unit: {
-        primary: 'Case',
-        secondary: 'Bottle'
+        primary: "Case",
+        secondary: "Bottle",
       },
       price: {
-        unit: 2040.00,
-        secondary: 85.00
+        unit: 2040.0,
+        secondary: 85.0,
       },
       amounts: {
-        net: 10200.00,
-        tax: 714.00,
-        total: 10914.00,
-        baseNet: 357000.00,
-        baseTax: 24990.00,
-        baseTotal: 381990.00
-      }
-    }
-  ]
+        net: 10200.0,
+        tax: 714.0,
+        total: 10914.0,
+        baseNet: 357000.0,
+        baseTax: 24990.0,
+        baseTotal: 381990.0,
+      },
+      grnReference: "GRN-2410-0089",
+      grnDate: "2024-03-10",
+      originalQuantity: 25,
+      returnQuantity: 5,
+    },
+    {
+      id: 3,
+      location: {
+        code: "WH-002",
+        name: "Secondary Warehouse",
+      },
+      product: {
+        code: "BEV-CM450-001",
+        name: "Coffee mate 450 g.",
+        description: "Non-dairy coffee creamer",
+      },
+      quantity: {
+        primary: 3,
+        secondary: 30,
+      },
+      unit: {
+        primary: "Box",
+        secondary: "Bag",
+      },
+      price: {
+        unit: 1250.0,
+        secondary: 125.0,
+      },
+      amounts: {
+        net: 3750.0,
+        tax: 262.5,
+        total: 4012.5,
+        baseNet: 131250.0,
+        baseTax: 9187.5,
+        baseTotal: 140437.5,
+      },
+      grnReference: "GRN-2410-0091",
+      grnDate: "2024-03-12",
+      originalQuantity: 20,
+      returnQuantity: 3,
+    },
+  ];
+
+  const [cnItems, setCnItems] = useState<HierarchicalCreditNoteItem[]>(initialMockItems);
+
+  const handleItemsChange = (updatedItems: HierarchicalCreditNoteItem[]) => {
+    setCnItems(updatedItems);
+    setHasUnsavedChanges(true);
+  };
 
   const auditLogs = [
     {
-      id: '1',
-      user: 'John Doe',
-      action: 'Created',
-      details: 'Credit Note #CN-2410-001',
-      timestamp: '2024-03-20 09:00 AM'
+      id: "1",
+      user: "John Doe",
+      action: "Created",
+      details: "Credit Note #CN-2410-001",
+      timestamp: "2024-03-20 09:00 AM",
     },
     {
-      id: '2',
-      user: 'Jane Smith',
-      action: 'Updated',
-      details: 'Changed amount from $1,000 to $2,000',
-      timestamp: '2024-03-20 09:30 AM'
+      id: "2",
+      user: "Jane Smith",
+      action: "Updated",
+      details: "Changed amount from $1,000 to $2,000",
+      timestamp: "2024-03-20 09:30 AM",
     },
     {
-      id: '3',
-      user: 'Mike Johnson',
-      action: 'Added Item',
-      details: 'Added product XYZ-123',
-      timestamp: '2024-03-20 10:15 AM'
-    }
+      id: "3",
+      user: "Mike Johnson",
+      action: "Added Item",
+      details: "Added product XYZ-123",
+      timestamp: "2024-03-20 10:15 AM",
+    },
   ];
 
+  // Calculate totals for ModernTransactionSummary
+  const calculateTotals = () => {
+    const netAmount = cnItems.reduce((sum, item) => sum + item.amounts.net, 0);
+    const taxAmount = cnItems.reduce((sum, item) => sum + item.amounts.tax, 0);
+    const totalAmount = cnItems.reduce((sum, item) => sum + item.amounts.total, 0);
+    const baseNetAmount = cnItems.reduce((sum, item) => sum + item.amounts.baseNet, 0);
+    const baseTaxAmount = cnItems.reduce((sum, item) => sum + item.amounts.baseTax, 0);
+    const baseTotalAmount = cnItems.reduce((sum, item) => sum + item.amounts.baseTotal, 0);
+
+    return {
+      currency: {
+        netAmount,
+        taxAmount,
+        totalAmount,
+      },
+      baseCurrency: {
+        netAmount: baseNetAmount,
+        taxAmount: baseTaxAmount,
+        totalAmount: baseTotalAmount,
+      },
+    };
+  };
+
+  const documentTotals = calculateTotals();
+
   return (
-    <div className="space-y-4">
-      <div className={`flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4`}>
-        <div className={`flex-grow space-y-4 ${showPanel ? 'lg:w-3/4' : 'w-full'}`}>
-          <CreditNoteHeader 
-            {...headerData}
-            onHeaderChange={handleHeaderChange} 
-            showPanel={showPanel} 
-            setShowPanel={setShowPanel} 
-          />
-          <Tabs defaultValue="itemDetails" className="w-full">
-            <TabsList className="grid w-full grid-cols-5">
-              <TabsTrigger value="itemDetails">Item Details</TabsTrigger>
-              <TabsTrigger value="stockMovement">Stock Movement</TabsTrigger>
-              <TabsTrigger value="journalEntries">Journal Entries</TabsTrigger>
-              <TabsTrigger value="taxEntries">Tax Entries</TabsTrigger>
-            </TabsList>
-            <TabsContent value="itemDetails">
-              <Card>
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle>Item Details</CardTitle>
-                  <Button size="sm">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Item
+    <div className="flex flex-col space-y-4">
+      <div className="flex flex-col lg:flex-row space-y-4 lg:space-y-0 lg:space-x-4">
+        <div
+          className={`flex-grow space-y-4 ${
+            isSidebarVisible ? "lg:w-3/4" : "w-full"
+          }`}
+        >
+          {/* Main Card with Header */}
+          <Card className="shadow-sm overflow-hidden">
+            <CardHeader className="pb-4 border-b bg-muted/10">
+              <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 rounded-full p-0 mr-1"
+                      onClick={handleGoBack}
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                      <span className="sr-only">Back to Credit Notes</span>
+                    </Button>
+                    <div className="flex flex-col">
+                      <h1 className="text-2xl font-bold">
+                        {formData.creditNoteNumber || "Credit Note"}
+                      </h1>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Credit Note
+                      </p>
+                    </div>
+                    <StatusBadge status={formData.status} className="h-6" />
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap justify-end">
+                  {/* Mode-based Actions */}
+                  {internalMode === "view" ? (
+                    <>
+                      <Button
+                        onClick={() => setInternalMode("edit")}
+                        size="sm"
+                        className="h-9"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleDelete}
+                        size="sm"
+                        className="h-9 text-red-600 hover:bg-red-50 hover:text-red-700 border-red-200"
+                        disabled={isLoading}
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Delete
+                      </Button>
+                    </>
+                  ) : (
+                    <>
+                      <Button
+                        onClick={handleSave}
+                        size="sm"
+                        className="h-9"
+                        disabled={isLoading}
+                      >
+                        {isLoading ? (
+                          <Save className="mr-2 h-4 w-4" />
+                        ) : (
+                          <CheckSquare className="mr-2 h-4 w-4" />
+                        )}
+                        Save
+                      </Button>
+                      <Button
+                        variant="outline"
+                        onClick={handleCancel}
+                        size="sm"
+                        className="h-9"
+                        disabled={isLoading}
+                      >
+                        <X className="mr-2 h-4 w-4" />
+                        Cancel
+                      </Button>
+                    </>
+                  )}
+
+                  <Button variant="outline" size="sm" className="h-9">
+                    <Printer className="mr-2 h-4 w-4" />
+                    Print
                   </Button>
-                </CardHeader>
-                <CardContent>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[200px]">Location</TableHead>
-                        <TableHead className="w-[200px]">Product</TableHead>
-                        <TableHead>Quantity</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Price</TableHead>
-                        <TableHead>Net Amount</TableHead>
-                        <TableHead>Tax Amount</TableHead>
-                        <TableHead>Total Amount</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {mockItems.map((item) => (
-                        <TableRow key={item.id}>
-                          <TableCell>
-                            <div>{item.location.name}</div>
-                            <div className="text-sm text-muted-foreground">{item.location.code}</div>
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            <div>{item.product.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.product.description}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>{item.quantity.primary}</div>
-                            <div className="text-sm text-muted-foreground">{item.quantity.secondary}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div>{item.unit.primary}</div>
-                            <div className="text-sm text-muted-foreground">{item.unit.secondary}</div>
-                          </TableCell>
-                          <TableCell>
-                            <div>{item.price.unit.toFixed(2)}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.price.secondary.toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>{item.amounts.net.toFixed(2)}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.amounts.baseNet.toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>{item.amounts.tax.toFixed(2)}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.amounts.baseTax.toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            <div>{item.amounts.total.toFixed(2)}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {item.amounts.baseTotal.toFixed(2)}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex justify-end items-center space-x-1">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 rounded-full"
-                                onClick={() => handleOpeninfo()}
-                              >
-                                <FileText className="h-4 w-4" />
-                                <span className="sr-only">View Details</span>
-                              </Button>
-                              <Button 
-                                variant="ghost" 
-                                size="icon"
-                                className="h-8 w-8 rounded-full"
-                              >
-                                <Edit className="h-4 w-4" />
-                                <span className="sr-only">Edit</span>
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button 
-                                    variant="ghost" 
-                                    size="icon"
-                                    className="h-8 w-8 rounded-full"
-                                  >
-                                    <MoreVertical className="h-4 w-4" />
-                                    <span className="sr-only">More Options</span>
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                  <DropdownMenuItem onClick={() => handleOpeninfo()}>
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    View Details
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem>
-                                    <Edit className="h-4 w-4 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuSeparator />
-                                  <DropdownMenuItem className="text-red-600">
-                                    <Trash2 className="h-4 w-4 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </CardContent>
-              </Card>
-            </TabsContent>
-            <TabsContent value="stockMovement">
-              <StockMovementContent />
-            </TabsContent>
-            <TabsContent value="journalEntries">
-              <JournalEntries />
-            </TabsContent>
-            <TabsContent value="taxEntries">
-              <TaxEntries />
-            </TabsContent>
-          </Tabs>
-          <Card>
-            <CardHeader>
-              <CardTitle>Transaction Summary</CardTitle>
+                  <Button variant="outline" size="sm" className="h-9">
+                    <Download className="mr-2 h-4 w-4" />
+                    Export
+                  </Button>
+                  <Button variant="outline" size="sm" className="h-9">
+                    <Share className="mr-2 h-4 w-4" />
+                    Share
+                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={toggleSidebar}
+                          className="h-9 w-9 p-0"
+                        >
+                          {isSidebarVisible ? (
+                            <PanelRightClose className="h-4 w-4" />
+                          ) : (
+                            <PanelRightOpen className="h-4 w-4" />
+                          )}
+                          <span className="sr-only">Toggle sidebar</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        {isSidebarVisible ? "Hide Sidebar" : "Show Sidebar"}
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Amount (USD)</TableHead>
-                      <TableHead className="text-right">Base Amount (PHP)</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>Sub Total Amount</TableCell>
-                      <TableCell className="text-right">2,000.00</TableCell>
-                      <TableCell className="text-right">100,000.00</TableCell>
-                    </TableRow>
-                    <TableRow>
-                      <TableCell>Tax Amount</TableCell>
-                      <TableCell className="text-right">200.00</TableCell>
-                      <TableCell className="text-right">10,000.00</TableCell>
-                    </TableRow>
-                    <TableRow className="font-bold">
-                      <TableCell>Total Amount</TableCell>
-                      <TableCell className="text-right">2,100.00</TableCell>
-                      <TableCell className="text-right">105,000.00</TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
+
+            {/* Main Content */}
+            <CardContent className="p-6">
+              <div className="grid grid-cols-1 gap-6">
+                {/* Main Details */}
+                <div className="space-y-6">
+                  {/* Row 1: Credit Note #, Date, Type, Vendor */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="creditNoteNumber"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <TagIcon className="h-4 w-4" />
+                        Credit Note #
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="creditNoteNumber"
+                          name="creditNoteNumber"
+                          value={formData.creditNoteNumber}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.creditNoteNumber}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="date"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                        Date
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="date"
+                          name="date"
+                          type="date"
+                          value={formData.date}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.date
+                            ? new Date(formData.date).toLocaleDateString("en-GB")
+                            : "N/A"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="type"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <ClipboardList className="h-4 w-4" />
+                        Type
+                      </Label>
+                      {isEditable ? (
+                        <Select
+                          value={formData.type}
+                          onValueChange={(value) =>
+                            handleSelectChange("type", value)
+                          }
+                        >
+                          <SelectTrigger id="type" className="w-full">
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="QUANTITY_RETURN">
+                              Quantity Return
+                            </SelectItem>
+                            <SelectItem value="AMOUNT_DISCOUNT">
+                              Amount Discount
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.type === "QUANTITY_RETURN"
+                            ? "Quantity Return"
+                            : "Amount Discount"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="vendorName"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <UserIcon className="h-4 w-4" />
+                        Vendor
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="vendorName"
+                          name="vendorName"
+                          value={`${formData.vendorName} (${formData.vendorCode})`}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const match = value.match(/(.*?)\s*\((.*?)\)/);
+                            if (match) {
+                              handleSelectChange("vendorName", match[1].trim());
+                              handleSelectChange("vendorCode", match[2].trim());
+                            } else {
+                              handleSelectChange("vendorName", value);
+                            }
+                          }}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.vendorName} ({formData.vendorCode})
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 2: Currency, GRN Reference, GRN Date, Reason */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="currency"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <DollarSignIcon className="h-4 w-4" />
+                        Currency
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="currency"
+                          name="currency"
+                          value={`${formData.currency} (${formData.exchangeRate})`}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            const match = value.match(/(.*?)\s*\((.*?)\)/);
+                            if (match) {
+                              handleSelectChange("currency", match[1].trim());
+                              handleSelectChange(
+                                "exchangeRate",
+                                match[2].trim()
+                              );
+                            } else {
+                              handleSelectChange("currency", value);
+                            }
+                          }}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.currency} ({formData.exchangeRate})
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="grnReference"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <FileText className="h-4 w-4" />
+                        GRN #
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="grnReference"
+                          name="grnReference"
+                          value={formData.grnReference}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.grnReference || "N/A"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="grnDate"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                        GRN Date
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="grnDate"
+                          name="grnDate"
+                          type="date"
+                          value={formData.grnDate}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.grnDate
+                            ? new Date(formData.grnDate).toLocaleDateString(
+                                "en-GB"
+                              )
+                            : "N/A"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="reason"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <FileQuestion className="h-4 w-4" />
+                        Reason
+                      </Label>
+                      {isEditable ? (
+                        <Select
+                          value={formData.reason}
+                          onValueChange={(value) =>
+                            handleSelectChange("reason", value)
+                          }
+                        >
+                          <SelectTrigger id="reason" className="w-full">
+                            <SelectValue placeholder="Select reason" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="DAMAGED">Damaged</SelectItem>
+                            <SelectItem value="EXPIRED">Expired</SelectItem>
+                            <SelectItem value="WRONG_DELIVERY">
+                              Wrong Delivery
+                            </SelectItem>
+                            <SelectItem value="QUALITY_ISSUE">
+                              Quality Issue
+                            </SelectItem>
+                            <SelectItem value="PRICE_ADJUSTMENT">
+                              Price Adjustment
+                            </SelectItem>
+                            <SelectItem value="OTHER">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.reason || "Not specified"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Row 3: Invoice Reference, Invoice Date, Tax Invoice Reference, Tax Invoice Date */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="invoiceReference"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <BuildingIcon className="h-4 w-4" />
+                        Invoice #
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="invoiceReference"
+                          name="invoiceReference"
+                          value={formData.invoiceReference}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.invoiceReference || "N/A"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="invoiceDate"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                        Invoice Date
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="invoiceDate"
+                          name="invoiceDate"
+                          type="date"
+                          value={formData.invoiceDate}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.invoiceDate
+                            ? new Date(formData.invoiceDate).toLocaleDateString(
+                                "en-GB"
+                              )
+                            : "N/A"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="taxInvoiceReference"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <FileText className="h-4 w-4" />
+                        Tax Invoice #
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="taxInvoiceReference"
+                          name="taxInvoiceReference"
+                          value={formData.taxInvoiceReference}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.taxInvoiceReference || "N/A"}
+                        </div>
+                      )}
+                    </div>
+                    <div className="space-y-2">
+                      <Label
+                        htmlFor="taxDate"
+                        className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                      >
+                        <CalendarIcon className="h-4 w-4" />
+                        Tax Invoice Date
+                      </Label>
+                      {isEditable ? (
+                        <Input
+                          id="taxDate"
+                          name="taxDate"
+                          type="date"
+                          value={formData.taxDate}
+                          onChange={handleInputChange}
+                          className="w-full"
+                        />
+                      ) : (
+                        <div className="text-gray-900 font-medium">
+                          {formData.taxDate
+                            ? new Date(formData.taxDate).toLocaleDateString(
+                                "en-GB"
+                              )
+                            : "N/A"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Description Field */}
+                  <div className="space-y-2">
+                    <Label
+                      htmlFor="description"
+                      className="text-sm text-muted-foreground mb-1 block flex items-center gap-1"
+                    >
+                      <FileText className="h-4 w-4" />
+                      Description
+                    </Label>
+                    {isEditable ? (
+                      <Textarea
+                        id="description"
+                        name="description"
+                        value={formData.description}
+                        onChange={handleInputChange}
+                        placeholder="Enter a detailed description..."
+                        className="min-h-[100px]"
+                      />
+                    ) : (
+                      <div className="text-gray-900 font-medium">
+                        {formData.description || "No description provided"}
+                      </div>
+                    )}
+                  </div>
+                </div>
               </div>
             </CardContent>
           </Card>
+
+          {/* Tabs Section */}
+          <Card className="shadow-sm">
+            <Tabs defaultValue="itemDetails" className="w-full">
+              <TabsList className="grid w-full grid-cols-4 rounded-none border-b bg-muted/10">
+                <TabsTrigger value="itemDetails">Item Details</TabsTrigger>
+                <TabsTrigger value="stockMovement">Stock Movement</TabsTrigger>
+                <TabsTrigger value="journalEntries">Journal Entries</TabsTrigger>
+                <TabsTrigger value="taxEntries">Tax Entries</TabsTrigger>
+              </TabsList>
+              <TabsContent value="itemDetails" className="p-6">
+                <CNItemsHierarchical
+                  mode={internalMode}
+                  items={cnItems}
+                  onItemsChange={handleItemsChange}
+                  currency={formData.currency}
+                />
+              </TabsContent>
+              <TabsContent value="stockMovement" className="p-6">
+                <StockMovementContent />
+              </TabsContent>
+              <TabsContent value="journalEntries" className="p-6">
+                <JournalEntries />
+              </TabsContent>
+              <TabsContent value="taxEntries" className="p-6">
+                <TaxEntries />
+              </TabsContent>
+            </Tabs>
+          </Card>
+
+          {/* Transaction Summary - Using ModernTransactionSummary */}
+          <ModernTransactionSummary
+            currency={formData.currency}
+            baseCurrency="THB"
+            exchangeRate={parseFloat(formData.exchangeRate) || 1}
+            subtotal={documentTotals.currency.netAmount}
+            discount={0}
+            netAmount={documentTotals.currency.netAmount}
+            tax={documentTotals.currency.taxAmount}
+            totalAmount={documentTotals.currency.totalAmount}
+          />
         </div>
-        
-        {showPanel && (
+
+        {/* Sidebar */}
+        {isSidebarVisible && (
           <div className="lg:w-1/4 pt-0 space-y-4">
-            <Card className="sticky top-4">
-              <CardHeader>
-                <CardTitle>Comments & Attachments</CardTitle>
+            {/* Comments & Attachments Card */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3 border-b bg-muted/10">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <Paperclip className="h-4 w-4" />
+                  Comments & Attachments
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4 mb-4">
+              <CardContent className="p-4 space-y-4">
+                <div className="space-y-4 max-h-[300px] overflow-y-auto">
                   {comments.map((comment) => (
-                    <Card key={comment.id}>
-                      <CardContent className="p-4">
-                        <div className="flex items-start space-x-4">
-                          <Avatar>
-                            <AvatarImage src={comment.avatar} alt={comment.user} />
-                            <AvatarFallback>{comment.user.charAt(0)}</AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1">
-                            <div className="flex justify-between items-center">
-                              <h3 className="font-semibold">{comment.user}</h3>
-                              <span className="text-sm text-gray-500">{comment.timestamp}</span>
-                            </div>
-                            <p className="mt-1">{comment.content}</p>
-                            {comment.attachments && comment.attachments.length > 0 && (
-                              <div className="mt-2">
-                                <h4 className="text-sm font-semibold">Attachments:</h4>
-                                <ul className="list-disc list-inside">
-                                  {comment.attachments.map((attachment, index) => (
-                                    <li key={index} className="text-sm text-blue-500 hover:underline">
-                                      <a href="#">{attachment}</a>
-                                    </li>
-                                  ))}
-                                </ul>
+                    <div
+                      key={comment.id}
+                      className="border rounded-lg p-3 space-y-2"
+                    >
+                      <div className="flex items-start space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage
+                            src={comment.avatar}
+                            alt={comment.user}
+                          />
+                          <AvatarFallback>
+                            {comment.user.charAt(0)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex justify-between items-start">
+                            <h4 className="font-medium text-sm">
+                              {comment.user}
+                            </h4>
+                            <span className="text-xs text-muted-foreground">
+                              {comment.timestamp}
+                            </span>
+                          </div>
+                          <p className="text-sm mt-1">{comment.content}</p>
+                          {comment.attachments &&
+                            comment.attachments.length > 0 && (
+                              <div className="mt-2 flex flex-wrap gap-1">
+                                {comment.attachments.map(
+                                  (attachment, index) => (
+                                    <a
+                                      key={index}
+                                      href="#"
+                                      className="inline-flex items-center text-xs text-blue-600 hover:underline bg-blue-50 px-2 py-1 rounded"
+                                    >
+                                      <Paperclip className="h-3 w-3 mr-1" />
+                                      {attachment}
+                                    </a>
+                                  )
+                                )}
                               </div>
                             )}
-                          </div>
                         </div>
-                      </CardContent>
-                    </Card>
+                      </div>
+                    </div>
                   ))}
                 </div>
-                
-                <div className="flex items-start space-x-2">
+
+                <div className="pt-3 border-t space-y-3">
                   <Textarea
                     placeholder="Add a comment..."
                     value={newComment}
                     onChange={(e) => setNewComment(e.target.value)}
-                    className="flex-1"
+                    className="min-h-[80px]"
                   />
-                  <div className="space-y-2">
-                    <Button variant="outline" size="icon">
-                      <Paperclip className="h-4 w-4" />
+                  <div className="flex justify-between">
+                    <Button variant="outline" size="sm">
+                      <Paperclip className="h-4 w-4 mr-2" />
+                      Attach
                     </Button>
-                    <Button onClick={handleAddComment}>
+                    <Button size="sm" onClick={handleAddComment}>
                       <Send className="h-4 w-4 mr-2" />
                       Send
                     </Button>
@@ -893,26 +1040,34 @@ export function CreditNoteComponent() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Audit Log</CardTitle>
+            {/* Activity Log Card */}
+            <Card className="shadow-sm">
+              <CardHeader className="pb-3 border-b bg-muted/10">
+                <CardTitle className="text-base font-semibold flex items-center gap-2">
+                  <History className="h-4 w-4" />
+                  Activity Log
+                </CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-4">
+              <CardContent className="p-4">
+                <div className="space-y-4 max-h-[300px] overflow-y-auto">
                   {auditLogs.map((log) => (
-                    <div key={log.id} className="flex items-start space-x-4 border-b pb-3 last:border-0">
-                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <div
+                      key={log.id}
+                      className="flex items-start space-x-3 border-b pb-3 last:border-0 last:pb-0"
+                    >
+                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-muted-foreground flex-shrink-0">
                         <History className="h-4 w-4" />
                       </div>
-                      <div className="flex-1 space-y-1">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <span className="font-medium">{log.user}</span>
-                            <span className="text-gray-500"> {log.action.toLowerCase()} </span>
-                            <span>{log.details}</span>
-                          </div>
+                      <div className="flex-1 min-w-0 space-y-1">
+                        <div className="text-sm">
+                          <span className="font-medium">{log.user}</span>
+                          <span className="text-muted-foreground">
+                            {" "}
+                            {log.action.toLowerCase()}{" "}
+                          </span>
+                          <span>{log.details}</span>
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-xs text-muted-foreground">
                           {log.timestamp}
                         </div>
                       </div>
@@ -924,29 +1079,7 @@ export function CreditNoteComponent() {
           </div>
         )}
       </div>
-      <Dialog open={openInfo} onOpenChange={setOpenInfo}>
-        <DialogContent className="sm:max-w-[80vw] bg-white [&>button]:hidden">
-          <DialogHeader>
-            <div className="flex justify-between w-full items-center border-b pb-4">
-              <DialogTitle>
-                <div className="flex items-center">
-                  <Package className="w-5 h-5 text-gray-500 mr-2" />
-                  <h2 className="text-lg font-medium text-gray-900">
-                    Product Information
-                  </h2>
-                </div>
-              </DialogTitle>
-              <DialogClose asChild>
-                <Button variant="ghost" size="sm">
-                  <XIcon className="h-4 w-4" />
-                </Button>
-              </DialogClose>
-            </div>
-          </DialogHeader>
 
-          <CnLotApplication />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

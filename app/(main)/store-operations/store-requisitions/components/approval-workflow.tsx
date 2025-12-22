@@ -6,11 +6,11 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Textarea } from '@/components/ui/textarea'
 import { Badge } from '@/components/ui/badge'
 import { Separator } from '@/components/ui/separator'
-import { 
-  CheckCircle2, 
-  XCircle, 
-  Clock, 
-  UserCircle2, 
+import {
+  CheckCircle2,
+  XCircle,
+  Clock,
+  UserCircle2,
   MessageSquare,
   AlertTriangle,
   ChevronRight,
@@ -18,6 +18,7 @@ import {
 } from 'lucide-react'
 import StatusBadge from '@/components/ui/custom-status-badge'
 import { useToast } from '@/hooks/use-toast'
+import { SRStage } from '@/lib/types/store-requisition'
 
 interface ApprovalStep {
   id: string
@@ -44,6 +45,7 @@ interface ApprovalWorkflowProps {
   approvalSteps: ApprovalStep[]
   currentUserRole: string
   itemStatusSummary: ItemStatusSummary
+  stage?: SRStage // Current workflow stage - affects button labels
   onApprove: (stepId: string, comments: string) => void
   onReject: (stepId: string, comments: string) => void
   onSendBack: (stepId: string, comments: string) => void
@@ -55,6 +57,7 @@ export function ApprovalWorkflow({
   approvalSteps,
   currentUserRole,
   itemStatusSummary,
+  stage,
   onApprove,
   onReject,
   onSendBack
@@ -132,14 +135,19 @@ export function ApprovalWorkflow({
       }
       // Priority 3: ALL items approved - proceed with full approval
       // Rationale: All items passed review, requisition can move to next stage
+      // Label changes to "Issue" when in Issue stage
       else if (approved === total && total > 0) {
+        const actionLabel = stage === SRStage.Issue ? 'Issue' : 'Approve'
+        const actionDescription = stage === SRStage.Issue
+          ? `All ${approved} items approved. Issue items to requestor.`
+          : `All ${approved} items approved. Approve and move to next stage.`
         actions.push({
           type: 'approve',
-          label: 'Approve',
+          label: actionLabel,
           variant: 'default',
           className: 'bg-green-600 hover:bg-green-700',
           icon: 'CheckCircle2',
-          description: `All ${approved} items approved. Approve and move to next stage.`
+          description: actionDescription
         })
       }
       // Priority 4: Items marked for "Review" - return to requester for modifications
@@ -157,14 +165,21 @@ export function ApprovalWorkflow({
       }
       // Priority 5: Mixed state (some approved, some rejected) - allow partial approval
       // Rationale: Approved items can proceed; rejected items will be excluded from fulfillment
+      // Label changes to "Issue" when in Issue stage
       else if (rejected > 0 && approved > 0) {
+        const partialActionLabel = stage === SRStage.Issue
+          ? `Issue ${approved} Items`
+          : `Approve ${approved} Items`
+        const partialActionDescription = stage === SRStage.Issue
+          ? `Issue ${approved} items (${rejected} rejected items will be excluded)`
+          : `Approve ${approved} items (${rejected} rejected items will be excluded)`
         actions.push({
           type: 'approve',
-          label: `Approve ${approved} Items`,
+          label: partialActionLabel,
           variant: 'default',
           className: 'bg-green-600 hover:bg-green-700',
           icon: 'CheckCircle2',
-          description: `Approve ${approved} items (${rejected} rejected items will be excluded)`
+          description: partialActionDescription
         })
 
         // Also allow reject if user wants to reject entirely

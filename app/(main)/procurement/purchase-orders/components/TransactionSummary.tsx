@@ -7,9 +7,16 @@ import type { CheckedState } from "@radix-ui/react-checkbox";
 interface TransactionSummaryProps {
   poData: PurchaseOrder;
   isEditing?: boolean;
+  baseCurrency?: string;
+  exchangeRate?: number;
 }
 
-export default function TransactionSummary({ poData, isEditing = false }: TransactionSummaryProps) {
+export default function TransactionSummary({
+  poData,
+  isEditing = false,
+  baseCurrency = 'THB',
+  exchangeRate = 1
+}: TransactionSummaryProps) {
   // State for override checkboxes
   const [discountOverride, setDiscountOverride] = useState(false);
   const [taxOverride, setTaxOverride] = useState(false);
@@ -28,12 +35,17 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
   const tax = getNumericValue((poData as any).taxAmount);
   const totalAmount = getNumericValue((poData as any).totalAmount);
 
-  // Base currency values (if available)
-  const baseSubtotal = getNumericValue((poData as any).baseSubTotalPrice);
-  const baseDiscount = getNumericValue((poData as any).baseDiscAmount);
+  // Base currency values - use stored values or calculate from exchange rate
+  const baseSubtotal = getNumericValue((poData as any).baseSubTotalPrice) || subtotal * exchangeRate;
+  const baseDiscount = getNumericValue((poData as any).baseDiscAmount) || discount * exchangeRate;
   const baseNetAmount = baseSubtotal - baseDiscount;
-  const baseTax = getNumericValue((poData as any).baseTaxAmount);
-  const baseTotalAmount = getNumericValue((poData as any).baseTotalAmount);
+  const baseTax = getNumericValue((poData as any).baseTaxAmount) || tax * exchangeRate;
+  const baseTotalAmount = getNumericValue((poData as any).baseTotalAmount) || totalAmount * exchangeRate;
+
+  const currency = (poData as any).currency || 'USD';
+
+  // Only show base currency conversion when transaction currency differs from base
+  const showBaseConversion = currency !== baseCurrency;
 
   const summaryItems = [
     {
@@ -86,7 +98,7 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
     <div className="space-y-4 sm:space-y-6">
       {/* Title */}
       <h3 className="text-sm sm:text-lg lg:text-xl font-semibold text-black">
-        Transaction Summary ({(poData as any).currency || 'USD'})
+        Transaction Summary ({currency})
       </h3>
       
       {/* Summary Cards Row - Responsive Layout */}
@@ -101,6 +113,11 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
             <div className="text-sm sm:text-lg lg:text-2xl font-bold text-black">
               {subtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            {showBaseConversion && (
+              <div className="text-xs text-muted-foreground">
+                {baseCurrency} {baseSubtotal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
           </div>
 
           {/* Discount */}
@@ -112,6 +129,11 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
             <div className="text-sm sm:text-lg lg:text-2xl font-bold text-green-600">
               {discount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            {showBaseConversion && (
+              <div className="text-xs text-muted-foreground">
+                {baseCurrency} {baseDiscount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
           </div>
 
           {/* Net Amount */}
@@ -123,6 +145,11 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
             <div className="text-sm sm:text-lg lg:text-2xl font-bold text-blue-600">
               {netAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            {showBaseConversion && (
+              <div className="text-xs text-muted-foreground">
+                {baseCurrency} {baseNetAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
           </div>
 
           {/* Tax */}
@@ -134,6 +161,11 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
             <div className="text-sm sm:text-lg lg:text-2xl font-bold text-orange-600">
               {tax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
             </div>
+            {showBaseConversion && (
+              <div className="text-xs text-muted-foreground">
+                {baseCurrency} {baseTax.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -152,11 +184,16 @@ export default function TransactionSummary({ poData, isEditing = false }: Transa
           </div>
           <div className="text-left sm:text-right">
             <div className="text-lg sm:text-xl lg:text-3xl font-bold text-blue-600">
-              {totalAmount.toLocaleString('en-US', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
+              {totalAmount.toLocaleString('en-US', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
               })}
             </div>
+            {showBaseConversion && (
+              <div className="text-xs sm:text-sm text-muted-foreground">
+                {baseCurrency} {baseTotalAmount.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            )}
           </div>
         </div>
       </div>

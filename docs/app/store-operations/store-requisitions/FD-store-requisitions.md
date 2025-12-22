@@ -3,8 +3,8 @@
 ## Module Information
 - **Module**: Store Operations
 - **Sub-Module**: Store Requisitions
-- **Version**: 1.3.0
-- **Last Updated**: 2025-12-13
+- **Version**: 1.4.0
+- **Last Updated**: 2025-12-19
 - **Owner**: Store Operations Team
 - **Status**: Active - Implementation Complete
 
@@ -15,6 +15,7 @@
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 | 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code - verified workflow stages and status transitions |
 | 1.3.0 | 2025-12-13 | Documentation Team | Updated creation flow for dedicated page, inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling |
+| 1.4.0 | 2025-12-19 | Documentation Team | Added receipt signature capture flow to Item Issuance Flow diagram, updated Issuance Sequence Diagram with signature dialog interaction |
 
 ---
 
@@ -282,7 +283,7 @@ productSearchOpen: boolean // Controls Popover visibility
 
 ### Item Issuance Flow
 
-**Purpose**: Process of issuing approved items from store to department with inventory transaction creation
+**Purpose**: Process of issuing approved items from store to department with receipt signature capture and inventory transaction creation
 
 ```mermaid
 flowchart TD
@@ -301,22 +302,41 @@ flowchart TD
     ValidateIssuance -->|No| IssuanceError[Display error]
     IssuanceError --> EnterIssuedQty
 
-    ValidateIssuance -->|Yes| ConfirmIssuance[Confirm Issuance]
-    ConfirmIssuance --> StartTxn[(BEGIN TRANSACTION)]
+    ValidateIssuance -->|Yes| ClickIssue[Click Issue Button]
+    ClickIssue --> ShowSignatureDialog[Display Receipt<br>Signature Dialog]
+    ShowSignatureDialog --> DisplayItems[Show Items Summary:<br>- Item descriptions<br>- Qty to issue<br>- Units]
+
+    DisplayItems --> SignatureCanvas[Requestor Signs<br>on Canvas]
+    SignatureCanvas --> HasSignature{Signature<br>drawn?}
+
+    HasSignature -->|No| WaitSignature[Wait for Signature<br>Confirm disabled]
+    WaitSignature --> SignatureActions{User Action?}
+    SignatureActions -->|Draw| SignatureCanvas
+    SignatureActions -->|Cancel| CancelSignature[Close Dialog<br>No Action]
+    CancelSignature --> ViewItems
+
+    HasSignature -->|Yes| EnableConfirm[Enable Confirm Button]
+    EnableConfirm --> ConfirmReceipt{User clicks<br>Confirm Receipt?}
+    ConfirmReceipt -->|Cancel| CancelSignature
+    ConfirmReceipt -->|Confirm| CaptureSignature[Capture Signature Data:<br>- Base64 PNG image<br>- Timestamp]
+
+    CaptureSignature --> StartTxn[(BEGIN TRANSACTION)]
     StartTxn --> CreateInventoryTxn[Create Inventory Transaction:<br>- Type: store_requisition<br>- From: source location<br>- To: destination location<br>- Qty: issued_qty<br>- Ref: SR number]
 
     CreateInventoryTxn --> UpdateStock1[Reduce Stock at<br>Source Location]
     UpdateStock1 --> UpdateStock2[Increase Stock at<br>Destination Location]
     UpdateStock2 --> UpdateItem[Update Line Item:<br>- issued_qty<br>- inventory_transaction_id<br>- last_action=issued]
 
-    UpdateItem --> CheckFullyIssued{issued_qty ==<br>approved_qty?}
+    UpdateItem --> StoreSignature[Store Receipt Data:<br>- receipt_signature<br>- receipt_timestamp<br>- received_by]
+
+    StoreSignature --> CheckFullyIssued{issued_qty ==<br>approved_qty?}
     CheckFullyIssued -->|Yes| MarkItemComplete[Mark Item Fully Issued]
     CheckFullyIssued -->|No| MarkItemPartial[Mark Item Partially Issued]
 
     MarkItemComplete --> CommitTxn[(COMMIT TRANSACTION)]
     MarkItemPartial --> CommitTxn
 
-    CommitTxn --> LogIssuance[Log Issuance in History]
+    CommitTxn --> LogIssuance[Log Issuance in History<br>with Signature]
     LogIssuance --> NextItem
 
     NextItem -->|Yes| ItemLoop
@@ -337,10 +357,22 @@ flowchart TD
     style Success fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
     style Fail fill:#ffcccc,stroke:#cc0000,stroke-width:2px,color:#000
     style IssuanceError fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
+    style ShowSignatureDialog fill:#fff3cd,stroke:#ffc107,stroke-width:2px,color:#000
+    style SignatureCanvas fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
+    style CaptureSignature fill:#d4edda,stroke:#28a745,stroke-width:2px,color:#000
+    style StoreSignature fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
     style CreateInventoryTxn fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
     style UpdateStock1 fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
     style UpdateStock2 fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
 ```
+
+**Receipt Signature Capture**:
+- Dialog displays items summary table with quantities to be issued
+- Canvas-based signature capture with mouse and touch support
+- Confirm button disabled until signature is drawn
+- Clear button to reset signature canvas
+- Signature encoded as Base64 PNG via `canvas.toDataURL('image/png')`
+- Timestamp captured at confirmation
 
 **Transaction Safety**:
 - All database operations in single transaction (BEGIN → COMMIT/ROLLBACK)
@@ -818,15 +850,17 @@ sequenceDiagram
 
 ### Issuance Sequence Diagram
 
-**Purpose**: Component interactions during item issuance with inventory transaction creation
+**Purpose**: Component interactions during item issuance with receipt signature capture and inventory transaction creation
 
-**Scenario**: Storekeeper issues approved items to department
+**Scenario**: Storekeeper issues approved items to department with requestor signature
 
 ```mermaid
 sequenceDiagram
     actor Storekeeper
+    actor Requestor
     participant UI as Requisition<br>Detail Page
     participant IssueComp as Issue Items<br>Component
+    participant SignDialog as Receipt Signature<br>Dialog
     participant ServerAction as issueItems<br>Server Action
     participant InvService as Inventory Service
     participant DB as Database
@@ -844,11 +878,20 @@ sequenceDiagram
     IssueComp-->>Storekeeper: Show available stock
 
     Storekeeper->>IssueComp: Enter issued quantities + batches
-    Storekeeper->>IssueComp: Click "Issue Items"
-    IssueComp->>Storekeeper: Confirm issuance
+    Storekeeper->>IssueComp: Click "Issue" button
+    IssueComp->>SignDialog: Open signature dialog<br>(items to issue)
+    SignDialog-->>Storekeeper: Display items summary table
 
-    Storekeeper->>IssueComp: Confirm
-    IssueComp->>ServerAction: issueItems(requisitionId,<br>issuanceData)
+    Note over Requestor,SignDialog: Requestor signs for receipt
+
+    Requestor->>SignDialog: Draw signature on canvas
+    SignDialog->>SignDialog: Enable Confirm button<br>(hasSignature=true)
+    Requestor->>SignDialog: Click "Confirm Receipt"
+    SignDialog->>SignDialog: Capture signature data<br>(Base64 PNG + timestamp)
+    SignDialog->>IssueComp: onConfirm(signatureData, timestamp)
+    IssueComp->>SignDialog: Close dialog
+
+    IssueComp->>ServerAction: issueItems(requisitionId,<br>issuanceData, signatureData)
 
     ServerAction->>ServerAction: Validate quantities
     ServerAction->>DB: BEGIN TRANSACTION
@@ -864,7 +907,7 @@ sequenceDiagram
 
         InvService-->>ServerAction: Return transaction_id
 
-        ServerAction->>DB: UPDATE tb_store_requisition_detail<br>(issued_qty, inventory_transaction_id)
+        ServerAction->>DB: UPDATE tb_store_requisition_detail<br>(issued_qty, inventory_transaction_id,<br>receipt_signature, receipt_timestamp)
     end
 
     ServerAction->>ServerAction: Check if all items fully issued
@@ -886,6 +929,16 @@ sequenceDiagram
     UI-->>Storekeeper: Show success message
 
 ```
+
+**Receipt Signature Sequence**:
+1. Storekeeper clicks "Issue" button in Issue workflow stage
+2. System displays ReceiptSignatureDialog with items summary
+3. Requestor draws signature on canvas (mouse or touch)
+4. System enables "Confirm Receipt" button when signature detected
+5. Requestor clicks "Confirm Receipt"
+6. System captures signature as Base64 PNG and timestamp
+7. System proceeds with inventory transaction
+8. Signature data stored with issuance record
 
 **Transaction Flow**:
 1. All issuance operations in single database transaction

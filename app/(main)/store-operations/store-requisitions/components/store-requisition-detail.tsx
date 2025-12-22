@@ -100,7 +100,8 @@ import { ApprovalLogDialog } from './approval-log-dialog'
 import { JournalEntriesTab } from './tabs/journal-entries-tab'
 import { GeneratedDocumentsTab } from './tabs/generated-documents-tab'
 import { ApprovalWorkflow } from './approval-workflow'
-import { GeneratedDocumentReference, GeneratedDocumentType } from '@/lib/types/store-requisition'
+import { ReceiptSignatureDialog } from './receipt-signature-dialog'
+import { GeneratedDocumentReference, GeneratedDocumentType, SRStage } from '@/lib/types/store-requisition'
 import { formatNumber, formatCurrency } from '@/lib/utils/formatters'
 import {
   Popover,
@@ -330,11 +331,13 @@ const mockRequisition: {
   jobCode: string
   process: string
   status: string
+  stage: SRStage
   items: RequisitionItem[]
   generatedDocuments: GeneratedDocumentReference[]
   sourceReplenishmentIds?: string[]
 } & Record<string, any> = {
   refNo: 'SR-2410-001',
+  stage: SRStage.Issue, // Current workflow stage - controls field editability
   date: '2024-01-15',
   expectedDeliveryDate: '2024-01-20',
   movementType: 'Issue',
@@ -956,6 +959,10 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
   const [editingProject, setEditingProject] = useState<Project | null>(null)
   const [newProject, setNewProject] = useState({ code: '', name: '', description: '' })
 
+  // Receipt signature dialog state (for Issue workflow)
+  const [showReceiptSignatureDialog, setShowReceiptSignatureDialog] = useState(false)
+  const [pendingIssueAction, setPendingIssueAction] = useState<{ stepId: string; comments: string } | null>(null)
+
   // Get display value for department
   const selectedDepartment = mockDepartments.find(d => d.id === departmentId)
 
@@ -1203,6 +1210,11 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
 
   // Get selected product for display
   const selectedProduct = mockProducts.find(p => p.id === newItemProductId)
+
+  // Stage-based field editability
+  // qtyApproved is only editable in Approve stage, qtyIssued only in Issue stage
+  const isApproveStage = mockRequisition.stage === SRStage.Approve
+  const isIssueStage = mockRequisition.stage === SRStage.Issue
 
   // Dynamic workflow action - single primary action based on status and items
   const getWorkflowActions = () => {
@@ -1870,7 +1882,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                             )}
                           </td>
                           <td className="p-2 sm:p-4 text-right">
-                            {isEditMode ? (
+                            {isEditMode && isApproveStage ? (
                               <Input
                                 type="number"
                                 value={item.qtyApproved}
@@ -1882,7 +1894,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                             )}
                           </td>
                           <td className="p-2 sm:p-4 text-right">
-                            {isEditMode ? (
+                            {isEditMode && isIssueStage ? (
                               <Input
                                 type="number"
                                 value={item.qtyIssued || 0}
@@ -2697,6 +2709,7 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
               currentStatus={mockRequisition.status}
               approvalSteps={mockRequisition.approvalSteps}
               currentUserRole="store-manager" // This would come from user context/auth
+              stage={mockRequisition.stage} // Controls button label (Approve vs Issue)
               itemStatusSummary={{
                 total: items.length,
                 pending: items.filter(item => item.approvalStatus === 'Pending').length,
@@ -2705,8 +2718,14 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
                 review: items.filter(item => item.approvalStatus === 'Review').length
               }}
               onApprove={(stepId, comments) => {
-                console.log('Approve:', stepId, comments)
-                // This would call your API to approve the step
+                // In Issue stage, show signature dialog before completing
+                if (mockRequisition.stage === SRStage.Issue) {
+                  setPendingIssueAction({ stepId, comments })
+                  setShowReceiptSignatureDialog(true)
+                } else {
+                  console.log('Approve:', stepId, comments)
+                  // This would call your API to approve the step
+                }
               }}
               onReject={(stepId, comments) => {
                 console.log('Reject:', stepId, comments)
@@ -3305,6 +3324,37 @@ export function StoreRequisitionDetailComponent({ id }: StoreRequisitionDetailPr
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Receipt Signature Dialog - For Issue Workflow */}
+      <ReceiptSignatureDialog
+        open={showReceiptSignatureDialog}
+        onOpenChange={setShowReceiptSignatureDialog}
+        requisitionId={mockRequisition.refNo}
+        requisitionRefNo={mockRequisition.refNo}
+        requestedBy={mockRequisition.requestedBy}
+        items={items.filter(item => item.approvalStatus === 'Approved').map(item => ({
+          id: item.id,
+          description: item.description,
+          qtyIssued: item.qtyIssued || 0,
+          unit: item.unit
+        }))}
+        onConfirm={(signatureData, timestamp) => {
+          if (pendingIssueAction) {
+            console.log('Issue confirmed with signature:', {
+              ...pendingIssueAction,
+              signatureData,
+              timestamp
+            })
+            // This would call your API to complete the issue with signature
+          }
+          setShowReceiptSignatureDialog(false)
+          setPendingIssueAction(null)
+        }}
+        onCancel={() => {
+          setShowReceiptSignatureDialog(false)
+          setPendingIssueAction(null)
+        }}
+      />
     </div>
   )
 } 

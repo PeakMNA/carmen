@@ -3,8 +3,8 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.3.0
-- **Last Updated**: 2025-12-13
+- **Version**: 1.4.0
+- **Last Updated**: 2025-12-19
 - **Status**: Active - Implementation Complete
 
 ## Related Documents
@@ -25,6 +25,7 @@
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 | 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code implementation - verified component references and workflow |
 | 1.3.0 | 2025-12-13 | Documentation Team | Updated UC-SR-001/002 for new creation page, inline add item pattern, "Requested By" field, "Request From" terminology |
+| 1.4.0 | 2025-12-19 | Documentation Team | Updated UC-SR-012 with receipt signature capture workflow, added stage-based field editability rules, added signature validation requirements |
 ---
 
 ## 1. Introduction
@@ -1301,8 +1302,24 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
     - issued_qty ≤ approved_qty
     - issued_qty ≤ current stock at source location
     - Valid batch/lot number format
-12. User confirms issuance
-13. System processes issuance:
+12. User confirms issuance by clicking "Issue" button
+13. System displays Receipt Signature Dialog:
+    - Dialog header: "Confirm Receipt of Items"
+    - Requisition reference number and requestor name
+    - Summary table of items to be issued (description, qty, unit)
+    - Canvas-based signature pad for requestor's signature
+    - Clear signature button
+    - Cancel and Confirm Receipt buttons
+14. Requestor signs on the signature canvas:
+    - Drawing is captured in real-time
+    - Signature line guide displayed
+    - Clear button available to restart signature
+15. Requestor clicks "Confirm Receipt" button (disabled until signature is drawn)
+16. System captures signature data:
+    - Signature as base64-encoded PNG image
+    - Timestamp of signature capture
+    - Association with requisition and issuance transaction
+17. System processes issuance:
     - For each item, creates inventory transaction:
       - Type: store_requisition
       - From location: source location
@@ -1317,28 +1334,34 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
       - issued_qty = entered quantity
       - Records batch/lot number if provided
       - last_action = issued
-14. System checks if requisition fully issued:
+    - Stores receipt signature data:
+      - Signature image (base64 PNG)
+      - Signature timestamp
+      - Requestor identification
+18. System checks if requisition fully issued:
     - If all items: issued_qty = approved_qty
       - Updates requisition doc_status = completed
       - Workflow marked as complete
     - If partial issuance: issued_qty < approved_qty
       - Requisition remains in_progress
       - Tracks remaining quantities
-15. System generates issuance document:
+19. System generates issuance document:
     - Document number (SI-YYMM-NNNN)
     - List of issued items with quantities
     - Source and destination locations
     - Issued by (storekeeper)
-    - Received by (requestor signature field)
-16. System sends notifications:
+    - Received by (requestor name and captured signature)
+    - Receipt signature image embedded
+20. System sends notifications:
     - Email to requestor: "Items issued for SR-2501-0123"
     - Notification to department manager
     - Includes issuance document link
-17. System updates requisition display:
+21. System updates requisition display:
     - Line items show issued quantities
     - Status updated to Complete (if fully issued)
     - Issuance history recorded
-18. System displays success message: "Issuance recorded successfully"
+    - Receipt signature timestamp displayed
+22. System displays success message: "Issuance recorded successfully"
 
 **Alternate Flow 12A**: Partial Issuance
 - At step 10, storekeeper issues less than approved quantity for some items:
@@ -1362,7 +1385,14 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
 - Total issued = sum of all batches
 - Flow continues to step 14
 
-**Alternate Flow 12C**: Print Picking List
+**Alternate Flow 12C**: Requestor Cancels Signature
+- At step 13, requestor clicks "Cancel" in signature dialog
+- System closes signature dialog without processing
+- Issuance is not completed
+- Storekeeper can retry issuance when requestor is ready
+- Use case ends without changes
+
+**Alternate Flow 12D**: Print Picking List
 - At step 6, user clicks "Print Picking List"
 - System generates printable document:
   - Requisition details
@@ -1396,7 +1426,7 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
 - Requisition remains in_progress until all items addressed
 
 **Exception Flow 12G**: Inventory Transaction Failure
-- At step 13, if inventory system unavailable
+- At step 17, if inventory system unavailable
 - System displays error: "Unable to update inventory. Issuance not recorded."
 - System does NOT update issued quantities
 - System suggests:
@@ -1405,24 +1435,46 @@ Due to length, I'm providing UC-SR-011 (Reject Requisition) and UC-SR-012 (Issue
 - User can retry or cancel
 - Use case ends without changes if canceled
 
+**Exception Flow 12H**: Requestor Not Available for Signature
+- At step 13, if requestor is not physically present
+- Storekeeper clicks "Cancel" in signature dialog
+- Storekeeper can:
+  - Wait for requestor to arrive
+  - Contact requestor to come to store
+  - Defer issuance until requestor is available
+- System does NOT process issuance without signature
+- Use case can be resumed when requestor is present
+
+**Exception Flow 12I**: Signature Canvas Failure
+- At step 14, if signature canvas fails to capture drawing
+- System displays error: "Unable to capture signature. Please try again."
+- System provides "Clear" button to reset canvas
+- User can retry signing
+- If repeated failure, suggest using alternate device or browser
+- Use case resumes at step 13
+
 **Postconditions**:
 - Issued quantities recorded in requisition line items
 - Inventory transactions created for all issued items
 - Stock balances updated at source and destination locations
+- Receipt signature captured and stored (base64 PNG image)
+- Signature timestamp recorded with issuance transaction
 - If fully issued: requisition status = Completed
 - If partially issued: remaining quantities tracked
-- Issuance document generated
+- Issuance document generated with embedded signature
 - Requestor notified
-- Audit trail complete with issuance details
+- Audit trail complete with issuance details and signature evidence
 
 **Business Rules Applied**:
 - BR-SR-002: Status transition to Completed (if fully issued)
 - BR-SR-004: issued_qty ≤ approved_qty validation
 - BR-SR-005: Stock availability enforcement
 - BR-SR-009: Immutable audit trail
+- BR-SR-014: Stage-based field editability (qtyIssued only editable in Issue stage)
+- BR-SR-015: Receipt signature required before issue completion
 - Inventory transactions mandatory for stock movements
 
-**UI Components**: Issuance recording dialog, item quantity inputs, inventory transaction service integration
+**UI Components**: Issuance recording dialog, item quantity inputs, ReceiptSignatureDialog component, inventory transaction service integration
 
 ---
 

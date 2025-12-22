@@ -3,8 +3,8 @@
 **Module**: Store Operations
 **Sub-Module**: Store Requisitions
 **Document Type**: Validations (VAL)
-**Version**: 1.3.0
-**Last Updated**: 2025-12-13
+**Version**: 1.4.0
+**Last Updated**: 2025-12-19
 **Status**: Active
 
 ## Document History
@@ -15,6 +15,7 @@
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 | 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code - verified status values and item approval statuses match implementation |
 | 1.3.0 | 2025-12-13 | Documentation Team | Added validation for "Requested By" field, "Request From" terminology, Location Type handling, inline add item pattern |
+| 1.4.0 | 2025-12-19 | Documentation Team | Added receipt signature validation rules (VAL-SR-025, VAL-SR-026, VAL-SR-113), updated IssueItemsSchema with signature data |
 ---
 
 ## 1. Overview
@@ -563,6 +564,81 @@ if (newItemQty <= 0) {
 
 ---
 
+### VAL-SR-025: Receipt Signature - Required for Issue Stage
+
+**Field**: `receipt_signature`
+**Database Column**: `tb_store_requisition_detail.receipt_signature`
+**Data Type**: TEXT / string (Base64 encoded PNG)
+
+**Validation Rule**: Required when issuing items. Must be valid Base64 encoded PNG image data.
+
+**Business Justification**: Provides legal acknowledgment of receipt. Protects against disputes about item handover.
+
+**Implementation Requirements**:
+- **Client-Side**: Canvas-based signature capture. Confirm button disabled until signature drawn (hasSignature=true). Export as Base64 PNG via `canvas.toDataURL('image/png')`.
+- **Server-Side**: Validate Base64 format and PNG header. Verify signature is not empty/whitespace. Store with issuance record.
+- **Database**: TEXT column to store Base64 encoded image data.
+
+**Error Code**: VAL-SR-025
+**Error Message**:
+- "Receipt signature is required to complete issuance"
+- "Invalid signature data format"
+
+**User Action**: Requestor must draw signature on canvas before confirming receipt.
+
+**Format Requirements**:
+- Must start with `data:image/png;base64,` prefix
+- Base64 encoded portion must be valid
+- Minimum data length: 500 characters (ensures non-empty signature)
+- Maximum data length: 1MB (base64 encoded)
+
+**Test Cases**:
+- ✅ Valid: `data:image/png;base64,iVBORw0KGgo...` (valid Base64 PNG)
+- ✅ Valid: Signature drawn with multiple strokes
+- ❌ Invalid: null (no signature)
+- ❌ Invalid: Empty string
+- ❌ Invalid: `data:image/png;base64,` (empty base64)
+- ❌ Invalid: Plain text without proper prefix
+- ❌ Invalid: `data:image/jpeg;base64,...` (wrong format)
+
+---
+
+### VAL-SR-026: Receipt Timestamp - Required with Signature
+
+**Field**: `receipt_timestamp`
+**Database Column**: `tb_store_requisition_detail.receipt_timestamp`
+**Data Type**: TIMESTAMPTZ(6) / Date
+
+**Validation Rule**: Required when receipt_signature is provided. Must be valid timestamp captured at signature confirmation.
+
+**Business Justification**: Provides timestamp audit trail for when items were acknowledged received.
+
+**Implementation Requirements**:
+- **Client-Side**: Capture timestamp using `new Date()` at moment of confirmation click.
+- **Server-Side**: Validate timestamp is provided with signature. Verify timestamp is reasonable (not future, not too far in past).
+- **Database**: TIMESTAMPTZ(6) column.
+
+**Error Code**: VAL-SR-026
+**Error Message**:
+- "Receipt timestamp is required with signature"
+- "Receipt timestamp cannot be in the future"
+
+**User Action**: System captures timestamp automatically. User shouldn't see this error unless system malfunction.
+
+**Validation Logic**:
+1. If receipt_signature provided, receipt_timestamp required
+2. Timestamp must not be in future (allow 5 minute tolerance for clock skew)
+3. Timestamp must not be more than 24 hours in past
+
+**Test Cases**:
+- ✅ Valid: Current timestamp with valid signature
+- ✅ Valid: Timestamp from 1 hour ago
+- ❌ Invalid: null when signature provided
+- ❌ Invalid: Timestamp 1 hour in future
+- ❌ Invalid: Timestamp from 2 days ago
+
+---
+
 ## 3. Business Rule Validations (VAL-SR-101 to 199)
 
 ### VAL-SR-101: Minimum Line Items Required
@@ -926,6 +1002,65 @@ if (newItemQty <= 0) {
 **User Action**: Storekeeper must issue remaining quantities or adjust approved quantities.
 
 **Related Business Requirements**: BR-SR-024
+
+---
+
+### VAL-SR-113: Receipt Signature Required for Issuance
+
+**Rule Description**: Receipt signature must be captured before items can be issued. Requestor must sign to acknowledge receipt.
+
+**Business Justification**: Provides proof of handover. Protects store staff from disputes. Ensures proper chain of custody for materials.
+
+**Validation Logic**:
+1. When Issue action is triggered in Issue workflow stage
+2. System must display ReceiptSignatureDialog
+3. Requestor must draw signature on canvas
+4. Signature must pass validation (VAL-SR-025)
+5. Timestamp must be captured (VAL-SR-026)
+6. Only after signature confirmation can issuance proceed
+
+**When Validated**: During issuance action in Issue workflow stage
+
+**Implementation Requirements**:
+- **Client-Side**: Display ReceiptSignatureDialog when Issue button clicked. Block issuance until signature captured. Confirm button disabled until hasSignature=true.
+- **Server-Side**: Validate signature data and timestamp present. Reject issuance if signature missing or invalid. Store signature with issuance record.
+- **Database**: receipt_signature and receipt_timestamp columns on tb_store_requisition_detail.
+
+**Error Code**: VAL-SR-113
+**Error Message**:
+- "Receipt signature is required before issuing items"
+- "Requestor must sign to confirm receipt"
+
+**User Action**: Requestor must be present to sign. Store staff cannot complete issuance without signature.
+
+**Related Business Requirements**: BR-SR-014, BR-SR-015
+
+**Exceptions**:
+- None. Signature is mandatory for all issuances.
+
+**Examples**:
+
+**Scenario 1: Valid Issuance with Signature**
+- Store staff clicks Issue
+- Dialog displays with items summary
+- Requestor draws signature on canvas
+- Requestor clicks Confirm Receipt
+- Result: ✅ Issuance proceeds
+- Reason: Valid signature captured
+
+**Scenario 2: Cancelled Signature**
+- Store staff clicks Issue
+- Dialog displays
+- Requestor clicks Cancel
+- Result: ✅ Dialog closes, no action taken
+- Reason: User cancelled, can retry later
+
+**Scenario 3: No Signature Drawn**
+- Store staff clicks Issue
+- Dialog displays
+- Requestor clicks Confirm Receipt without drawing
+- Result: ❌ Confirm button disabled
+- Reason: hasSignature=false prevents confirmation
 
 ---
 
@@ -1499,9 +1634,46 @@ export type ApproveRequisitionInput = z.infer<typeof ApproveRequisitionSchema>;
 ### 6.7 IssueItemsSchema
 
 ```typescript
+// Base64 PNG validation regex
+const BASE64_PNG_REGEX = /^data:image\/png;base64,[A-Za-z0-9+/]+=*$/;
+
 export const IssueItemsSchema = z.object({
   id: z.string().uuid("Invalid requisition ID"),
   doc_version: z.number().min(0, "Invalid document version"),
+  receipt_signature: z.string()
+    .min(500, "Signature data too short - signature may be empty")
+    .max(1048576, "Signature data exceeds maximum size (1MB)")
+    .refine(
+      (val) => val.startsWith('data:image/png;base64,'),
+      { message: 'Invalid signature format - must be PNG image' }
+    )
+    .refine(
+      (val) => {
+        try {
+          const base64 = val.replace('data:image/png;base64,', '');
+          return base64.length > 100; // Ensure actual signature content
+        } catch {
+          return false;
+        }
+      },
+      { message: 'Invalid signature data' }
+    ),
+  receipt_timestamp: z.date({
+    required_error: "Receipt timestamp is required",
+    invalid_type_error: "Invalid timestamp format"
+  }).refine(
+    (val) => {
+      const fiveMinutesFromNow = new Date(Date.now() + 5 * 60 * 1000);
+      return val <= fiveMinutesFromNow;
+    },
+    { message: 'Receipt timestamp cannot be in the future' }
+  ).refine(
+    (val) => {
+      const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+      return val >= twentyFourHoursAgo;
+    },
+    { message: 'Receipt timestamp is too old' }
+  ),
   line_items: z.array(z.object({
     id: z.string().uuid("Invalid line item ID"),
     issue_qty: z.number()
@@ -1519,6 +1691,11 @@ export const IssueItemsSchema = z.object({
 
 export type IssueItemsInput = z.infer<typeof IssueItemsSchema>;
 ```
+
+**Signature Validation Notes**:
+- `receipt_signature`: Base64 encoded PNG image from canvas.toDataURL()
+- `receipt_timestamp`: Captured at moment of Confirm Receipt click
+- Both fields required together - neither can be provided without the other
 
 ### 6.8 SearchRequisitionSchema
 
@@ -1678,6 +1855,8 @@ export type SearchRequisitionInput = z.infer<typeof SearchRequisitionSchema>;
 | VAL-SR-022 | Approved Qty Range | approved_qty | Field | ✅ | ✅ | ❌ | 6 |
 | VAL-SR-023 | Issued Qty Tracking | issued_qty | Field | ✅ | ✅ | ❌ | 5 |
 | VAL-SR-024 | Sequence Unique | sequence_no | Field | ✅ | ✅ | ❌ | 3 |
+| VAL-SR-025 | Receipt Signature | receipt_signature | Field | ✅ | ✅ | ❌ | 7 |
+| VAL-SR-026 | Receipt Timestamp | receipt_timestamp | Field | ✅ | ✅ | ❌ | 5 |
 | VAL-SR-101 | Min Line Items | line_items | Business | ✅ | ✅ | ❌ | 2 |
 | VAL-SR-102 | Max Line Items | line_items | Business | ✅ | ✅ | ❌ | 2 |
 | VAL-SR-103 | Duplicate Product | product_id | Business | ✅ | ✅ | ❌ | 2 |
@@ -1690,6 +1869,7 @@ export type SearchRequisitionInput = z.infer<typeof SearchRequisitionSchema>;
 | VAL-SR-110 | Partial Issuance | issued_qty | Business | ✅ | ✅ | ❌ | 3 |
 | VAL-SR-111 | Cancel Restriction | doc_status | Business | ✅ | ✅ | ❌ | 3 |
 | VAL-SR-112 | Complete Criteria | line_items | Business | ✅ | ✅ | ❌ | 2 |
+| VAL-SR-113 | Signature Required | receipt_signature | Business | ✅ | ✅ | ❌ | 3 |
 | VAL-SR-201 | Date Range | dates | Cross-field | ✅ | ✅ | ❌ | 4 |
 | VAL-SR-202 | Qty Relationship | quantities | Cross-field | ✅ | ✅ | ❌ | 5 |
 | VAL-SR-203 | Message Consistency | messages | Cross-field | ✅ | ✅ | ❌ | 3 |
@@ -1707,7 +1887,7 @@ export type SearchRequisitionInput = z.infer<typeof SearchRequisitionSchema>;
 - ❌ Not enforced at this layer
 - ⚠️ Partial enforcement (display only)
 
-**Total Test Cases Required**: 135+
+**Total Test Cases Required**: 150+ (including signature validation rules)
 
 ---
 

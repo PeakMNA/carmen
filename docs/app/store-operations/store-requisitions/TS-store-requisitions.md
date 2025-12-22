@@ -3,8 +3,8 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.3.0
-- **Last Updated**: 2025-12-13
+- **Version**: 1.4.0
+- **Last Updated**: 2025-12-19
 - **Status**: Active - Implementation Complete
 
 ## Related Documents
@@ -25,6 +25,7 @@
 | 1.1.0 | 2025-12-05 | Documentation Team | Synced related documents with BR, added shared methods references |
 | 1.2.0 | 2025-12-10 | Documentation Team | Synced with source code - verified component architecture, status values, tab configuration |
 | 1.3.0 | 2025-12-13 | Documentation Team | Added new creation page route, inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling |
+| 1.4.0 | 2025-12-19 | Documentation Team | Added ReceiptSignatureDialog component, updated ApprovalWorkflow with stage prop and dynamic button labels, added stage-based field editability |
 ---
 
 ## 1. System Architecture
@@ -342,6 +343,7 @@ graph TD
         TabsInterface --> JournalTab[JournalEntriesTab]
 
         WorkflowTab --> ApprovalLog[ApprovalLogDialog]
+        WorkflowTab --> ReceiptSignature[ReceiptSignatureDialog]
 
         ItemsTab --> ItemActions[Item Action Menu]
         ItemsTab --> StockMovement[StockMovementSR]
@@ -450,22 +452,29 @@ const form = useForm<StoreRequisitionFormData>({
 - Show approval history timeline
 - Provide approve/reject/review actions for approvers
 - Visualize workflow progression
+- Display dynamic button labels based on workflow stage
 
 **Props**:
 - workflowHistory: JSON object with approval history
 - currentStage: String indicating current workflow position
 - userRole: Current user's role for action availability
+- stage: SRStage enum value (Draft, Submit, Approve, Issue, Complete) - controls button labels
 
 **Display Elements**:
 - Stage indicators (completed, current, pending)
 - Approver names and timestamps
 - Action buttons (visible only to current approvers)
 - Approval comments and reasons
+- Dynamic action button label: "Approve" in Approve stage, "Issue" in Issue stage
 
 **Action Handlers**:
-- onApprove: Triggers approval server action
+- onApprove: Triggers approval server action (or issue dialog in Issue stage)
 - onReject: Opens rejection dialog
 - onRequestReview: Opens review request dialog
+
+**Stage-Based Behavior**:
+- When stage = SRStage.Approve: Shows "Approve" button with standard approval flow
+- When stage = SRStage.Issue: Shows "Issue" button which triggers ReceiptSignatureDialog
 
 ---
 
@@ -645,7 +654,80 @@ const form = useForm<StoreRequisitionFormData>({
 
 ---
 
-#### 3.2.10 JournalEntriesTab Component
+#### 3.2.10 ReceiptSignatureDialog Component
+**File**: app/(main)/store-operations/store-requisitions/components/receipt-signature-dialog.tsx
+**Type**: Client Component
+
+**Responsibilities**:
+- Capture requestor's digital signature for item receipt confirmation
+- Display summary of items being issued
+- Validate signature before allowing confirmation
+- Record signature data and timestamp with issuance transaction
+
+**Props**:
+```typescript
+interface ReceiptSignatureDialogProps {
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  requisitionId: string
+  requisitionRefNo: string
+  requestedBy: string
+  items: IssuedItem[]
+  onConfirm: (signatureData: string, timestamp: Date) => void
+  onCancel: () => void
+}
+
+interface IssuedItem {
+  id: number
+  description: string
+  qtyIssued: number
+  unit: string
+}
+```
+
+**Display Elements**:
+- Dialog header: "Confirm Receipt of Items"
+- Requisition reference badge (SR-YYMM-NNNN)
+- Requestor name display
+- Current date
+- Items summary table with columns: Item, Qty Issued, Unit
+- Total items and units badge
+- Canvas-based signature pad with signature line guide
+- Clear signature button
+- Cancel and Confirm Receipt buttons
+
+**Canvas Features**:
+- Touch and mouse support for drawing
+- Real-time signature capture
+- Clear button to reset signature
+- Signature line guide at bottom
+- Drawing style: dark stroke, 2px width, round line cap
+
+**Validation**:
+- Confirm button disabled until signature is drawn
+- Signature must have at least one stroke (hasSignature state)
+
+**Data Output**:
+- Signature captured as base64-encoded PNG image via `canvas.toDataURL('image/png')`
+- Timestamp captured at moment of confirmation
+- Both values passed to onConfirm callback
+
+**Triggered By**:
+- Clicking "Issue" button in ApprovalWorkflow when stage = SRStage.Issue
+- Parent component manages dialog open state and pending action
+
+**Integration Flow**:
+1. User clicks "Issue" in Issue stage
+2. Parent stores pending action (stepId, comments)
+3. ReceiptSignatureDialog opens
+4. Requestor draws signature on canvas
+5. Requestor clicks "Confirm Receipt"
+6. Dialog calls onConfirm with signature data and timestamp
+7. Parent processes issuance with signature evidence
+
+---
+
+#### 3.2.11 JournalEntriesTab Component
 **File**: app/(main)/store-operations/store-requisitions/components/tabs/journal-entries-tab.tsx
 **Type**: Client Component (Future Enhancement)
 
@@ -974,7 +1056,7 @@ Server actions are the primary method for data mutations in Next.js 14 App Route
 ---
 
 #### 4.2.8 issueItems
-**Purpose**: Record issuance of approved items to department
+**Purpose**: Record issuance of approved items to department with receipt signature
 
 **Input**:
 - Requisition ID
@@ -982,6 +1064,8 @@ Server actions are the primary method for data mutations in Next.js 14 App Route
 - Batch/lot numbers per item (optional)
 - Issuance notes (optional)
 - Storekeeper ID
+- Receipt signature data (base64 PNG image)
+- Signature timestamp
 
 **Processing**:
 - Validate user has storekeeper role
@@ -1012,15 +1096,20 @@ Server actions are the primary method for data mutations in Next.js 14 App Route
   - If partial: issued_qty < approved_qty for any item
     - Requisition remains in_progress
     - Track remaining quantities
-- Generate issuance document (SI-YYMM-NNNN)
+- Store receipt signature:
+  - Save signature image (base64 PNG)
+  - Record signature timestamp
+  - Associate with issuance transaction
+- Generate issuance document (SI-YYMM-NNNN) with embedded signature
 - Send notification to requestor with issuance details
 
 **Output**:
 - Updated line items with issued quantities
 - Inventory transactions created
 - Stock balances updated
+- Receipt signature stored with issuance record
 - Requisition status updated (completed if fully issued)
-- Issuance document generated
+- Issuance document generated with signature
 - Notifications sent
 - Success message
 

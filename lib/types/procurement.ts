@@ -262,6 +262,8 @@ export interface PurchaseOrder {
   vendorContact?: string;
   status: 'draft' | 'sent' | 'acknowledged' | 'partial_received' | 'fully_received' | 'cancelled' | 'closed';
   currency: string;
+  currencyCode?: string; // Transaction currency code (same as currency, for component compatibility)
+  baseCurrencyCode?: string; // Company base currency for conversion (e.g., THB)
   exchangeRate: number;
   subtotal: Money;
   taxAmount: Money;

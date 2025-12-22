@@ -739,15 +739,6 @@ export default function PODetailPage({ params }: PODetailPageProps) {
                     onUpdateItem={handleUpdateItem}
                     onDeleteItem={handleDeleteItem}
                     onAddItem={handleAddItem}
-                    onGoodsReceived={(item) => {
-                      console.log('Goods received for item:', item);
-                    }}
-                    onSplitLine={(item) => {
-                      console.log('Split line for item:', item);
-                    }}
-                    onCancelItem={(item) => {
-                      console.log('Cancel item:', item);
-                    }}
                     editable={isEditing}
                   />
                 </TabsContent>
@@ -763,7 +754,12 @@ export default function PODetailPage({ params }: PODetailPageProps) {
             {/* Financial Summary Card */}
             <Card className="shadow-sm">
               <CardContent className="py-6">
-                <TransactionSummary poData={poData} isEditing={isEditing} />
+                <TransactionSummary
+                  poData={poData}
+                  isEditing={isEditing}
+                  baseCurrency={(poData as any)?.baseCurrencyCode || 'THB'}
+                  exchangeRate={(poData as any)?.exchangeRate || 1}
+                />
               </CardContent>
             </Card>
           </div>

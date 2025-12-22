@@ -41,6 +41,10 @@ import {
   DialogClose
 } from "@/components/ui/dialog";
 import {
+  Sheet,
+  SheetContent,
+} from "@/components/ui/sheet";
+import {
   Table,
   TableBody,
   TableCell,
@@ -54,6 +58,7 @@ import { PrItemsTable } from "./pr-items-table";
 import { GrnItemsTable } from "./grn-items-table";
 import { InventoryBreakdownContent } from "./inventory-breakdown";
 import { PendingPurchaseOrdersComponent } from "./pending-purchase-orders";
+import POItemDetailForm from "./po-item-detail-form";
 
 // Mock data matching inventory-breakdown.tsx
 const inventoryData = [
@@ -92,7 +97,52 @@ export function ItemDetailsComponent({
   initialData,
   onSubmit,
 }: ItemDetailsComponentProps) {
-  // ... Keep existing modal implementation ...
+  const [mode, setMode] = useState<Mode>(initialMode);
+
+  useEffect(() => {
+    setMode(initialMode);
+  }, [initialMode]);
+
+  const handleSave = (data: any) => {
+    if (onSubmit) {
+      onSubmit(data as PurchaseOrderItem);
+    }
+    onClose();
+  };
+
+  const handleModeChange = (newMode: Mode) => {
+    setMode(newMode);
+  };
+
+  return (
+    <Sheet open={isOpen} onOpenChange={onClose}>
+      <SheetContent side="right" className="w-full sm:max-w-2xl p-0 [&>button]:hidden">
+        <POItemDetailForm
+          item={initialData as any}
+          mode={mode}
+          currencyCode="USD"
+          baseCurrencyCode="THB"
+          exchangeRate={35}
+          onClose={onClose}
+          onSave={handleSave}
+          onModeChange={handleModeChange}
+        />
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+/**
+ * Legacy Dialog-based Item Details Component
+ * Kept for backwards compatibility - prefer ItemDetailsComponent (Sheet-based)
+ */
+export function ItemDetailsDialog({
+  initialMode,
+  onClose,
+  isOpen,
+  initialData,
+  onSubmit,
+}: ItemDetailsComponentProps) {
   const [activeTab, setActiveTab] = useState("details");
   const [mode, setMode] = useState<Mode>(initialMode);
   const [itemData, setItemData] = useState<Partial<PurchaseOrderItem>>(
@@ -210,7 +260,7 @@ export function ItemDetailsComponent({
 
           <ScrollArea className="max-h-[65vh] w-full overflow-y-auto">
             <div className="space-y-4">
-              
+
               {/* Tier 1: Essential Item Information (Always Visible) */}
               <div className="bg-white border border-gray-200 rounded-lg p-4">
                 {/* Product Information Header */}
@@ -241,7 +291,7 @@ export function ItemDetailsComponent({
                       </div>
                     </div>
                   </div>
-                  
+
                   {/* Inventory Status Indicators */}
                   <div className="flex items-center gap-3 ml-4">
                     <div
