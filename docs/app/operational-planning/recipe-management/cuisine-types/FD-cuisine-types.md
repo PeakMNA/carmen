@@ -3,15 +3,16 @@
 ## Document Information
 - **Document Type**: Flow Diagrams Document
 - **Module**: Operational Planning > Recipe Management > Cuisine Types
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial flow diagrams document created |
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: added spiceLevel, flavorProfile, cookingMethods flows |
 
 ---
 

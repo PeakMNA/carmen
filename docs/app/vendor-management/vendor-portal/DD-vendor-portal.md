@@ -4,10 +4,10 @@
 - **Document Type**: Data Dictionary (DD)
 - **System**: Vendor Price Submission Portal
 - **Module**: Vendor Management
-- **Version**: 2.1.0
-- **Status**: Updated
+- **Version**: 3.0.0
+- **Status**: Active
 - **Created**: 2025-01-23
-- **Last Updated**: 2025-11-26
+- **Last Updated**: 2026-01-15
 - **Author**: Product Team
 - **Related Documents**:
   - [Business Requirements](./BR-vendor-portal.md)
@@ -17,10 +17,11 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added ProductItem interface from sample/page.tsx; Updated supported currencies (BHT, USD, CNY, SGD); Added submission method types |
+| 2.1.0 | 2025-11-26 | System | Removed approval workflow references; Updated status to draft to submitted; Aligned with BR v2.1.0 |
+| 2.0 | 2025-01-23 | Product Team | Complete rewrite - TypeScript vs Prisma schema comparison |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2025-11-15 | System | Initial version |
-| 2.0 | 2025-01-23 | Product Team | Complete rewrite - TypeScript vs Prisma schema comparison |
-| 2.1.0 | 2025-11-26 | System | Removed approval workflow references; Updated status to draft → submitted; Aligned with BR v2.1.0 |
 
 ---
 
@@ -1050,7 +1051,40 @@ tb_vendor
 | BR-VPP-Rule-028: Maximum 5 MOQ tiers per product | ✅ MOQPricing[] | ❌ Single price only | Critical - Multi-tier pricing broken |
 | BR-VPP-Rule-029: MOQ quantities ascending order | ✅ Validation logic | ❌ No tier support | Critical - Validation impossible |
 
-### Appendix D: Glossary
+### Appendix D: Current Implementation Types
+
+#### ProductItem Interface (from sample/page.tsx)
+```typescript
+interface ProductItem {
+  code: string              // Product code (e.g., 'ELEC-001')
+  description: string       // Product description
+  unit: string              // Unit of measure (e.g., 'Each', 'Pack')
+  basePrice?: number        // Base price for MOQ 1
+  leadTime?: number         // Lead time in days
+  moqTiers?: Array<{        // Optional MOQ pricing tiers
+    moq: number             // Minimum order quantity
+    price: number           // Price at this tier
+    leadTime: number        // Lead time at this tier
+  }>
+}
+```
+
+#### Submission Method Types
+```typescript
+type SubmissionMethod = 'online' | 'upload' | 'email'
+```
+
+#### Supported Currencies
+```typescript
+const currencies = {
+  'BHT': '฿',    // Thai Baht (default)
+  'USD': '$',    // US Dollar
+  'CNY': '¥',    // Chinese Yuan
+  'SGD': 'S$'    // Singapore Dollar
+}
+```
+
+### Appendix E: Glossary
 
 | Term | Definition |
 |------|------------|

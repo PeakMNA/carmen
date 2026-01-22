@@ -180,7 +180,7 @@ graph TD
     AdjustChange -->|Yes| UserMakeChanges
     AdjustChange -->|No| CancelChange
     
-    CheckBudget -->|Yes| EvaluateSignificance{Total<br>Change<br>>10%?}
+    CheckBudget -->|Yes| EvaluateSignificance{Total<br>Change<br>over 10 percent?}
 
     EvaluateSignificance -->|Yes| RequireManagerAuth[Require Manager<br>Authorization]
     RequireManagerAuth --> NotifyManager[Notify Manager]
@@ -316,29 +316,13 @@ stateDiagram-v2
     Completed --> [*]: Archive
     Cancelled --> [*]: Archive
 
-    note right of Draft
-        User can edit freely
-        No budget impact
-    end note
+    note right of Draft: User can edit freely, no budget impact
 
-    note right of Sent
-        Budget encumbered
-        Vendor notified
-        Change requires
-        change order process
-    end note
+    note right of Sent: Budget encumbered, vendor notified, change requires change order process
 
-    note right of FullyReceived
-        All quantities received
-        30-day grace period
-        before auto-complete
-    end note
+    note right of FullyReceived: All quantities received, 30-day grace period before auto-complete
 
-    note right of Completed
-        Read-only
-        Historical record
-        Cannot reopen
-    end note
+    note right of Completed: Read-only, historical record, cannot reopen
 ```
 
 **Description**: Complete state machine showing all possible PO status transitions and constraints.
@@ -395,7 +379,7 @@ stateDiagram-v2
 
 ```mermaid
 graph LR
-    subgraph PO_System['Purchase Order System']
+    subgraph PO_System[Purchase Order System]
         CreatePO[Create PO]
         SendPO[Send PO to Vendor]
         ModifyPO[Modify PO]
@@ -403,7 +387,7 @@ graph LR
         ReceiveGoods[Receive Goods via GRN]
     end
 
-    subgraph Budget_System['Budget Management System']
+    subgraph Budget_System[Budget Management System]
         CheckAvailability[Check Budget<br>Availability]
         CreateEncumbrance[Create<br>Encumbrance]
         AdjustEncumbrance[Adjust<br>Encumbrance]
@@ -435,7 +419,7 @@ graph LR
 
 ```mermaid
 sequenceDiagram
-    actor User
+    participant User
     participant PO_System
     participant Email_Service
     participant PDF_Generator
@@ -666,8 +650,8 @@ graph TD
 
     ShowPRTable --> DisplayHeader[Show Header with<br>Package Icon in<br>bg-primary/10 circle]
     DisplayHeader --> DisplayBanner[Show Info Banner<br>bg-blue-50 border-blue-200<br>explaining automatic grouping]
-    DisplayBanner --> DisplayWorkflow[Show Workflow Indicator<br>Select PRs → Review Summary → Create PO]
-    DisplayWorkflow --> DisplayTable[Display Simplified Table:<br>Checkbox | PR# | Date | Description]
+    DisplayBanner --> DisplayWorkflow[Show Workflow Indicator<br>Select PRs then Review Summary then Create PO]
+    DisplayWorkflow --> DisplayTable[Display Simplified Table:<br>Checkbox, PR#, Date, Description]
 
     DisplayTable --> UserSearch{User<br>Searches?}
     UserSearch -->|Yes| FilterPRs[Filter PRs by<br>PR# or Description]
@@ -682,7 +666,7 @@ graph TD
     ClickCreate --> GroupPRs[Group PRs by<br>Vendor + Currency]
     GroupPRs --> ShowSummary[Display PO<br>Summary Dialog]
 
-    ShowSummary --> DialogContent[Show Dialog:<br>- Header: X PRs → Y POs<br>- Card per PO with:<br>  * Vendor with Building icon<br>  * Delivery date with Calendar<br>  * Total with green badge<br>  * Source PR badges]
+    ShowSummary --> DialogContent[Show Dialog:<br>- Header: X PRs to Y POs<br>- Card per PO with:<br>  * Vendor with Building icon<br>  * Delivery date with Calendar<br>  * Total with green badge<br>  * Source PR badges]
     DialogContent --> UserReview{User<br>Reviews}
 
     UserReview -->|Cancel| CloseDialog[Close Dialog<br>Return to Selection]

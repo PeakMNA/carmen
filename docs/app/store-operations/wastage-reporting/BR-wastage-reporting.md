@@ -4,8 +4,8 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Route**: `/app/(main)/store-operations/wastage-reporting`
-- **Version**: 1.3.0
-- **Last Updated**: 2025-12-13
+- **Version**: 1.4.0
+- **Last Updated**: 2026-01-15
 - **Owner**: Store Operations Team
 - **Status**: Active
 - **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.4.0 | 2026-01-15 | Claude | Updated all status values to match code: Draft, Submitted, Under Review, Approved, Rejected, Posted |
 | 1.3.0 | 2025-12-13 | Documentation Team | Added workflow enhancements: dashboard sorting, per-item attachments, review decision workflow, status transitions |
 | 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend UI with 6 pages |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status (Section 1.4), backend requirements (Section 9), inventory valuation integration |
@@ -167,7 +168,7 @@ The system must enable approvers to review wastage transactions and take appropr
 - Approver can filter wastage list by date range, category, location, product, or responsible party
 - Approver can view complete wastage details including product information, current stock, photos, and submitter notes
 - Approver can approve full wastage quantity, system updates inventory immediately
-- Approver can partially approve by reducing wastage quantity, remaining quantity is returned to "draft" status for re-submission
+- Approver can partially approve by reducing wastage quantity, remaining quantity is returned to "Draft" status for re-submission
 - Approver can reject wastage with mandatory rejection reason (minimum 30 characters)
 - System validates approver has necessary permissions based on role and value threshold
 - Rejected wastage transactions remain in system for audit purposes with "rejected" status
@@ -720,8 +721,8 @@ interface WastageHeader {
   currency: string;                     // ISO currency code (USD, EUR, etc.)
 
   // Workflow and status
-  doc_status: 'draft' | 'pending_approval' | 'approved' |
-              'partially_approved' | 'rejected' | 'cancelled';
+  doc_status: 'Draft' | 'Submitted' | 'Under Review' |
+              'Approved' | 'Rejected' | 'Posted';
   approval_level_required: number;      // Number of approval levels required (0-3)
   current_approval_level: number;       // Current approval level reached
   is_auto_approved: boolean;            // Whether auto-approved by system rules
@@ -801,7 +802,7 @@ interface WastageLineItem {
   // Approval
   approved_quantity?: number;           // Quantity approved (if partially approved)
   rejected_quantity?: number;           // Quantity rejected
-  line_status: 'pending' | 'approved' | 'partially_approved' | 'rejected';
+  line_status: 'pending' | 'approved' | 'rejected';
 
   // Audit fields
   created_date: Date;                   // Creation timestamp
@@ -878,7 +879,7 @@ interface WastageApproval {
   delegated_from_id?: string;           // If delegated, original approver ID
 
   // Approval action
-  approval_action: 'approved' | 'partially_approved' | 'rejected' | 'pending';
+  approval_action: 'approved' | 'rejected' | 'pending';
   approval_date?: Date;                 // When action was taken
 
   // Partial approval details
@@ -1193,7 +1194,7 @@ The wastage reporting module requires the following Next.js server actions to im
 #### Wastage Transaction Management (5 actions)
 
 **`createWastageTransaction(data: CreateWastageInput): Promise<ActionResult<WastageHeader>>`**
-- Creates new wastage transaction in "draft" status
+- Creates new wastage transaction in "Draft" status
 - Validates product exists and stock quantity available
 - Calculates total wastage value based on unit cost
 - Captures user, location, date/time automatically
@@ -1203,16 +1204,16 @@ The wastage reporting module requires the following Next.js server actions to im
 - Validates wastage transaction is complete (required fields, photos if needed)
 - Determines approval level required based on value thresholds
 - Routes to appropriate approvers via workflow engine
-- Updates status to "pending_approval"
+- Updates status to "Submitted"
 - Sends notifications to approvers
 
 **`updateWastageTransaction(wastageId: string, data: UpdateWastageInput): Promise<ActionResult<WastageHeader>>`**
-- Updates wastage transaction in "draft" status only
+- Updates wastage transaction in "Draft" or "Rejected" status only
 - Re-validates data and recalculates totals
 - Updates audit trail with modification details
 
 **`deleteWastageTransaction(wastageId: string): Promise<ActionResult<void>>`**
-- Soft deletes wastage in "draft" status only
+- Soft deletes wastage in "Draft" or "Rejected" status only
 - Prevents deletion of submitted/approved wastage
 - Maintains audit trail
 
@@ -1233,12 +1234,12 @@ The wastage reporting module requires the following Next.js server actions to im
 **`partiallyApproveWastage(wastageId: string, approvedQuantity: number, reason: string): Promise<ActionResult<WastageHeader>>`**
 - Reduces wastage quantity to approved amount
 - Creates inventory adjustment for approved portion
-- Returns remaining quantity to "draft" for resubmission
+- Returns remaining quantity to "Draft" for resubmission
 - Records partial approval in audit trail
 
 **`rejectWastageTransaction(wastageId: string, reason: string): Promise<ActionResult<WastageHeader>>`**
 - Validates rejection reason provided (minimum 30 characters)
-- Updates wastage status to "rejected"
+- Updates wastage status to "Rejected"
 - Records rejection in wastage_approvals table
 - Sends notification to submitter with rejection reason
 - Prevents resubmission (new transaction must be created)
@@ -1276,7 +1277,7 @@ The wastage reporting module requires the following Next.js server actions to im
 - Returns secure signed URL with expiration
 
 **`deleteWastagePhoto(photoId: string): Promise<ActionResult<void>>`**
-- Removes photo from storage (wastage in "draft" status only)
+- Removes photo from storage (wastage in "Draft" status only)
 - Updates wastage photo count
 - Maintains audit trail of photo deletion
 

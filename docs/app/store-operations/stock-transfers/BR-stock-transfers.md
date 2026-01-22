@@ -4,11 +4,12 @@
 
 This document defines the business rules for the Stock Transfers view.
 
-**KEY ARCHITECTURE**: Stock Transfers are NOT separate documents. They are **filtered views** of Store Requisitions at the Issue stage with INVENTORY type destinations.
+**KEY ARCHITECTURE**: Stock Transfers are NOT separate documents. They are **read-only audit views** of Store Requisitions at the Issue or Complete stage with INVENTORY type destinations.
 
-- **Stock Transfer View** = SRs where stage='issue' AND destinationLocationType='INVENTORY'
-- All actions (issue, complete) are performed on the underlying SR, not a separate ST document
-- The ST page provides a specialized view focused on inventory movements between locations
+- **Stock Transfer View** = SRs where (stage='issue' OR stage='complete') AND destinationLocationType='INVENTORY'
+- The ST page provides a specialized **read-only view** focused on inventory movements between locations
+- All workflow actions (approve, issue, complete) are performed in the Store Requisitions module, not in Stock Transfers
+- Stock Transfers supports **View and Print only** - no stage changes
 
 ## 2. View Definition
 
@@ -16,9 +17,8 @@ This document defines the business rules for the Stock Transfers view.
 
 | Criteria | Value | Description |
 |----------|-------|-------------|
-| SR Stage | Issue | SR must be at the Issue stage |
+| SR Stage | Issue OR Complete | SR must be at Issue or Complete stage |
 | Destination Type | INVENTORY | Destination must be an INVENTORY location |
-| Status | in_progress OR completed | Only active or completed SRs |
 
 ### 2.2 What Does NOT Appear
 
@@ -56,38 +56,39 @@ This document defines the business rules for the Stock Transfers view.
 
 ### 5.1 Status (from underlying SR)
 
-| Status | Description | Meaning for Transfer |
-|--------|-------------|---------------------|
+| Status | Description | Meaning for Transfer View |
+|--------|-------------|---------------------------|
 | in_progress | SR is being processed | Transfer is active |
-| completed | SR workflow complete | Transfer complete |
+| completed | SR workflow complete | Transfer is complete |
 
 ### 5.2 Stage (from underlying SR)
 
 | Stage | Description | Transfer View |
 |-------|-------------|---------------|
 | issue | Items have been issued | Shows in Stock Transfer list |
-| complete | All items processed | Shows as completed transfer |
+| complete | All items processed | Shows in Stock Transfer list (as completed) |
 
 ### 5.3 Stage Flow
 
 ```
 SR Stage Flow:
 Draft → Submit → Approve → Issue → Complete
-                            ↓
-                   Appears in Stock Transfer view
+                            ↓         ↓
+                   Both stages appear in Stock Transfer view
                    (if destination = INVENTORY)
+
+Stage management happens in Store Requisitions, NOT in Stock Transfers
 ```
 
-## 6. Actions (via SR)
+## 6. Actions (Read-Only)
 
 | Rule ID | Action | Performed On | Description |
 |---------|--------|--------------|-------------|
 | BR-ST-ACT-001 | View Transfer | ST View | Read-only view of SR as transfer |
-| BR-ST-ACT-002 | View Full SR | SR Detail | Navigate to full SR detail |
-| BR-ST-ACT-003 | Complete | SR | Advances SR from Issue to Complete |
-| BR-ST-ACT-004 | Print | ST View | Print transfer slip |
+| BR-ST-ACT-002 | View Full SR | SR Detail | Navigate to full SR detail (link only) |
+| BR-ST-ACT-003 | Print | ST View | Print transfer slip |
 
-**Note**: All workflow actions (approve, issue, complete) are performed on the underlying SR.
+**Note**: Stage management (Issue → Complete) is performed in the Store Requisitions module. Stock Transfers is a read-only audit view.
 
 ## 7. Quantity Rules
 
@@ -124,29 +125,48 @@ Draft → Submit → Approve → Issue → Complete
 | Rule ID | Rule | Description |
 |---------|------|-------------|
 | BR-ST-COST-001 | Unit Cost | From SR item unitCost |
-| BR-ST-COST-002 | Total Value | totalCost = issuedQty × unitCost |
+| BR-ST-COST-002 | Total Value | totalCost = issuedQty x unitCost |
 | BR-ST-COST-003 | Cost Transfer | Cost moves with stock (no markup) |
 | BR-ST-COST-004 | Currency | System base currency |
 
-## 10. Access Control Rules
+## 10. GL Impact Rules
+
+### 10.1 No GL Entries
+
+| Rule ID | Rule | Description |
+|---------|------|-------------|
+| BR-ST-GL-001 | Balance Sheet Only | Transfer is balance sheet movement only |
+| BR-ST-GL-002 | No COGS | No Cost of Goods Sold impact |
+| BR-ST-GL-003 | No Expense | No expense recording |
+
+### 10.2 Cost Movement
+
+| Rule ID | Rule | Description |
+|---------|------|-------------|
+| BR-ST-GL-004 | Inventory Transfer | Inventory value moves between location accounts |
+| BR-ST-GL-005 | No Markup | Cost transfers at book value |
+
+## 11. Access Control Rules
 
 | Rule ID | Rule | Description |
 |---------|------|-------------|
 | BR-ST-ACC-001 | View Access | Users with store_operations.view permission |
-| BR-ST-ACC-002 | Actions | All actions via SR require SR permissions |
+| BR-ST-ACC-002 | Print Access | Users with store_operations.view permission |
 | BR-ST-ACC-003 | Location Filter | Users may see only their locations |
+| BR-ST-ACC-004 | Stage Actions | Not available - managed in Store Requisitions |
 
-## 11. Business Constraints Summary
+## 12. Business Constraints Summary
 
 | Constraint | Rule |
 |------------|------|
-| View Type | Filtered view of SRs, not separate documents |
-| Location Types | INVENTORY → INVENTORY only |
+| View Type | Read-only audit view of SRs |
+| Location Types | INVENTORY to INVENTORY only |
 | Stage Required | SR must be at Issue or Complete stage |
-| Actions | All performed on underlying SR |
+| Available Actions | View and Print only |
+| Stage Management | Handled by Store Requisitions module |
 | Receipt | No separate receipt process |
 
-## 12. Differences from Previous Architecture
+## 13. Differences from Previous Architecture
 
 | Aspect | Previous | Current |
 |--------|----------|---------|
@@ -155,4 +175,16 @@ Draft → Submit → Approve → Issue → Complete
 | Status | TransferStatus enum (5 values) | Uses SRStatus (5 values) |
 | Receipt | Separate receive action | Removed (issue = complete) |
 | Data Storage | Separate mockStockTransfers | Part of mockStoreRequisitions |
-| Actions | ST-specific actions | SR actions only |
+| Actions | ST-specific actions | View and Print only |
+| Stage Changes | Could complete from ST view | Stage managed in SR only |
+
+## 14. Differences from Stock Issues
+
+| Aspect | Stock Transfer | Stock Issue |
+|--------|----------------|-------------|
+| Destination Type | INVENTORY | DIRECT (expense) |
+| Stock at Destination | Added to inventory | Not tracked (expensed) |
+| Cost Treatment | Transfer at cost | Immediate expense |
+| Department | Optional | Required |
+| COGS Impact | No | Yes |
+| GL Entries | None (balance sheet only) | Expense + Inventory credit |

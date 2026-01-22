@@ -4,10 +4,17 @@
 
 | Field | Value |
 |-------|-------|
-| Module | Inventory Planning |
-| Version | 1.0.0 |
-| Last Updated | 2025-12-06 |
-| Status | Draft |
+| Module | Operational Planning > Inventory Planning |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-17 |
+| Status | Implemented |
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2025-12-06 | Development Team | Initial documentation |
+| 2.0.0 | 2025-01-17 | Development Team | Updated to match actual UI implementation |
 
 ---
 
@@ -17,531 +24,781 @@
 
 | Layer | Purpose | Implementation |
 |-------|---------|----------------|
-| Client | Immediate feedback | React Hook Form + Zod |
-| API | Request validation | Zod schemas |
-| Service | Business rules | TypeScript validation |
-| Data | Data integrity | Database constraints |
+| Client | Immediate feedback | React state validation |
+| UI | User input constraints | HTML5 + React constraints |
+| Business | Rule enforcement | TypeScript validation functions |
 
 ### 1.2 Validation Categories
 
 | Category | Description |
 |----------|-------------|
-| Input | User input validation |
-| Business | Business rule enforcement |
-| Calculation | Formula and computation validation |
-| State | State transition validation |
+| Input | User input validation for filters and settings |
+| Selection | Checkbox and selection validation |
+| Calculation | Formula input validation |
+| State | UI state validation |
 
 ---
 
-## 2. Input Validation Schemas
+## 2. Dashboard Validations
 
-### 2.1 Optimization Parameters Schema
-
-```typescript
-import { z } from 'zod';
-
-const OptimizationParamsSchema = z.object({
-  itemIds: z.array(z.string().uuid()).optional(),
-  locationId: z.string().uuid().optional(),
-  categoryId: z.string().uuid().optional(),
-  includeAllItems: z.boolean().default(false),
-  serviceLevel: z.number().min(0.5).max(0.99).default(0.95),
-  orderCost: z.number().positive().optional(),
-  holdingCostRate: z.number().min(0.01).max(1.0).optional(),
-});
-```
-
-**Validation Rules**:
-
-| Field | Rule | Error Message |
-|-------|------|---------------|
-| itemIds | Valid UUID array | "Invalid item ID format" |
-| locationId | Valid UUID | "Invalid location ID" |
-| categoryId | Valid UUID | "Invalid category ID" |
-| serviceLevel | 0.5 - 0.99 | "Service level must be between 50% and 99%" |
-| orderCost | > 0 | "Order cost must be positive" |
-| holdingCostRate | 0.01 - 1.0 | "Holding cost rate must be between 1% and 100%" |
-
-### 2.2 Dead Stock Parameters Schema
+### 2.1 Location Filter Validation
 
 ```typescript
-const DeadStockParamsSchema = z.object({
-  thresholdDays: z.number().int().min(1).max(730).default(90),
-  locationId: z.string().uuid().optional(),
-  categoryId: z.string().uuid().optional(),
-  riskLevel: z.enum(['low', 'medium', 'high', 'critical']).optional(),
-  includeZeroStock: z.boolean().default(false),
-});
-```
+// Valid location values
+type LocationFilter = "all" | string // UUID for specific location
 
-**Validation Rules**:
-
-| Field | Rule | Error Message |
-|-------|------|---------------|
-| thresholdDays | 1 - 730 | "Threshold must be between 1 and 730 days" |
-| riskLevel | Valid enum | "Invalid risk level" |
-
-### 2.3 Safety Stock Parameters Schema
-
-```typescript
-const SafetyStockParamsSchema = z.object({
-  serviceLevel: z.enum(['90', '95', '99']),
-  itemIds: z.array(z.string().uuid()).optional(),
-  categoryId: z.string().uuid().optional(),
-  leadTimeDays: z.number().int().min(1).max(180).optional(),
-});
-```
-
-**Validation Rules**:
-
-| Field | Rule | Error Message |
-|-------|------|---------------|
-| serviceLevel | 90, 95, or 99 | "Service level must be 90%, 95%, or 99%" |
-| leadTimeDays | 1 - 180 | "Lead time must be between 1 and 180 days" |
-
-### 2.4 Settings Schema
-
-```typescript
-const SettingsSchema = z.object({
-  defaultServiceLevel: z.number().min(0.5).max(0.99),
-  defaultOrderCost: z.number().positive(),
-  defaultHoldingCostRate: z.number().min(0.01).max(1.0),
-  defaultLeadTimeDays: z.number().int().min(1).max(180),
-  deadStockThresholdDays: z.number().int().min(30).max(365),
-  lowStockAlertEnabled: z.boolean(),
-  deadStockAlertEnabled: z.boolean(),
-  emailNotifications: z.boolean(),
-  autoApplyLowRisk: z.boolean(),
-});
-```
-
----
-
-## 3. Business Rule Validations
-
-### 3.1 Optimization Business Rules
-
-| Rule ID | Rule | Validation |
-|---------|------|------------|
-| VAL-OPT-001 | EOQ cannot exceed annual demand | `eoq <= annualDemand` |
-| VAL-OPT-002 | EOQ must be at least 1 unit | `eoq >= 1` |
-| VAL-OPT-003 | Reorder point cannot exceed max stock | `rop <= maxStockLevel` |
-| VAL-OPT-004 | Safety stock included in reorder point | `safetyStock <= rop` |
-| VAL-OPT-005 | Savings must be calculable | `!isNaN(totalSavings)` |
-
-**Implementation**:
-
-```typescript
-function validateOptimizationResult(result: InventoryOptimization): ValidationResult {
-  const errors: string[] = [];
-
-  // VAL-OPT-001
-  if (result.optimizedMetrics.recommendedOrderQuantity > result.annualDemand) {
-    errors.push('EOQ cannot exceed annual demand');
-  }
-
-  // VAL-OPT-002
-  if (result.optimizedMetrics.recommendedOrderQuantity < 1) {
-    errors.push('Order quantity must be at least 1');
-  }
-
-  // VAL-OPT-003
-  if (result.optimizedMetrics.recommendedReorderPoint > result.maxStockLevel) {
-    errors.push('Reorder point exceeds maximum stock level');
-  }
-
-  // VAL-OPT-004
-  if (result.optimizedMetrics.recommendedSafetyStock > result.optimizedMetrics.recommendedReorderPoint) {
-    errors.push('Safety stock cannot exceed reorder point');
-  }
-
-  return {
-    valid: errors.length === 0,
-    errors,
-  };
+// Validation
+const isValidLocation = (value: string): boolean => {
+  return value === "all" || mockLocations.some(loc => loc.id === value)
 }
 ```
 
-### 3.2 Dead Stock Business Rules
-
-| Rule ID | Rule | Validation |
-|---------|------|------------|
-| VAL-DS-001 | Days since movement >= 0 | `daysSinceLastMovement >= 0` |
-| VAL-DS-002 | Months of stock >= 0 | `monthsOfStock >= 0` |
-| VAL-DS-003 | Liquidation value <= current value | `liquidationValue <= currentValue` |
-| VAL-DS-004 | Potential loss <= current value | `potentialLoss <= currentValue` |
-| VAL-DS-005 | Risk level matches criteria | See risk classification |
-
-**Risk Classification Validation**:
+### 2.2 KPI Data Validation
 
 ```typescript
-function validateRiskClassification(item: DeadStockAnalysis): boolean {
-  const { daysSinceLastMovement, monthsOfStock, obsolescenceRisk } = item;
+// KPI values must be non-negative
+interface KPIValidation {
+  totalSavings: number      // >= 0
+  itemsAtRisk: number       // >= 0, integer
+  optimizationRate: number  // 0-100
+  deadStockValue: number    // >= 0
+}
 
-  switch (obsolescenceRisk) {
+const validateKPIData = (data: KPIValidation): boolean => {
+  return (
+    data.totalSavings >= 0 &&
+    data.itemsAtRisk >= 0 && Number.isInteger(data.itemsAtRisk) &&
+    data.optimizationRate >= 0 && data.optimizationRate <= 100 &&
+    data.deadStockValue >= 0
+  )
+}
+```
+
+### 2.3 Trend Data Validation
+
+```typescript
+// Trend percentages can be positive or negative
+interface TrendValidation {
+  savingsChange: number     // any number (percentage)
+  riskChange: number        // any number (percentage)
+  optimizationChange: number // any number (percentage)
+  deadStockChange: number   // any number (percentage)
+}
+
+const validateTrendData = (data: TrendValidation): boolean => {
+  return Object.values(data).every(v => typeof v === 'number' && !isNaN(v))
+}
+```
+
+---
+
+## 3. Reorder Management Validations
+
+### 3.1 Filter Validations
+
+```typescript
+// Location filter
+const locationFilterOptions = ["all", ...mockLocations.map(l => l.id)]
+
+// Action type filter
+type ActionTypeFilter = "all" | "implement" | "pilot" | "monitor" | "reject"
+
+const isValidActionFilter = (value: string): boolean => {
+  return ["all", "implement", "pilot", "monitor", "reject"].includes(value)
+}
+```
+
+### 3.2 Recommendation Data Validation
+
+```typescript
+interface ReorderRecommendation {
+  id: string
+  productCode: string
+  productName: string
+  currentROP: number        // >= 0
+  recommendedROP: number    // >= 0
+  currentEOQ: number        // >= 1
+  recommendedEOQ: number    // >= 1
+  annualSavings: number     // can be negative
+  riskLevel: 'low' | 'medium' | 'high'
+  actionType: 'implement' | 'pilot' | 'monitor' | 'reject'
+  leadTime: number          // > 0
+  dailyDemand: number       // >= 0
+  currentServiceLevel: number   // 0-1
+  targetServiceLevel: number    // 0-1
+}
+
+const validateRecommendation = (rec: ReorderRecommendation): string[] => {
+  const errors: string[] = []
+
+  if (rec.currentROP < 0) errors.push('Current ROP must be non-negative')
+  if (rec.recommendedROP < 0) errors.push('Recommended ROP must be non-negative')
+  if (rec.currentEOQ < 1) errors.push('Current EOQ must be at least 1')
+  if (rec.recommendedEOQ < 1) errors.push('Recommended EOQ must be at least 1')
+  if (rec.leadTime <= 0) errors.push('Lead time must be positive')
+  if (rec.dailyDemand < 0) errors.push('Daily demand must be non-negative')
+  if (rec.currentServiceLevel < 0 || rec.currentServiceLevel > 1) {
+    errors.push('Service level must be between 0 and 1')
+  }
+  if (rec.targetServiceLevel < 0 || rec.targetServiceLevel > 1) {
+    errors.push('Target service level must be between 0 and 1')
+  }
+
+  return errors
+}
+```
+
+### 3.3 Selection Validation
+
+```typescript
+// At least one item must be selected for bulk actions
+const validateSelection = (selectedItems: Set<string>): boolean => {
+  return selectedItems.size > 0
+}
+
+// Validate selected items exist in data
+const validateSelectedItemsExist = (
+  selectedItems: Set<string>,
+  recommendations: ReorderRecommendation[]
+): boolean => {
+  const validIds = new Set(recommendations.map(r => r.id))
+  return Array.from(selectedItems).every(id => validIds.has(id))
+}
+```
+
+### 3.4 Apply Recommendations Validation
+
+```typescript
+// Before applying recommendations
+const validateApplyAction = (
+  selectedItems: Set<string>,
+  recommendations: ReorderRecommendation[]
+): { valid: boolean; errors: string[] } => {
+  const errors: string[] = []
+
+  if (selectedItems.size === 0) {
+    errors.push('Please select at least one item')
+  }
+
+  // Validate each selected item
+  for (const id of selectedItems) {
+    const rec = recommendations.find(r => r.id === id)
+    if (!rec) {
+      errors.push(`Item ${id} not found`)
+      continue
+    }
+
+    // Cannot apply rejected recommendations
+    if (rec.actionType === 'reject') {
+      errors.push(`Cannot apply rejected recommendation: ${rec.productName}`)
+    }
+  }
+
+  return { valid: errors.length === 0, errors }
+}
+```
+
+---
+
+## 4. Dead Stock Validations
+
+### 4.1 Threshold Days Validation
+
+```typescript
+// Valid threshold values
+type ThresholdDays = "60" | "90" | "120" | "180" | "365"
+
+const validThresholds = ["60", "90", "120", "180", "365"]
+
+const isValidThreshold = (value: string): boolean => {
+  return validThresholds.includes(value)
+}
+```
+
+### 4.2 Risk Level Validation
+
+```typescript
+// Valid risk levels
+type RiskLevel = "critical" | "high" | "medium" | "low"
+
+const validRiskLevels = ["critical", "high", "medium", "low"]
+
+const isValidRiskLevel = (value: string): boolean => {
+  return validRiskLevels.includes(value)
+}
+```
+
+### 4.3 Dead Stock Item Validation
+
+```typescript
+interface DeadStockItem {
+  id: string
+  productCode: string
+  productName: string
+  currentStock: number       // >= 0
+  value: number              // >= 0
+  daysSinceMovement: number  // >= 0
+  riskLevel: RiskLevel
+  monthsOfStock: number      // >= 0
+  recommendedAction: 'liquidate' | 'return' | 'writeoff' | 'continue' | 'reduce'
+  liquidationValue: number   // >= 0, <= value
+  potentialLoss: number      // >= 0, <= value
+}
+
+const validateDeadStockItem = (item: DeadStockItem): string[] => {
+  const errors: string[] = []
+
+  if (item.currentStock < 0) errors.push('Stock cannot be negative')
+  if (item.value < 0) errors.push('Value cannot be negative')
+  if (item.daysSinceMovement < 0) errors.push('Days since movement cannot be negative')
+  if (item.monthsOfStock < 0) errors.push('Months of stock cannot be negative')
+  if (item.liquidationValue < 0) errors.push('Liquidation value cannot be negative')
+  if (item.liquidationValue > item.value) {
+    errors.push('Liquidation value cannot exceed current value')
+  }
+  if (item.potentialLoss < 0) errors.push('Potential loss cannot be negative')
+  if (item.potentialLoss > item.value) {
+    errors.push('Potential loss cannot exceed current value')
+  }
+
+  return errors
+}
+```
+
+### 4.4 Risk Classification Validation
+
+```typescript
+// Validate risk level matches criteria
+const validateRiskClassification = (item: DeadStockItem): boolean => {
+  const { daysSinceMovement, monthsOfStock, riskLevel } = item
+
+  switch (riskLevel) {
     case 'critical':
-      return daysSinceLastMovement > 365 || monthsOfStock > 24;
+      return daysSinceMovement > 365 || monthsOfStock > 24
     case 'high':
-      return (daysSinceLastMovement > 180 || monthsOfStock > 12) &&
-             !(daysSinceLastMovement > 365 || monthsOfStock > 24);
+      return (daysSinceMovement > 180 || monthsOfStock > 12) &&
+             !(daysSinceMovement > 365 || monthsOfStock > 24)
     case 'medium':
-      return (daysSinceLastMovement > 90 || monthsOfStock > 6) &&
-             !(daysSinceLastMovement > 180 || monthsOfStock > 12);
+      return (daysSinceMovement > 90 || monthsOfStock > 6) &&
+             !(daysSinceMovement > 180 || monthsOfStock > 12)
     case 'low':
-      return daysSinceLastMovement <= 90 && monthsOfStock <= 6;
+      return daysSinceMovement <= 90 && monthsOfStock <= 6
     default:
-      return false;
+      return false
   }
 }
 ```
 
-### 3.3 Action Recommendation Rules
-
-| Rule ID | Rule | Validation |
-|---------|------|------------|
-| VAL-ACT-001 | IMPLEMENT requires low risk | `risk === 'low' && savings > 100` |
-| VAL-ACT-002 | PILOT requires positive savings | `savings > 50` |
-| VAL-ACT-003 | REJECT for high risk or negative ROI | `risk === 'high' || savings <= 0` |
-
-**Implementation**:
+### 4.5 Action Selection Validation
 
 ```typescript
-function validateActionRecommendation(
-  action: ActionType,
-  risk: RiskLevel,
-  savings: number
-): boolean {
-  switch (action) {
-    case 'implement':
-      return risk === 'low' && savings > 100;
-    case 'pilot':
-      return savings > 50;
-    case 'monitor':
-      return savings > 0 && risk !== 'high';
-    case 'reject':
-      return risk === 'high' || savings <= 0;
-    default:
-      return false;
-  }
+type DeadStockAction = 'liquidate' | 'return' | 'writeoff' | 'continue' | 'reduce'
+
+const validActions: DeadStockAction[] = ['liquidate', 'return', 'writeoff', 'continue', 'reduce']
+
+const isValidAction = (action: string): action is DeadStockAction => {
+  return validActions.includes(action as DeadStockAction)
 }
 ```
 
 ---
 
-## 4. Calculation Validations
+## 5. Safety Stock Validations
 
-### 4.1 EOQ Calculation Validation
+### 5.1 Service Level Validation
 
 ```typescript
-function validateEOQCalculation(
+// Valid service levels
+type ServiceLevel = "90" | "95" | "99"
+
+const validServiceLevels = ["90", "95", "99"]
+
+const isValidServiceLevel = (value: string): boolean => {
+  return validServiceLevels.includes(value)
+}
+
+// Z-score mapping validation
+const getZScore = (level: ServiceLevel): number => {
+  const zScores: Record<ServiceLevel, number> = {
+    "90": 1.28,
+    "95": 1.65,
+    "99": 2.33,
+  }
+  return zScores[level]
+}
+```
+
+### 5.2 Safety Stock Item Validation
+
+```typescript
+interface SafetyStockItem {
+  id: string
+  productCode: string
+  productName: string
+  currentSafetyStock: number  // >= 0
+  recommendedSafetyStock: {
+    "90": number  // >= 0
+    "95": number  // >= 0
+    "99": number  // >= 0
+  }
+  unitCost: number            // > 0
+  demandVariability: number   // >= 0
+  leadTimeVariability: number // >= 0
+  currentServiceLevel: number // 0-1
+}
+
+const validateSafetyStockItem = (item: SafetyStockItem): string[] => {
+  const errors: string[] = []
+
+  if (item.currentSafetyStock < 0) {
+    errors.push('Current safety stock cannot be negative')
+  }
+
+  Object.entries(item.recommendedSafetyStock).forEach(([level, value]) => {
+    if (value < 0) {
+      errors.push(`Recommended safety stock for ${level}% cannot be negative`)
+    }
+  })
+
+  if (item.unitCost <= 0) {
+    errors.push('Unit cost must be positive')
+  }
+
+  if (item.demandVariability < 0) {
+    errors.push('Demand variability cannot be negative')
+  }
+
+  if (item.leadTimeVariability < 0) {
+    errors.push('Lead time variability cannot be negative')
+  }
+
+  if (item.currentServiceLevel < 0 || item.currentServiceLevel > 1) {
+    errors.push('Service level must be between 0 and 1')
+  }
+
+  return errors
+}
+```
+
+### 5.3 Cost Impact Validation
+
+```typescript
+// Cost impact calculation validation
+const validateCostImpact = (
+  currentStock: number,
+  recommendedStock: number,
+  unitCost: number
+): number => {
+  if (unitCost <= 0) throw new Error('Unit cost must be positive')
+
+  const difference = recommendedStock - currentStock
+  return difference * unitCost
+}
+```
+
+---
+
+## 6. Multi-Location Validations
+
+### 6.1 Location Data Validation
+
+```typescript
+interface LocationData {
+  id: string
+  name: string
+  inventoryValue: number      // >= 0
+  turnoverRate: number        // >= 0
+  alertCount: number          // >= 0, integer
+  status: 'optimal' | 'overstocked' | 'understocked'
+  efficiency: number          // 0-100
+  capacityUtilization: number // 0-100
+}
+
+const validateLocationData = (location: LocationData): string[] => {
+  const errors: string[] = []
+
+  if (location.inventoryValue < 0) {
+    errors.push('Inventory value cannot be negative')
+  }
+
+  if (location.turnoverRate < 0) {
+    errors.push('Turnover rate cannot be negative')
+  }
+
+  if (location.alertCount < 0 || !Number.isInteger(location.alertCount)) {
+    errors.push('Alert count must be a non-negative integer')
+  }
+
+  if (location.efficiency < 0 || location.efficiency > 100) {
+    errors.push('Efficiency must be between 0 and 100')
+  }
+
+  if (location.capacityUtilization < 0 || location.capacityUtilization > 100) {
+    errors.push('Capacity utilization must be between 0 and 100')
+  }
+
+  return errors
+}
+```
+
+### 6.2 Transfer Recommendation Validation
+
+```typescript
+interface TransferRecommendation {
+  id: string
+  productCode: string
+  productName: string
+  fromLocationId: string
+  toLocationId: string
+  quantity: number           // > 0
+  unit: string
+  reason: string
+  priority: 'high' | 'medium' | 'low'
+  estimatedSavings: number   // >= 0
+}
+
+const validateTransferRecommendation = (transfer: TransferRecommendation): string[] => {
+  const errors: string[] = []
+
+  if (transfer.fromLocationId === transfer.toLocationId) {
+    errors.push('Source and destination locations must be different')
+  }
+
+  if (transfer.quantity <= 0) {
+    errors.push('Transfer quantity must be positive')
+  }
+
+  if (transfer.estimatedSavings < 0) {
+    errors.push('Estimated savings cannot be negative')
+  }
+
+  if (!['high', 'medium', 'low'].includes(transfer.priority)) {
+    errors.push('Invalid priority level')
+  }
+
+  return errors
+}
+```
+
+### 6.3 Location Status Validation
+
+```typescript
+type LocationStatus = 'optimal' | 'overstocked' | 'understocked'
+
+const validStatuses: LocationStatus[] = ['optimal', 'overstocked', 'understocked']
+
+const isValidStatus = (status: string): status is LocationStatus => {
+  return validStatuses.includes(status as LocationStatus)
+}
+```
+
+---
+
+## 7. Settings Validations
+
+### 7.1 Settings Schema
+
+```typescript
+interface InventoryPlanningSettings {
+  defaultServiceLevel: string       // "90" | "95" | "99"
+  orderCostPerOrder: number         // > 0
+  holdingCostRate: number           // 1-100 (percentage)
+  defaultLeadTime: number           // 1-180 days
+  deadStockThreshold: number        // 30-365 days
+  lowStockAlertEnabled: boolean
+  deadStockAlertEnabled: boolean
+  overstockAlertEnabled: boolean
+  emailNotificationsEnabled: boolean
+  notificationEmail: string         // valid email if notifications enabled
+  digestFrequency: string           // "daily" | "weekly" | "monthly"
+  autoApplyLowRisk: boolean
+  autoGenerateWeekly: boolean
+  syncWithProcurement: boolean
+}
+```
+
+### 7.2 Settings Validation Rules
+
+```typescript
+const validateSettings = (settings: InventoryPlanningSettings): string[] => {
+  const errors: string[] = []
+
+  // Service level
+  if (!["90", "95", "99"].includes(settings.defaultServiceLevel)) {
+    errors.push('Invalid service level')
+  }
+
+  // Order cost
+  if (settings.orderCostPerOrder <= 0) {
+    errors.push('Order cost must be positive')
+  }
+
+  // Holding cost rate
+  if (settings.holdingCostRate < 1 || settings.holdingCostRate > 100) {
+    errors.push('Holding cost rate must be between 1% and 100%')
+  }
+
+  // Lead time
+  if (settings.defaultLeadTime < 1 || settings.defaultLeadTime > 180) {
+    errors.push('Lead time must be between 1 and 180 days')
+  }
+
+  // Dead stock threshold
+  if (settings.deadStockThreshold < 30 || settings.deadStockThreshold > 365) {
+    errors.push('Dead stock threshold must be between 30 and 365 days')
+  }
+
+  // Email validation
+  if (settings.emailNotificationsEnabled && settings.notificationEmail) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(settings.notificationEmail)) {
+      errors.push('Invalid email address')
+    }
+  }
+
+  // Digest frequency
+  if (!["daily", "weekly", "monthly"].includes(settings.digestFrequency)) {
+    errors.push('Invalid digest frequency')
+  }
+
+  return errors
+}
+```
+
+### 7.3 Individual Field Validations
+
+```typescript
+// Order cost validation
+const validateOrderCost = (value: number): string | null => {
+  if (isNaN(value)) return 'Please enter a valid number'
+  if (value <= 0) return 'Order cost must be positive'
+  if (value > 10000) return 'Order cost seems too high'
+  return null
+}
+
+// Holding cost rate validation
+const validateHoldingCostRate = (value: number): string | null => {
+  if (isNaN(value)) return 'Please enter a valid number'
+  if (value < 1) return 'Holding cost rate must be at least 1%'
+  if (value > 100) return 'Holding cost rate cannot exceed 100%'
+  return null
+}
+
+// Lead time validation
+const validateLeadTime = (value: number): string | null => {
+  if (isNaN(value)) return 'Please enter a valid number'
+  if (!Number.isInteger(value)) return 'Lead time must be a whole number'
+  if (value < 1) return 'Lead time must be at least 1 day'
+  if (value > 180) return 'Lead time cannot exceed 180 days'
+  return null
+}
+
+// Dead stock threshold validation
+const validateDeadStockThreshold = (value: number): string | null => {
+  if (isNaN(value)) return 'Please enter a valid number'
+  if (!Number.isInteger(value)) return 'Threshold must be a whole number'
+  if (value < 30) return 'Threshold must be at least 30 days'
+  if (value > 365) return 'Threshold cannot exceed 365 days'
+  return null
+}
+```
+
+---
+
+## 8. Calculation Validations
+
+### 8.1 EOQ Calculation Validation
+
+```typescript
+// EOQ = sqrt(2DS/H)
+const validateEOQInputs = (
   annualDemand: number,
   orderCost: number,
   holdingCost: number
-): ValidationResult {
-  const errors: string[] = [];
+): { valid: boolean; errors: string[] } => {
+  const errors: string[] = []
 
   if (annualDemand <= 0) {
-    errors.push('Annual demand must be positive');
+    errors.push('Annual demand must be positive')
   }
+
   if (orderCost <= 0) {
-    errors.push('Order cost must be positive');
+    errors.push('Order cost must be positive')
   }
+
   if (holdingCost <= 0) {
-    errors.push('Holding cost must be positive');
+    errors.push('Holding cost must be positive')
   }
 
-  // Check for valid calculation
-  if (errors.length === 0) {
-    const eoq = Math.sqrt((2 * annualDemand * orderCost) / holdingCost);
-    if (!isFinite(eoq) || isNaN(eoq)) {
-      errors.push('EOQ calculation resulted in invalid value');
-    }
-  }
+  return { valid: errors.length === 0, errors }
+}
 
-  return { valid: errors.length === 0, errors };
+const calculateEOQ = (
+  annualDemand: number,
+  orderCost: number,
+  holdingCost: number
+): number | null => {
+  const validation = validateEOQInputs(annualDemand, orderCost, holdingCost)
+  if (!validation.valid) return null
+
+  const eoq = Math.sqrt((2 * annualDemand * orderCost) / holdingCost)
+
+  // Cap at annual demand
+  return Math.min(eoq, annualDemand)
 }
 ```
 
-### 4.2 Safety Stock Calculation Validation
+### 8.2 Safety Stock Calculation Validation
 
 ```typescript
-function validateSafetyStockCalculation(
+// Safety Stock = Z × σ × √LT
+const validateSafetyStockInputs = (
   zScore: number,
   demandStdDev: number,
   leadTime: number
-): ValidationResult {
-  const errors: string[] = [];
+): { valid: boolean; errors: string[] } => {
+  const errors: string[] = []
 
   if (zScore <= 0) {
-    errors.push('Z-score must be positive');
+    errors.push('Z-score must be positive')
   }
+
   if (demandStdDev < 0) {
-    errors.push('Demand standard deviation cannot be negative');
+    errors.push('Demand standard deviation cannot be negative')
   }
+
   if (leadTime <= 0) {
-    errors.push('Lead time must be positive');
+    errors.push('Lead time must be positive')
   }
 
-  // Check for valid calculation
-  if (errors.length === 0) {
-    const safetyStock = zScore * demandStdDev * Math.sqrt(leadTime);
-    if (!isFinite(safetyStock) || isNaN(safetyStock)) {
-      errors.push('Safety stock calculation resulted in invalid value');
-    }
-  }
+  return { valid: errors.length === 0, errors }
+}
 
-  return { valid: errors.length === 0, errors };
+const calculateSafetyStock = (
+  zScore: number,
+  demandStdDev: number,
+  leadTime: number
+): number | null => {
+  const validation = validateSafetyStockInputs(zScore, demandStdDev, leadTime)
+  if (!validation.valid) return null
+
+  return zScore * demandStdDev * Math.sqrt(leadTime)
 }
 ```
 
-### 4.3 Financial Calculation Validation
+### 8.3 Reorder Point Calculation Validation
 
 ```typescript
-function validateFinancialCalculation(
-  value: number,
-  type: 'savings' | 'cost' | 'value'
-): ValidationResult {
-  const errors: string[] = [];
+// ROP = (Lead Time × Daily Demand) + Safety Stock
+const validateROPInputs = (
+  leadTime: number,
+  dailyDemand: number,
+  safetyStock: number
+): { valid: boolean; errors: string[] } => {
+  const errors: string[] = []
 
-  if (!isFinite(value) || isNaN(value)) {
-    errors.push(`${type} calculation resulted in invalid value`);
+  if (leadTime <= 0) {
+    errors.push('Lead time must be positive')
   }
 
-  if (type === 'value' && value < 0) {
-    errors.push('Value cannot be negative');
+  if (dailyDemand < 0) {
+    errors.push('Daily demand cannot be negative')
   }
 
-  if (type === 'cost' && value < 0) {
-    errors.push('Cost cannot be negative');
+  if (safetyStock < 0) {
+    errors.push('Safety stock cannot be negative')
   }
 
-  // Check for precision issues
-  if (Math.abs(value) > Number.MAX_SAFE_INTEGER) {
-    errors.push(`${type} exceeds safe calculation range`);
-  }
+  return { valid: errors.length === 0, errors }
+}
 
-  return { valid: errors.length === 0, errors };
+const calculateROP = (
+  leadTime: number,
+  dailyDemand: number,
+  safetyStock: number
+): number | null => {
+  const validation = validateROPInputs(leadTime, dailyDemand, safetyStock)
+  if (!validation.valid) return null
+
+  return (leadTime * dailyDemand) + safetyStock
 }
 ```
 
 ---
 
-## 5. State Transition Validations
+## 9. Error Messages
 
-### 5.1 Recommendation State Transitions
+### 9.1 Input Validation Errors
 
-| Current State | Valid Transitions | Invalid Transitions |
-|---------------|-------------------|---------------------|
-| pending | in_review, applied, rejected | - |
-| in_review | applied, rejected, pending | - |
-| applied | - | pending, in_review |
-| rejected | pending (re-evaluate) | applied |
+| Code | Field | Message |
+|------|-------|---------|
+| ERR_VAL_001 | serviceLevel | Service level must be 90%, 95%, or 99% |
+| ERR_VAL_002 | orderCost | Order cost must be a positive number |
+| ERR_VAL_003 | holdingCostRate | Holding cost rate must be between 1% and 100% |
+| ERR_VAL_004 | leadTime | Lead time must be between 1 and 180 days |
+| ERR_VAL_005 | deadStockThreshold | Threshold must be between 30 and 365 days |
+| ERR_VAL_006 | notificationEmail | Please enter a valid email address |
 
-**Implementation**:
+### 9.2 Selection Validation Errors
 
-```typescript
-type RecommendationState = 'pending' | 'in_review' | 'applied' | 'rejected';
+| Code | Context | Message |
+|------|---------|---------|
+| ERR_SEL_001 | Bulk action | Please select at least one item |
+| ERR_SEL_002 | Apply rejected | Cannot apply rejected recommendations |
+| ERR_SEL_003 | Invalid ID | Selected item not found |
 
-const validTransitions: Record<RecommendationState, RecommendationState[]> = {
-  pending: ['in_review', 'applied', 'rejected'],
-  in_review: ['applied', 'rejected', 'pending'],
-  applied: [],
-  rejected: ['pending'],
-};
+### 9.3 Calculation Errors
 
-function validateStateTransition(
-  currentState: RecommendationState,
-  newState: RecommendationState
-): boolean {
-  return validTransitions[currentState].includes(newState);
-}
-```
-
-### 5.2 Dead Stock Action State Transitions
-
-| Current Action | Valid Next Actions |
-|----------------|-------------------|
-| identified | continue_stocking, reduce_stock, liquidate, return_to_supplier, write_off |
-| reduce_stock | liquidate, return_to_supplier, write_off, continue_stocking |
-| liquidate | write_off (if unsold) |
-| return_to_supplier | write_off (if rejected) |
-| write_off | - (terminal state) |
+| Code | Context | Message |
+|------|---------|---------|
+| ERR_CALC_001 | EOQ | Cannot calculate EOQ with zero or negative values |
+| ERR_CALC_002 | Safety Stock | Cannot calculate safety stock with invalid inputs |
+| ERR_CALC_003 | ROP | Cannot calculate reorder point with invalid inputs |
 
 ---
 
-## 6. Error Messages
+## 10. Validation Response Format
 
-### 6.1 Input Validation Errors
-
-| Code | Message | Resolution |
-|------|---------|------------|
-| ERR_VAL_001 | Invalid item ID format | Ensure item ID is a valid UUID |
-| ERR_VAL_002 | Service level out of range | Set service level between 50% and 99% |
-| ERR_VAL_003 | Threshold days out of range | Set threshold between 1 and 730 days |
-| ERR_VAL_004 | Invalid risk level | Select low, medium, high, or critical |
-| ERR_VAL_005 | Order cost must be positive | Enter a positive order cost value |
-| ERR_VAL_006 | Holding cost rate out of range | Set rate between 1% and 100% |
-
-### 6.2 Business Rule Errors
-
-| Code | Message | Resolution |
-|------|---------|------------|
-| ERR_BUS_001 | EOQ exceeds annual demand | Review demand calculation or manually adjust |
-| ERR_BUS_002 | Insufficient historical data | Wait for more transaction history |
-| ERR_BUS_003 | Reorder point exceeds capacity | Reduce reorder point or increase storage |
-| ERR_BUS_004 | Invalid action for risk level | Review recommendation criteria |
-| ERR_BUS_005 | Savings calculation invalid | Check input parameters |
-
-### 6.3 Calculation Errors
-
-| Code | Message | Resolution |
-|------|---------|------------|
-| ERR_CALC_001 | Division by zero in EOQ | Verify holding cost is non-zero |
-| ERR_CALC_002 | Negative square root | Check input values for sign errors |
-| ERR_CALC_003 | Overflow in calculation | Reduce input scale or use batching |
-| ERR_CALC_004 | Invalid date range | Verify date parameters are logical |
-
----
-
-## 7. Validation Response Format
-
-### 7.1 Success Response
+### 10.1 Validation Result Interface
 
 ```typescript
-interface ValidationSuccess {
-  valid: true;
-  data: any;
-  warnings?: string[];
+interface ValidationResult {
+  valid: boolean
+  errors: ValidationError[]
+  warnings?: string[]
 }
-```
 
-### 7.2 Error Response
-
-```typescript
 interface ValidationError {
-  valid: false;
-  errors: Array<{
-    code: string;
-    field: string;
-    message: string;
-    details?: any;
-  }>;
+  code: string
+  field: string
+  message: string
+  value?: any
 }
 ```
 
-### 7.3 Example Responses
+### 10.2 Example Responses
 
-**Success with Warning**:
-```json
+**Success Response**:
+```typescript
 {
-  "valid": true,
-  "data": { ... },
-  "warnings": [
-    "Some items have less than 90 days of history and may have less accurate recommendations"
-  ]
+  valid: true,
+  errors: [],
+  warnings: ["Some items have limited history data"]
 }
 ```
 
-**Validation Error**:
-```json
+**Error Response**:
+```typescript
 {
-  "valid": false,
-  "errors": [
+  valid: false,
+  errors: [
     {
-      "code": "ERR_VAL_002",
-      "field": "serviceLevel",
-      "message": "Service level out of range",
-      "details": {
-        "provided": 1.5,
-        "min": 0.5,
-        "max": 0.99
-      }
+      code: "ERR_VAL_002",
+      field: "orderCost",
+      message: "Order cost must be a positive number",
+      value: -50
     }
   ]
-}
-```
-
----
-
-## 8. Client-Side Validation
-
-### 8.1 Form Validation with React Hook Form
-
-```typescript
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-
-const {
-  register,
-  handleSubmit,
-  formState: { errors },
-} = useForm({
-  resolver: zodResolver(OptimizationParamsSchema),
-  defaultValues: {
-    serviceLevel: 0.95,
-    includeAllItems: false,
-  },
-});
-```
-
-### 8.2 Real-time Validation
-
-```typescript
-// Debounced validation for numeric inputs
-const validateServiceLevel = useDebouncedCallback((value: number) => {
-  if (value < 0.5 || value > 0.99) {
-    setError('serviceLevel', {
-      type: 'manual',
-      message: 'Service level must be between 50% and 99%',
-    });
-  } else {
-    clearErrors('serviceLevel');
-  }
-}, 300);
-```
-
----
-
-## 9. API Validation Middleware
-
-```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { ZodSchema } from 'zod';
-
-export function withValidation<T>(
-  schema: ZodSchema<T>,
-  handler: (req: NextRequest, data: T) => Promise<Response>
-) {
-  return async (req: NextRequest) => {
-    try {
-      const body = await req.json();
-      const result = schema.safeParse(body);
-
-      if (!result.success) {
-        return NextResponse.json(
-          {
-            valid: false,
-            errors: result.error.errors.map(err => ({
-              code: 'ERR_VAL',
-              field: err.path.join('.'),
-              message: err.message,
-            })),
-          },
-          { status: 400 }
-        );
-      }
-
-      return handler(req, result.data);
-    } catch (error) {
-      return NextResponse.json(
-        {
-          valid: false,
-          errors: [{ code: 'ERR_PARSE', message: 'Invalid request body' }],
-        },
-        { status: 400 }
-      );
-    }
-  };
 }
 ```
 

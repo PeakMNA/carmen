@@ -3,16 +3,17 @@
 ## Document Information
 - **Document Type**: Flow Diagrams Document
 - **Module**: Vendor Management > Price Lists
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added 5-step staff creation wizard flow; Updated navigation flow with new routes; Added creation method selection diagram; Updated status values |
+| 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional flow diagrams; Updated to reflect implemented functionality using Mermaid 8.8.2 syntax |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
-| 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional flow diagrams (5-step wizard, bulk import, price comparison, approval workflows, price alerts, RFQ integration, scheduled jobs); Updated to reflect implemented functionality using Mermaid 8.8.2 syntax |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 **Note**: This document uses Mermaid 8.8.2 syntax for all diagrams. It reflects the actual implemented flows only.
@@ -33,19 +34,19 @@ The Price Lists module enables procurement staff to view, create, and manage ven
 
 ```mermaid
 graph TB
-    subgraph 'Frontend Layer'
+    subgraph Frontend_Layer
         UI[Next.js UI Components]
         Forms[React Hook Form + Zod]
         State[useState + useMemo]
     end
 
-    subgraph 'Application Layer'
+    subgraph Application_Layer
         Pages[Client Components]
         Actions[Event Handlers]
     end
 
-    subgraph 'Data Layer'
-        MockData[Mock Data - lib/mock-data]
+    subgraph Data_Layer
+        MockData[Mock Data]
         Types[TypeScript Interfaces]
     end
 
@@ -67,21 +68,48 @@ graph TB
 graph LR
     Sidebar[Sidebar Navigation] --> VendorMgmt[Vendor Management]
     VendorMgmt --> PriceLists[Price Lists]
-    PriceLists --> ListPage['/vendor-management/pricelists']
-    ListPage --> AddPage['/vendor-management/pricelists/add']
-    ListPage --> DetailPage['/vendor-management/pricelists/[id]']
+    PriceLists --> ListPage[List Page]
+    ListPage --> AddPage[Add Page]
+    ListPage --> DetailPage[Detail Page]
 ```
+
+**Routes:**
+| Page | Route |
+|------|-------|
+| List Page | `/vendor-management/pricelists` |
+| Add Page | `/vendor-management/pricelists/add` |
+| Detail Page | `/vendor-management/pricelists/[id]` |
 
 ### 3.2 Page Navigation Flow
 
 ```mermaid
 graph TD
     ListPage[Price Lists Page] -->|Click Add New| AddPage[Add Price List Page]
+    ListPage -->|Click New Staff| WizardPage[Staff Creation Wizard]
     ListPage -->|Click Row/View| DetailPage[Price List Detail Page]
     AddPage -->|Cancel| ListPage
     AddPage -->|Save Success| DetailPage
+    WizardPage -->|Cancel| ListPage
+    WizardPage -->|Create Success| EditPage[Edit Page]
     DetailPage -->|Back Button| ListPage
     DetailPage -->|Duplicate| AddPage
+    DetailPage -->|Edit| EditPage
+```
+
+### 3.3 Staff Creation Wizard Flow
+
+```mermaid
+graph TD
+    Start([Start Wizard]) --> Step1[Step 1: Basic Info]
+    Step1 -->|Next| Step2[Step 2: Vendor Selection]
+    Step2 -->|Previous| Step1
+    Step2 -->|Next| Step3[Step 3: Creation Method]
+    Step3 -->|Previous| Step2
+    Step3 -->|Next| Step4[Step 4: Configuration]
+    Step4 -->|Previous| Step3
+    Step4 -->|Next| Step5[Step 5: Review]
+    Step5 -->|Previous| Step4
+    Step5 -->|Create| Success([Navigate to Edit])
 ```
 
 ---

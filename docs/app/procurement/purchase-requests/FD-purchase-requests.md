@@ -3,8 +3,8 @@
 **Module**: Procurement
 **Sub-Module**: Purchase Requests
 **Document Type**: Flow Diagrams (FD)
-**Version**: 1.9.0
-**Last Updated**: 2025-12-17
+**Version**: 1.9.17
+**Last Updated**: 2026-01-14
 **Status**: Active
 
 ## Document History
@@ -21,6 +21,23 @@
 | 1.7.0 | 2025-12-03 | Development Team | Updated 2.9.5: Split Items Flow - Approvers can now split PR by approval status; Added Approver Split Workflow |
 | 1.8.0 | 2025-12-17 | Development Team | Added 2.11: Auto-Pricing Process Flow - Vendor recommendation, MOQ validation, price normalization |
 | 1.9.0 | 2025-12-17 | Development Team | Added 2.12: Multi-Currency Display Flow - Currency conversion visibility, exchange rate handling |
+| 1.9.1 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Removed subgraph styling (not supported in 8.8.2) |
+| 1.9.2 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Removed 'direction TB' inside subgraphs (not supported in 8.8.2) |
+| 1.9.3 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Converted nested subgraph diagrams from 'flowchart LR' to 'graph LR' (flowchart with nested subgraphs not supported in 8.8.2) |
+| 1.9.4 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Replaced ampersand operator, emoji characters in nodes, and comparison operators in edge labels |
+| 1.9.5 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Replaced Unicode multiplication sign (×) with letter x, and Unicode arrow (→) with text |
+| 1.9.6 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Replaced curly braces in node labels (e.g., {n} to N) as braces have special meaning in Mermaid |
+| 1.9.7 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Replaced square brackets inside node labels, additional curly brace placeholders in delete dialog and currency display |
+| 1.9.8 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Replaced Unicode arrows in Mermaid comments |
+| 1.9.9 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Removed currency symbols from node labels (EUR, USD codes retained for clarity) |
+| 1.9.10 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Removed all style statements (not supported in 8.8.2) |
+| 1.9.11 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Section 5.1 stateDiagram: converted to stateDiagram-v2, single-line notes, removed hyphens from state names |
+| 1.9.12 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Section 2.12.2: replaced subgraph-to-subgraph edge with node-to-node edge |
+| 1.9.13 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Sections 2.10.2, 2.10.5, 2.11.4: replaced comparison operators with text equivalents |
+| 1.9.14 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Section 2.11.4: replaced % symbol with 'percent' in edge labels |
+| 1.9.15 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Section 2.10.2: removed parentheses from node labels |
+| 1.9.16 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Section 2.10.5: removed single quotes and equals sign from node label |
+| 1.9.17 | 2026-01-14 | Development Team | Fixed Mermaid 8.8.2 compatibility - Sections 2.10.1, 2.10.3: removed parentheses from node and edge labels |
 
 ## Implementation Status
 
@@ -118,7 +135,7 @@ flowchart TD
     UpdateStatus --> Success3[Display success message]
 
     %% Note: Status transitions use BR-defined values:
-    %% Submitted → In-progress, Rejected → Void, Converted → Completed
+    %% Submitted to In-progress, Rejected to Void, Converted to Completed
     Success3 --> End4([End])
 ```
 
@@ -387,7 +404,7 @@ flowchart TD
     UpdateCurrency --> EnterPrice
 
     SelectCurrency -->|No| EnterPrice{Enter<br>Unit Price?}
-    EnterPrice -->|Yes| CalcSubtotal[Calculate subtotal<br>qty × unit price]
+    EnterPrice -->|Yes| CalcSubtotal[Calculate subtotal<br>qty x unit price]
     CalcSubtotal --> SelectTax
 
     EnterPrice -->|No| SelectTax{Select<br>Tax Profile?}
@@ -402,7 +419,7 @@ flowchart TD
         None[None: 0%]
     end
 
-    SetTaxRate --> CalcTax[Calculate tax amount<br>net × tax rate]
+    SetTaxRate --> CalcTax[Calculate tax amount<br>net x tax rate]
     CalcTax --> OverrideTax
 
     SelectTax -->|No| OverrideTax{Override<br>Tax Amount?}
@@ -411,7 +428,7 @@ flowchart TD
     UseOverrideTax --> EnterDiscount
 
     OverrideTax -->|No| EnterDiscount{Enter<br>Discount?}
-    EnterDiscount -->|Yes| CalcDiscount[Calculate discount<br>subtotal × rate]
+    EnterDiscount -->|Yes| CalcDiscount[Calculate discount<br>subtotal x rate]
     CalcDiscount --> OverrideDiscount
 
     EnterDiscount -->|No| OverrideDiscount{Override<br>Discount?}
@@ -452,10 +469,10 @@ flowchart LR
     end
 
     subgraph Calculations
-        Subtotal[Subtotal =<br>Qty × Price]
-        DiscAmt[Discount =<br>Override OR<br>Subtotal × Rate]
+        Subtotal[Subtotal =<br>Qty x Price]
+        DiscAmt[Discount =<br>Override OR<br>Subtotal x Rate]
         NetAmt[Net Amount =<br>Subtotal - Discount]
-        TaxAmt[Tax =<br>Override OR<br>Net × Profile Rate]
+        TaxAmt[Tax =<br>Override OR<br>Net x Profile Rate]
         Total[Total =<br>Net + Tax]
     end
 
@@ -550,18 +567,13 @@ flowchart TD
 
     ValidateSubmit -->|Yes| SubmitPR[Advance to next stage<br>Notify recipient]
 
-    style RequestorActions fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style ApproverActions fill:#ffe6e6,stroke:#cc0000,stroke-width:2px
-    style PurchasingActions fill:#e6ffcc,stroke:#66cc00,stroke-width:2px
 ```
 
 #### Button Display Matrix
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph ButtonMatrix[Workflow Button Visibility by Role]
-        direction TB
-
         subgraph Requestor[Requestor - Own PR]
             R_Draft[Draft: Edit, Delete, Submit]
             R_InProgress[In-progress: Recall only]
@@ -569,19 +581,16 @@ flowchart LR
         end
 
         subgraph Approver[Approver - Pending Task]
-            A_Pending[Pending Approval:<br>Reject | Return | Approve]
+            A_Pending[Pending Approval:<br>Reject, Return, Approve]
             A_Completed[Already Actioned:<br>View only]
         end
 
         subgraph Purchaser[Purchasing Staff]
-            P_Processing[Processing PR:<br>Reject | Return | Submit]
+            P_Processing[Processing PR:<br>Reject, Return, Submit]
             P_Completed[PR Completed:<br>View only]
         end
     end
 
-    style Requestor fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style Approver fill:#ffe6e6,stroke:#cc0000,stroke-width:2px
-    style Purchaser fill:#e6ffcc,stroke:#66cc00,stroke-width:2px
 ```
 
 #### Button Styling Specifications
@@ -622,14 +631,10 @@ flowchart TB
     CheckCount -->|Yes| ShowToolbar[Show bulk action toolbar:<br>Selection summary + Action buttons]
     CheckCount -->|No| HideToolbar
 
-    ShowToolbar --> DisplaySummary['Display: {n} items selected: {status breakdown}']
+    ShowToolbar --> DisplaySummary['Display: N items selected: status breakdown']
     DisplaySummary --> WaitAction([Wait for action selection])
 
     HideToolbar --> End([End])
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style ShowToolbar fill:#ffe6cc,stroke:#cc6600,stroke-width:2px
 ```
 
 #### 2.9.2 Bulk Approve Flow
@@ -641,8 +646,8 @@ flowchart TB
     ValidateRole -->|Yes| IdentifyItems[Identify valid items<br>Status: Pending/In-progress]
 
     IdentifyItems --> CheckValid{All items valid?}
-    CheckValid -->|Some invalid| ShowWarning['Display: X of Y cannot be approved<br>[Proceed] [Cancel]']
-    CheckValid -->|All valid| ShowConfirm['Display confirmation:<br>Approve {n} items?']
+    CheckValid -->|Some invalid| ShowWarning['Display: X of Y cannot be approved<br>Proceed or Cancel']
+    CheckValid -->|All valid| ShowConfirm['Display confirmation:<br>Approve N items?']
 
     ShowWarning -->|Proceed| ShowConfirm
     ShowWarning -->|Cancel| End1([End - No changes])
@@ -660,16 +665,10 @@ flowchart TB
     CommitTx --> LogActivity[Log bulk approval activity]
     LogActivity --> SendNotify[Send notification to requestor]
     SendNotify --> RefreshGrid[Refresh item grid]
-    RefreshGrid --> ShowSuccess['Display: {n} items approved']
+    RefreshGrid --> ShowSuccess['Display: N items approved']
     ShowSuccess --> End2([End - Success])
 
     ShowError1 --> End1
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style CommitTx fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style ShowSuccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.9.3 Bulk Reject Flow
@@ -681,7 +680,7 @@ flowchart TB
     ValidateRole -->|Yes| IdentifyItems[Identify valid items<br>Status: Pending/In-progress]
 
     IdentifyItems --> CheckValid{All items valid?}
-    CheckValid -->|Some invalid| ShowWarning['Display: X of Y cannot be rejected<br>[Proceed] [Cancel]']
+    CheckValid -->|Some invalid| ShowWarning['Display: X of Y cannot be rejected<br>Proceed or Cancel']
     CheckValid -->|All valid| ShowDialog[Display rejection dialog]
 
     ShowWarning -->|Proceed| ShowDialog
@@ -705,16 +704,10 @@ flowchart TB
     CommitTx --> LogActivity[Log bulk rejection activity]
     LogActivity --> SendNotify[Send notification to requestor]
     SendNotify --> RefreshGrid[Refresh item grid]
-    RefreshGrid --> ShowSuccess['Display: {n} items rejected']
+    RefreshGrid --> ShowSuccess['Display: N items rejected']
     ShowSuccess --> End2([End - Success])
 
     ShowError1 --> End1
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style CommitTx fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style ShowSuccess fill:#ffcccc,stroke:#cc0000,stroke-width:2px
 ```
 
 #### 2.9.4 Bulk Return Flow
@@ -726,7 +719,7 @@ flowchart TB
     ValidateRole -->|Yes| IdentifyItems[Identify valid items<br>Status: Pending/In-progress/Approved]
 
     IdentifyItems --> CheckValid{All items valid?}
-    CheckValid -->|Some invalid| ShowWarning['Display: X of Y cannot be returned<br>[Proceed] [Cancel]']
+    CheckValid -->|Some invalid| ShowWarning['Display: X of Y cannot be returned<br>Proceed or Cancel']
     CheckValid -->|All valid| ShowDialog[Display return dialog]
 
     ShowWarning -->|Proceed| ShowDialog
@@ -750,16 +743,10 @@ flowchart TB
     CommitTx --> LogActivity[Log bulk return activity]
     LogActivity --> SendNotify[Send notification to requestor]
     SendNotify --> RefreshGrid[Refresh item grid]
-    RefreshGrid --> ShowSuccess['Display: {n} items returned for revision']
+    RefreshGrid --> ShowSuccess['Display: N items returned for revision']
     ShowSuccess --> End2([End - Success])
 
     ShowError1 --> End1
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style CommitTx fill:#fff0cc,stroke:#cc9900,stroke-width:2px
-    style ShowSuccess fill:#fff0cc,stroke:#cc9900,stroke-width:2px
 ```
 
 #### 2.9.5 Split Items Flow
@@ -774,7 +761,7 @@ flowchart TB
     CheckCount -->|Yes| ShowDialog[Display split configuration dialog]
 
     ShowDialog --> SelectMethod{Select split method}
-    SelectMethod -->|By Approval Status| GroupStatus['Group by approval status:<br>- Approved items → Original PR<br>- Items needing review → New PR']
+    SelectMethod -->|By Approval Status| GroupStatus['Group by approval status:<br>- Approved items to Original PR<br>- Items needing review to New PR']
     SelectMethod -->|By Vendor| GroupVendor[Group items by vendor]
     SelectMethod -->|By Date| GroupDate[Group items by delivery date]
     SelectMethod -->|Manual| GroupManual[User defines groupings]
@@ -799,13 +786,6 @@ flowchart TB
 
     ShowError1 --> End1
     ShowError2 --> End1
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style GroupStatus fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style CreateNewPRs fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style ShowSuccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.9.5.1 Approver Split by Approval Status Flow
@@ -836,11 +816,6 @@ flowchart TB
     NewPR --> NotifyRequestor
 
     NotifyRequestor --> End3([End - Parallel processing enabled])
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style OriginalPR fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style NewPR fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style End3 fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.9.6 Set Date Required Flow
@@ -868,51 +843,40 @@ flowchart TB
 
     CommitTx --> LogActivity[Log bulk date change activity]
     LogActivity --> RefreshGrid[Refresh item grid]
-    RefreshGrid --> ShowSuccess['Display: Required date updated for {n} items']
+    RefreshGrid --> ShowSuccess['Display: Required date updated for N items']
     ShowSuccess --> End2([End - Success])
 
     ShowError1 --> End1
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style CommitTx fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style ShowSuccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### Role-Based Action Availability Matrix
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph ActionMatrix[Bulk Item Action Availability]
-        direction TB
-
         subgraph Requestor[Requestor - Draft/Void/Returned]
-            R_Select[Select Items: ✅]
-            R_SetDate[Set Date Required: ✅]
-            R_Others[Approve/Reject/Return: ❌]
-            R_Split[Split: ❌]
+            R_Select[Select Items: Yes]
+            R_SetDate[Set Date Required: Yes]
+            R_Others[Approve/Reject/Return: No]
+            R_Split[Split: No]
         end
 
         subgraph Approver[Approver]
-            A_Select[Select Items: ✅]
-            A_Approve[Approve Selected: ✅]
-            A_Reject[Reject Selected: ✅]
-            A_Return[Return Selected: ✅]
-            A_SetDate[Set Date Required: ✅]
-            A_Split[Split: ✅]
-            A_View[View Vendor/Pricing: 👁️]
+            A_Select[Select Items: Yes]
+            A_Approve[Approve Selected: Yes]
+            A_Reject[Reject Selected: Yes]
+            A_Return[Return Selected: Yes]
+            A_SetDate[Set Date Required: Yes]
+            A_Split[Split: Yes]
+            A_View[View Vendor/Pricing: View-only]
         end
 
         subgraph Purchasing[Purchasing Staff]
-            P_All[All Actions: ✅]
+            P_All[All Actions: Yes]
             P_Note[Including Split]
         end
     end
 
-    style Requestor fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style Approver fill:#ffe6e6,stroke:#cc0000,stroke-width:2px
-    style Purchasing fill:#e6ffcc,stroke:#66cc00,stroke-width:2px
 ```
 
 ---
@@ -938,7 +902,7 @@ flowchart TB
     DisplayTable --> CalculateTotals[Calculate totals row]
     DisplayTableActions --> CalculateTotals
 
-    CalculateTotals --> RenderStatus[Render status badges:<br>- Over Budget (red)<br>- Near Limit (yellow)<br>- Within Budget (green)]
+    CalculateTotals --> RenderStatus[Render status badges:<br>- Over Budget: red<br>- Near Limit: yellow<br>- Within Budget: green]
 
     RenderStatus --> CheckDevice{Device type?}
     CheckDevice -->|Desktop| ShowTable[Show table layout]
@@ -946,10 +910,6 @@ flowchart TB
 
     ShowTable --> End([End])
     ShowCards --> End
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style LoadWithActions fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.10.2 Add Budget Allocation Flow
@@ -961,10 +921,10 @@ flowchart TB
     ShowError --> End1([End])
 
     CheckPerm -->|Yes| OpenDialog[Open Add Budget dialog]
-    OpenDialog --> InitForm[Initialize empty form:<br>- Location (required)<br>- Category (required)<br>- Total Budget (required)<br>- Soft Commitment DH (0)<br>- Soft Commitment PO (0)<br>- Hard Commitment (0)<br>- Current PR Amount (0)]
+    OpenDialog --> InitForm[Initialize empty form:<br>- Location - required<br>- Category - required<br>- Total Budget - required<br>- Soft Commitment DH: 0<br>- Soft Commitment PO: 0<br>- Hard Commitment: 0<br>- Current PR Amount: 0]
 
     InitForm --> UserInput[User fills form]
-    UserInput --> UpdatePreview[Update Available Budget preview:<br>Total - Soft(DH) - Soft(PO) - Hard]
+    UserInput --> UpdatePreview[Update Available Budget preview:<br>Total - SoftDH - SoftPO - Hard]
     UpdatePreview --> UserInput
 
     UserInput --> ClickSave{User clicks Save?}
@@ -977,13 +937,13 @@ flowchart TB
     ValidateForm -->|Missing required| ShowFieldError[Show field error message]
     ShowFieldError --> UserInput
 
-    ValidateForm -->|Invalid number| ShowNumError[Show: Must be >= 0]
+    ValidateForm -->|Invalid number| ShowNumError[Show: Must be zero or greater]
     ShowNumError --> UserInput
 
     ValidateForm -->|Duplicate| ShowDupError[Show: Location + Category exists]
     ShowDupError --> UserInput
 
-    ValidateForm -->|Valid| CalcStatus[Calculate status:<br>- Over Budget if Available < 0<br>- Near Limit if <= 20%<br>- Within Budget otherwise]
+    ValidateForm -->|Valid| CalcStatus[Calculate status:<br>- Over Budget if Available negative<br>- Near Limit if 20 percent or less<br>- Within Budget otherwise]
 
     CalcStatus --> CreateRecord[Create budget allocation record]
     CreateRecord --> UpdateTable[Update table with new row]
@@ -992,16 +952,6 @@ flowchart TB
     LogActivity --> ShowSuccess[Show toast: Added successfully]
     ShowSuccess --> CloseDialogSuccess[Close dialog]
     CloseDialogSuccess --> End3([End - Success])
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End3 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style CreateRecord fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style ShowSuccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style ShowFieldError fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style ShowNumError fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style ShowDupError fill:#ffcccc,stroke:#cc0000,stroke-width:2px
 ```
 
 #### 2.10.3 Edit Budget Allocation Flow
@@ -1029,7 +979,7 @@ flowchart TB
     ValidateForm -->|Invalid| ShowError2[Show validation error]
     ShowError2 --> UserModify
 
-    ValidateForm -->|Duplicate<br>(changed to existing)| ShowDupError[Show: Location + Category exists]
+    ValidateForm -->|Duplicate -<br>changed to existing| ShowDupError[Show: Location + Category exists]
     ShowDupError --> UserModify
 
     ValidateForm -->|Valid| CalcStatus[Recalculate status]
@@ -1040,13 +990,6 @@ flowchart TB
     LogActivity --> ShowSuccess[Show toast: Updated successfully]
     ShowSuccess --> CloseDialogSuccess[Close dialog]
     CloseDialogSuccess --> End3([End - Success])
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End3 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style UpdateRecord fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style ShowSuccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.10.4 Delete Budget Allocation Flow
@@ -1057,7 +1000,7 @@ flowchart TB
     CheckPerm -->|No| ShowError[Display: Permission denied]
     ShowError --> End1([End])
 
-    CheckPerm -->|Yes| ShowConfirm[Show AlertDialog:<br>Delete {Location} - {Category}?<br>This cannot be undone.]
+    CheckPerm -->|Yes| ShowConfirm[Show AlertDialog:<br>Delete Location - Category?<br>This cannot be undone.]
 
     ShowConfirm --> UserChoice{User choice?}
     UserChoice -->|Cancel| CloseDialog[Close dialog]
@@ -1069,14 +1012,6 @@ flowchart TB
     RecalcTotals --> LogActivity[Log delete activity]
     LogActivity --> ShowSuccess[Show toast: Deleted]
     ShowSuccess --> End3([End - Success])
-
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End1 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End2 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style End3 fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style ShowConfirm fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style RemoveRecord fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style ShowSuccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.10.5 Budget Calculation Flow
@@ -1091,15 +1026,15 @@ flowchart LR
     end
 
     subgraph Calculation
-        CALC['Available Budget =<br>TB - SCDH - SCPO - HC']
+        CALC[Available Budget:<br>TB - SCDH - SCPO - HC]
     end
 
     subgraph StatusLogic[Status Determination]
-        CHECK1{Available < 0?}
-        CHECK2{Available <= 20% of Total?}
-        STATUS1[Over Budget ❌]
-        STATUS2[Near Limit ⚠️]
-        STATUS3[Within Budget ✅]
+        CHECK1{Available negative?}
+        CHECK2{Available at 20 percent or less of Total?}
+        STATUS1[Over Budget - Red]
+        STATUS2[Near Limit - Yellow]
+        STATUS3[Within Budget - Green]
     end
 
     TB --> CALC
@@ -1113,40 +1048,28 @@ flowchart LR
     CHECK2 -->|Yes| STATUS2
     CHECK2 -->|No| STATUS3
 
-    style TB fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style SCDH fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style SCPO fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style HC fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style CALC fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style STATUS1 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style STATUS2 fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style STATUS3 fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### Budget Tab Role Access Matrix
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph AccessMatrix[Budget Tab CRUD Access]
-        direction TB
-
         subgraph ReadOnly[Requestor / Approver]
-            RO_View[View Budget Tab: ✅]
-            RO_Add[Add Budget: ❌]
-            RO_Edit[Edit Budget: ❌]
-            RO_Delete[Delete Budget: ❌]
+            RO_View[View Budget Tab: Yes]
+            RO_Add[Add Budget: No]
+            RO_Edit[Edit Budget: No]
+            RO_Delete[Delete Budget: No]
         end
 
         subgraph FullAccess[Purchasing Staff / Finance Manager]
-            FA_View[View Budget Tab: ✅]
-            FA_Add[Add Budget: ✅]
-            FA_Edit[Edit Budget: ✅]
-            FA_Delete[Delete Budget: ✅]
+            FA_View[View Budget Tab: Yes]
+            FA_Add[Add Budget: Yes]
+            FA_Edit[Edit Budget: Yes]
+            FA_Delete[Delete Budget: Yes]
         end
     end
 
-    style ReadOnly fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style FullAccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 ---
@@ -1193,10 +1116,6 @@ flowchart TD
     CacheResult --> ReturnResult[Return PRItemPriceComparison]
     ReturnResult --> End2([End])
 
-    style Start fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style Normalization fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style AllocateVendor fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style GenerateAlerts fill:#ffe6e6,stroke:#cc0000,stroke-width:2px
 ```
 
 #### 2.11.2 Vendor Scoring Algorithm
@@ -1213,11 +1132,11 @@ flowchart LR
 
     subgraph Calculation[Score Calculation]
         Calc["score =
-        (preferredItem × 0.35) +
-        (preferredVendor × 0.25) +
-        (priceScore × 0.25) +
-        (rating × 0.10) +
-        (leadTime × 0.05)"]
+        (preferredItem x 0.35) +
+        (preferredVendor x 0.25) +
+        (priceScore x 0.25) +
+        (rating x 0.10) +
+        (leadTime x 0.05)"]
     end
 
     subgraph Output[Result]
@@ -1233,9 +1152,6 @@ flowchart LR
     Calc --> Rank
     Rank --> Recommend
 
-    style Inputs fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style Calculation fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style Output fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.11.3 Unit Conversion & Price Normalization
@@ -1243,7 +1159,7 @@ flowchart LR
 ```mermaid
 flowchart TD
     subgraph UnitConversion[Unit Conversion Process]
-        Input1[Vendor Price: $28.00/1kg Bag]
+        Input1[Vendor Price: 28.00/1kg Bag]
         Input2[MOQ: 10 bags]
 
         GetConfig[Get Product Unit Config]
@@ -1251,17 +1167,17 @@ flowchart TD
 
         CalcPrice["pricePerBaseUnit =
         unitPrice / conversionToBase
-        = $28.00 / 1.0 = $28.00/KG"]
+        = 28.00 / 1.0 = 28.00/KG"]
 
         CalcMOQ["moqInBaseUnit =
-        moqQuantity × conversionToBase
-        = 10 × 1.0 = 10 KG"]
+        moqQuantity x conversionToBase
+        = 10 x 1.0 = 10 KG"]
     end
 
     subgraph Comparison[All Vendors Normalized]
-        V1["Vendor A: $28.00/KG<br>MOQ: 10 KG"]
-        V2["Vendor B: $32.00/KG<br>MOQ: 12.5 KG (25 × 0.5)"]
-        V3["Vendor C: $26.00/KG<br>MOQ: 10 KG (2 × 5)"]
+        V1["Vendor A: 28.00/KG<br>MOQ: 10 KG"]
+        V2["Vendor B: 32.00/KG<br>MOQ: 12.5 KG 25 x 0.5"]
+        V3["Vendor C: 26.00/KG<br>MOQ: 10 KG 2 x 5"]
     end
 
     Input1 --> GetConfig
@@ -1272,8 +1188,6 @@ flowchart TD
     CalcPrice --> V1
     CalcMOQ --> V1
 
-    style UnitConversion fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style Comparison fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.11.4 MOQ Validation Flow
@@ -1282,19 +1196,19 @@ flowchart TD
 flowchart TD
     Start([Check MOQ Requirement]) --> GetValues[Get Values:<br>requestedInBase, moqInBase]
 
-    GetValues --> Compare{requested >= moq?}
+    GetValues --> Compare{requested meets or exceeds moq?}
 
-    Compare -->|Yes| MeetsMOQ[meetsRequirement = true<br>gap = 0]
+    Compare -->|Yes| MeetsMOQ[meetsRequirement: true<br>gap: 0]
     MeetsMOQ --> NoAlert[No MOQ Alert]
     NoAlert --> End1([Valid])
 
-    Compare -->|No| FailsMOQ[meetsRequirement = false<br>gap = moq - requested]
-    FailsMOQ --> CalcPercent[Calculate Percentage Met<br>= (requested / moq) × 100]
+    Compare -->|No| FailsMOQ[meetsRequirement: false<br>gap: moq minus requested]
+    FailsMOQ --> CalcPercent[Calculate Percentage Met<br>requested divided by moq times 100]
 
     CalcPercent --> CheckSeverity{Percentage?}
-    CheckSeverity -->|>= 90%| SevInfo[Severity: INFO<br>Color: Blue]
-    CheckSeverity -->|50-90%| SevWarn[Severity: WARNING<br>Color: Yellow]
-    CheckSeverity -->|< 50%| SevError[Severity: ERROR<br>Color: Red]
+    CheckSeverity -->|90 percent or more| SevInfo[Severity: INFO<br>Color: Blue]
+    CheckSeverity -->|50 to 90 percent| SevWarn[Severity: WARNING<br>Color: Yellow]
+    CheckSeverity -->|Less than 50 percent| SevError[Severity: ERROR<br>Color: Red]
 
     SevInfo --> CreateAlert[Create MOQ Alert:<br>- vendorId, vendorName<br>- gap, gapInBaseUnit<br>- severity, message<br>- suggestedQuantity]
     SevWarn --> CreateAlert
@@ -1302,10 +1216,6 @@ flowchart TD
 
     CreateAlert --> End2([Alert Generated])
 
-    style MeetsMOQ fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style SevInfo fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style SevWarn fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style SevError fill:#ffcccc,stroke:#cc0000,stroke-width:2px
 ```
 
 #### 2.11.5 Enhanced Price Comparison UI Flow
@@ -1348,9 +1258,6 @@ flowchart TD
     ConfirmSelection --> UpdateItem[Update PR Item<br>with vendor selection]
     UpdateItem --> End2([End])
 
-    style ViewOnly fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style FullAccess fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style RequireReason fill:#fff3cd,stroke:#ffc107,stroke-width:2px
 ```
 
 #### 2.11.6 MOQ Warning Banner Flow
@@ -1362,7 +1269,7 @@ flowchart TD
     CheckAlerts -->|No| HideBanner[Hide banner component]
     HideBanner --> End1([End])
 
-    CheckAlerts -->|Yes| CheckCritical{Any CRITICAL<br>(ERROR) alerts?}
+    CheckAlerts -->|Yes| CheckCritical{Any CRITICAL<br>ERROR alerts?}
 
     CheckCritical -->|Yes| ShowBlocker[Show CriticalMOQBlock:<br>- Red destructive style<br>- AlertTriangle icon<br>- Cannot proceed message<br>- Blocking UI state]
     ShowBlocker --> DisableSubmit[Disable form submission]
@@ -1377,41 +1284,33 @@ flowchart TD
     CheckWarning -->|No| ShowInfo[Show Info Banner:<br>- Blue info style<br>- Info icon<br>- Minor gap notice]
     ShowInfo --> End4([Info shown])
 
-    style ShowBlocker fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style ShowWarning fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style ShowInfo fill:#cce5ff,stroke:#0066cc,stroke-width:2px
 ```
 
 #### Auto-Pricing Role Access Matrix
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph AccessMatrix[Auto-Pricing Feature Access]
-        direction TB
-
         subgraph Requestor[Requestor]
-            R_View[View Pricing: ❌]
-            R_Compare[Price Comparison: ❌]
-            R_Select[Select Vendor: ❌]
+            R_View[View Pricing: No]
+            R_Compare[Price Comparison: No]
+            R_Select[Select Vendor: No]
         end
 
         subgraph Approver[Approver]
-            A_View[View Pricing: ✅]
-            A_Compare[Price Comparison: 👁️ View-only]
-            A_Select[Select Vendor: ❌]
+            A_View[View Pricing: Yes]
+            A_Compare[Price Comparison: View-only]
+            A_Select[Select Vendor: No]
         end
 
         subgraph Purchasing[Purchasing Staff]
-            P_View[View Pricing: ✅]
-            P_Compare[Price Comparison: ✅]
-            P_Select[Select Vendor: ✅]
-            P_Override[Override Recommended: ✅ with reason]
+            P_View[View Pricing: Yes]
+            P_Compare[Price Comparison: Yes]
+            P_Select[Select Vendor: Yes]
+            P_Override[Override Recommended: Yes with reason]
         end
     end
 
-    style Requestor fill:#e6e6e6,stroke:#666,stroke-width:2px
-    style Approver fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style Purchasing fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 ---
@@ -1430,53 +1329,45 @@ flowchart TD
 
     GetCurrencies --> Compare{itemCurrency ==<br>baseCurrency?}
 
-    Compare -->|Yes| SingleDisplay[Display single amount:<br>USD $100.00]
+    Compare -->|Yes| SingleDisplay[Display single amount:<br>USD 100.00]
     SingleDisplay --> End1([End])
 
     Compare -->|No| DualDisplay[Display dual amounts]
     DualDisplay --> GetRate[Get exchange rate<br>from currency config]
 
     GetRate --> CalcConverted["convertedAmount =
-    originalAmount × exchangeRate"]
+    originalAmount x exchangeRate"]
 
-    CalcConverted --> ShowBoth[Show both amounts:<br>- Primary: EUR €85.00<br>- Secondary: USD $100.00]
+    CalcConverted --> ShowBoth[Show both amounts:<br>- Primary: EUR 85.00<br>- Secondary: USD 100.00]
 
     ShowBoth --> ShowRate[Show exchange badge:<br>Rate: 1 EUR = 1.176 USD]
     ShowRate --> End2([End])
 
-    style SingleDisplay fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style DualDisplay fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style ShowBoth fill:#fff3cd,stroke:#ffc107,stroke-width:2px
 ```
 
 #### 2.12.2 Currency Conversion Display Pattern
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph ItemCard[PR Item Card Display]
-        direction TB
-
         subgraph Primary[Transaction Currency - Primary]
-            P_Price["Unit Price: EUR €28.00"]
-            P_Subtotal["Subtotal: EUR €280.00"]
-            P_Discount["Discount: -EUR €28.00"]
-            P_Tax["Tax: +EUR €17.64"]
-            P_Total["Total: EUR €269.64"]
+            P_Price["Unit Price: EUR 28.00"]
+            P_Subtotal["Subtotal: EUR 280.00"]
+            P_Discount["Discount: -EUR 28.00"]
+            P_Tax["Tax: +EUR 17.64"]
+            P_Total["Total: EUR 269.64"]
         end
 
         subgraph Secondary[Base Currency - Secondary]
-            S_Price["USD $32.93 per unit"]
-            S_Subtotal["USD $329.28"]
-            S_Discount["-USD $32.93"]
-            S_Tax["+USD $20.74"]
-            S_Total["USD $317.09"]
+            S_Price["USD 32.93 per unit"]
+            S_Subtotal["USD 329.28"]
+            S_Discount["-USD 32.93"]
+            S_Tax["+USD 20.74"]
+            S_Total["USD 317.09"]
         end
+
+        P_Total --> S_Total
     end
-
-    Primary --> Secondary
-
-    style Primary fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style Secondary fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.12.3 Currency Selection Flow (Requestor & Purchasing Staff)
@@ -1517,9 +1408,6 @@ flowchart TD
     RecalcAll --> UpdateDisplay[Update display with<br>dual currency amounts]
     UpdateDisplay --> End3([End])
 
-    style ShowSelector fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style RecalcAll fill:#fff3cd,stroke:#ffc107,stroke-width:2px
-    style UpdateDisplay fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 #### 2.12.4 Summary Total Currency Display
@@ -1539,24 +1427,24 @@ flowchart TD
 
     subgraph Rows[Summary Display Pattern]
         Row1["Subtotal:
-        Primary: {currency} {subTotalPrice}
-        Secondary: {baseCurrency} {baseSubTotalPrice}"]
+        Primary: CURRENCY subTotalPrice
+        Secondary: BASE_CURRENCY baseSubTotalPrice"]
 
         Row2["Discount:
-        Primary: -{currency} {discountAmount}
-        Secondary: -{baseCurrency} {baseDiscAmount}"]
+        Primary: -CURRENCY discountAmount
+        Secondary: -BASE_CURRENCY baseDiscAmount"]
 
         Row3["Net Amount:
-        Primary: {currency} {netAmount}
-        Secondary: {baseCurrency} {baseNetAmount}"]
+        Primary: CURRENCY netAmount
+        Secondary: BASE_CURRENCY baseNetAmount"]
 
         Row4["Tax:
-        Primary: +{currency} {taxAmount}
-        Secondary: +{baseCurrency} {baseTaxAmount}"]
+        Primary: +CURRENCY taxAmount
+        Secondary: +BASE_CURRENCY baseTaxAmount"]
 
         Row5["TOTAL:
-        Primary: {currency} {totalAmount}
-        Secondary: {baseCurrency} {baseTotalAmount}"]
+        Primary: CURRENCY totalAmount
+        Secondary: BASE_CURRENCY baseTotalAmount"]
     end
 
     DisplayRows --> Row1
@@ -1568,8 +1456,6 @@ flowchart TD
     Row5 --> ShowBadges[Show Currency Badges:<br>- Base Currency indicator<br>- Exchange Rate display]
     ShowBadges --> End2([End])
 
-    style DualCurrencyView fill:#ccffcc,stroke:#00cc00,stroke-width:2px
-    style Rows fill:#fff3cd,stroke:#ffc107,stroke-width:2px
 ```
 
 #### Currency Display Styling Guide
@@ -1585,10 +1471,8 @@ flowchart TD
 #### Currency Visibility Matrix
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph VisMatrix[Currency Display Visibility]
-        direction TB
-
         subgraph SingleCurrency[Same Currency]
             SC_Item["Item Card: Single amount"]
             SC_Summary["Summary: Single totals"]
@@ -1596,19 +1480,12 @@ flowchart LR
         end
 
         subgraph MultiCurrency[Different Currencies]
-            MC_Item["Item Card: Dual amounts
-            - Primary in item currency
-            - Secondary in base (green)"]
-            MC_Summary["Summary: Dual totals
-            - All rows show both"]
-            MC_Badge["Badges:
-            - Base Currency indicator
-            - Exchange Rate"]
+            MC_Item["Item Card: Dual amounts - Primary in item currency - Secondary in base"]
+            MC_Summary["Summary: Dual totals - All rows show both"]
+            MC_Badge["Badges: Base Currency indicator, Exchange Rate"]
         end
     end
 
-    style SingleCurrency fill:#e6f3ff,stroke:#0066cc,stroke-width:2px
-    style MultiCurrency fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 ---
@@ -1650,7 +1527,9 @@ flowchart TD
     P2 -->|Approval Notification| Notify[Notification<br>Service]
     Notify -->|Email/Alert| Approver
 
-    P1 & P2 & P3 -->|Activity Logs| Audit[(Audit Log)]
+    P1 -->|Activity Logs| Audit[(Audit Log)]
+    P2 -->|Activity Logs| Audit
+    P3 -->|Activity Logs| Audit
 ```
 
 ### 3.3 Level 2 - Create PR Process Detail
@@ -1908,57 +1787,42 @@ sequenceDiagram
 **BR-Defined Status Values**: Draft, In-progress, Approved, Void, Completed, Cancelled
 
 ```mermaid
-stateDiagram
+stateDiagram-v2
     [*] --> Draft: Create new PR
 
-    Draft --> In-progress: Submit for approval
+    Draft --> Inprogress: Submit for approval
     Draft --> Cancelled: Cancel draft
     Draft --> [*]: Delete
 
-    In-progress --> Approved: All approvals complete
-    In-progress --> Void: Any approval rejected
-    In-progress --> Draft: Recall/Edit
-    In-progress --> Cancelled: Cancel request
+    Inprogress --> Approved: All approvals complete
+    Inprogress --> Void: Any approval rejected
+    Inprogress --> Draft: Recall/Edit
+    Inprogress --> Cancelled: Cancel request
 
     Void --> Draft: Edit and resubmit
     Void --> Cancelled: Cancel
     Void --> [*]: Archive
 
-    Approved --> Completed: Create PO (conversion)
+    Approved --> Completed: Create PO conversion
     Approved --> Cancelled: Cancel approved PR
 
     Completed --> [*]: Archive after retention period
     Cancelled --> [*]: Archive after retention period
 
-    note right of Draft
-        Editable by creator
-        No approvals required
-    end note
-
-    note right of In-progress
-        Read-only
-        Some approvals received, others pending
-        Can be recalled
-    end note
-
-    note right of Approved
-        Read-only
-        All approvals received
-        Ready for PO conversion
-    end note
-
-    note right of Void
-        Approval denied
-        Returned to requestor with comments
-        Can be edited and resubmitted
-    end note
-
-    note right of Completed
-        Read-only
-        Converted to Purchase Order(s)
-        Cannot be modified
-    end note
+    note right of Draft: Editable by creator, no approvals required
+    note right of Inprogress: Read-only, pending approvals, can be recalled
+    note right of Approved: Read-only, all approvals received, ready for PO
+    note right of Void: Approval denied, can be edited and resubmitted
+    note right of Completed: Read-only, converted to PO, cannot be modified
 ```
+
+**Status Definitions**:
+- **Draft**: Editable by creator, no approvals required
+- **In-progress**: Read-only, some approvals received, others pending, can be recalled
+- **Approved**: Read-only, all approvals received, ready for PO conversion
+- **Void**: Approval denied, returned to requestor with comments, can be edited and resubmitted
+- **Completed**: Read-only, converted to Purchase Order(s), cannot be modified
+- **Cancelled**: Request cancelled, archived after retention period
 
 ### 5.2 Approval Status Lifecycle
 
@@ -2033,12 +1897,6 @@ flowchart TD
     Stage3 --> Decision3{Stage 3<br>Decision?}
     Decision3 -->|Void| Voided
     Decision3 -->|Approve| Approved
-
-    style Stage1 fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style Stage2 fill:#ffe0b3,stroke:#cc6600,stroke-width:2px
-    style Stage3 fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style GetRules fill:#e8e8e8,stroke:#333,stroke-width:2px
-    style Approved fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 **Note**: The workflow engine determines:
@@ -2106,9 +1964,6 @@ flowchart LR
 
     PR -->|Commit funds to PO| Budget
     Budget -->|Funds committed| PR
-
-    style PR fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style Budget fill:#ffe0b3,stroke:#cc6600,stroke-width:2px
 ```
 
 ### 7.2 Product Master Integration
@@ -2301,12 +2156,6 @@ flowchart LR
     R11 -->|Edit| R12
     R12 --> R2
 
-    style System fill:#e8e8e8,stroke:#333,stroke-width:2px
-    style Requestor fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style DeptMgr fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style FinMgr fill:#ffe0b3,stroke:#cc6600,stroke-width:2px
-    style GenMgr fill:#e0ccff,stroke:#6600cc,stroke-width:2px
-    style Purchasing fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 ---
@@ -2352,12 +2201,6 @@ flowchart TD
     BuildHybrid --> CreateRecords3[Create approval records<br>with stage + sequence]
     CreateRecords3 --> Notify3[Notify first stage approvers]
     Notify3 --> End5([Approval Chain Created])
-
-    style QueryEngine fill:#cce5ff,stroke:#0066cc,stroke-width:2px
-    style LookupRules fill:#e8e8e8,stroke:#333,stroke-width:2px
-    style CheckMatch fill:#ffe0b3,stroke:#cc6600,stroke-width:2px
-    style NoWorkflow fill:#ffcccc,stroke:#cc0000,stroke-width:2px
-    style AutoApprove fill:#ccffcc,stroke:#00cc00,stroke-width:2px
 ```
 
 **Workflow Configuration Note**:

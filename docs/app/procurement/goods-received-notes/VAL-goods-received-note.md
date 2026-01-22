@@ -3,18 +3,27 @@
 **Module**: Procurement
 **Sub-Module**: Goods Received Note
 **Document Type**: Validations (VAL)
-**Version**: 1.0.2
-**Last Updated**: 2025-12-03
+**Version**: 1.2.0
+**Last Updated**: 2025-01-15
 **Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-01-15 | Documentation Team | Added VAL-GRN-017 (Location Type Validation), VAL-GRN-112 (Related PR Allocation Validation) |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added costing method context (FIFO or Periodic Average configurable at system level) |
 | 1.0.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+
+**Related Documents**:
+- [Business Requirements](./BR-goods-received-note.md)
+- [Use Cases](./UC-goods-received-note.md)
+- [Technical Specification](./TS-goods-received-note.md)
+- [Data Definition](./DD-goods-received-note.md)
+- [Flow Diagrams](./FD-goods-received-note.md)
+
 ---
 
 ## 1. Overview
@@ -473,6 +482,45 @@ Data Stored
 - ❌ Invalid: null
 - ❌ Invalid: "" (empty)
 - ❌ Invalid: "INVALID" (non-existent)
+
+---
+
+### VAL-GRN-017: Line Item - Location Type Validation
+
+**Field**: `locationType` (derived from storage location)
+**Database Column**: `storage_locations.location_type`
+**Data Type**: ENUM / string
+
+**Validation Rule**: Storage location type must be one of the valid enumeration values and determines downstream processing behavior.
+
+**Valid Values**:
+| Value | Display | Icon | Description |
+|-------|---------|------|-------------|
+| `INV` | Inventory | Warehouse | Standard inventory receipt - creates stock transaction, updates inventory levels |
+| `DIR` | Direct Issue | ArrowRight | Direct expense - bypasses inventory, creates expense entry for requesting department |
+| `CON` | Consignment | HandCoins | Consignment receipt - vendor-owned until consumed, creates consignment liability |
+
+**Implementation Requirements**:
+- **Client-Side**: Display location type indicator (icon + label) next to selected location. Group locations by type in dropdown.
+- **Server-Side**: Validate location type matches one of: 'INV', 'DIR', 'CON'. Apply type-specific processing rules during commit.
+- **Database**: Column defined as ENUM('INV', 'DIR', 'CON') NOT NULL DEFAULT 'INV'.
+
+**Error Code**: VAL-GRN-017
+**Error Message**: "Invalid location type. Must be INV, DIR, or CON."
+**User Action**: User must select a location with a valid type from the dropdown.
+
+**Test Cases**:
+- ✅ Valid: "INV" (Inventory location)
+- ✅ Valid: "DIR" (Direct issue location)
+- ✅ Valid: "CON" (Consignment location)
+- ❌ Invalid: "INVALID"
+- ❌ Invalid: null
+- ❌ Invalid: "" (empty)
+
+**Business Impact by Type**:
+- **INV**: GRN commit creates Inventory Asset debit, Accounts Payable credit
+- **DIR**: GRN commit creates Department Expense debit, Accounts Payable credit (no inventory impact)
+- **CON**: GRN commit creates Consignment Inventory debit, Consignment Liability credit (vendor-owned)
 
 ---
 
@@ -943,6 +991,47 @@ Data Stored
 - Result: ❌ Validation fails
 - Reason: At least one item's location has active stock take
 - User must: Wait for stock take completion at Main Warehouse
+
+---
+
+### VAL-GRN-112: Related PR Allocation Validation
+
+**Fields Involved**: `relatedPRs` array within GRN line item
+**Related Interface**: `RelatedPRAllocation`
+
+**Validation Rule**: When a GRN line item has related PRs, the total allocated quantity across all PRs must not exceed the received quantity, and individual PR allocations must not exceed remaining quantity for that PR.
+
+**Business Justification**: PR-to-GRN quantity tracking ensures accurate fulfillment tracking. Over-allocation indicates data entry error or misalignment between receiving and requisition processes.
+
+**Implementation Requirements**:
+- **Client-Side**: Display warning badge when allocation exceeds received quantity. Show per-PR remaining quantity in allocation table. Calculate running total in real-time.
+- **Server-Side**: Validate before save: `SUM(thisGrnQty) <= receivedQuantity` for the item. Validate per PR: `thisGrnQty <= remainingQty` for each allocation.
+- **Database**: Not enforced at DB level (complex cross-entity validation).
+
+**Error Code**: VAL-GRN-112
+**Error Message (Over-allocation)**: "Total PR allocation ({totalAllocated}) exceeds received quantity ({receivedQty}). Please adjust allocations."
+**Error Message (Individual PR)**: "Allocation for {prNumber} line {lineNumber} ({thisGrnQty}) exceeds remaining quantity ({remainingQty})."
+**User Action**: User must reduce allocation amounts to not exceed received quantity.
+
+**Test Cases**:
+- ✅ Valid: Received 100 units, PR-1 allocated 60, PR-2 allocated 40 (total = 100)
+- ✅ Valid: Received 100 units, PR-1 allocated 50 (partial allocation allowed)
+- ❌ Invalid: Received 100 units, PR-1 allocated 80, PR-2 allocated 30 (total = 110 > 100)
+- ❌ Invalid: PR has remaining 50, allocation = 60 (exceeds per-PR limit)
+
+**RelatedPRAllocation Interface Fields**:
+| Field | Type | Description |
+|-------|------|-------------|
+| `prNumber` | string | PR reference number |
+| `prLineNumber` | number | Line number within the PR |
+| `requestedQty` | number | Original requested quantity |
+| `previouslyReceivedQty` | number | Quantity received in prior GRNs |
+| `thisGrnQty` | number | Quantity being allocated in this GRN |
+| `remainingQty` | number | Calculated: requestedQty - previouslyReceivedQty - thisGrnQty |
+| `jobCode` | string | Business context - job code |
+| `event` | string | Business context - event |
+| `project` | string | Business context - project |
+| `marketSegment` | string | Business context - market segment |
 
 ---
 
@@ -1561,7 +1650,8 @@ All validation rules must have test cases covering:
 | VAL-GRN-014 | Received Qty Required | receivedQuantity | Field | ✅ | ✅ | ✅ |
 | VAL-GRN-015 | Unit Price Required | unitPrice | Field | ✅ | ✅ | ✅ |
 | VAL-GRN-016 | Storage Location Required | storageLocationId | Field | ✅ | ✅ | ✅ |
-| VAL-GRN-017 | Decimal Precision | quantities | Field | ✅ | ✅ | ✅ |
+| VAL-GRN-017 | Location Type Validation | locationType | Field | ✅ | ✅ | ✅ |
+| VAL-GRN-018 | Decimal Precision | quantities | Field | ✅ | ✅ | ✅ |
 | VAL-GRN-101 | Cannot Commit Draft | status | Business | ✅ | ✅ | ❌ |
 | VAL-GRN-102 | Cannot Edit Committed | status | Business | ✅ | ✅ | ❌ |
 | VAL-GRN-103 | Received <= Delivered | received, delivered | Business | ✅ | ✅ | ✅ |
@@ -1573,6 +1663,7 @@ All validation rules must have test cases covering:
 | VAL-GRN-109 | Void With Reversal | status | Business | ✅ | ✅ | ❌ |
 | VAL-GRN-110 | Closed Period Validation | receiptDate, accountingPeriod | Business | ✅ | ✅ | ❌ |
 | VAL-GRN-111 | Stock Take In Progress | locationId, stockTakeSession | Business | ✅ | ✅ | ❌ |
+| VAL-GRN-112 | Related PR Allocation | relatedPRs, receivedQuantity | Business | ✅ | ✅ | ❌ |
 | VAL-GRN-201 | Invoice Date <= Receipt Date | invoiceDate, receiptDate | Cross-field | ✅ | ✅ | ✅ |
 | VAL-GRN-202 | Manufacturing < Expiry | manufacturingDate, expiryDate | Cross-field | ✅ | ✅ | ✅ |
 | VAL-GRN-203 | Total Value Calculation | line totals, GRN total | Cross-field | ✅ | ✅ | ✅ |

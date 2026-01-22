@@ -1,172 +1,201 @@
-# Inventory Planning Documentation
+# Inventory Planning - Document Index
 
-## Module Overview
+## Document Information
 
-The **Inventory Planning** module provides optimization and planning capabilities for inventory management in hospitality operations. It enables inventory managers, operations managers, and financial controllers to optimize reorder points, manage safety stock levels, analyze dead stock, and monitor inventory performance across multiple locations.
+| Field | Value |
+|-------|-------|
+| Module | Operational Planning > Inventory Planning |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-17 |
+| Status | Implemented |
 
 ---
 
 ## Quick Navigation
 
-| Document | Description | Last Updated |
-|----------|-------------|--------------|
-| [Business Requirements](./BR-inventory-planning.md) | Functional requirements, business rules, backend specs | 2025-12-06 |
-| [Use Cases](./UC-inventory-planning.md) | User workflows and detailed scenarios | 2025-12-06 |
-| [Technical Specification](./TS-inventory-planning.md) | System architecture and component design | 2025-12-06 |
-| [Data Definition](./DD-inventory-planning.md) | Entity descriptions and data models | 2025-12-06 |
-| [Flow Diagrams](./FD-inventory-planning.md) | Visual workflow diagrams (Mermaid) | 2025-12-06 |
-| [Validations](./VAL-inventory-planning.md) | Validation rules and schemas | 2025-12-06 |
-| [UI Design](./UI-inventory-planning.md) | User interface wireframes and specifications | 2025-12-06 |
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/operational-planning/inventory-planning/business-requirements)<br/>Business Requirements | [**UC**](/operational-planning/inventory-planning/use-cases)<br/>Use Cases | [**TS**](/operational-planning/inventory-planning/technical-specification)<br/>Technical Spec |
+| [**DD**](/operational-planning/inventory-planning/data-dictionary)<br/>Data Dictionary | [**FD**](/operational-planning/inventory-planning/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/operational-planning/inventory-planning/validations)<br/>Validations |
 
 ---
 
-## Related Modules
+## Document History
 
-| Module | Relationship | Link |
-|--------|--------------|------|
-| Demand Forecasting | Provides demand predictions for optimization | [Documentation](../demand-forecasting/INDEX-demand-forecasting.md) |
-| Inventory Management | Source of stock data and transactions | - |
-| Procurement | Consumes purchase recommendations | - |
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 2.0.0 | 2025-01-17 | Development Team | Updated to match actual implementation with UI details |
+| 1.0.0 | 2025-12-06 | Development Team | Initial documentation |
 
 ---
 
-## Shared Methods Integration
+## Module Overview
 
-| Shared Method | Purpose | Link |
-|---------------|---------|------|
-| SM-INVENTORY-OPERATIONS | Stock balance queries, transaction recording | [Documentation](../../shared-methods/inventory-operations/SM-inventory-operations.md) |
-| SM-COSTING-METHODS | FIFO/Periodic Average costing integration | [Documentation](../../shared-methods/inventory-valuation/SM-costing-methods.md) |
+The Inventory Planning submodule provides advanced inventory optimization capabilities for hospitality operations. It enables organizations to optimize inventory levels, analyze dead stock, configure safety stock by service level, manage multi-location inventory, and configure reorder planning based on EOQ and ROP calculations.
+
+---
+
+## Document Index
+
+| Document | Type | Description | Status |
+|----------|------|-------------|--------|
+| [BR-inventory-planning.md](./BR-inventory-planning.md) | Business Rules | Core business rules governing inventory optimization, dead stock management, and reorder calculations | Implemented |
+| [UC-inventory-planning.md](./UC-inventory-planning.md) | Use Cases | User interactions and workflows for all inventory planning features | Implemented |
+| [DD-inventory-planning.md](./DD-inventory-planning.md) | Data Dictionary | TypeScript interfaces, database schema, and data structures | Implemented |
+| [FD-inventory-planning.md](./FD-inventory-planning.md) | Flow Diagrams | Mermaid 8.8.2 compatible workflow diagrams | Implemented |
+| [TS-inventory-planning.md](./TS-inventory-planning.md) | Technical Spec | Component architecture, state management, and implementation details | Implemented |
+| [VAL-inventory-planning.md](./VAL-inventory-planning.md) | Validation Rules | Zod schemas and field validation rules | Implemented |
+
+---
+
+## Module Pages
+
+| Page | Route | Description |
+|------|-------|-------------|
+| Dashboard | `/operational-planning/inventory-planning` | Main dashboard with KPIs, charts, and alerts |
+| Reorder Management | `/operational-planning/inventory-planning/reorder` | EOQ/ROP optimization recommendations |
+| Dead Stock Analysis | `/operational-planning/inventory-planning/dead-stock` | Risk-based dead stock analysis |
+| Safety Stock | `/operational-planning/inventory-planning/safety-stock` | Service level-based safety stock optimization |
+| Multi-Location | `/operational-planning/inventory-planning/locations` | Cross-location inventory balancing |
+| Settings | `/operational-planning/inventory-planning/settings` | Module configuration |
 
 ---
 
 ## Key Features
 
-### Optimization Capabilities
+### Dashboard
+- KPI cards: Total Savings, Items at Risk, Optimization Rate, Dead Stock Value
+- Trend indicators with month-over-month comparisons
+- Optimization Actions pie chart (Implement, Pilot, Monitor, Reject)
+- Location Performance bar chart
+- Alert summary grid (Low Stock, Overstock, Dead Stock, Expiring, High Value, Fast Moving)
+- Recent Recommendations table
+- Cross-navigation to Demand Forecasting
 
-| Feature | Description | Method |
-|---------|-------------|--------|
-| **EOQ Calculation** | Economic Order Quantity optimization | Wilson formula |
-| **Reorder Point** | When to reorder based on lead time and demand | Safety stock + lead time demand |
-| **Safety Stock** | Buffer against demand variability | Statistical calculation |
-| **Carrying Cost** | Minimize holding costs | Cost-based optimization |
+### Reorder Management (Supplier Reorder Planning)
+- EOQ (Economic Order Quantity) and ROP (Reorder Point) calculations
+- Current vs Recommended metrics comparison
+- Risk levels: low, medium, high
+- Action types: implement, pilot, monitor, reject
+- Expandable rows with detailed metrics
+- Bulk actions (Apply Selected, Export)
+- Filtering by action type
+- Link to Stock Replenishment in Store Operations
 
-### Analysis Functions
+### Dead Stock Analysis
+- Risk overview cards: Critical, High, Medium, Low counts with values
+- Risk levels: critical, high, medium, low
+- Recommended actions: liquidate, return, writeoff, continue, reduce
+- Threshold filters: 60, 90, 120, 180, 365 days
+- Days since movement visualization
+- Expandable rows with Stock Analysis and Financial Impact sections
+- Bulk action support with checkboxes
+- Export functionality
 
-| Function | Purpose | Output |
-|----------|---------|--------|
-| Generate Optimization | Optimize inventory parameters | EOQ, reorder points, safety stock recommendations |
-| Dead Stock Analysis | Identify obsolete items | Risk level, recommended actions, potential loss |
-| Performance Dashboard | Monitor inventory KPIs | Turnover, fill rate, alerts, breakdowns |
-| Multi-Location Planning | Cross-location optimization | Transfer recommendations, location performance |
+### Safety Stock Optimization
+- Service level tabs: 90%, 95%, 99%
+- Current vs Recommended safety stock comparison table
+- What-if analysis chart (Recharts LineChart)
+- Cost impact calculations
+- Apply Selected functionality
+
+### Multi-Location Planning
+- Location status: optimal, overstocked, understocked
+- Location performance chart (Recharts BarChart)
+- Transfer priority: high, medium, low
+- Transfer recommendations table
+- Estimated savings per transfer
+
+### Settings Configuration
+- Default Parameters: service level, order cost, holding cost rate, lead time
+- Alert Thresholds: dead stock threshold days, alert toggles
+- Notification Settings: email toggle, notification email, digest frequency
+- Automation Settings: auto-apply low risk, auto-generate weekly, sync with procurement
 
 ---
 
-## User Roles & Access
+## Key Business Concepts
 
-| Role | Optimization | Dead Stock | Dashboard | Settings |
-|------|-------------|------------|-----------|----------|
-| Inventory Manager | Full | Full | Full | Full |
-| Operations Manager | View | View | Full | View |
-| Financial Controller | Full | Full | Full | Full |
-| Purchasing Manager | View | View | View | - |
-| General Manager | View | View | Full | View |
+### EOQ (Economic Order Quantity)
+```
+EOQ = sqrt(2DS/H)
+Where:
+- D = Annual demand (units)
+- S = Order cost per order ($)
+- H = Annual holding cost per unit ($)
+```
 
----
+### Reorder Point (ROP)
+```
+ROP = (Lead Time x Daily Demand) + Safety Stock
+```
 
-## Business Rules Quick Reference
+### Safety Stock
+```
+Safety Stock = Z x sigma x sqrt(Lead Time)
+Where:
+- Z = Z-score for service level (90%=1.28, 95%=1.65, 99%=2.33)
+- sigma = Standard deviation of demand
+```
 
-### Optimization Rules
+### Risk Classification (Dead Stock)
+| Risk Level | Days No Movement | OR | Months of Stock |
+|------------|-----------------|-----|-----------------|
+| Critical | > 365 | OR | > 24 |
+| High | > 180 | OR | > 12 |
+| Medium | > 90 | OR | > 6 |
+| Low | <= 90 | AND | <= 6 |
 
-| Rule | Description |
-|------|-------------|
-| BR-IP-001 | EOQ = √(2DS/H) where D=annual demand, S=order cost, H=holding cost |
-| BR-IP-002 | Reorder Point = (Lead Time Days × Daily Demand) + Safety Stock |
-| BR-IP-003 | Safety Stock = Z-score × σ × √Lead Time |
-| BR-IP-004 | Carrying Cost = Average Inventory × Annual Holding Rate |
-
-### Risk Assessment
-
-| Risk Level | Implementation Risk Score |
-|------------|--------------------------|
-| LOW | < 0.3 |
-| MEDIUM | 0.3 - 0.6 |
-| HIGH | > 0.6 |
-
-### Dead Stock Thresholds
-
-| Risk | Days No Movement | Months of Stock |
-|------|-----------------|-----------------
-| CRITICAL | > 365 | > 24 |
-| HIGH | > 180 | > 12 |
-| MEDIUM | > 90 | > 6 |
-| LOW | ≤ 90 | ≤ 6 |
-
-### Recommended Actions
-
+### Action Recommendations
 | Action | Criteria |
 |--------|----------|
-| IMPLEMENT | Total savings > $100, Low risk |
-| PILOT | Total savings > $50, Any risk |
-| MONITOR | Low savings, Medium risk |
-| REJECT | High risk, Negative ROI |
+| Implement | Low risk, savings > $100 |
+| Pilot | Any risk, savings > $50 |
+| Monitor | Medium risk, savings > $0 |
+| Reject | High risk or negative savings |
 
 ---
 
-## Service Architecture
+## Source Code Location
 
 ```
-InventoryAnalyticsService
-├── generateOptimizationRecommendations()
-├── analyzeDeadStock()
-└── generatePerformanceDashboard()
+app/(main)/operational-planning/inventory-planning/
+├── page.tsx                    # Dashboard with KPIs and charts
+├── reorder/
+│   └── page.tsx                # EOQ/ROP optimization (680 lines)
+├── dead-stock/
+│   └── page.tsx                # Dead stock analysis (673 lines)
+├── safety-stock/
+│   └── page.tsx                # Safety stock by service level (417 lines)
+├── locations/
+│   └── page.tsx                # Multi-location planning (527 lines)
+└── settings/
+    └── page.tsx                # Configuration settings (430 lines)
 ```
 
-**Location**: `lib/services/inventory/inventory-analytics-service.ts`
+---
 
-**API Endpoints**:
-- `GET /api/inventory/analytics?operation=optimization`
-- `GET /api/inventory/analytics?operation=dead-stock`
-- `GET /api/inventory/analytics?operation=dashboard`
+## Related Modules
+
+| Module | Relationship |
+|--------|--------------|
+| [Demand Forecasting](../demand-forecasting/) | Cross-navigation for demand predictions |
+| [Inventory Management](/docs/app/inventory-management/) | Source of stock data and transactions |
+| [Procurement](/docs/app/procurement/) | Consumes purchase recommendations |
+| [Store Operations](/docs/app/store-operations/stock-replenishment/) | Link from reorder planning |
 
 ---
 
-## Performance Targets
+## UI Component Library
 
-| Operation | Target Time | Max Items |
-|-----------|------------|-----------|
-| Optimization Generation | < 5 seconds | 500 |
-| Dead Stock Analysis | < 3 seconds | All |
-| Dashboard Generation | < 3 seconds | All |
-| Location Breakdown | < 2 seconds | All |
-
----
-
-## Integration Points
-
-| System | Integration Type | Data Flow |
-|--------|-----------------|-----------|
-| Demand Forecasting | Shared Service | Demand predictions → Optimization |
-| Inventory Management | Data Source | Stock levels, transactions |
-| Procurement | Consumer | Purchase recommendations |
-| Financial Reporting | Consumer | Valuation, dead stock reports |
-
----
-
-## Version History
-
-| Version | Date | Changes |
-|---------|------|---------|
-| 1.0.0 | 2025-12-06 | Initial documentation release |
-
----
-
-## Support
-
-For questions or issues with Inventory Planning:
-1. Review the [Business Requirements](./BR-inventory-planning.md) for feature details
-2. Check the [Use Cases](./UC-inventory-planning.md) for workflow guidance
-3. Consult the [Technical Specification](./TS-inventory-planning.md) for implementation details
-4. Reference the [Validations](./VAL-inventory-planning.md) for error resolution
+| Component | Source |
+|-----------|--------|
+| Card, Button, Badge | Shadcn/ui |
+| Table, Select, Input | Shadcn/ui |
+| Checkbox, Tabs | Shadcn/ui |
+| Dialog, Switch, Label | Shadcn/ui |
+| Charts (Pie, Bar, Line) | Recharts |
+| Icons | Lucide React |
 
 ---
 

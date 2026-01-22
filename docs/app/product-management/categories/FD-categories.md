@@ -36,6 +36,18 @@ This document provides comprehensive visual representations of the Product Categ
 
 **Audience**: Development team, QA engineers, business analysts, system architects, technical documentation users.
 
+### Implementation Note: Type vs Level Field
+
+> **⚠️ Database Schema vs TypeScript Implementation**
+>
+> The ERD diagram below shows a `type` field as part of the **database schema design**. The current **TypeScript implementation** in `/lib/types/common.ts` uses a `level` field (number: 1, 2, or 3) instead:
+>
+> - `level: 1` = Category (type = 'CATEGORY' in DB schema)
+> - `level: 2` = Subcategory (type = 'SUBCATEGORY' in DB schema)
+> - `level: 3` = Item Group (type = 'ITEM_GROUP' in DB schema)
+>
+> The `CategoryType` enum exists only in the UI layer (`/lib/types/product.ts`) for display purposes.
+
 ---
 
 ## High-Level System Architecture

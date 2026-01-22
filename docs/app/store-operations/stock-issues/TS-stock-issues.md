@@ -39,48 +39,43 @@ app/(main)/store-operations/stock-issues/
 
 **State Management**:
 ```typescript
-import { mockStoreRequisitions } from '@/lib/mock-data'
-import { SRStatus, SRStage, InventoryLocationType } from '@/lib/types'
+import { getStoreRequisitionsForStockIssue } from '@/lib/mock-data/store-requisitions'
+import { StoreRequisition, SRStatus, SR_STATUS_LABELS } from '@/lib/types/store-requisition'
+
+// Sort field type (actual implementation)
+type SortField = 'refNo' | 'requestDate' | 'status' | 'sourceLocationName' | 'destinationLocationName' | 'estimatedValue'
 
 // Filter states
 const [searchQuery, setSearchQuery] = useState('')
-const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'completed'>('all')
+const [statusFilter, setStatusFilter] = useState<SRStatus | 'all'>('all')
 
 // Sort state
-const [sortConfig, setSortConfig] = useState<{
-  field: 'refNo' | 'requiredDate' | 'totalValue'
-  direction: 'asc' | 'desc'
-}>({ field: 'requiredDate', direction: 'desc' })
+const [sortField, setSortField] = useState<SortField>('requestDate')
+const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc')
 
-// Computed values - Filter SRs for issue view
+// Get filtered SRs using helper function (actual implementation)
+const stockIssues = useMemo(() => getStoreRequisitionsForStockIssue(), [])
+
+// Apply search, status filter, and sorting
 const filteredIssues = useMemo(() => {
-  return mockStoreRequisitions
+  return stockIssues
     .filter(sr => {
-      // Must be at Issue or Complete stage
-      const isIssueStage = sr.stage === SRStage.Issue || sr.stage === SRStage.Complete
-
-      // Destination must be DIRECT type
-      const isDirectDestination = sr.destinationLocationType === InventoryLocationType.DIRECT
-
-      if (!isIssueStage || !isDirectDestination) return false
-
       // Search filter
+      const searchLower = searchQuery.toLowerCase()
       const matchesSearch = searchQuery === '' ||
-        sr.refNo.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sr.sourceLocationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        sr.destinationLocationName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (sr.departmentName?.toLowerCase().includes(searchQuery.toLowerCase()) ?? false)
+        sr.refNo.toLowerCase().includes(searchLower) ||
+        sr.sourceLocationName.toLowerCase().includes(searchLower) ||
+        sr.destinationLocationName.toLowerCase().includes(searchLower) ||
+        (sr.departmentName?.toLowerCase().includes(searchLower) ?? false)
 
-      // Status filter (maps to SR status)
+      // Status filter
       const matchesStatus =
-        statusFilter === 'all' ||
-        (statusFilter === 'active' && sr.status === SRStatus.InProgress) ||
-        (statusFilter === 'completed' && sr.status === SRStatus.Completed)
+        statusFilter === 'all' || sr.status === statusFilter
 
       return matchesSearch && matchesStatus
     })
-    .sort((a, b) => { /* sorting logic */ })
-}, [searchQuery, statusFilter, sortConfig])
+    .sort((a, b) => { /* sorting logic using sortField and sortDirection */ })
+}, [stockIssues, searchQuery, statusFilter, sortField, sortDirection])
 ```
 
 **UI Components**:
@@ -253,22 +248,35 @@ interface StoreRequisition {
   updatedBy?: string
 }
 
-// Store Requisition Line Item
+// Store Requisition Line Item (actual implementation)
 interface StoreRequisitionItem {
   id: string
-  requisitionId: string
   // Product reference
   productId: string
   productCode: string
   productName: string
+  categoryId?: string
+  categoryName?: string
   unit: string
+  unitId?: string
   // Quantities
   requestedQty: number
   approvedQty: number
   issuedQty: number
-  // Costing
-  unitCost: Money
-  totalCost: Money
+  sourceAvailableQty: number
+  // Costing (NOTE: number type, not Money)
+  unitCost: number
+  totalCost: number
+  // Fulfillment tracking
+  fulfillment: SRLineItemFulfillment
+  // Job/Project tracking
+  jobCodeId?: string
+  jobCodeName?: string
+  projectId?: string
+  projectName?: string
+  // Approval
+  approvalStatus: ApprovalStatus
+  approvalNotes?: string
   // Notes
   notes?: string
 }
@@ -277,13 +285,16 @@ interface StoreRequisitionItem {
 ### 3.2 Issue View is SR Filtering
 
 ```typescript
-// What makes an SR appear in Stock Issue view:
-const isStockIssue = (sr: StoreRequisition): boolean => {
-  return (
-    (sr.stage === SRStage.Issue || sr.stage === SRStage.Complete) &&
-    sr.destinationLocationType === InventoryLocationType.DIRECT
+// What makes an SR appear in Stock Issue view (actual implementation):
+// From lib/mock-data/store-requisitions.ts
+export function getStoreRequisitionsForStockIssue(): StoreRequisition[] {
+  return mockStoreRequisitions.filter(
+    sr => sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT
   )
 }
+
+// NOTE: Current implementation only filters for SRStage.Issue (not 'issue' OR 'complete')
+// This means completed issues are NOT shown in the Stock Issue view
 ```
 
 ## 4. Data Flow
@@ -340,16 +351,18 @@ Stock Issues use Store Requisition endpoints with filtering:
 
 | Action | Purpose | Endpoint |
 |--------|---------|----------|
-| `getStoreRequisitions` | Fetch SR list (filter for issues) | `GET /api/store-requisitions?stage=issue,complete&destType=DIRECT` |
+| `getStoreRequisitions` | Fetch SR list (filter for issues) | `GET /api/store-requisitions?stage=issue&destType=DIRECT` |
 | `getStoreRequisitionById` | Fetch single SR | `GET /api/store-requisitions/:id` |
 | `completeRequisition` | Complete SR (on SR, not issue) | `POST /api/store-requisitions/:id/complete` |
+
+**Note**: Current implementation filters only for `stage=issue` (not `issue,complete`).
 
 ### 5.2 Issue View Query
 
 ```typescript
-// Filter SRs to get issues
+// Filter SRs to get issues (actual implementation)
 interface IssueViewQuery {
-  stage: ['issue', 'complete']
+  stage: 'issue'  // NOTE: Only 'issue' stage, not ['issue', 'complete']
   destinationLocationType: 'DIRECT'
   search?: string
   status?: SRStatus

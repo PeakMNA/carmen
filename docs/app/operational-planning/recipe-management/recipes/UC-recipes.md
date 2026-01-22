@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Use Cases Document
 - **Module**: Operational Planning > Recipe Management > Recipes
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2024-01-15 | System | Initial use cases document created with 16 comprehensive use cases |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: updated recipe status workflow (draft, under_review, approved, rejected, published, archived), updated complexity levels (simple, moderate, complex, advanced), added quality control review use cases |
 
 ---
 

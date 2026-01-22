@@ -3,7 +3,7 @@
 ## Document Information
 - **Module**: System Administration / Workflow Management
 - **Version**: 1.0
-- **Last Updated**: 2025-01-16
+- **Last Updated**: 2026-01-16
 - **Status**: Active
 - **Related Documents**: BR-workflow.md, UC-workflow.md, TS-workflow.md, DD-workflow.md
 
@@ -857,8 +857,8 @@ flowchart TD
 ```json
 {
   "stage": "Finance Review",
-  "enteredAt": "2025-01-15T10:00:00Z",
-  "exitedAt": "2025-01-15T11:30:00Z",
+  "enteredAt": "2026-01-15T10:00:00Z",
+  "exitedAt": "2026-01-15T11:30:00Z",
   "duration": 90,
   "action": "Approve",
   "userId": "user-uuid",
@@ -905,4 +905,4 @@ These flows serve as:
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2025-01-16 | System | Initial flow diagram documentation |
+| 1.0 | 2026-01-16 | System | Initial flow diagram documentation |

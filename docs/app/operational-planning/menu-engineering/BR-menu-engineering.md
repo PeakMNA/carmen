@@ -3,13 +3,14 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Operational Planning > Menu Engineering
-- **Version**: 1.1.0
-- **Last Updated**: 2025-01-05
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.0.0 | 2025-01-16 | Development Team | Updated to v2.0.0, verified alignment with source code implementation |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.1 | 2025-01-05 | System | Added implementation status section and Section 11 (Backend Requirements) |
 | 1.0 | 2024-01-15 | System | Initial business requirements document created |

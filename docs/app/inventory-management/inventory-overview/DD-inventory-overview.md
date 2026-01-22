@@ -6,7 +6,9 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-11-19 | Documentation Team | Migrated from DS to DD format |
+| 1.0.0 | 2025-11-15 | Documentation Team | Initial version |
+
 **Module**: Inventory Management
 **Sub-Module**: Inventory Overview
 
@@ -18,8 +20,6 @@ This document provides comprehensive data schema documentation for the Inventory
 
 **Related Documents**:
 - [BR-INV-OVW: Business Requirements](./BR-inventory-overview.md)
-| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
-
 - [UC-INV-OVW: Use Cases](./UC-inventory-overview.md)
 - [TS-INV-OVW: Technical Specification](./TS-inventory-overview.md)
 - [FD-INV-OVW: Flow Diagrams](./FD-inventory-overview.md)

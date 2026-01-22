@@ -3,7 +3,7 @@
 ## Document Information
 - **Module**: System Administration / User Management
 - **Version**: 1.0
-- **Last Updated**: 2025-01-16
+- **Last Updated**: 2026-01-16
 - **Database**: PostgreSQL via Supabase
 
 ## Schema Overview

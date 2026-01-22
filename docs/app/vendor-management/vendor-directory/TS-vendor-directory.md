@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Technical Specification Document
 - **Module**: Vendor Management > Vendor Directory
-- **Version**: 2.3.0
-- **Last Updated**: 2025-11-25
+- **Version**: 2.4.0
+- **Last Updated**: 2025-01-15
 - **Document Status**: Updated
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.4.0 | 2025-01-15 | Claude | Synced folder structure with actual implementation: Changed routes from /vendor-directory/ to /vendors/ and /manage-vendors/; Added pricelist-settings route; Updated lib/services structure |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.3.0 | 2025-11-25 | System | Restructured to remove implementation code; Focus on architecture and sitemap |
 | 2.2.0 | 2025-11-25 | System | Enhanced sitemap with certification management and Asian address format; Updated data structures |
@@ -52,31 +53,43 @@
 
 **Pattern**: Next.js App Router with Server Components (default) + Client Components (interactive)
 
-**Folder Structure**:
+**Folder Structure** (Actual Implementation):
 ```
 app/
 └── (main)/
     └── vendor-management/
-        └── vendor-directory/
-            ├── page.tsx                 # Server Component (list view)
-            ├── [id]/
-            │   ├── page.tsx             # Server Component (detail view)
-            │   └── edit/
-            │       └── page.tsx         # Server Component with Client form
-            ├── new/
-            │   └── page.tsx             # Server Component with Client form
-            ├── components/
-            │   ├── VendorList.tsx       # Client Component (interactive list)
-            │   ├── VendorCard.tsx       # Client Component
-            │   ├── VendorForm.tsx       # Client Component (form)
-            │   ├── ContactList.tsx      # Client Component
-            │   ├── AddressList.tsx      # Client Component
-            │   ├── CertificationList.tsx # Client Component
-            │   ├── DocumentList.tsx     # Client Component
-            │   └── PerformanceCard.tsx  # Server Component
-            ├── actions.ts               # Server Actions (mutations)
-            ├── schemas.ts               # Zod validation schemas
-            └── types.ts                 # TypeScript interfaces
+        ├── vendors/                     # Vendor listing and basic CRUD
+        │   ├── page.tsx                 # List view (all vendors)
+        │   ├── new/
+        │   │   └── page.tsx             # Create new vendor
+        │   └── [id]/
+        │       ├── page.tsx             # Vendor detail view
+        │       ├── edit/
+        │       │   └── page.tsx         # Edit vendor form
+        │       └── pricelist-settings/
+        │           └── page.tsx         # Pricelist configuration
+        ├── manage-vendors/              # Extended vendor management
+        │   ├── page.tsx                 # Management list view
+        │   ├── new/
+        │   │   └── page.tsx             # Create with extended features
+        │   ├── [id]/
+        │   │   ├── page.tsx             # Detail with certifications/contacts
+        │   │   ├── sections/            # Tab section components
+        │   │   ├── components/          # Page-specific components
+        │   │   └── hooks/               # Custom hooks
+        │   ├── components/              # Shared management components
+        │   └── data/                    # Mock data and constants
+        ├── components/                  # Shared vendor components
+        │   ├── VendorForm.tsx
+        │   ├── VendorCard.tsx
+        │   └── ...
+        ├── types/
+        │   └── index.ts                 # TypeScript interfaces
+        └── lib/
+            ├── services/
+            │   ├── vendor-service.ts    # CRUD operations
+            │   └── vendor-validation.ts # Validation rules
+            └── migrations/              # Data migration scripts
 ```
 
 ### 1.3 Data Flow Architecture
@@ -379,110 +392,100 @@ This section provides a complete navigation structure of all pages, tabs, and di
 
 ```mermaid
 graph TD
-    ListPage['List Page<br>/vendor-management/vendor-directory']
-    CreatePage['Create Page<br>/vendor-management/vendor-directory/new']
-    DetailPage["Detail Page<br>/vendor-management/vendor-directory/[id]"]
-    EditPage["Edit Page<br>/vendor-management/vendor-directory/[id]/edit"]
+    ListPage[List Page]
+    CreatePage[Create Page]
+    DetailPage[Detail Page]
+    EditPage[Edit Page]
+    ManageListPage[Manage Vendors]
+    ManageDetailPage[Manage Detail]
 
-    %% List Page Tabs
-    ListPage --> ListTab1['Tab: All Items']
-    ListPage --> ListTab2['Tab: Active']
-    ListPage --> ListTab3['Tab: Archived']
+    ListPage --> ListTab1[Tab: All Items]
+    ListPage --> ListTab2[Tab: Active]
+    ListPage --> ListTab3[Tab: Archived]
 
-    %% List Page Dialogues
-    ListPage -.-> ListDialog1['Dialog: Quick Create']
-    ListPage -.-> ListDialog2['Dialog: Bulk Actions']
-    ListPage -.-> ListDialog3['Dialog: Export']
-    ListPage -.-> ListDialog4['Dialog: Advanced Filter']
+    ListPage -.-> ListDialog1[Dialog: Quick Create]
+    ListPage -.-> ListDialog2[Dialog: Bulk Actions]
+    ListPage -.-> ListDialog3[Dialog: Export]
+    ListPage -.-> ListDialog4[Dialog: Advanced Filter]
 
-    %% Detail Page Tabs
-    DetailPage --> DetailTab1['Tab: Overview']
-    DetailPage --> DetailTab2['Tab: Contacts']
-    DetailPage --> DetailTab3['Tab: Addresses']
-    DetailPage --> DetailTab4['Tab: Certifications']
-    DetailPage --> DetailTab5['Tab: Documents']
-    DetailPage --> DetailTab6['Tab: History']
+    DetailPage --> DetailTab1[Tab: Overview]
+    DetailPage --> DetailTab2[Tab: Contacts]
+    DetailPage --> DetailTab3[Tab: Addresses]
+    DetailPage --> DetailTab4[Tab: Certifications]
+    DetailPage --> DetailTab5[Tab: Documents]
+    DetailPage --> DetailTab6[Tab: History]
 
-    %% Detail Page - Certification Dialogues
-    DetailTab4 -.-> CertDialog1['Dialog: Add Certification']
-    DetailTab4 -.-> CertDialog2['Dialog: Edit Certification']
-    DetailTab4 -.-> CertDialog3['Dialog: Delete Certification']
-    DetailTab4 -.-> CertDialog4['Dialog: View Certification Details']
+    DetailTab4 -.-> CertDialog1[Dialog: Add Certification]
+    DetailTab4 -.-> CertDialog2[Dialog: Edit Certification]
+    DetailTab4 -.-> CertDialog3[Dialog: Delete Certification]
+    DetailTab4 -.-> CertDialog4[Dialog: View Certification Details]
 
-    %% Detail Page - Contact Dialogues
-    DetailTab2 -.-> ContactDialog1['Dialog: Add Contact']
-    DetailTab2 -.-> ContactDialog2['Dialog: Edit Contact']
-    DetailTab2 -.-> ContactDialog3['Dialog: Delete Contact']
-    DetailTab2 -.-> ContactDialog4['Dialog: Set Primary Contact']
+    DetailTab2 -.-> ContactDialog1[Dialog: Add Contact]
+    DetailTab2 -.-> ContactDialog2[Dialog: Edit Contact]
+    DetailTab2 -.-> ContactDialog3[Dialog: Delete Contact]
+    DetailTab2 -.-> ContactDialog4[Dialog: Set Primary Contact]
 
-    %% Detail Page - Address Dialogues
-    DetailTab3 -.-> AddressDialog1['Dialog: Add Address']
-    DetailTab3 -.-> AddressDialog2['Dialog: Edit Address']
-    DetailTab3 -.-> AddressDialog3['Dialog: Delete Address']
-    DetailTab3 -.-> AddressDialog4['Dialog: Set Primary Address']
+    DetailTab3 -.-> AddressDialog1[Dialog: Add Address]
+    DetailTab3 -.-> AddressDialog2[Dialog: Edit Address]
+    DetailTab3 -.-> AddressDialog3[Dialog: Delete Address]
+    DetailTab3 -.-> AddressDialog4[Dialog: Set Primary Address]
 
-    %% Detail Page - Document Dialogues
-    DetailTab5 -.-> DocDialog1['Dialog: Upload Document']
-    DetailTab5 -.-> DocDialog2['Dialog: View Document']
-    DetailTab5 -.-> DocDialog3['Dialog: Delete Document']
+    DetailTab5 -.-> DocDialog1[Dialog: Upload Document]
+    DetailTab5 -.-> DocDialog2[Dialog: View Document]
+    DetailTab5 -.-> DocDialog3[Dialog: Delete Document]
 
-    %% Detail Page Main Dialogues
-    DetailPage -.-> DetailDialog1['Dialog: Status Change']
-    DetailPage -.-> DetailDialog2['Dialog: Delete Vendor']
-    DetailPage -.-> DetailDialog3['Dialog: Archive Vendor']
+    DetailPage -.-> DetailDialog1[Dialog: Status Change]
+    DetailPage -.-> DetailDialog2[Dialog: Delete Vendor]
+    DetailPage -.-> DetailDialog3[Dialog: Archive Vendor]
 
-    %% Create Page Form Tabs
-    CreatePage --> CreateTab1['Tab: Basic Info']
-    CreatePage --> CreateTab2['Tab: Addresses']
-    CreatePage --> CreateTab3['Tab: Contacts']
-    CreatePage --> CreateTab4['Tab: Certifications']
-    CreatePage --> CreateTab5['Tab: Financial']
+    CreatePage --> CreateTab1[Tab: Basic Info]
+    CreatePage --> CreateTab2[Tab: Addresses]
+    CreatePage --> CreateTab3[Tab: Contacts]
+    CreatePage --> CreateTab4[Tab: Certifications]
+    CreatePage --> CreateTab5[Tab: Financial]
 
-    %% Create/Edit Address Dialogues
-    CreateTab2 -.-> CreateAddrDialog1['Dialog: Add Address<br>(Asian International Format)']
-    CreateTab2 -.-> CreateAddrDialog2['Dialog: Edit Address']
+    CreateTab2 -.-> CreateAddrDialog1[Dialog: Add Address]
+    CreateTab2 -.-> CreateAddrDialog2[Dialog: Edit Address]
 
-    %% Create/Edit Contact Dialogues
-    CreateTab3 -.-> CreateContactDialog1['Dialog: Add Contact']
-    CreateTab3 -.-> CreateContactDialog2['Dialog: Edit Contact']
+    CreateTab3 -.-> CreateContactDialog1[Dialog: Add Contact]
+    CreateTab3 -.-> CreateContactDialog2[Dialog: Edit Contact]
 
-    %% Create/Edit Certification Dialogues
-    CreateTab4 -.-> CreateCertDialog1['Dialog: Add Certification<br>(16 Types)']
-    CreateTab4 -.-> CreateCertDialog2['Dialog: Edit Certification']
+    CreateTab4 -.-> CreateCertDialog1[Dialog: Add Certification]
+    CreateTab4 -.-> CreateCertDialog2[Dialog: Edit Certification]
 
-    %% Create Page Dialogues
-    CreatePage -.-> CreateDialog1['Dialog: Cancel Confirm']
-    CreatePage -.-> CreateDialog2['Dialog: Save Draft']
+    CreatePage -.-> CreateDialog1[Dialog: Cancel Confirm]
+    CreatePage -.-> CreateDialog2[Dialog: Save Draft]
 
-    %% Edit Page Form Tabs
-    EditPage --> EditTab1['Tab: Basic Info']
-    EditPage --> EditTab2['Tab: Addresses']
-    EditPage --> EditTab3['Tab: Contacts']
-    EditPage --> EditTab4['Tab: Certifications']
-    EditPage --> EditTab5['Tab: Financial']
+    EditPage --> EditTab1[Tab: Basic Info]
+    EditPage --> EditTab2[Tab: Addresses]
+    EditPage --> EditTab3[Tab: Contacts]
+    EditPage --> EditTab4[Tab: Certifications]
+    EditPage --> EditTab5[Tab: Financial]
 
-    EditPage -.-> EditDialog1['Dialog: Discard Changes']
-    EditPage -.-> EditDialog2['Dialog: Save Draft']
+    EditPage -.-> EditDialog1[Dialog: Discard Changes]
+    EditPage -.-> EditDialog2[Dialog: Save Draft]
 
-    %% Navigation Flow
     ListPage --> DetailPage
     ListPage --> CreatePage
     DetailPage --> EditPage
     CreatePage --> DetailPage
     EditPage --> DetailPage
-
-    style ListPage fill:#e1f5ff
-    style CreatePage fill:#fff4e1
-    style DetailPage fill:#e8f5e9
-    style EditPage fill:#fce4ec
-    style DetailTab4 fill:#f3e5f5
-    style DetailTab3 fill:#e3f2fd
 ```
+
+**Page Routes:**
+| Page | Route |
+|------|-------|
+| List Page | `/vendor-management/vendors` |
+| Create Page | `/vendor-management/vendors/new` |
+| Detail Page | `/vendor-management/vendors/[id]` |
+| Edit Page | `/vendor-management/vendors/[id]/edit` |
+| Manage Vendors | `/vendor-management/manage-vendors` |
+| Manage Detail | `/vendor-management/manage-vendors/[id]` |
 
 ### Pages
 
 #### 1. List Page
-**Route**: `/vendor-management/vendor-directory`
+**Route**: `/vendor-management/vendors` (basic) or `/vendor-management/manage-vendors` (extended)
 **Purpose**: Display paginated list of all vendors with certification status indicators
 
 **Sections**:
@@ -511,7 +514,7 @@ graph TD
 ---
 
 #### 2. Detail Page
-**Route**: `/vendor-management/vendor-directory/[id]`
+**Route**: `/vendor-management/vendors/[id]` or `/vendor-management/manage-vendors/[id]`
 **Purpose**: Display comprehensive vendor details with full certification management
 
 **Sections**:
@@ -617,7 +620,7 @@ graph TD
 ---
 
 #### 3. Create Page
-**Route**: `/vendor-management/vendor-directory/new`
+**Route**: `/vendor-management/vendors/new` or `/vendor-management/manage-vendors/new`
 **Purpose**: Create new vendor with full certification and address management
 
 **Form Tabs**:
@@ -687,7 +690,7 @@ graph TD
 ---
 
 #### 4. Edit Page
-**Route**: `/vendor-management/vendor-directory/[id]/edit`
+**Route**: `/vendor-management/vendors/[id]/edit`
 **Purpose**: Modify existing vendor with full certification and address management
 
 **Form Tabs**: Same structure as Create Page
@@ -779,11 +782,11 @@ graph TD
 ---
 
 ## Related Documents
-- [BR-vendor-directory.md](BR-vendor-directory.md) - Business Requirements (v2.2.0)
-- [DD-vendor-directory.md](DD-vendor-directory.md) - Data Dictionary (v2.2.0)
+- [BR-vendor-directory.md](BR-vendor-directory.md) - Business Requirements (v2.3.0)
+- [DD-vendor-directory.md](DD-vendor-directory.md) - Data Dictionary (v2.3.0)
 - [UC-vendor-directory.md](UC-vendor-directory.md) - Use Cases (v2.2.0)
 - [FD-vendor-directory.md](FD-vendor-directory.md) - Flow Diagrams (v2.2.0)
-- [VAL-vendor-directory.md](VAL-vendor-directory.md) - Validations (v2.2.0)
+- [VAL-vendor-directory.md](VAL-vendor-directory.md) - Validations (v2.3.0)
 
 ---
 

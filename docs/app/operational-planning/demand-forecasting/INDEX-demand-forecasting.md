@@ -2,20 +2,29 @@
 
 ## Module Overview
 
-The **Demand Forecasting** module provides advanced analytics and prediction capabilities for inventory management in hospitality operations. It enables operations managers, executive chefs, and inventory planners to forecast future demand, analyze consumption trends, optimize inventory levels, and identify slow-moving or dead stock items.
+The **Demand Forecasting** module provides advanced analytics and prediction capabilities for inventory management in hospitality operations. It enables operations managers, executive chefs, and inventory planners to forecast future demand, analyze consumption trends, optimize inventory levels, and identify slow-moving items.
 
 ---
 
 ## Quick Navigation
 
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/operational-planning/demand-forecasting/business-requirements)<br/>Business Requirements | [**UC**](/operational-planning/demand-forecasting/use-cases)<br/>Use Cases | [**TS**](/operational-planning/demand-forecasting/technical-specification)<br/>Technical Spec |
+| [**DD**](/operational-planning/demand-forecasting/data-dictionary)<br/>Data Dictionary | [**FD**](/operational-planning/demand-forecasting/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/operational-planning/demand-forecasting/validations)<br/>Validations |
+
+---
+
+## Documentation Index
+
 | Document | Description | Last Updated |
 |----------|-------------|--------------|
-| [Business Requirements](./BR-demand-forecasting.md) | Functional requirements, business rules, backend specs | 2025-12-05 |
-| [Use Cases](./UC-demand-forecasting.md) | User workflows and detailed scenarios | 2025-12-05 |
-| [Technical Specification](./TS-demand-forecasting.md) | System architecture and component design | 2025-12-05 |
-| [Data Definition](./DD-demand-forecasting.md) | Entity descriptions and data models | 2025-12-05 |
-| [Flow Diagrams](./FD-demand-forecasting.md) | Visual workflow diagrams (Mermaid) | 2025-12-05 |
-| [Validations](./VAL-demand-forecasting.md) | Validation rules and schemas | 2025-12-05 |
+| [Business Requirements](./BR-demand-forecasting.md) | Functional requirements, business rules, backend specs | 2025-01-17 |
+| [Use Cases](./UC-demand-forecasting.md) | User workflows and detailed scenarios | 2025-01-17 |
+| [Technical Specification](./TS-demand-forecasting.md) | System architecture and component design | 2025-01-17 |
+| [Data Definition](./DD-demand-forecasting.md) | Entity descriptions and data models | 2025-01-17 |
+| [Flow Diagrams](./FD-demand-forecasting.md) | Visual workflow diagrams (Mermaid) | 2025-01-17 |
+| [Validations](./VAL-demand-forecasting.md) | Validation rules and schemas | 2025-01-17 |
 
 ---
 
@@ -143,10 +152,30 @@ InventoryAnalyticsService
 
 ---
 
+## Source Code Location
+
+```
+app/(main)/operational-planning/demand-forecasting/
+├── page.tsx                    # Main dashboard with KPIs and alerts
+├── forecast/
+│   ├── page.tsx                # Forecast generation wizard
+│   └── [itemId]/
+│       └── page.tsx            # Item-level forecast detail
+├── trends/
+│   └── page.tsx                # Trend analysis dashboard
+├── optimization/
+│   └── page.tsx                # Optimization recommendations
+└── settings/
+    └── page.tsx                # Forecasting configuration
+```
+
+---
+
 ## Version History
 
 | Version | Date | Changes |
 |---------|------|---------|
+| 2.0.0 | 2025-01-17 | Updated to reflect actual UI implementation with 6 pages |
 | 1.0.0 | 2025-12-05 | Initial documentation release |
 
 ---

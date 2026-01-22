@@ -4,8 +4,8 @@
 - **Module**: Product Management
 - **Sub-Module**: Unit Management
 - **Route**: `/product-management/units`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-11-02
+- **Version**: 1.1.0
+- **Last Updated**: 2026-01-15
 - **Owner**: Product Management Team
 - **Status**: Approved
 
@@ -13,11 +13,12 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-02 | Documentation Team | Initial version based on source code analysis |
+| 1.1.0 | 2026-01-15 | System | Added MEASURE unit type for ingredient measurements, updated unit type descriptions to align with code |
 
 
 ## Overview
 
-The Unit Management sub-module provides a centralized system for managing all measurement units used throughout the Carmen ERP system. Units are fundamental to inventory management, purchasing, recipe management, and product specifications in hospitality operations. This module enables hotel staff to maintain a standardized catalog of measurement units across three distinct categories: inventory units (for stock tracking), order units (for procurement), and recipe units (for food preparation).
+The Unit Management sub-module provides a centralized system for managing all measurement units used throughout the Carmen ERP system. Units are fundamental to inventory management, purchasing, recipe management, and product specifications in hospitality operations. This module enables hotel staff to maintain a standardized catalog of measurement units across four distinct categories: inventory units (for stock tracking), order units (for procurement), recipe units (for serving/portion output), and measure units (for ingredient measurements in recipes).
 
 The system supports different types of measurement units required in hotel operations, from weight measurements (kilograms, grams) for kitchen inventory to volume measurements (liters, milliliters) for beverages, and specialized recipe measurements (teaspoons, tablespoons, cups) for food preparation. Each unit can be independently managed with full lifecycle control including creation, modification, activation/deactivation, and deletion.
 
@@ -76,7 +77,7 @@ As a Head Chef, I want to search and filter units by name, code, type, or status
 
 **Acceptance Criteria**:
 - Search box filters units in real-time by name, code, or description
-- Type filter dropdown includes options: All Types, INVENTORY, ORDER, RECIPE
+- Type filter dropdown includes options: All Types, INVENTORY, ORDER, RECIPE, MEASURE
 - Status filter dropdown includes options: All Status, Active, Inactive
 - Multiple filters can be applied simultaneously
 - Search is case-insensitive and matches partial text
@@ -116,7 +117,7 @@ As a Purchasing Manager, I want to create new measurement units so that I can ad
 - Code field accepts only uppercase alphanumeric characters and hyphens
 - Code must be unique across all units
 - Name field accepts alphanumeric characters and spaces (max 100 characters)
-- Type dropdown offers three options: INVENTORY, ORDER, RECIPE
+- Type dropdown offers four options: INVENTORY, ORDER, RECIPE, MEASURE
 - Form validates all required fields before submission
 - System displays success message upon successful creation
 - Newly created unit appears in the unit list immediately
@@ -224,11 +225,11 @@ As a Storekeeper, I want to view complete details of a unit including its usage 
 - **BR-UNIT-001**: Unit codes must be unique across the entire system and cannot be changed after creation.
 - **BR-UNIT-002**: Unit codes must be uppercase alphanumeric characters with optional hyphens (e.g., KG, ML, TSP, BOX-10).
 - **BR-UNIT-003**: Unit codes must be between 1 and 20 characters in length.
-- **BR-UNIT-004**: Unit names must be unique within their unit type category (INVENTORY, ORDER, RECIPE).
+- **BR-UNIT-004**: Unit names must be unique within their unit type category (INVENTORY, ORDER, RECIPE, MEASURE).
 - **BR-UNIT-005**: Unit names must be between 2 and 100 characters in length.
 
 ### Data Validation Rules
-- **BR-UNIT-006**: Unit type must be one of three valid values: INVENTORY, ORDER, or RECIPE.
+- **BR-UNIT-006**: Unit type must be one of four valid values: INVENTORY, ORDER, RECIPE, or MEASURE.
 - **BR-UNIT-007**: Description field is optional but if provided must not exceed 500 characters.
 - **BR-UNIT-008**: Status must be either Active (true) or Inactive (false).
 - **BR-UNIT-009**: Created date and updated date must be system-generated timestamps and cannot be manually modified.
@@ -244,7 +245,7 @@ As a Storekeeper, I want to view complete details of a unit including its usage 
 ### Calculation Rules
 - **BR-UNIT-016**: Unit conversion factors are defined at the product level, not in the unit master data.
 - **BR-UNIT-017**: Base units for each product are selected from INVENTORY type units only.
-- **BR-UNIT-018**: Recipe units (TSP, TBSP, CUP) can only be used in recipe management module.
+- **BR-UNIT-018**: Recipe units (SERVING, PORTION) are used for recipe yield output; Measure units (TSP, TBSP, CUP) are used for ingredient measurements in recipes.
 
 ### Security Rules
 - **BR-UNIT-019**: All unit modifications must be logged in the system audit trail with user ID, timestamp, and action type.
@@ -287,7 +288,7 @@ interface Unit {
 }
 
 // Unit type enumeration
-type UnitType = 'INVENTORY' | 'ORDER' | 'RECIPE';
+type UnitType = 'INVENTORY' | 'ORDER' | 'RECIPE' | 'MEASURE';
 ```
 
 **Key Fields Explanation**:
@@ -296,7 +297,8 @@ type UnitType = 'INVENTORY' | 'ORDER' | 'RECIPE';
 - **type**: Categorizes units based on their primary usage context in hospitality operations:
   - INVENTORY: Units for stock tracking (KG, L, PC)
   - ORDER: Units for purchasing and receiving (BOX, CASE, CTN, PLT)
-  - RECIPE: Units for food preparation (TSP, TBSP, CUP, OZ)
+  - RECIPE: Serving units for recipe yield output (SERVING, PORTION, PLATE, BOWL, SLICE)
+  - MEASURE: Ingredient measurement units for recipes (TSP, TBSP, CUP, OZ, PINCH)
 - **isActive**: Controls whether unit can be selected for new products/recipes while preserving existing references.
 
 ### Unit Usage Statistics (Read-Only View)
@@ -339,9 +341,9 @@ interface UnitUsageStats {
 - **Dependency**: Deleting a unit requires checking product_units table
 
 #### Recipe Management Integration
-- **Purpose**: Recipe units (TSP, TBSP, CUP) are used for ingredient measurements in recipes
+- **Purpose**: Recipe units define serving/portion sizes for yield output; Measure units (TSP, TBSP, CUP) are used for ingredient measurements in recipes
 - **Data Flow**: Recipe Ingredient → Unit (read-only reference)
-- **Validation**: Recipe ingredients must use units of type RECIPE or INVENTORY
+- **Validation**: Recipe ingredients must use units of type MEASURE or INVENTORY; Recipe yield must use units of type RECIPE
 - **Dependency**: Deleting a unit requires checking recipe_ingredients table
 
 #### Inventory Management Integration
@@ -444,7 +446,7 @@ None. Unit Management is an internal master data module with no direct external 
 ## Glossary
 
 - **Base Unit**: The primary measurement unit assigned to a product for inventory tracking
-- **Unit Type**: Category classification (INVENTORY, ORDER, RECIPE) that determines where a unit can be used
+- **Unit Type**: Category classification (INVENTORY, ORDER, RECIPE, MEASURE) that determines where a unit can be used
 - **Active Unit**: A unit that is available for selection in new products, recipes, and transactions
 - **Inactive Unit**: A unit that is hidden from selection but still valid for existing references
 - **Unit Code**: Short, unique identifier for a unit (e.g., KG, LB, TSP)
@@ -456,5 +458,5 @@ None. Unit Management is an internal master data module with no direct external 
 **Document Control**:
 - **Classification**: Internal Use Only
 - **Review Cycle**: Quarterly
-- **Next Review Date**: 2025-02-02
+- **Next Review Date**: 2026-04-15
 - **Approval Required**: Product Management Team Lead, IT Manager

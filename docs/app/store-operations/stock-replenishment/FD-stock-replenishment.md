@@ -2,460 +2,197 @@
 
 ## 1. High-Level System Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                     Stock Replenishment System Overview                         │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-     ┌──────────────┐
-     │  PAR Level   │
-     │  Monitoring  │
-     └──────┬───────┘
-            │
-            ▼
-     ┌──────────────┐      ┌──────────────┐
-     │   Items      │      │   Stock      │
-     │ Below PAR    │◄────►│  Balances    │
-     └──────┬───────┘      └──────────────┘
-            │
-            ▼
-     ┌──────────────┐
-     │  Urgency     │
-     │Classification│
-     └──────┬───────┘
-            │
-            ├─────────────────────────────────────┐
-            │                                     │
-            ▼                                     ▼
-     ┌──────────────┐                      ┌──────────────┐
-     │   Source     │                      │   Manual     │
-     │  Available?  │                      │  Selection   │
-     └──────┬───────┘                      └──────┬───────┘
-            │                                     │
-     ┌──────┴──────┐                              │
-     │             │                              │
-     ▼             ▼                              │
-  ┌─────┐     ┌─────┐                             │
-  │ YES │     │ NO  │                             │
-  └──┬──┘     └──┬──┘                             │
-     │           │                                │
-     ▼           ▼                                │
-┌─────────┐ ┌─────────┐                           │
-│ Stock   │ │PR-Only  │                           │
-│Transfer │ │Workflow │◄──────────────────────────┘
-└────┬────┘ └────┬────┘
-     │           │
-     └─────┬─────┘
-           │
-           ▼
-    ┌──────────────┐
-    │    Store     │
-    │ Requisition  │
-    └──────┬───────┘
-           │
-           ▼
-    ┌──────────────┐
-    │   Approval   │
-    │   Workflow   │
-    └──────┬───────┘
-           │
-     ┌─────┴─────┐
-     │           │
-     ▼           ▼
-┌─────────┐ ┌─────────┐ ┌─────────┐
-│   ST    │ │   SI    │ │   PR    │
-│Generated│ │Generated│ │Generated│
-└─────────┘ └─────────┘ └─────────┘
+```mermaid
+graph TD
+    A[PAR Level Monitoring] --> B[Items Below PAR]
+    C[Stock Balances] <--> B
+    B --> D[Urgency Classification]
+    D --> E{Source Available?}
+    D --> F[Manual Selection]
+    E -->|YES| G[Stock Transfer]
+    E -->|NO| H[PR Only Workflow]
+    F --> H
+    G --> I[Store Requisition]
+    H --> I
+    I --> J[Approval Workflow]
+    J --> K[ST Generated]
+    J --> L[SI Generated]
+    J --> M[PR Generated]
 ```
 
 ## 2. Urgency Classification Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                         Urgency Classification Logic                            │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-                    ┌───────────────────┐
-                    │   For Each Item   │
-                    │   at Location     │
-                    └─────────┬─────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │  currentStock     │
-                    │  ÷ parLevel       │
-                    │  × 100 = %        │
-                    └─────────┬─────────┘
-                              │
-              ┌───────────────┼───────────────┐
-              │               │               │
-              ▼               ▼               ▼
-        ┌─────────┐     ┌─────────┐     ┌─────────┐
-        │  < 30%  │     │ 30-60%  │     │  > 60%  │
-        └────┬────┘     └────┬────┘     └────┬────┘
-             │               │               │
-             ▼               ▼               ▼
-        ┌─────────┐     ┌─────────┐     ┌─────────┐
-        │CRITICAL │     │ WARNING │     │   LOW   │
-        │   🔴    │     │   🟡    │     │   🔵    │
-        └─────────┘     └─────────┘     └─────────┘
-             │               │               │
-             │               │               │
-             ▼               ▼               ▼
-     ┌──────────────────────────────────────────────┐
-     │           Dashboard Display                  │
-     │  ┌────────┐ ┌────────┐ ┌────────┐           │
-     │  │Critical│ │Warning │ │  Low   │           │
-     │  │   12   │ │   25   │ │   8    │           │
-     │  └────────┘ └────────┘ └────────┘           │
-     └──────────────────────────────────────────────┘
+```mermaid
+graph TD
+    A[For Each Item at Location] --> B[Calculate: currentStock / parLevel x 100]
+    B --> C{Stock Percentage}
+    C -->|Less than 30 percent| D[CRITICAL]
+    C -->|30 to 60 percent| E[WARNING]
+    C -->|Greater than 60 percent| F[LOW]
+    D --> G[Dashboard Display]
+    E --> G
+    F --> G
 ```
 
 ## 3. Replenishment Request Creation Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    Replenishment Request Creation                               │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Dashboard
+        A1[Filter by Urgency and Location]
+        A2[Select Items via Checkbox]
+        A3[Click Create Request]
+    end
 
-┌──────────────────────────────────────────────────────────────────┐
-│                        DASHBOARD                                  │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ [Filter: All ▼] [Location: All ▼]                           │ │
-│  ├─────────────────────────────────────────────────────────────┤ │
-│  │ □ Product A  | Main Kitchen | Critical | 5/50              │ │
-│  │ ☑ Product B  | Main Kitchen | Warning  | 25/50             │ │
-│  │ ☑ Product C  | Pool Bar     | Critical | 3/30              │ │
-│  │ □ Product D  | Pool Bar     | Low      | 40/50             │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-│                                                                   │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ 🛒 2 items selected         [Create Request]                │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-                              │
-                              │ Click "Create Request"
-                              ▼
-┌──────────────────────────────────────────────────────────────────┐
-│                     NEW REQUEST FORM                              │
-│  ┌─────────────────────────────────────────────────────────────┐ │
-│  │ Source Location: [Central Store ▼] [None - PR Only]         │ │
-│  │ Priority:        [Standard ▼] [Urgent] [Emergency]          │ │
-│  │ Required Date:   [2024-01-15]                               │ │
-│  ├─────────────────────────────────────────────────────────────┤ │
-│  │ Items:                                                      │ │
-│  │ ┌─────────────────────────────────────────────────────────┐ │ │
-│  │ │ Product B | Req: 25 | Avail: 200 | ✓ Valid              │ │ │
-│  │ │ Product C | Req: 27 | Avail: 150 | ✓ Valid              │ │ │
-│  │ └─────────────────────────────────────────────────────────┘ │ │
-│  │                                                             │ │
-│  │ [Cancel]                            [Submit Request]        │ │
-│  └─────────────────────────────────────────────────────────────┘ │
-└──────────────────────────────────────────────────────────────────┘
-                              │
-                              │ Submit
-                              ▼
-                    ┌───────────────────┐
-                    │ Create Store      │
-                    │ Requisition       │
-                    └─────────┬─────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ Redirect to       │
-                    │ SR Module         │
-                    └───────────────────┘
+    subgraph RequestForm
+        B1[Select Source Location]
+        B2[Set Priority]
+        B3[Review Items with Availability]
+        B4[Submit Request]
+    end
+
+    A1 --> A2
+    A2 --> A3
+    A3 --> B1
+    B1 --> B2
+    B2 --> B3
+    B3 --> B4
+    B4 --> C[Create Store Requisition]
+    C --> D[Redirect to SR Module]
 ```
 
 ## 4. Workflow Type Determination Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      Workflow Type Determination                                │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-                    ┌───────────────────┐
-                    │  Source Location  │
-                    │    Selection      │
-                    └─────────┬─────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ Source = "none"?  │
-                    └─────────┬─────────┘
-                              │
-              ┌───────────────┴───────────────┐
-              │                               │
-              ▼                               ▼
-         ┌────────┐                      ┌────────┐
-         │  YES   │                      │   NO   │
-         └────┬───┘                      └────┬───┘
-              │                               │
-              ▼                               ▼
-     ┌─────────────────┐            ┌───────────────────┐
-     │   PR-ONLY       │            │ Check Destination │
-     │   Workflow      │            │   Location Type   │
-     │   ─────────     │            └─────────┬─────────┘
-     │ All items go    │                      │
-     │ to Purchase     │          ┌───────────┴───────────┐
-     │ Request (PR)    │          │                       │
-     └─────────────────┘          ▼                       ▼
-                           ┌─────────────┐         ┌─────────────┐
-                           │   DIRECT    │         │  INVENTORY  │
-                           │   Type      │         │  Type       │
-                           └──────┬──────┘         └──────┬──────┘
-                                  │                       │
-                                  ▼                       ▼
-                           ┌─────────────┐         ┌─────────────┐
-                           │ STOCK ISSUE │         │   STOCK     │
-                           │     (SI)    │         │  TRANSFER   │
-                           │ ─────────── │         │    (ST)     │
-                           │ Issue to    │         │ ─────────── │
-                           │ expense     │         │ INVENTORY   │
-                           │ location    │         │ to INVENTORY│
-                           └─────────────┘         └─────────────┘
+```mermaid
+graph TD
+    A[Source Location Selection] --> B{Source equals none?}
+    B -->|YES| C[PR ONLY Workflow]
+    C --> C1[All items go to Purchase Request]
+    B -->|NO| D{Check Destination Location Type}
+    D -->|DIRECT Type| E[STOCK ISSUE]
+    E --> E1[Issue to expense location]
+    D -->|INVENTORY Type| F[STOCK TRANSFER]
+    F --> F1[INVENTORY to INVENTORY]
 ```
 
 ## 5. Source Availability Check Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                       Source Availability Check                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-              ┌───────────────────┐
-              │ Get Source        │
-              │ Location Stock    │
-              └─────────┬─────────┘
-                        │
-                        ▼
-              ┌───────────────────┐
-              │ For Each          │
-              │ Requested Item    │
-              └─────────┬─────────┘
-                        │
-            ┌───────────┴───────────┐
-            │                       │
-            ▼                       ▼
-    ┌───────────────┐       ┌───────────────┐
-    │ Source Stock  │       │ Source Stock  │
-    │ >= Requested  │       │ <  Requested  │
-    └───────┬───────┘       └───────┬───────┘
-            │                       │
-            ▼                       ▼
-    ┌───────────────┐       ┌───────────────┐
-    │    ✓ Valid    │       │   Partial     │
-    │               │       │   Fulfillment │
-    │ Full quantity │       ├───────────────┤
-    │ from stock    │       │ Available →ST │
-    │               │       │ Shortfall →PR │
-    └───────────────┘       └───────────────┘
-            │                       │
-            └───────────┬───────────┘
-                        │
-                        ▼
-              ┌───────────────────┐
-              │ Display Item      │
-              │ Status in Form    │
-              │ ─────────────     │
-              │ Product A ✓       │
-              │ Product B ⚠       │
-              │   (5 to PR)       │
-              └───────────────────┘
+```mermaid
+graph TD
+    A[Get Source Location Stock] --> B[For Each Requested Item]
+    B --> C{Source Stock vs Requested}
+    C -->|Stock >= Requested| D[Valid: Full quantity from stock]
+    C -->|Stock < Requested| E[Partial Fulfillment]
+    E --> E1[Available goes to ST]
+    E --> E2[Shortfall goes to PR]
+    D --> F[Display Item Status in Form]
+    E1 --> F
+    E2 --> F
 ```
 
 ## 6. Document Generation Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                         Document Generation Flow                                │
-└─────────────────────────────────────────────────────────────────────────────────┘
-
-                    ┌───────────────────┐
-                    │ Store Requisition │
-                    │    APPROVED       │
-                    └─────────┬─────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ Analyze Line      │
-                    │ Items             │
-                    └─────────┬─────────┘
-                              │
-         ┌────────────────────┼────────────────────┐
-         │                    │                    │
-         ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ Items with      │  │ Items to        │  │ Items with      │
-│ Source Stock    │  │ DIRECT          │  │ No Source       │
-│ to INVENTORY    │  │ Location        │  │ (Shortfall)     │
-└────────┬────────┘  └────────┬────────┘  └────────┬────────┘
-         │                    │                    │
-         ▼                    ▼                    ▼
-┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐
-│ Generate        │  │ Generate        │  │ Generate        │
-│ STOCK TRANSFER  │  │ STOCK ISSUE     │  │ PURCHASE        │
-│ (ST)            │  │ (SI)            │  │ REQUEST (PR)    │
-├─────────────────┤  ├─────────────────┤  ├─────────────────┤
-│ ST-2401-0001    │  │ SI-2401-0001    │  │ PR-2401-0001    │
-│ From: Central   │  │ From: Central   │  │ Deliver To:     │
-│ To: Main Kitchen│  │ To: Bar Direct  │  │ Main Kitchen    │
-│ Items: 3        │  │ Items: 2        │  │ Items: 1        │
-│ Value: $500     │  │ Value: $200     │  │ Est: $150       │
-└─────────────────┘  └─────────────────┘  └─────────────────┘
-         │                    │                    │
-         └────────────────────┼────────────────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ Update SR Status  │
-                    │ → PROCESSING      │
-                    └─────────┬─────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ Link Generated    │
-                    │ Documents to SR   │
-                    └───────────────────┘
+```mermaid
+graph TD
+    A[Store Requisition APPROVED] --> B[Analyze Line Items]
+    B --> C[Items with Source Stock to INVENTORY]
+    B --> D[Items to DIRECT Location]
+    B --> E[Items with No Source - Shortfall]
+    C --> F[Generate STOCK TRANSFER - ST]
+    D --> G[Generate STOCK ISSUE - SI]
+    E --> H[Generate PURCHASE REQUEST - PR]
+    F --> I[Update SR Stage to Issue]
+    G --> I
+    H --> I
+    I --> J[Link Generated Documents to SR]
 ```
 
 ## 7. Location Type Validation Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                      Location Type Validation                                   │
-└─────────────────────────────────────────────────────────────────────────────────┘
+### Source Location Validation
 
-┌───────────────────────────────────────────────────────────────────────────────┐
-│                         Source Location Validation                             │
-├───────────────────────────────────────────────────────────────────────────────┤
-│                                                                                │
-│    Location Type        Can Be Source?       Reason                           │
-│    ─────────────        ──────────────       ──────                           │
-│    INVENTORY            ✓ YES                Has stock balance to transfer    │
-│    DIRECT               ✗ NO                 No inventory exists              │
-│    CONSIGNMENT          ✓ YES (with warning) Requires vendor notification     │
-│    "none"               ✓ SPECIAL            PR-only workflow                 │
-│                                                                                │
-└───────────────────────────────────────────────────────────────────────────────┘
+| Location Type | Can Be Source? | Reason |
+|---------------|----------------|--------|
+| INVENTORY | YES | Has stock balance to transfer |
+| DIRECT | NO | No inventory exists |
+| CONSIGNMENT | YES with warning | Requires vendor notification |
+| none | SPECIAL | PR-only workflow |
 
-┌───────────────────────────────────────────────────────────────────────────────┐
-│                       Destination Location Validation                          │
-├───────────────────────────────────────────────────────────────────────────────┤
-│                                                                                │
-│    Location Type        Can Receive?         Reason                           │
-│    ─────────────        ────────────         ──────                           │
-│    INVENTORY            ✓ YES                Has PAR levels, tracks stock     │
-│    DIRECT               ✗ NO                 No PAR levels, immediate expense │
-│    CONSIGNMENT          ✓ YES                Has PAR levels                   │
-│                                                                                │
-└───────────────────────────────────────────────────────────────────────────────┘
+### Destination Location Validation
 
-                    Validation Flow:
-                    
-                    ┌───────────────────┐
-                    │ User Selects      │
-                    │ Destination       │
-                    └─────────┬─────────┘
-                              │
-                              ▼
-                    ┌───────────────────┐
-                    │ Check Location    │
-                    │ Type              │
-                    └─────────┬─────────┘
-                              │
-              ┌───────────────┴───────────────┐
-              │                               │
-              ▼                               ▼
-        ┌─────────┐                     ┌─────────┐
-        │ DIRECT  │                     │ Other   │
-        └────┬────┘                     └────┬────┘
-             │                               │
-             ▼                               ▼
-    ┌─────────────────┐             ┌─────────────────┐
-    │ ❌ BLOCKED      │             │ ✓ ALLOWED       │
-    │                 │             │                 │
-    │ "Cannot         │             │ Proceed with    │
-    │  replenish      │             │ source          │
-    │  DIRECT         │             │ selection       │
-    │  locations"     │             │                 │
-    └─────────────────┘             └─────────────────┘
+| Location Type | Can Receive? | Reason |
+|---------------|--------------|--------|
+| INVENTORY | YES | Has PAR levels, tracks stock |
+| DIRECT | NO | No PAR levels, immediate expense |
+| CONSIGNMENT | YES | Has PAR levels |
+
+```mermaid
+graph TD
+    A[User Selects Destination] --> B{Check Location Type}
+    B -->|DIRECT| C[BLOCKED: Cannot replenish DIRECT locations]
+    B -->|INVENTORY or CONSIGNMENT| D[ALLOWED: Proceed with source selection]
 ```
 
 ## 8. User Journey Flow
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                           User Journey Flow                                     │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph LR
+    A[DISCOVER] --> B[FILTER]
+    B --> C[SELECT]
+    C --> D[CONFIGURE]
+    D --> E[SUBMIT]
 
-    ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
-    │ DISCOVER│ ───► │ FILTER  │ ───► │ SELECT  │ ───► │CONFIGURE│ ───► │ SUBMIT  │
-    └─────────┘      └─────────┘      └─────────┘      └─────────┘      └─────────┘
-         │               │                │                │                │
-         │               │                │                │                │
-         ▼               ▼                ▼                ▼                ▼
-    ┌─────────────────────────────────────────────────────────────────────────────┐
-    │                                                                             │
-    │  View          Filter by        Select items      Choose source    Submit   │
-    │  Dashboard     urgency &        via checkbox      location &       request  │
-    │  with items    location         selection         set priority              │
-    │  below PAR                                                                  │
-    │                                                                             │
-    │  👁️             🔍               ☑️                ⚙️              ✅        │
-    │                                                                             │
-    └─────────────────────────────────────────────────────────────────────────────┘
-         │               │                │                │                │
-         │               │                │                │                │
-         ▼               ▼                ▼                ▼                ▼
-    ┌─────────┐    ┌─────────┐      ┌─────────┐      ┌─────────┐      ┌─────────┐
-    │ Summary │    │ Filtered│      │ Floating│      │ Request │      │ SR      │
-    │ Cards   │    │ Item    │      │ Action  │      │ Form    │      │ Created │
-    │         │    │ List    │      │ Bar     │      │         │      │         │
-    └─────────┘    └─────────┘      └─────────┘      └─────────┘      └─────────┘
-    
-    ──────────────────────────────────────────────────────────────────────────────►
-                                    Time Flow
+    A --> A1[View Dashboard with items below PAR]
+    B --> B1[Filter by urgency and location]
+    C --> C1[Select items via checkbox]
+    D --> D1[Choose source location and priority]
+    E --> E1[Submit request and SR Created]
 ```
 
 ## 9. State Transition Diagram
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                    Store Requisition State Transitions                          │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+stateDiagram-v2
+    [*] --> Draft
 
-                              ┌──────────────┐
-                              │    DRAFT     │
-                              └──────┬───────┘
-                                     │ submit
-                                     ▼
-                              ┌──────────────┐
-                     ┌────────│  SUBMITTED   │────────┐
-                     │        └──────┬───────┘        │
-                     │ reject        │ approve        │ cancel
-                     ▼               ▼                ▼
-              ┌──────────────┐ ┌──────────────┐ ┌──────────────┐
-              │   REJECTED   │ │   APPROVED   │ │  CANCELLED   │
-              └──────────────┘ └──────┬───────┘ └──────────────┘
-                                     │ process
-                                     ▼
-                              ┌──────────────┐
-                              │  PROCESSING  │
-                              └──────┬───────┘
-                                     │
-              ┌──────────────────────┼──────────────────────┐
-              │                      │                      │
-              ▼                      ▼                      ▼
-       ┌──────────────┐       ┌──────────────┐       ┌──────────────┐
-       │   PARTIAL    │       │   PROCESSED  │       │  CANCELLED   │
-       │   COMPLETE   │       └──────┬───────┘       └──────────────┘
-       └──────┬───────┘              │
-              │                      │
-              └──────────┬───────────┘
-                         │ all docs complete
-                         ▼
-                  ┌──────────────┐
-                  │  COMPLETED   │
-                  └──────────────┘
+    Draft --> Submit: submit
+    Submit --> Approve: approve
+    Submit --> Cancelled: cancel
+    Approve --> Issue: issue
+    Approve --> Cancelled: cancel
+    Issue --> Complete: complete
+
+    Complete --> [*]
+    Cancelled --> [*]
 ```
+
+### Stage to Status Mapping
+
+| Stage | Status |
+|-------|--------|
+| Draft | Draft |
+| Submit | InProgress |
+| Approve | InProgress |
+| Issue | InProgress |
+| Complete | Completed |
+
+### Status Values (5)
+
+| Status | Description |
+|--------|-------------|
+| Draft | Initial state |
+| InProgress | Being processed (Submit, Approve, Issue stages) |
+| Completed | Fully processed |
+| Cancelled | Cancelled by user |
+| Voided | Voided after completion |
+
+---
+
+## Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2024-12-01 | System | Initial creation with ASCII art diagrams |
+| 1.1.0 | 2025-01-15 | Claude | Updated State Transition Diagram to Stage-based workflow model |
+| 1.2.0 | 2025-01-15 | Claude | Converted all diagrams to Mermaid 8.8.2 compatible syntax |
+| 1.2.1 | 2025-01-15 | Claude | Fixed stateDiagram-v2 rendering by removing unsupported note syntax |

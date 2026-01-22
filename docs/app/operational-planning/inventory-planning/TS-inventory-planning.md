@@ -4,10 +4,17 @@
 
 | Field | Value |
 |-------|-------|
-| Module | Inventory Planning |
-| Version | 1.0.0 |
-| Last Updated | 2025-12-06 |
-| Status | Draft |
+| Module | Operational Planning > Inventory Planning |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-17 |
+| Status | Implemented |
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2025-12-06 | Development Team | Initial documentation |
+| 2.0.0 | 2025-01-17 | Development Team | Updated to match actual UI implementation |
 
 ---
 
@@ -15,7 +22,7 @@
 
 ### 1.1 Architecture Overview
 
-The Inventory Planning module uses a shared service architecture with the Demand Forecasting module. Both modules consume the same `InventoryAnalyticsService` backend.
+The Inventory Planning module is part of the Operational Planning section and shares navigation with the Demand Forecasting module. It uses mock data for development with planned backend integration.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -27,30 +34,21 @@ The Inventory Planning module uses a shared service architecture with the Demand
 │     - Dead Stock Analysis   │      - Performance Dashboard  │
 │     - Safety Stock          │                               │
 │     - Multi-Location        │                               │
+│     - Settings              │                               │
 └─────────────────────────────┴───────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                         API Layer                            │
-│         /api/inventory/analytics?operation=...               │
+│                     Component Layer                          │
+│         React Components with Local State                    │
+│         - useState for filters, selections                   │
+│         - useMemo for filtered/computed data                 │
 └─────────────────────────────────────────────────────────────┘
                               │
                               ▼
 ┌─────────────────────────────────────────────────────────────┐
-│                    InventoryAnalyticsService                 │
-│  ┌─────────────────────┬─────────────────────────────────┐  │
-│  │  Inventory Planning │      Demand Forecasting         │  │
-│  │  Methods:           │      Methods:                   │  │
-│  │  - optimization     │      - forecast                 │  │
-│  │  - deadStock        │      - trendAnalysis            │  │
-│  │  - dashboard        │                                 │  │
-│  └─────────────────────┴─────────────────────────────────┘  │
-└─────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────┐
-│                        Data Layer                            │
-│              Inventory Items, Transactions, Locations        │
+│                      Mock Data Layer                         │
+│              Inline mock data in page components             │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -60,10 +58,9 @@ The Inventory Planning module uses a shared service architecture with the Demand
 |-------|------------|
 | Frontend | Next.js 14, React, TypeScript |
 | Styling | Tailwind CSS, Shadcn/ui |
-| State | React Query, Zustand |
-| Charts | Recharts |
-| API | Next.js Route Handlers |
-| Service | TypeScript Service Layer |
+| State | React useState, useMemo |
+| Charts | Recharts (PieChart, BarChart, LineChart) |
+| Icons | Lucide React |
 | Data | Mock Data (Production: Supabase) |
 
 ---
@@ -74,580 +71,602 @@ The Inventory Planning module uses a shared service architecture with the Demand
 
 ```
 app/(main)/operational-planning/inventory-planning/
-├── page.tsx                      # Dashboard
+├── page.tsx                      # Dashboard (487 lines)
 ├── reorder/
-│   └── page.tsx                  # Reorder Management
+│   └── page.tsx                  # Reorder Management (680 lines)
 ├── dead-stock/
-│   └── page.tsx                  # Dead Stock Analysis
+│   └── page.tsx                  # Dead Stock Analysis (673 lines)
 ├── safety-stock/
-│   └── page.tsx                  # Safety Stock Optimization
+│   └── page.tsx                  # Safety Stock Optimization (417 lines)
 ├── locations/
-│   └── page.tsx                  # Multi-Location Planning
-├── settings/
-│   └── page.tsx                  # Module Settings
-└── components/
-    ├── InventoryPlanningKpiCards.tsx
-    ├── OptimizationTable.tsx
-    ├── DeadStockTable.tsx
-    ├── LocationBreakdownChart.tsx
-    └── ReorderAlerts.tsx
+│   └── page.tsx                  # Multi-Location Planning (527 lines)
+└── settings/
+    └── page.tsx                  # Module Settings (430 lines)
 ```
 
-### 2.2 Component Hierarchy
+### 2.2 Dashboard Component Hierarchy
 
 ```
-InventoryPlanningDashboard
+InventoryPlanningDashboard (page.tsx)
 ├── PageHeader
-├── QuickActions (4 buttons)
-├── InventoryPlanningKpiCards
-│   ├── KpiCard (Total Savings)
-│   ├── KpiCard (Items at Risk)
-│   ├── KpiCard (Optimization Rate)
-│   └── KpiCard (Dead Stock Value)
-├── ChartsRow
-│   ├── OptimizationActionsChart (Pie)
-│   └── LocationPerformanceChart (Bar)
-├── ReorderAlerts
-└── RecentRecommendationsTable
+│   └── "Inventory Planning" with subtitle
+├── LocationFilter (Select component)
+├── QuickActionsSection
+│   ├── Card: Optimize Inventory → /reorder
+│   ├── Card: Analyze Dead Stock → /dead-stock
+│   ├── Card: Review Locations → /locations
+│   └── Card: Configure Settings → /settings
+├── KPICardsSection (4 cards in grid)
+│   ├── TotalSavingsCard (DollarSign icon, green)
+│   │   └── Trend indicator (TrendingUp/TrendingDown)
+│   ├── ItemsAtRiskCard (AlertTriangle icon, orange)
+│   │   └── Trend indicator
+│   ├── OptimizationRateCard (CheckCircle icon, blue)
+│   │   └── Trend indicator
+│   └── DeadStockValueCard (Package icon, red)
+│       └── Trend indicator
+├── ChartsSection (2 cards in grid)
+│   ├── OptimizationActionsCard
+│   │   └── Recharts PieChart
+│   │       └── Sectors: Implement, Pilot, Monitor, Reject
+│   └── LocationPerformanceCard
+│       └── Recharts BarChart (horizontal)
+├── AlertSummaryGrid (6 clickable cards)
+│   ├── LowStockAlert → /reorder?filter=low-stock
+│   ├── OverstockAlert → /reorder?filter=overstock
+│   ├── DeadStockAlert → /dead-stock
+│   ├── ExpiringAlert → /inventory-management/expiring
+│   ├── HighValueAlert → /reorder?filter=high-value
+│   └── FastMovingAlert (info only)
+├── RecentRecommendationsTable
+│   └── Columns: Item, Category, Savings, Risk, Action
+└── DemandForecastingLink
+    └── Link to /operational-planning/demand-forecasting
+```
 
-ReorderManagementPage
+### 2.3 Reorder Management Component Hierarchy
+
+```
+ReorderManagementPage (reorder/page.tsx)
 ├── PageHeader
+│   └── "Reorder Management / Supplier Reorder Planning"
 ├── FilterBar
 │   ├── LocationSelect
-│   ├── CategorySelect
-│   └── ActionTypeSelect
-├── SummaryCards
-│   ├── ItemsCard
-│   ├── ChangesCard
-│   └── SavingsCard
-├── OptimizationTable
-│   ├── TableHeader (sortable)
-│   ├── TableRows (expandable)
-│   └── BulkActions
-└── ExportButton
+│   └── ActionTypeSelect (All, Implement, Pilot, Monitor, Reject)
+├── SummaryCards (3 cards)
+│   ├── ItemsCard (ClipboardList icon)
+│   ├── ChangesCard (ArrowUpDown icon)
+│   └── SavingsCard (TrendingUp icon)
+├── ActionBar
+│   ├── ApplySelectedButton (disabled until selection)
+│   └── ExportButton
+├── RecommendationsTable
+│   ├── TableHeader
+│   │   └── Checkbox (select all)
+│   ├── TableBody
+│   │   └── TableRow (expandable)
+│   │       ├── Checkbox
+│   │       ├── ProductCode
+│   │       ├── ProductName
+│   │       ├── Location
+│   │       ├── CurrentROP
+│   │       ├── RecommendedROP
+│   │       ├── CurrentEOQ
+│   │       ├── RecommendedEOQ
+│   │       ├── AnnualSavings
+│   │       ├── RiskLevelBadge
+│   │       └── ActionTypeBadge
+│   └── ExpandedRowContent
+│       ├── CurrentMetricsSection
+│       │   └── ROP, EOQ, SafetyStock, ServiceLevel, LeadTime
+│       ├── RecommendedChangesSection
+│       │   └── ROP, EOQ, SafetyStock, ServiceLevel
+│       └── PotentialImpactSection
+│           └── PaybackPeriod, TurnoverRate, DailyDemand
+└── StockReplenishmentLink
+    └── Link to /store-operations/stock-replenishment
+```
 
-DeadStockPage
+### 2.4 Dead Stock Analysis Component Hierarchy
+
+```
+DeadStockPage (dead-stock/page.tsx)
 ├── PageHeader
-├── RiskOverviewCards
-│   ├── CriticalCard
-│   ├── HighCard
-│   ├── MediumCard
-│   └── LowCard
+│   └── "Dead Stock Analysis"
 ├── FilterBar
-│   ├── ThresholdDaysInput
+│   ├── ThresholdDaysSelect (60, 90, 120, 180, 365)
 │   ├── LocationSelect
 │   └── RiskLevelSelect
+├── RiskOverviewCards (4 cards)
+│   ├── CriticalCard (bg-red-100, AlertTriangle)
+│   │   └── Count and Value
+│   ├── HighCard (bg-orange-100, AlertTriangle)
+│   │   └── Count and Value
+│   ├── MediumCard (bg-yellow-100, AlertTriangle)
+│   │   └── Count and Value
+│   └── LowCard (bg-green-100, CheckCircle)
+│       └── Count and Value
+├── ActionBar
+│   ├── BulkActionButton (disabled until selection)
+│   └── ExportButton
 ├── DeadStockTable
 │   ├── TableHeader
-│   ├── TableRows (expandable)
-│   └── BulkActions
-└── ActionsSummary
+│   │   └── Checkbox (select all)
+│   └── TableBody
+│       └── TableRow (expandable)
+│           ├── Checkbox
+│           ├── ProductInfo (code, name, category)
+│           ├── CurrentStock (with unit)
+│           ├── Value (currency)
+│           ├── LastMovement (formatted date)
+│           ├── DaysSinceMovement (with bar visualization)
+│           ├── RiskLevelBadge
+│           └── ActionSelect
+└── ExpandedRowContent
+    ├── StockAnalysisSection
+    │   └── MonthsOfStock, ExpiryDate, DaysUntilExpiry
+    └── FinancialImpactSection
+        └── PotentialLoss, LiquidationValue, RecoveryRate
+```
+
+### 2.5 Safety Stock Component Hierarchy
+
+```
+SafetyStockPage (safety-stock/page.tsx)
+├── PageHeader
+│   └── "Safety Stock Optimization"
+├── ServiceLevelTabs
+│   ├── Tab: 90% (Z-score: 1.28)
+│   ├── Tab: 95% (Z-score: 1.65) [default]
+│   └── Tab: 99% (Z-score: 2.33)
+├── FilterBar
+│   └── CategorySelect
+├── ComparisonTable
+│   ├── TableHeader
+│   │   └── Checkbox (select all)
+│   └── TableBody
+│       └── TableRow
+│           ├── Checkbox
+│           ├── ProductInfo
+│           ├── CurrentSafetyStock
+│           ├── RecommendedSafetyStock
+│           ├── DemandVariability
+│           └── CostImpact
+├── ActionBar
+│   └── ApplySelectedButton
+└── WhatIfAnalysisCard
+    └── Recharts LineChart
+        └── X: ServiceLevel, Y: Cost
+```
+
+### 2.6 Multi-Location Component Hierarchy
+
+```
+MultiLocationPage (locations/page.tsx)
+├── PageHeader
+│   └── "Multi-Location Planning"
+├── FilterBar
+│   └── LocationSelect
+├── LocationSummaryCards (3 cards)
+│   ├── OptimalCard (CheckCircle, green)
+│   ├── OverstockedCard (AlertTriangle, yellow)
+│   └── UnderstockedCard (AlertTriangle, red)
+├── LocationPerformanceChart
+│   └── Recharts BarChart
+│       └── X: Location, Y: InventoryValue
+├── LocationBreakdownTable
+│   ├── TableHeader
+│   └── TableBody
+│       └── TableRow
+│           ├── LocationName
+│           ├── InventoryValue
+│           ├── TurnoverRate
+│           ├── AlertCount
+│           └── StatusBadge
+└── TransferRecommendationsSection
+    └── TransferTable
+        └── TableRow
+            ├── ProductInfo
+            ├── FromLocation
+            ├── ToLocation
+            ├── Quantity
+            ├── Reason
+            ├── PriorityBadge
+            ├── EstimatedSavings
+            └── CreateTransferButton
+```
+
+### 2.7 Settings Component Hierarchy
+
+```
+SettingsPage (settings/page.tsx)
+├── PageHeader
+│   └── "Inventory Planning Settings"
+├── DefaultParametersCard
+│   ├── ServiceLevelSelect (90%, 95%, 99%)
+│   ├── OrderCostInput (number, $)
+│   ├── HoldingCostRateInput (number, %)
+│   └── DefaultLeadTimeInput (number, days)
+├── AlertThresholdsCard
+│   ├── DeadStockThresholdInput (number, days)
+│   ├── LowStockAlertSwitch
+│   ├── DeadStockAlertSwitch
+│   └── OverstockAlertSwitch
+├── NotificationSettingsCard
+│   ├── EmailNotificationsSwitch
+│   ├── NotificationEmailInput
+│   └── DigestFrequencySelect (Daily, Weekly, Monthly)
+├── AutomationSettingsCard
+│   ├── AutoApplyLowRiskSwitch
+│   ├── AutoGenerateWeeklySwitch
+│   └── SyncWithProcurementSwitch
+└── ActionBar
+    ├── SaveSettingsButton
+    └── ResetToDefaultsButton
 ```
 
 ---
 
-## 3. Service Layer
+## 3. State Management
 
-### 3.1 InventoryAnalyticsService
-
-**Location**: `lib/services/inventory/inventory-analytics-service.ts`
-
-#### 3.1.1 Optimization Methods
+### 3.1 Dashboard State
 
 ```typescript
-interface OptimizationParams {
-  itemIds?: string[];
-  locationId?: string;
-  categoryId?: string;
-  includeAllItems?: boolean;
-}
+// Dashboard page local state
+const [selectedLocation, setSelectedLocation] = useState<string>("all")
 
-interface InventoryOptimization {
-  itemId: string;
-  itemName: string;
-  category: string;
-  currentMetrics: {
-    currentStock: number;
-    averageStock: number;
-    turnoverRate: number;
-    carryingCost: number;
-    currentReorderPoint: number;
-    currentOrderQuantity: number;
-    serviceLevel: number;
-  };
-  optimizedMetrics: {
-    recommendedReorderPoint: number;
-    recommendedOrderQuantity: number;
-    recommendedSafetyStock: number;
-    targetServiceLevel: number;
-  };
-  potentialSavings: {
-    carryingCostSavings: number;
-    stockoutCostSavings: number;
-    totalSavings: number;
-    paybackPeriod: number;
-  };
-  implementationRisk: 'low' | 'medium' | 'high';
-  recommendedAction: 'implement' | 'pilot' | 'monitor' | 'reject';
-}
-
-generateOptimizationRecommendations(params: OptimizationParams): Promise<{
-  recommendations: InventoryOptimization[];
-  summary: {
-    totalItems: number;
-    totalPotentialSavings: number;
-    averageRisk: number;
-    actionBreakdown: Record<string, number>;
-  };
-}>
+// Computed data using useMemo
+const filteredData = useMemo(() => {
+  if (selectedLocation === "all") return mockDashboardData
+  // Filter logic
+}, [selectedLocation])
 ```
 
-#### 3.1.2 Dead Stock Methods
+### 3.2 Reorder Management State
 
 ```typescript
-interface DeadStockParams {
-  thresholdDays?: number;  // Default: 90
-  locationId?: string;
-  categoryId?: string;
-  riskLevel?: 'low' | 'medium' | 'high' | 'critical';
+// Reorder page local state
+const [selectedLocation, setSelectedLocation] = useState<string>("all")
+const [actionFilter, setActionFilter] = useState<string>("all")
+const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+
+// Toggle row expansion
+const toggleRowExpanded = (id: string) => {
+  const newExpanded = new Set(expandedRows)
+  if (newExpanded.has(id)) {
+    newExpanded.delete(id)
+  } else {
+    newExpanded.add(id)
+  }
+  setExpandedRows(newExpanded)
 }
 
-interface DeadStockAnalysis {
-  itemId: string;
-  itemName: string;
-  category: string;
-  location: string;
-  currentStock: number;
-  currentValue: number;
-  lastMovementDate: Date;
-  daysSinceLastMovement: number;
-  averageMonthlyConsumption: number;
-  monthsOfStock: number;
-  obsolescenceRisk: 'low' | 'medium' | 'high' | 'critical';
-  recommendedAction: 'continue_stocking' | 'reduce_stock' | 'liquidate' | 'return_to_supplier' | 'write_off';
-  potentialLoss: number;
-  liquidationValue: number;
+// Toggle item selection
+const toggleItemSelected = (id: string) => {
+  const newSelected = new Set(selectedItems)
+  if (newSelected.has(id)) {
+    newSelected.delete(id)
+  } else {
+    newSelected.add(id)
+  }
+  setSelectedItems(newSelected)
 }
-
-analyzeDeadStock(params: DeadStockParams): Promise<{
-  items: DeadStockAnalysis[];
-  summary: {
-    totalItems: number;
-    totalValue: number;
-    totalPotentialLoss: number;
-    riskBreakdown: Record<string, number>;
-    actionBreakdown: Record<string, number>;
-  };
-}>
 ```
 
-#### 3.1.3 Dashboard Methods
+### 3.3 Dead Stock State
 
 ```typescript
-interface DashboardParams {
-  locationId?: string;
-  dateRange?: { start: Date; end: Date };
-}
+// Dead stock page local state
+const [thresholdDays, setThresholdDays] = useState<string>("90")
+const [selectedLocation, setSelectedLocation] = useState<string>("all")
+const [selectedRiskLevel, setSelectedRiskLevel] = useState<string>("all")
+const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
 
-interface InventoryPerformanceDashboard {
-  overallMetrics: {
-    totalInventoryValue: number;
-    inventoryTurnover: number;
-    daysOfInventory: number;
-    fillRate: number;
-    stockoutRate: number;
-    carryingCostRate: number;
-  };
-  categoryBreakdown: Array<{
-    category: string;
-    value: number;
-    percentage: number;
-    turnover: number;
-    itemCount: number;
-  }>;
-  locationBreakdown: Array<{
-    location: string;
-    value: number;
-    turnover: number;
-    alertCount: number;
-    status: 'optimal' | 'overstocked' | 'understocked';
-  }>;
-  alerts: {
-    lowStock: number;
-    overstock: number;
-    deadStock: number;
-    expiring: number;
-    highValue: number;
-    fastMoving: number;
-  };
-  trends: {
-    valueChange: number;
-    turnoverChange: number;
-    alertsChange: number;
-  };
-}
-
-generatePerformanceDashboard(params: DashboardParams): Promise<InventoryPerformanceDashboard>
-```
-
----
-
-## 4. API Layer
-
-### 4.1 API Endpoints
-
-**Base Path**: `/api/inventory/analytics`
-
-| Endpoint | Method | Operation | Parameters |
-|----------|--------|-----------|------------|
-| `/api/inventory/analytics?operation=optimization` | GET | Generate optimizations | itemIds, locationId, categoryId |
-| `/api/inventory/analytics?operation=dead-stock` | GET | Analyze dead stock | thresholdDays, locationId, riskLevel |
-| `/api/inventory/analytics?operation=dashboard` | GET | Get dashboard | locationId, startDate, endDate |
-
-### 4.2 API Request/Response Examples
-
-#### Optimization Request
-
-```typescript
-// Request
-GET /api/inventory/analytics?operation=optimization&locationId=loc-001
-
-// Response
-{
-  "recommendations": [
-    {
-      "itemId": "item-001",
-      "itemName": "Olive Oil Extra Virgin",
-      "category": "Oils & Vinegars",
-      "currentMetrics": {
-        "currentStock": 50,
-        "averageStock": 45,
-        "turnoverRate": 8.5,
-        "carryingCost": 125.50,
-        "currentReorderPoint": 20,
-        "currentOrderQuantity": 30,
-        "serviceLevel": 0.92
-      },
-      "optimizedMetrics": {
-        "recommendedReorderPoint": 15,
-        "recommendedOrderQuantity": 25,
-        "recommendedSafetyStock": 8,
-        "targetServiceLevel": 0.95
-      },
-      "potentialSavings": {
-        "carryingCostSavings": 45.20,
-        "stockoutCostSavings": 15.00,
-        "totalSavings": 60.20,
-        "paybackPeriod": 2.5
-      },
-      "implementationRisk": "low",
-      "recommendedAction": "implement"
+// Filtered items with useMemo
+const filteredItems = useMemo(() => {
+  return mockDeadStockItems.filter(item => {
+    if (thresholdDays !== "all" && item.daysSinceMovement < parseInt(thresholdDays)) {
+      return false
     }
-  ],
-  "summary": {
-    "totalItems": 150,
-    "totalPotentialSavings": 8500.00,
-    "averageRisk": 0.35,
-    "actionBreakdown": {
-      "implement": 45,
-      "pilot": 30,
-      "monitor": 50,
-      "reject": 25
+    if (selectedLocation !== "all" && item.locationId !== selectedLocation) {
+      return false
     }
+    if (selectedRiskLevel !== "all" && item.riskLevel !== selectedRiskLevel) {
+      return false
+    }
+    return true
+  })
+}, [thresholdDays, selectedLocation, selectedRiskLevel])
+
+// Risk counts with useMemo
+const riskCounts = useMemo(() => {
+  return {
+    critical: filteredItems.filter(i => i.riskLevel === 'critical'),
+    high: filteredItems.filter(i => i.riskLevel === 'high'),
+    medium: filteredItems.filter(i => i.riskLevel === 'medium'),
+    low: filteredItems.filter(i => i.riskLevel === 'low'),
+  }
+}, [filteredItems])
+```
+
+### 3.4 Safety Stock State
+
+```typescript
+// Safety stock page local state
+const [serviceLevel, setServiceLevel] = useState<string>("95")
+const [selectedItems, setSelectedItems] = useState<Set<string>>(new Set())
+const [selectedCategory, setSelectedCategory] = useState<string>("all")
+
+// Z-score mapping
+const getZScore = (level: string): number => {
+  switch (level) {
+    case "90": return 1.28
+    case "95": return 1.65
+    case "99": return 2.33
+    default: return 1.65
   }
 }
 ```
 
-#### Dead Stock Request
+### 3.5 Multi-Location State
 
 ```typescript
-// Request
-GET /api/inventory/analytics?operation=dead-stock&thresholdDays=90
+// Multi-location page local state
+const [selectedLocation, setSelectedLocation] = useState<string>("all")
 
-// Response
-{
-  "items": [
-    {
-      "itemId": "item-050",
-      "itemName": "Specialty Truffle Oil",
-      "category": "Oils & Vinegars",
-      "location": "Main Kitchen",
-      "currentStock": 15,
-      "currentValue": 450.00,
-      "lastMovementDate": "2025-06-15",
-      "daysSinceLastMovement": 174,
-      "averageMonthlyConsumption": 0.5,
-      "monthsOfStock": 30,
-      "obsolescenceRisk": "high",
-      "recommendedAction": "liquidate",
-      "potentialLoss": 270.00,
-      "liquidationValue": 180.00
-    }
-  ],
-  "summary": {
-    "totalItems": 25,
-    "totalValue": 12500.00,
-    "totalPotentialLoss": 7500.00,
-    "riskBreakdown": {
-      "critical": 3,
-      "high": 8,
-      "medium": 10,
-      "low": 4
-    },
-    "actionBreakdown": {
-      "continue_stocking": 4,
-      "reduce_stock": 10,
-      "liquidate": 8,
-      "return_to_supplier": 2,
-      "write_off": 1
-    }
+// Location status counts with useMemo
+const statusCounts = useMemo(() => {
+  return {
+    optimal: mockLocations.filter(l => l.status === 'optimal').length,
+    overstocked: mockLocations.filter(l => l.status === 'overstocked').length,
+    understocked: mockLocations.filter(l => l.status === 'understocked').length,
+  }
+}, [])
+```
+
+### 3.6 Settings State
+
+```typescript
+// Settings page local state
+const [settings, setSettings] = useState<InventoryPlanningSettings>({
+  defaultServiceLevel: "95",
+  orderCostPerOrder: 50,
+  holdingCostRate: 25,
+  defaultLeadTime: 7,
+  deadStockThreshold: 90,
+  lowStockAlertEnabled: true,
+  deadStockAlertEnabled: true,
+  overstockAlertEnabled: true,
+  emailNotificationsEnabled: true,
+  notificationEmail: "",
+  digestFrequency: "daily",
+  autoApplyLowRisk: false,
+  autoGenerateWeekly: true,
+  syncWithProcurement: true,
+})
+
+// Update handler
+const handleSettingChange = (key: keyof InventoryPlanningSettings, value: any) => {
+  setSettings(prev => ({ ...prev, [key]: value }))
+}
+```
+
+---
+
+## 4. UI Components Specification
+
+### 4.1 KPI Cards
+
+```typescript
+interface KPICardProps {
+  title: string
+  value: string | number
+  icon: LucideIcon
+  iconColor: string
+  trend?: {
+    value: number
+    direction: 'up' | 'down'
   }
 }
+
+// Usage in Dashboard
+<Card>
+  <CardHeader className="flex flex-row items-center justify-between pb-2">
+    <CardTitle className="text-sm font-medium">{title}</CardTitle>
+    <Icon className={`h-4 w-4 ${iconColor}`} />
+  </CardHeader>
+  <CardContent>
+    <div className="text-2xl font-bold">{value}</div>
+    {trend && (
+      <p className={`text-xs ${trend.direction === 'up' ? 'text-green-500' : 'text-red-500'}`}>
+        {trend.direction === 'up' ? <TrendingUp /> : <TrendingDown />}
+        {trend.value}% from last month
+      </p>
+    )}
+  </CardContent>
+</Card>
+```
+
+### 4.2 Badge Styling
+
+```typescript
+// Risk Level Badges
+const riskBadgeStyles = {
+  low: "bg-green-100 text-green-800",
+  medium: "bg-yellow-100 text-yellow-800",
+  high: "bg-orange-100 text-orange-800",
+  critical: "bg-red-100 text-red-800",
+}
+
+// Action Type Badges
+const actionBadgeStyles = {
+  implement: "bg-green-100 text-green-800",
+  pilot: "bg-blue-100 text-blue-800",
+  monitor: "bg-yellow-100 text-yellow-800",
+  reject: "bg-red-100 text-red-800",
+}
+
+// Location Status Badges
+const statusBadgeStyles = {
+  optimal: "bg-green-100 text-green-800",
+  overstocked: "bg-yellow-100 text-yellow-800",
+  understocked: "bg-red-100 text-red-800",
+}
+
+// Priority Badges
+const priorityBadgeStyles = {
+  high: "bg-red-100 text-red-800",
+  medium: "bg-yellow-100 text-yellow-800",
+  low: "bg-green-100 text-green-800",
+}
+```
+
+### 4.3 Expandable Table Row
+
+```typescript
+// Table row with expansion
+<TableRow
+  className="cursor-pointer hover:bg-muted/50"
+  onClick={() => toggleRowExpanded(item.id)}
+>
+  <TableCell>
+    <Checkbox
+      checked={selectedItems.has(item.id)}
+      onClick={(e) => e.stopPropagation()}
+      onCheckedChange={() => toggleItemSelected(item.id)}
+    />
+  </TableCell>
+  {/* Other cells */}
+  <TableCell>
+    {expandedRows.has(item.id) ? <ChevronUp /> : <ChevronDown />}
+  </TableCell>
+</TableRow>
+
+{expandedRows.has(item.id) && (
+  <TableRow>
+    <TableCell colSpan={10}>
+      <div className="p-4 bg-muted/20 rounded-lg">
+        {/* Expanded content sections */}
+      </div>
+    </TableCell>
+  </TableRow>
+)}
+```
+
+### 4.4 Charts Configuration
+
+```typescript
+// Pie Chart (Optimization Actions)
+<ResponsiveContainer width="100%" height={300}>
+  <PieChart>
+    <Pie
+      data={[
+        { name: 'Implement', value: 45, color: '#22c55e' },
+        { name: 'Pilot', value: 30, color: '#3b82f6' },
+        { name: 'Monitor', value: 50, color: '#f59e0b' },
+        { name: 'Reject', value: 25, color: '#ef4444' },
+      ]}
+      dataKey="value"
+      nameKey="name"
+      cx="50%"
+      cy="50%"
+      outerRadius={100}
+    >
+      {data.map((entry, index) => (
+        <Cell key={index} fill={entry.color} />
+      ))}
+    </Pie>
+    <Tooltip />
+    <Legend />
+  </PieChart>
+</ResponsiveContainer>
+
+// Bar Chart (Location Performance)
+<ResponsiveContainer width="100%" height={300}>
+  <BarChart data={locationData} layout="vertical">
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis type="number" />
+    <YAxis dataKey="name" type="category" />
+    <Tooltip formatter={(value) => formatCurrency(value)} />
+    <Bar dataKey="value" fill="#3b82f6" />
+  </BarChart>
+</ResponsiveContainer>
+
+// Line Chart (What-If Analysis)
+<ResponsiveContainer width="100%" height={300}>
+  <LineChart data={whatIfData}>
+    <CartesianGrid strokeDasharray="3 3" />
+    <XAxis dataKey="serviceLevel" />
+    <YAxis />
+    <Tooltip />
+    <Line type="monotone" dataKey="cost" stroke="#3b82f6" />
+  </LineChart>
+</ResponsiveContainer>
 ```
 
 ---
 
-## 5. State Management
+## 5. Performance Specifications
 
-### 5.1 React Query Integration
-
-```typescript
-// hooks/useInventoryPlanning.ts
-
-export function useOptimizationRecommendations(params: OptimizationParams) {
-  return useQuery({
-    queryKey: ['optimization', params],
-    queryFn: () => fetchOptimizations(params),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-}
-
-export function useDeadStockAnalysis(params: DeadStockParams) {
-  return useQuery({
-    queryKey: ['dead-stock', params],
-    queryFn: () => fetchDeadStock(params),
-    staleTime: 5 * 60 * 1000,
-  });
-}
-
-export function useInventoryDashboard(params: DashboardParams) {
-  return useQuery({
-    queryKey: ['inventory-dashboard', params],
-    queryFn: () => fetchDashboard(params),
-    staleTime: 1 * 60 * 1000, // 1 minute
-  });
-}
-```
-
-### 5.2 Zustand Store
-
-```typescript
-// stores/inventoryPlanningStore.ts
-
-interface InventoryPlanningState {
-  // Filters
-  selectedLocation: string | null;
-  selectedCategory: string | null;
-  thresholdDays: number;
-  serviceLevel: number;
-
-  // UI State
-  expandedRows: Set<string>;
-  selectedItems: Set<string>;
-
-  // Actions
-  setSelectedLocation: (location: string | null) => void;
-  setSelectedCategory: (category: string | null) => void;
-  setThresholdDays: (days: number) => void;
-  setServiceLevel: (level: number) => void;
-  toggleRowExpanded: (itemId: string) => void;
-  toggleItemSelected: (itemId: string) => void;
-  selectAllItems: (itemIds: string[]) => void;
-  clearSelection: () => void;
-}
-
-export const useInventoryPlanningStore = create<InventoryPlanningState>((set) => ({
-  selectedLocation: null,
-  selectedCategory: null,
-  thresholdDays: 90,
-  serviceLevel: 95,
-  expandedRows: new Set(),
-  selectedItems: new Set(),
-
-  setSelectedLocation: (location) => set({ selectedLocation: location }),
-  setSelectedCategory: (category) => set({ selectedCategory: category }),
-  setThresholdDays: (days) => set({ thresholdDays: days }),
-  setServiceLevel: (level) => set({ serviceLevel: level }),
-  toggleRowExpanded: (itemId) => set((state) => {
-    const newExpanded = new Set(state.expandedRows);
-    if (newExpanded.has(itemId)) {
-      newExpanded.delete(itemId);
-    } else {
-      newExpanded.add(itemId);
-    }
-    return { expandedRows: newExpanded };
-  }),
-  toggleItemSelected: (itemId) => set((state) => {
-    const newSelected = new Set(state.selectedItems);
-    if (newSelected.has(itemId)) {
-      newSelected.delete(itemId);
-    } else {
-      newSelected.add(itemId);
-    }
-    return { selectedItems: newSelected };
-  }),
-  selectAllItems: (itemIds) => set({ selectedItems: new Set(itemIds) }),
-  clearSelection: () => set({ selectedItems: new Set() }),
-}));
-```
-
----
-
-## 6. UI Components Specification
-
-### 6.1 InventoryPlanningKpiCards
-
-```typescript
-interface KpiCardsProps {
-  totalSavings: number;
-  itemsAtRisk: number;
-  optimizationRate: number;
-  deadStockValue: number;
-  trends?: {
-    savingsChange: number;
-    riskChange: number;
-    optimizationChange: number;
-    deadStockChange: number;
-  };
-}
-```
-
-**Display**:
-- 4 cards in a row (responsive grid)
-- Each card shows: value, label, trend indicator
-- Color coding based on status
-
-### 6.2 OptimizationTable
-
-```typescript
-interface OptimizationTableProps {
-  data: InventoryOptimization[];
-  onApply: (itemIds: string[]) => void;
-  onReject: (itemId: string) => void;
-  onExport: () => void;
-}
-```
-
-**Features**:
-- Sortable columns (Item, Category, Savings, Risk, Action)
-- Expandable rows showing current vs recommended
-- Checkbox selection for bulk actions
-- Action buttons (Apply, Reject)
-
-### 6.3 DeadStockTable
-
-```typescript
-interface DeadStockTableProps {
-  data: DeadStockAnalysis[];
-  onAction: (itemId: string, action: string) => void;
-  onBulkAction: (itemIds: string[], action: string) => void;
-}
-```
-
-**Features**:
-- Risk level color coding
-- Days idle visualization
-- Expandable details (consumption history, liquidation options)
-- Bulk action support
-
-### 6.4 LocationBreakdownChart
-
-```typescript
-interface LocationBreakdownChartProps {
-  data: Array<{
-    location: string;
-    value: number;
-    turnover: number;
-    status: 'optimal' | 'overstocked' | 'understocked';
-  }>;
-  onLocationClick: (location: string) => void;
-}
-```
-
-**Display**:
-- Horizontal bar chart
-- Color coding by status
-- Click to filter
-
----
-
-## 7. Performance Specifications
-
-### 7.1 Performance Targets
+### 5.1 Performance Targets
 
 | Operation | Target | Max Items |
 |-----------|--------|-----------|
-| Dashboard Load | < 3s | - |
-| Optimization Generation | < 5s | 500 items |
-| Dead Stock Analysis | < 3s | All items |
+| Dashboard Load | < 2s | - |
 | Table Render | < 200ms | 100 rows |
 | Chart Render | < 300ms | 50 data points |
+| Filter Application | < 100ms | 500 items |
+| Row Expansion | < 50ms | - |
 
-### 7.2 Optimization Strategies
+### 5.2 Optimization Strategies
 
 | Strategy | Implementation |
 |----------|----------------|
-| Pagination | 50 items per page default |
-| Virtual Scrolling | For tables > 100 rows |
-| Debounced Filters | 300ms delay |
-| React Query Caching | 5 minute stale time |
+| Memoization | useMemo for filtered/computed data |
+| Debounced Filters | 300ms delay for search inputs |
+| Virtual Scrolling | For tables > 100 rows (future) |
 | Lazy Loading | Charts load after initial render |
+| Pagination | 50 items per page default |
 
 ---
 
-## 8. Error Handling
+## 6. Error Handling
 
-### 8.1 Error Types
+### 6.1 Error Types
 
-| Error Type | HTTP Code | User Message |
-|------------|-----------|--------------|
-| InvalidParams | 400 | Please check your filter selections |
-| NotFound | 404 | No data found for selected criteria |
-| ServiceUnavailable | 503 | Service temporarily unavailable |
-| InternalError | 500 | An unexpected error occurred |
+| Error Type | User Message | UI Treatment |
+|------------|--------------|--------------|
+| No Data | "No items found" | Empty state with setup instructions |
+| Filter No Results | "No matching items" | Empty state with clear filters button |
+| Invalid Input | Field-specific message | Inline error with red border |
 
-### 8.2 Error Recovery
+### 6.2 Loading States
 
 ```typescript
-// Error boundary for page-level errors
-class InventoryPlanningErrorBoundary extends React.Component {
-  state = { hasError: false };
+// Loading state for data fetch
+{isLoading && (
+  <div className="flex items-center justify-center h-64">
+    <Loader2 className="h-8 w-8 animate-spin" />
+  </div>
+)}
 
-  static getDerivedStateFromError() {
-    return { hasError: true };
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return <ErrorFallback onRetry={() => this.setState({ hasError: false })} />;
-    }
-    return this.props.children;
-  }
-}
-
-// React Query error handling
-const { data, error, isLoading } = useOptimizationRecommendations(params);
-
-if (error) {
-  return <ErrorState error={error} onRetry={refetch} />;
-}
+// Empty state
+{!isLoading && items.length === 0 && (
+  <div className="text-center py-12">
+    <Package className="h-12 w-12 mx-auto text-muted-foreground" />
+    <h3 className="mt-4 text-lg font-medium">No items found</h3>
+    <p className="text-muted-foreground">Try adjusting your filters</p>
+  </div>
+)}
 ```
 
 ---
 
-## 9. Security Considerations
+## 7. Security Considerations
 
-### 9.1 Access Control
+### 7.1 Access Control (Future Implementation)
 
 | Permission | Description | Roles |
 |------------|-------------|-------|
@@ -656,48 +675,84 @@ if (error) {
 | inventory_planning.apply | Apply recommendations | Inventory Manager |
 | inventory_planning.settings | Configure settings | Inventory Manager, Admin |
 
-### 9.2 Data Validation
+### 7.2 Data Validation
 
-- All API inputs validated with Zod schemas
-- Location/Category IDs validated against user permissions
-- Numeric inputs bounded to reasonable ranges
-- Date ranges limited to prevent excessive queries
+- All numeric inputs bounded to reasonable ranges
+- Location/Category IDs validated against available options
+- Settings validated before save
 
 ---
 
-## 10. Integration Points
+## 8. Integration Points
 
-### 10.1 Demand Forecasting Integration
-
-```typescript
-// Cross-module navigation
-const navigateToDemandForecast = (itemId: string) => {
-  router.push(`/operational-planning/demand-forecasting?itemId=${itemId}`);
-};
-
-// Shared data access
-const { data: forecast } = useDemandForecast({ itemId });
-const optimizationWithForecast = {
-  ...optimization,
-  forecastedDemand: forecast?.projectedDemand,
-};
-```
-
-### 10.2 Inventory Management Integration
+### 8.1 Cross-Module Navigation
 
 ```typescript
-// Apply recommendations
-const applyRecommendations = async (recommendations: InventoryOptimization[]) => {
-  const updates = recommendations.map(r => ({
-    itemId: r.itemId,
-    reorderPoint: r.optimizedMetrics.recommendedReorderPoint,
-    orderQuantity: r.optimizedMetrics.recommendedOrderQuantity,
-    safetyStock: r.optimizedMetrics.recommendedSafetyStock,
-  }));
+// Dashboard to Demand Forecasting
+<Link href="/operational-planning/demand-forecasting">
+  Go to Demand Forecasting
+</Link>
 
-  await inventoryService.updateReorderParameters(updates);
-};
+// Reorder to Stock Replenishment
+<Link href="/store-operations/stock-replenishment">
+  Stock Replenishment
+</Link>
+
+// Alert clicks to filtered pages
+<Link href="/operational-planning/inventory-planning/reorder?filter=low-stock">
+  {alerts.lowStock} Low Stock Items
+</Link>
 ```
+
+### 8.2 Future API Integration
+
+```typescript
+// Planned API endpoints
+// GET /api/inventory/planning/dashboard
+// GET /api/inventory/planning/reorder
+// GET /api/inventory/planning/dead-stock
+// GET /api/inventory/planning/safety-stock
+// GET /api/inventory/planning/locations
+// GET /api/inventory/planning/settings
+// PUT /api/inventory/planning/settings
+// POST /api/inventory/planning/apply-recommendations
+```
+
+---
+
+## 9. Component Library Usage
+
+### 9.1 Shadcn/ui Components
+
+| Component | Usage |
+|-----------|-------|
+| Card, CardHeader, CardTitle, CardContent | KPI cards, section containers |
+| Button | Actions, navigation |
+| Badge | Risk levels, action types, statuses |
+| Table, TableHeader, TableBody, TableRow, TableCell | Data tables |
+| Select, SelectTrigger, SelectContent, SelectItem | Filters |
+| Input | Settings inputs |
+| Checkbox | Row selection |
+| Switch | Boolean settings |
+| Tabs, TabsList, TabsTrigger, TabsContent | Service level selection |
+| Dialog | Confirmation dialogs |
+| Label | Form labels |
+
+### 9.2 Lucide React Icons
+
+| Icon | Usage |
+|------|-------|
+| DollarSign | Total savings KPI |
+| AlertTriangle | Items at risk, alerts |
+| CheckCircle | Optimization rate, optimal status |
+| Package | Dead stock, inventory |
+| TrendingUp, TrendingDown | Trend indicators |
+| ClipboardList | Items count |
+| ArrowUpDown | Changes count |
+| ChevronUp, ChevronDown | Row expansion |
+| Settings | Settings page |
+| BarChart2 | Charts |
+| MapPin | Locations |
 
 ---
 

@@ -252,8 +252,8 @@ interface StoreRequisitionItem {
   approvedQty: number
   issuedQty: number
   // Costing
-  unitCost: Money
-  totalCost: Money
+  unitCost: number                        // Cost per unit
+  totalCost: number                       // issuedQty × unitCost
   // Notes
   notes?: string
 }
@@ -378,3 +378,12 @@ The following features have been **removed** as Stock Transfers are now view-onl
 | Confirm Receipt action | On transfer | **Removed entirely** |
 | Receipt tracking | receivedAt, receivedBy, receivedQty | Not applicable |
 | InTransit status | Yes | No (Issue = Complete) |
+
+---
+
+## Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2024-12-01 | System | Initial creation as filtered view architecture |
+| 1.1.0 | 2025-01-15 | Claude | Fixed `unitCost` and `totalCost` types from `Money` to `number` to match `lib/types/store-requisition.ts` |

@@ -3,14 +3,15 @@
 ## Module Information
 - **Module**: Vendor Management
 - **Sub-module**: Pricelist Templates
-- **Version**: 2.0.0
+- **Version**: 3.0.0
 - **Status**: Active
-- **Last Updated**: 2025-11-25
+- **Last Updated**: 2025-01-15
 - **Mermaid Compatibility**: 8.8.2+
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code implementation; Added PricelistTemplate interface fields (allowMultiMOQ, requireLeadTime, defaultCurrency, supportedCurrencies, maxItemsPerSubmission, notificationSettings); Updated to use validityPeriod instead of effective dates; Added ProductSelection interface |
 | 2.0.0 | 2025-11-25 | Documentation Team | Simplified to align with BR-pricelist-templates.md; Removed reminder/notification/escalation features; Streamlined to core template functionality |
 | 1.1.0 | 2025-11-18 | Documentation Team | Updated per ARC-2025-001 |
 | 1.0.0 | 2025-11-15 | Documentation Team | Initial DD document |
@@ -22,12 +23,17 @@
 The Pricelist Templates module provides a centralized system for creating, managing, and distributing standardized pricing templates to vendors. Templates ensure consistent pricing data collection, streamline vendor onboarding, and facilitate price comparison across multiple vendors.
 
 ### Key Features
-- Template creation and management
-- Product/item assignment to templates
-- Multi-level pricing structures (unit, case, bulk)
+- Template creation and management (3-step wizard)
+- Product/item assignment via hierarchical selection (categories, subcategories, item groups, specific items)
+- Multi-level MOQ pricing structures
 - Template versioning and history
 - Template activation/deactivation
 - Template cloning and duplication
+- Excel template generation
+- Request for Pricing (RfP) campaign creation
+- Notification settings with reminder days
+- Lead time requirements
+- Multi-currency support (BHT, USD, CNY, SGD)
 
 ---
 
@@ -38,6 +44,88 @@ tb_currency (1) ──── (N) tb_pricelist_template
 tb_pricelist_template (1) ──── (N) tb_pricelist_template_detail
 tb_product (1) ──── (N) tb_pricelist_template_detail
 ```
+
+---
+
+## TypeScript Interface Definitions
+
+### PricelistTemplate Interface
+
+**Source**: `app/(main)/vendor-management/types/index.ts`
+
+```typescript
+interface PricelistTemplate {
+  id: string
+  name: string
+  description?: string
+  productSelection: ProductSelection
+  customFields: CustomField[]
+  instructions: string
+  validityPeriod: number                    // days
+  status: 'draft' | 'active' | 'inactive'
+  createdAt: Date
+  updatedAt: Date
+  createdBy: string
+  // Additional template settings
+  allowMultiMOQ: boolean
+  requireLeadTime: boolean
+  defaultCurrency: string
+  supportedCurrencies: string[]
+  maxItemsPerSubmission?: number
+  notificationSettings: {
+    sendReminders: boolean
+    reminderDays: number[]                  // e.g., [14, 7, 3, 1]
+    escalationDays: number
+  }
+}
+```
+
+### ProductSelection Interface
+
+```typescript
+interface ProductSelection {
+  categories: string[]
+  subcategories: string[]
+  itemGroups: string[]
+  specificItems: string[]                   // Legacy: simple product IDs
+  productInstances?: ProductInstance[]      // New: product instances with units
+}
+
+interface ProductInstance {
+  id: string              // Unique instance ID (e.g., "beef-ribeye-kg")
+  productId: string       // Original product ID (e.g., "beef-ribeye")
+  orderUnit: string       // Selected order unit for this instance
+  displayName?: string    // Optional custom name for display
+}
+```
+
+### CustomField Interface
+
+```typescript
+interface CustomField {
+  id: string
+  name: string
+  type: 'text' | 'number' | 'date' | 'select' | 'textarea'
+  required: boolean
+  options?: string[]      // For select type
+  defaultValue?: string
+  validation?: {
+    min?: number
+    max?: number
+    pattern?: string
+    message?: string
+  }
+}
+```
+
+### Currency Options (Code Constants)
+
+| Code | Label |
+|------|-------|
+| BHT | Thai Baht (BHT) |
+| USD | US Dollar (USD) |
+| CNY | Chinese Yuan (CNY) |
+| SGD | Singapore Dollar (SGD) |
 
 ---
 

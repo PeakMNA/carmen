@@ -5,7 +5,7 @@
 - **Sub-Module**: Products
 - **Route**: /product-management/products
 - **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Last Updated**: 2026-01-15
 - **Owner**: Product Management Team
 - **Status**: Draft
 
@@ -13,6 +13,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System | Initial business requirements documentation |
+| 1.1.0 | 2026-01-15 | System | Updated to sync with current code - renamed Recipe Units to Ingredient Units, added location tags/shelves/PAR levels, added table/card view modes, updated field names (isIngredient, isForSale), added advanced filtering with saved filters |
 
 ## Overview
 
@@ -26,8 +27,8 @@ This sub-module is critical for maintaining data consistency across the ERP syst
 
 1. **Centralize Product Data**: Maintain a single source of truth for all product information accessible by all ERP modules to ensure consistency and eliminate data duplication
 2. **Streamline Product Operations**: Enable efficient product creation, modification, and management with intuitive interfaces and bulk operation support
-3. **Support Multi-Unit Operations**: Provide flexible unit conversion capabilities for inventory tracking (base unit), ordering (purchase unit), and recipe management (recipe unit)
-4. **Enable Store-Specific Management**: Allow product assignment to multiple locations with store-specific min/max inventory thresholds for decentralized operations
+3. **Support Multi-Unit Operations**: Provide flexible unit conversion capabilities for inventory tracking (base unit), ordering (order unit), and ingredient/recipe management (ingredient unit)
+4. **Enable Store-Specific Management**: Allow product assignment to multiple locations with store-specific inventory thresholds (min/max quantities, reorder points, PAR levels), shelf assignments, and custom tags for flexible decentralized operations
 5. **Track Product History**: Maintain comprehensive purchase history (latest orders and receipts) and complete activity logs for audit trails and analysis
 6. **Facilitate Cost Management**: Track standard costs, receiving costs, and price deviations to support financial planning and procurement decisions
 7. **Support Tax Compliance**: Manage product-specific tax types and rates to ensure accurate tax calculations across all transactions
@@ -158,20 +159,28 @@ The system must support product assignment to the three-level category hierarchy
 ### FR-PROD-006: Multi-Unit Management
 **Priority**: Critical
 
-The system must support multiple unit types for each product: Inventory Unit (base unit for stock tracking), Order Units (units used in purchasing with conversion rates), and Recipe Units (units used in recipes with conversion rates). All conversions are relative to the base Inventory Unit with rates stored to 5 decimal precision.
+The system must support multiple unit types for each product: Inventory Unit (base unit for stock tracking), Order Units (units used in purchasing with conversion rates), and Ingredient Units (units used in recipes with conversion rates). All conversions are relative to the base Inventory Unit with rates stored to 5 decimal precision. Each unit type supports a conversion direction flag (isInverse) to control calculation direction.
 
 **Acceptance Criteria**:
-- Product detail displays three unit sections: Inventory (base), Order, Recipe
+- Product detail displays tabs for unit management: General, Inventory, Order Units, Ingredient Units
 - Inventory Unit is mandatory and defines the base unit (conversion rate = 1.00000)
-- Order Units section allows adding multiple order units with conversion rates
-- Recipe Units section allows adding multiple recipe units with conversion rates
+- Order Units section allows adding multiple order units with conversion rates (available units: BAG, BOX, CASE, PALLET, PACK)
+- Ingredient Units section allows adding multiple ingredient units with conversion rates (available units: G, KG, LB, OZ)
+- Each unit supports:
+  - Unit selection from dropdown
+  - Conversion factor input (positive non-zero, max 5 decimals)
+  - Description field
+  - isDefault toggle (only one per unit type)
+  - isInverse toggle (direction control for conversion calculations)
 - Conversion rate entry validated: must be positive non-zero, max 5 decimals
-- System calculates and displays reverse conversion rates (e.g., if 1 Box = 12 Each, then 1 Each = 0.08333 Box)
+- System calculates and displays conversion formula based on isInverse flag:
+  - When isInverse is true: `1 KG = (1 / factor) × unit` (e.g., 1 KG = 1000 G)
+  - When isInverse is false: `1 unit = factor × KG` (standard direction)
 - Unit selection dropdowns populated from active units master data
-- Duplicate units prevented within same unit type (order/recipe)
+- Duplicate units prevented within same unit type (order/ingredient)
 - Conversion rate changes logged in activity log with effective date
-- Real-time conversion calculator widget shows conversions between all assigned units
-- Default Order Unit can be designated from assigned Order Units list
+- Real-time conversion display shows "Qty × factor" calculation method
+- Default unit can be designated for each unit type via isDefault toggle
 
 **Related Requirements**: BR-PROD-005, BR-PROD-011, BR-PROD-012, BR-PROD-013
 
@@ -180,20 +189,35 @@ The system must support multiple unit types for each product: Inventory Unit (ba
 ### FR-PROD-007: Store/Location Assignment
 **Priority**: High
 
-The system must allow products to be assigned to multiple stores/locations with location-specific minimum and maximum inventory thresholds. These thresholds support automatic reorder point calculations and stock level alerts. Assignments can be added or removed as operational requirements change.
+The system must allow products to be assigned to multiple stores/locations with comprehensive location-specific settings including inventory thresholds (min/max quantities, reorder point, PAR level), shelf assignments, and custom tags. These thresholds support automatic reorder point calculations, stock level alerts, and location-specific organization.
 
 **Acceptance Criteria**:
-- Product detail displays Store Assignment section with list/grid of assigned locations
-- "Add Store" button opens location selector dialog with unassigned locations
-- Each store row displays: Store Name, Location Code, Min Quantity, Max Quantity, Actions
-- Min/Max quantities editable inline with validation (min >= 0, max > min)
-- Min/Max values default to zero when location first assigned
-- User can remove store assignment if product has zero inventory at that location
+- Product detail displays "Location Assignment" tab with table of assigned locations
+- "Add Location" button opens location selector dialog with unassigned locations
+- Each location row displays: Location Name, Location Code, Shelf, Min Qty, Max Qty, Reorder Point, PAR Level, Tags, Actions
+- Location assignment fields:
+  - **Location ID/Name/Code**: Reference to the assigned store/location (required)
+  - **Shelf**: Optional shelf assignment within the location (dropdown from location-specific shelves)
+  - **Min Quantity**: Minimum inventory threshold (>= 0, 3 decimal precision)
+  - **Max Quantity**: Maximum inventory threshold (> min, 3 decimal precision)
+  - **Reorder Point**: Quantity triggering reorder alerts (>= 0, <= max)
+  - **PAR Level**: Standard stock level for the location (Periodic Automatic Replacement)
+  - **Tags**: Optional array of custom tags for categorization and filtering
+- All quantity fields editable inline with validation
+- Default values when location first assigned: min=0, max=0, reorderPoint=0, parLevel=0
+- Shelf dropdown populated based on selected location (location-specific shelves)
+- **Tag Management**:
+  - "Manage Tags" button opens tag management dialog
+  - Tags are location-specific (each location can have its own set of tags)
+  - Create new tags with name and color selection (predefined color palette)
+  - Apply/remove multiple tags to location assignment
+  - Tag colors available: red, orange, amber, yellow, lime, green, emerald, teal, cyan, sky, blue, indigo, violet, purple, fuchsia, pink, rose
+- User can remove location assignment if product has zero inventory at that location
 - Attempting to remove assignment with inventory displays blocking error
-- Store assignments immediately available for inventory transactions at that location
-- Activity log records all store assignments/removals with quantities
-- List view shows number of assigned stores as badge/count
-- Store filter on product list shows products assigned to selected location
+- Location assignments immediately available for inventory transactions at that location
+- Activity log records all location assignments/removals with quantities and tags
+- List view shows number of assigned locations as badge/count
+- Location filter on product list shows products assigned to selected location
 
 **Related Requirements**: BR-PROD-014, BR-PROD-015
 
@@ -268,20 +292,24 @@ The system must support product-level tax configuration including Tax Type (Adde
 ### FR-PROD-011: Product Types (Usage Flags)
 **Priority**: Medium
 
-The system must support product type flags indicating how products are used: "Used in Recipes" flag indicates product is an ingredient for recipe management, and "Sold Directly" flag indicates product can be sold to customers. Products can have neither, one, or both flags enabled.
+The system must support product type flags indicating how products are used: "isIngredient" flag indicates product is an ingredient for recipe management, and "isForSale" flag indicates product can be sold to customers. Products can have neither, one, or both flags enabled.
 
 **Acceptance Criteria**:
-- Product detail displays two checkboxes: "Used in Recipes" and "Sold Directly"
-- Both checkboxes unchecked by default for new products
+- Product detail displays two toggles/checkboxes: "Is Ingredient" and "Is For Sale"
+- Both flags unchecked by default for new products
 - User can enable/disable either or both flags independently
-- "Used in Recipes" flag enables product in Recipe module ingredient selection
-- Products with this flag excluded from direct sale operations
-- "Sold Directly" flag enables product in Sales module product selection
-- Products with this flag excluded from recipe ingredient lists
+- **isIngredient flag**:
+  - When enabled, product appears in Recipe module ingredient selection dropdowns
+  - Enables "Ingredient Units" tab configuration for recipe-specific unit conversions
+  - Displayed in product list with ingredient indicator
+- **isForSale flag**:
+  - When enabled, product appears in Sales module product selection
+  - Enables pricing and sales-specific configuration
+  - Displayed in product list with sale indicator
 - Products with both flags enabled appear in both Recipe and Sales modules
 - Products with neither flag are inventory-only (procurement and storage)
 - Activity log records usage flag changes
-- List view displays icons/badges indicating product type: Recipe, Sale, Both, Stock Only
+- List view displays icons/badges indicating product type based on flag combination
 
 **Related Requirements**: BR-PROD-019
 
@@ -357,20 +385,33 @@ The system must maintain comprehensive activity log for all product data changes
 ### FR-PROD-015: Product Search and Filtering
 **Priority**: High
 
-The system must provide powerful search and filtering capabilities on product list page to quickly locate products from large catalogs. Search covers product code, descriptions (English and local), category names, and barcode. Filters include category hierarchy, active status, product types, and assigned stores.
+The system must provide powerful search and filtering capabilities on product list page to quickly locate products from large catalogs. Search covers product code, descriptions (English and local), category names, and barcode. Advanced filtering supports multiple conditions with logical operators and saved filter configurations.
 
 **Acceptance Criteria**:
 - Product list page includes search box supporting real-time type-ahead search
 - Search queries product code, English description, local description, barcode, category name
 - Search is case-insensitive and supports partial matches
 - Search results update as user types with 300ms debounce delay
-- Filter panel includes:
+- **Basic Filters**:
   - Category multi-level hierarchy filter (expandable tree)
   - Status filter (Active, Inactive, All)
-  - Product Type filter (Used in Recipes, Sold Directly, Both, Stock Only)
-  - Store Assignment filter (assigned to selected store)
-- Multiple filters can be applied simultaneously (AND logic)
-- Active filters displayed as removable tags/pills
+  - Product Type filter (Ingredient, For Sale, Both, Stock Only)
+  - Location/Store Assignment filter (assigned to selected location)
+- **Advanced Filtering**:
+  - "Advanced Filters" button opens advanced filtering panel
+  - Support for multiple filter conditions with logical operators (AND/OR)
+  - Each condition consists of: Field selector, Operator (equals, contains, greater than, less than, etc.), Value
+  - Fields available for filtering: all product properties including costs, deviations, thresholds
+  - Add/remove filter conditions dynamically
+  - Preview filter results before applying
+- **Saved Filters**:
+  - Save current filter configuration with custom name
+  - Load previously saved filters from dropdown
+  - Delete saved filters
+  - Saved filters persist across sessions
+  - Quick access to frequently used filter combinations
+- Multiple filters can be applied simultaneously (AND/OR logic based on configuration)
+- Active filters displayed as removable tags/pills showing filter criteria
 - "Clear All Filters" button resets to default view
 - Filter state preserved when navigating away and returning to list page
 - Search and filter results display count: "Showing 25 of 150 products"
@@ -383,22 +424,35 @@ The system must provide powerful search and filtering capabilities on product li
 ### FR-PROD-016: Product List Display
 **Priority**: High
 
-The system must display products in sortable, paginated table format with key information visible at a glance. List supports bulk selection for mass operations and provides quick access to common actions. Default sort is alphabetical by product code with customizable sort preferences.
+The system must display products in sortable, paginated format with support for both table and card view modes. List supports bulk selection for mass operations and provides quick access to common actions. Default sort is alphabetical by product code with customizable sort preferences.
 
 **Acceptance Criteria**:
-- Product list displays columns: Product Code, Description (English), Category Path, Inventory Unit, Standard Cost, Status, Actions
-- All columns sortable (ascending/descending) via column header click
-- Active sort column indicated with arrow icon (↑↓)
-- Pagination controls at bottom with page size options: 25, 50, 100, 200
-- Checkbox in first column enables multi-row selection
-- "Select All" checkbox in header selects all rows on current page
-- Bulk action buttons enabled when rows selected: Export, Bulk Edit, Bulk Delete
-- Each row includes action menu (⋮) with: View, Edit, Delete, Duplicate
-- Status column displays badge with color coding: Green (Active), Gray (Inactive)
-- Cost column right-aligned with currency symbol and 2 decimal precision
-- Responsive design: columns collapse on smaller screens with horizontal scroll
-- List loads within 3 seconds with up to 100 rows
-- Empty state message when no products: "No products found. Create your first product."
+- **View Mode Toggle**:
+  - Toggle button group allows switching between Table View and Card View
+  - User preference for view mode persisted across sessions
+  - View mode accessible via keyboard shortcut
+- **Table View**:
+  - Product list displays columns: Product Code, Description (English), Category Path, Inventory Unit, Standard Cost, Status, Actions
+  - All columns sortable (ascending/descending) via column header click
+  - Active sort column indicated with arrow icon (↑↓)
+  - Checkbox in first column enables multi-row selection
+  - "Select All" checkbox in header selects all rows on current page
+  - Each row includes action dropdown menu (⋮) with: View, Edit, Delete, Duplicate
+  - Status column displays badge with color coding: Green (Active), Gray (Inactive)
+  - Cost column right-aligned with currency symbol and 2 decimal precision
+- **Card View**:
+  - Products displayed as responsive grid of cards
+  - Each card shows: Product image (if available), Product Code, Description, Category, Status badge
+  - Cards support selection via checkbox for bulk operations
+  - Click card to navigate to product detail
+  - Hover state shows quick action buttons
+  - Cards resize responsively based on screen width (4 per row on desktop, 2 on tablet, 1 on mobile)
+- **Common Features**:
+  - Pagination controls at bottom with page size options: 25, 50, 100, 200
+  - Bulk action buttons enabled when rows/cards selected: Export, Bulk Status Update, Bulk Delete
+  - Responsive design: adapts to screen size with appropriate layout
+  - List/Grid loads within 3 seconds with up to 100 items
+  - Empty state message when no products: "No products found. Create your first product."
 
 **Related Requirements**: Performance requirements
 
@@ -524,13 +578,20 @@ The system must support printing of product detail information in formatted layo
 
 - **BR-PROD-011**: Inventory Unit (base unit) is mandatory and must be from active units master data. Conversion rate for inventory unit is always 1.00000 (by definition of base unit).
 
-- **BR-PROD-012**: Order Units are optional. Multiple order units can be assigned with unique conversion rates to inventory unit. Conversion rates must be positive non-zero values with max 5 decimal precision.
+- **BR-PROD-012**: Order Units are optional. Multiple order units can be assigned with unique conversion rates to inventory unit. Each order unit has: unit code, conversion factor (positive non-zero, max 5 decimal precision), description, isDefault flag (only one per product), and isInverse flag (controls conversion direction). Available order units: BAG, BOX, CASE, PALLET, PACK.
 
-- **BR-PROD-013**: Recipe Units are optional. Multiple recipe units can be assigned with unique conversion rates to inventory unit. Conversion rates must be positive non-zero values with max 5 decimal precision.
+- **BR-PROD-013**: Ingredient Units are optional (primarily for products where isIngredient=true). Multiple ingredient units can be assigned with unique conversion rates to inventory unit. Each ingredient unit has: unit code, conversion factor (positive non-zero, max 5 decimal precision), description, isDefault flag (only one per product), and isInverse flag (controls conversion direction). Available ingredient units: G, KG, LB, OZ.
 
-- **BR-PROD-014**: Store/Location assignments are optional. Products can be assigned to zero, one, or multiple stores. Same store cannot be assigned multiple times to same product.
+- **BR-PROD-014**: Location assignments are optional. Products can be assigned to zero, one, or multiple locations/stores. Same location cannot be assigned multiple times to same product. Each location assignment supports: locationId, locationName, locationCode, shelfId, shelfName, minQuantity, maxQuantity, reorderPoint, parLevel, and optional tags array.
 
-- **BR-PROD-015**: For each store assignment, Minimum Quantity must be >= 0 and Maximum Quantity must be > Minimum Quantity. Both values stored with 3 decimal precision. Min/Max values optional (can be 0 or null).
+- **BR-PROD-015**: For each location assignment:
+  - Minimum Quantity must be >= 0 (3 decimal precision)
+  - Maximum Quantity must be > Minimum Quantity (3 decimal precision)
+  - Reorder Point must be >= 0 and <= Maximum Quantity
+  - PAR Level (Periodic Automatic Replacement) must be >= 0 (3 decimal precision)
+  - Shelf assignment is optional and must reference a valid shelf within the selected location
+  - Tags are optional, location-specific strings for categorization
+  - Min/Max/Reorder/PAR values default to 0 when location first assigned
 
 ### Workflow Rules
 
@@ -540,7 +601,7 @@ The system must support printing of product detail information in formatted layo
 
 - **BR-PROD-018**: Soft deleted products retain all data with deleted_at timestamp and deleted_by user ID. Soft deleted products excluded from active lists and operational dropdowns but visible in historical reports with deleted indicator.
 
-- **BR-PROD-019**: Product type flags ("Used in Recipes", "Sold Directly") are independent and can both be enabled, both disabled, or one of each. Products with neither flag are inventory/stock-only items.
+- **BR-PROD-019**: Product type flags (isIngredient, isForSale) are independent boolean fields and can both be enabled, both disabled, or one of each. Products with neither flag are inventory/stock-only items. When isIngredient is true, the Ingredient Units tab becomes relevant for recipe integration.
 
 ### Calculation Rules
 
@@ -606,7 +667,7 @@ interface Product {
   defaultOrderUnitId: string;          // FK to Unit (default for POs, optional)
   defaultOrderUnit?: Unit;             // Navigation to default order unit
   orderUnits: ProductUnit[];           // Collection of order units with conversion rates
-  recipeUnits: ProductUnit[];          // Collection of recipe units with conversion rates
+  ingredientUnits: ProductUnit[];      // Collection of ingredient units with conversion rates (for recipes)
 
   // Cost and Pricing
   standardCost: number;                // Planned/target cost in base currency (2 decimals)
@@ -624,11 +685,11 @@ interface Product {
   barcode: string;                     // Primary barcode (max 50 chars, optional)
 
   // Product Types
-  isUsedInRecipes: boolean;            // True if product is recipe ingredient
-  isSoldDirectly: boolean;             // True if product can be sold to customers
+  isIngredient: boolean;               // True if product is recipe ingredient (enables Ingredient Units tab)
+  isForSale: boolean;                  // True if product can be sold to customers
 
-  // Store Assignments
-  storeAssignments: ProductStoreAssignment[]; // Locations where product is available
+  // Location Assignments
+  locationAssignments: ProductLocationAssignment[]; // Locations where product is available with thresholds, shelves, and tags
 
   // Additional Attributes
   attributes: ProductAttribute[];      // Flexible key-value attributes
@@ -655,7 +716,7 @@ interface Product {
 
 ### ProductUnit Entity
 
-**Purpose**: Represents a unit of measure assigned to a product for ordering or recipe purposes, with conversion rate to the base inventory unit.
+**Purpose**: Represents a unit of measure assigned to a product for ordering or ingredient purposes, with conversion rate to the base inventory unit.
 
 ```typescript
 interface ProductUnit {
@@ -664,9 +725,19 @@ interface ProductUnit {
   product?: Product;                   // Navigation property
   unitId: string;                      // FK to Unit master data (required)
   unit?: Unit;                         // Navigation property
-  unitType: 'INVENTORY' | 'ORDER' | 'RECIPE'; // Unit classification
-  conversionRate: number;              // Conversion to base unit (5 decimals, positive, non-zero)
-  isDefault: boolean;                  // True if default unit for this type
+  unitType: 'INVENTORY' | 'ORDER' | 'RECIPE'; // Unit classification (RECIPE = ingredient units)
+  conversionRate: number;              // Conversion factor to base unit (5 decimals, positive, non-zero)
+  description: string;                 // Description of the unit (e.g., "Kilogram", "Box of 12")
+  isDefault: boolean;                  // True if default unit for this type (only one per unitType per product)
+  isInverse: boolean;                  // Controls conversion direction calculation
+
+  // Conversion calculation based on isInverse flag:
+  // When isInverse = true:  1 BaseUnit = (1 / factor) × ThisUnit (e.g., 1 KG = 1000 G)
+  // When isInverse = false: 1 ThisUnit = factor × BaseUnit (standard direction)
+
+  // Available units by type:
+  // ORDER: BAG, BOX, CASE, PALLET, PACK
+  // RECIPE (Ingredient): G, KG, LB, OZ
 
   // Audit
   createdAt: Date;                     // Creation timestamp
@@ -674,23 +745,59 @@ interface ProductUnit {
 }
 ```
 
-### ProductStoreAssignment Entity
+### ProductLocationAssignment Entity
 
-**Purpose**: Represents product availability at a specific store/location with inventory thresholds for that location.
+**Purpose**: Represents product availability at a specific store/location with comprehensive inventory thresholds, shelf assignment, and custom tags for that location.
 
 ```typescript
-interface ProductStoreAssignment {
+interface ProductLocationAssignment {
   id: string;                          // UUID primary key
   productId: string;                   // FK to Product (required)
   product?: Product;                   // Navigation property
-  storeId: string;                     // FK to Store/Location (required)
-  store?: Store;                       // Navigation property
-  minimumQuantity: number;             // Min inventory threshold (3 decimals, >= 0)
-  maximumQuantity: number;             // Max inventory threshold (3 decimals, > min)
+
+  // Location reference
+  locationId: string;                  // FK to Store/Location (required)
+  locationName: string;                // Denormalized location name for display
+  locationCode: string;                // Denormalized location code for display
+
+  // Shelf assignment
+  shelfId: string;                     // FK to Shelf within location (optional)
+  shelfName: string;                   // Denormalized shelf name for display
+
+  // Inventory thresholds
+  minQuantity: number;                 // Min inventory threshold (3 decimals, >= 0, default 0)
+  maxQuantity: number;                 // Max inventory threshold (3 decimals, > min, default 0)
+  reorderPoint: number;                // Quantity triggering reorder alerts (>= 0, <= max, default 0)
+  parLevel: number;                    // PAR level - standard stock quantity (3 decimals, >= 0, default 0)
+
+  // Custom tags for categorization
+  tags?: string[];                     // Array of tag IDs/names for this location assignment
 
   // Audit
   createdAt: Date;                     // Assignment timestamp
   createdBy: string;                   // Assigner user ID
+  updatedAt: Date;                     // Last update timestamp
+  updatedBy: string;                   // Last updater user ID
+}
+
+// Supporting entity for location-specific tags
+interface LocationTag {
+  id: string;                          // UUID primary key
+  name: string;                        // Tag name (e.g., "High Priority", "Seasonal")
+  color: string;                       // Tag color (e.g., "red", "blue", "green")
+  locationId: string;                  // FK to Location - tags are location-specific
+
+  // Available colors: red, orange, amber, yellow, lime, green, emerald,
+  //                   teal, cyan, sky, blue, indigo, violet, purple,
+  //                   fuchsia, pink, rose
+}
+
+// Supporting entity for location shelves
+interface Shelf {
+  id: string;                          // UUID primary key
+  name: string;                        // Shelf name (e.g., "Shelf A", "Cold Storage 1")
+  code: string;                        // Shelf code for quick reference
+  locationId: string;                  // FK to Location - shelves belong to specific locations
 }
 ```
 
@@ -1004,9 +1111,9 @@ interface ProductActivityLog {
 
 - **Inventory Unit**: The base unit of measure for stock tracking. All other units are converted to/from this unit. Also called "base unit".
 
-- **Order Unit**: Unit of measure used when purchasing a product from vendors, with conversion rate to inventory unit.
+- **Order Unit**: Unit of measure used when purchasing a product from vendors, with conversion rate to inventory unit. Available order units include BAG, BOX, CASE, PALLET, PACK.
 
-- **Recipe Unit**: Unit of measure used when the product is an ingredient in recipes, with conversion rate to inventory unit.
+- **Ingredient Unit**: Unit of measure used when the product is an ingredient in recipes, with conversion rate to inventory unit. Available ingredient units include G (Gram), KG (Kilogram), LB (Pound), OZ (Ounce). Also referred to as "Recipe Unit" in unit type classification.
 
 - **Conversion Rate**: Numeric factor to convert between units. Example: 1 Box = 12 Each means conversion rate is 12.00000.
 
@@ -1020,9 +1127,19 @@ interface ProductActivityLog {
 
 - **Tax Type**: Method of tax calculation - "Added Tax" (tax on top of price), "Included Tax" (tax embedded in price), or "None" (no tax).
 
-- **Product Type**: Classification of product usage - "Used in Recipes" (ingredient), "Sold Directly" (retail product), both, or neither (stock-only).
+- **Product Type**: Classification of product usage based on isIngredient and isForSale flags - ingredient (recipe item), for sale (retail product), both, or neither (stock-only).
 
-- **Store Assignment**: Configuration linking product to specific store/location with inventory thresholds for that location.
+- **Location Assignment**: Configuration linking product to specific store/location with comprehensive inventory thresholds (min/max quantities, reorder point, PAR level), shelf assignment, and custom tags.
+
+- **PAR Level**: Periodic Automatic Replacement level - the standard stock quantity that should be maintained at a location for optimal operations.
+
+- **Reorder Point**: The inventory quantity at which a reorder alert is triggered to replenish stock.
+
+- **Location Tag**: A custom label with color that can be applied to product-location assignments for categorization and filtering. Tags are location-specific.
+
+- **Shelf**: A storage location within a store/location where products are physically stored. Shelves are location-specific.
+
+- **isInverse**: A flag on unit conversions that controls the direction of calculation. When true, the conversion formula is inverted (1 BaseUnit = 1/factor × ThisUnit).
 
 - **Activity Log**: Audit trail recording all product data changes with user, timestamp, action type, and field-level details.
 

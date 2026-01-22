@@ -35,10 +35,24 @@ Validation occurs at three layers to ensure data quality and security:
 - **Server-Side**: Security and business rule enforcement
 - **Database**: Final data integrity constraints
 
+### Implementation Note: Type vs Level Field
+
+> **⚠️ Database Schema vs TypeScript Implementation**
+>
+> This validation document references a `type` field as part of the **database schema design** with values 'CATEGORY', 'SUBCATEGORY', or 'ITEM_GROUP'.
+>
+> The current **TypeScript implementation** in `/lib/types/common.ts` uses a `level` field (number: 1, 2, or 3) instead:
+>
+> - `level: 1` = Category (root level, replaces type = 'CATEGORY')
+> - `level: 2` = Subcategory (middle level, replaces type = 'SUBCATEGORY')
+> - `level: 3` = Item Group (leaf level, replaces type = 'ITEM_GROUP')
+>
+> Validation rules referencing the `type` field (VAL-CAT-006, VAL-CAT-102, VAL-CAT-202) should be adapted to use the `level` field in TypeScript code. The `CategoryType` type exists only in the UI-focused `CategoryItem` interface for display purposes.
+
 ### 1.2 Scope
 
 This document covers validation for:
-- **Field-level validations**: Individual field constraints (name, description, type, parent_id, level, sort_order, is_active)
+- **Field-level validations**: Individual field constraints (name, description, type/level, parent_id, sort_order, is_active)
 - **Business rule validations**: Hierarchy depth, type compatibility, deletion constraints
 - **Cross-field validations**: Type-level compatibility, parent-child relationships, circular references
 - **Security validations**: Permission checks, role-based access, ownership validation

@@ -3,7 +3,7 @@
 You are a documentation generator for the Carmen ERP system (hospitality/hotel management).
 
 ## Task
-Generate complete documentation set (BR, UC, TS, DS, FD, VAL) for: **{module}/{submodule}**
+Generate complete documentation set (BR, UC, TS, DD, FD, VAL) for: **{module}/{submodule}**
 
 ## Critical Rules
 1. **ONLY document features that exist in source code** - scan first, document second
@@ -58,6 +58,9 @@ For each feature found in code:
 **Requirements**:
 [List from code analysis - use actual field names, actual validations, actual workflows]
 
+**Intent**:
+describe in bullet points the feature objectives related to user inent 
+
 **Acceptance Criteria**:
 [Testable criteria from component behavior and validation rules]
 ```
@@ -99,10 +102,10 @@ Reference: `docs/app/procurement/purchase-requests/TS-purchase-requests.md` (tex
 - Server action descriptions (actual functions, inputs/outputs, no code)
 - Integration points (actual external systems only)
 
-### 2.4 DS (Data Schema)
-Template: `DS-template.md`
+### 2.4 DD (Data Definition)
+Template: `DD-template.md`
 
-- Extract tables from `supabase.from('table_name')` calls
+- Extract tables from the /Users/peak/Documents/GitHub/carmen/data/schema.prisma calls if it does not exsist add the require fields and tables
 - Document columns from TypeScript interfaces
 - Show relationships from foreign key usage
 - Use actual mock data for examples
@@ -156,7 +159,7 @@ Generate these 6 files in `docs/app/{module}/{submodule}/`:
 1. **BR-{submodule}.md** - Business Requirements with user stories
 2. **UC-{submodule}.md** - Use Cases with detailed workflows
 3. **TS-{submodule}.md** - Technical Specification (text + Mermaid, NO code)
-4. **DS-{submodule}.md** - Data Schema with actual tables
+4. **DD-{submodule}.md** - Data Definition with text description of actual tables
 5. **FD-{submodule}.md** - Flow Diagrams (Mermaid)
 6. **VAL-{submodule}.md** - Validation Rules extracted from code
 

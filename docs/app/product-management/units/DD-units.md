@@ -15,6 +15,7 @@
 | 1.0.0 | 2025-02-11 | Product Management Team | Initial version |
 | 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
 | 1.2.0 | 2025-11-26 | Documentation Team | Added UnitUsageStats view entity to align with BR-units.md |
+| 1.3.0 | 2026-01-15 | Documentation Team | Added MEASURE unit type for recipe ingredient measurements |
 
 
 ---
@@ -23,7 +24,7 @@
 
 The Units Management data model provides a simple yet comprehensive structure for managing measurement units used throughout the CARMEN hospitality ERP system. The model consists of a single primary entity (units table) that stores all measurement unit definitions categorized by their operational context.
 
-Units are fundamental reference data used across multiple modules including Product Management, Recipe Management, Inventory Management, and Procurement. The data model ensures consistency in unit usage while allowing flexibility through the unit type categorization system (INVENTORY, ORDER, RECIPE).
+Units are fundamental reference data used across multiple modules including Product Management, Recipe Management, Inventory Management, and Procurement. The data model ensures consistency in unit usage while allowing flexibility through the unit type categorization system (INVENTORY, ORDER, RECIPE, MEASURE).
 
 The schema supports business processes including product catalog management, recipe creation and management, inventory tracking and valuation, purchase order processing, and goods receiving operations. All write operations maintain a complete audit trail for compliance and troubleshooting purposes.
 
@@ -96,7 +97,7 @@ The schema supports business processes including product catalog management, rec
 
 ### Entity: Unit
 
-**Description**: Represents a measurement unit used throughout the CARMEN system for quantifying materials, products, ingredients, and inventory items. Units are categorized by type (INVENTORY, ORDER, RECIPE) to ensure appropriate usage in different operational contexts.
+**Description**: Represents a measurement unit used throughout the CARMEN system for quantifying materials, products, ingredients, and inventory items. Units are categorized by type (INVENTORY, ORDER, RECIPE, MEASURE) to ensure appropriate usage in different operational contexts.
 
 **Business Purpose**: Provides standardized measurement units for all quantifiable entities in the system. Ensures consistency in unit usage across products, recipes, inventory, and procurement. Supports unit conversion calculations and proper inventory valuation. Maintains reference data for dropdown selectors and unit validation.
 
@@ -145,16 +146,18 @@ The schema supports business processes including product catalog management, rec
   - Examples: "Standard weight measurement for inventory", "Used for liquid volume in recipes", "Packaging unit for bulk orders"
   - Guidelines: Helpful for training and clarity, especially for uncommon units
 
-- **Type**: Classification of unit usage context (Enum: INVENTORY, ORDER, RECIPE)
+- **Type**: Classification of unit usage context (Enum: INVENTORY, ORDER, RECIPE, MEASURE)
   - Required: Yes
   - Allowed values:
     - INVENTORY: Units used for stock measurement and inventory tracking (KG, L, PC)
     - ORDER: Units used in purchase orders and vendor transactions (BOX, CASE, PALLET)
-    - RECIPE: Units used in recipe ingredient specifications (TSP, TBSP, CUP)
+    - RECIPE: Serving units for recipe yield output (SERVING, PORTION, PLATE, BOWL, SLICE)
+    - MEASURE: Ingredient measurement units for recipes (TSP, TBSP, CUP, OZ, PINCH)
   - Default: None (must be explicitly specified)
   - Business rules:
     - Base units for products must be INVENTORY type
-    - Recipe ingredients should use RECIPE or INVENTORY type units
+    - Recipe yield output should use RECIPE type units
+    - Recipe ingredient measurements should use MEASURE or INVENTORY type units
     - Purchase orders can use ORDER or INVENTORY type units
   - Purpose: Ensures units are used in appropriate operational context
 
@@ -220,7 +223,7 @@ The schema supports business processes including product catalog management, rec
 | code | VARCHAR(10) | Yes | - | Short unit code, case-insensitive unique | KG, ML, L, PC, BOX, CASE, TSP, TBSP | Unique (uppercase), Non-empty, 2-10 chars, Immutable if referenced |
 | name | VARCHAR(100) | Yes | - | Full descriptive unit name | Kilogram, Milliliter, Piece, Box | Non-empty, 2-100 chars |
 | description | VARCHAR(500) | No | NULL | Optional detailed description | "Standard weight measurement for inventory" | 0-500 chars |
-| type | VARCHAR(20) | Yes | - | Unit usage context | INVENTORY, ORDER, RECIPE | Must be from allowed enum values |
+| type | VARCHAR(20) | Yes | - | Unit usage context | INVENTORY, ORDER, RECIPE, MEASURE | Must be from allowed enum values |
 | isActive | BOOLEAN | Yes | true | Active/inactive status flag | true, false | Non-null |
 | created_at | TIMESTAMPTZ | Yes | NOW() | Creation timestamp (UTC) | 2024-01-15T10:30:00Z | Non-null, Immutable |
 | created_by | UUID | Yes | current_user_id | Creator user reference | 550e8400-... | Non-null, FK to users.id, Immutable |
@@ -259,11 +262,11 @@ The schema supports business processes including product catalog management, rec
   - Nullability: Cannot be NULL at update time, but can become NULL if user deleted
 
 **Check Constraints**:
-- **Type Validation**: `type` must be one of three allowed values
-  - Allowed values: 'INVENTORY', 'ORDER', 'RECIPE'
+- **Type Validation**: `type` must be one of four allowed values
+  - Allowed values: 'INVENTORY', 'ORDER', 'RECIPE', 'MEASURE'
   - Purpose: Ensure unit type is valid and from business-defined categories
   - Error message: "Invalid unit type" when violation occurs
-  - Implementation: CHECK (type IN ('INVENTORY', 'ORDER', 'RECIPE'))
+  - Implementation: CHECK (type IN ('INVENTORY', 'ORDER', 'RECIPE', 'MEASURE'))
 
 - **Code Format**: `code` must follow format rules
   - Length: Between 2 and 10 characters
@@ -344,13 +347,34 @@ Business Context:
 - Tracks order quantities matching vendor invoices
 ```
 
-**Example 3: Recipe Unit - Volume**
+**Example 3: Recipe Unit - Serving Output**
 ```
 ID: 550e8400-e29b-41d4-a716-446655440003
+Code: SERVING
+Name: Serving
+Description: Standard serving portion for recipe yield output
+Type: RECIPE
+Is Active: true
+Created: 2024-01-01 00:00:00 UTC
+Created By: Admin User (system-admin-001)
+Updated: 2024-01-01 00:00:00 UTC
+Updated By: Admin User (system-admin-001)
+Deleted At: NULL
+
+Business Context:
+- Used for recipe yield output (e.g., recipe yields 10 SERVINGS)
+- Represents standardized portion sizes for menu items
+- Not used for ingredient measurements (use MEASURE type instead)
+- Helps kitchen staff understand expected output from recipes
+```
+
+**Example 4: Measure Unit - Ingredient Measurement**
+```
+ID: 550e8400-e29b-41d4-a716-446655440004
 Code: TSP
 Name: Teaspoon
-Description: Teaspoon measurement for recipes, approximately 5ml
-Type: RECIPE
+Description: Teaspoon measurement for recipe ingredients, approximately 5ml
+Type: MEASURE
 Is Active: true
 Created: 2024-01-01 00:00:00 UTC
 Created By: Admin User (system-admin-001)
@@ -365,9 +389,9 @@ Business Context:
 - Helps chefs follow standardized recipes consistently
 ```
 
-**Example 4: Inactive Unit (Soft Deleted)**
+**Example 5: Inactive Unit (Soft Deleted)**
 ```
-ID: 550e8400-e29b-41d4-a716-446655440004
+ID: 550e8400-e29b-41d4-a716-446655440005
 Code: DRUM
 Name: Drum
 Description: Large container unit, deprecated in favor of BARREL
@@ -549,7 +573,7 @@ If attempting to delete KG unit:
   - Unit ID changes propagate to product_units table
   - Maintains referential integrity
 
-**Business Rule**: Alternative units can be any type (INVENTORY, ORDER, or RECIPE) depending on the product and usage context. For example, a product with base unit KG (inventory) might have alternative unit CASE (ordering) and CUP (recipe).
+**Business Rule**: Alternative units can be any type (INVENTORY, ORDER, RECIPE, or MEASURE) depending on the product and usage context. For example, a product with base unit KG (inventory) might have alternative unit CASE (ordering) and CUP (measure for recipes).
 
 **Example Scenario**:
 ```
@@ -595,11 +619,11 @@ Business meaning:
 - **On Update**: CASCADE
   - Unit ID changes propagate to recipe_ingredients table
 
-**Business Rule**: Recipe ingredients should use RECIPE type units (TSP, TBSP, CUP) or INVENTORY type units (KG, L, ML) appropriate for recipe preparation. ORDER type units (CASE, BOX) are typically too large for recipe measurements and should not be used.
+**Business Rule**: Recipe ingredients should use MEASURE type units (TSP, TBSP, CUP, PINCH) or INVENTORY type units (KG, L, ML) appropriate for recipe preparation. ORDER type units (CASE, BOX) are typically too large for recipe measurements and should not be used. RECIPE type units (SERVING, PORTION) are for yield output, not ingredient measurements.
 
 **Example Scenario**:
 ```
-Unit: TSP (Teaspoon, RECIPE type)
+Unit: TSP (Teaspoon, MEASURE type)
 Referenced by recipe_ingredients:
   - Recipe: Thai Green Curry, Ingredient: Salt (quantity = 2 TSP)
   - Recipe: Chocolate Chip Cookies, Ingredient: Vanilla Extract (quantity = 1 TSP)
@@ -616,7 +640,7 @@ Business meaning:
 **Common Query Patterns**:
 - Find all recipes using specific unit: JOIN recipe_ingredients WHERE unit = {unit_id}
 - Find all ingredients for a recipe with units: JOIN recipe_ingredients with units table
-- Validate recipe unit type: JOIN units and CHECK type IN ('RECIPE', 'INVENTORY')
+- Validate recipe unit type: JOIN units and CHECK type IN ('MEASURE', 'INVENTORY')
 - Calculate recipe costs: Convert recipe units to inventory units, multiply by cost per base unit
 
 ---
@@ -642,7 +666,7 @@ Business meaning:
 - **On Update**: CASCADE
   - Unit ID changes propagate to inventory_transactions table
 
-**Business Rule**: Inventory transactions must use INVENTORY type units because inventory tracking, stock counts, and valuation calculations require standardized inventory measurements. ORDER and RECIPE units should not appear in inventory transactions.
+**Business Rule**: Inventory transactions must use INVENTORY type units because inventory tracking, stock counts, and valuation calculations require standardized inventory measurements. ORDER, RECIPE, and MEASURE units should not appear in inventory transactions.
 
 **Example Scenario**:
 ```
@@ -689,7 +713,7 @@ Business meaning:
 - **On Update**: CASCADE
   - Unit ID changes propagate to purchase_order_items table
 
-**Business Rule**: Purchase orders can use ORDER type units (CASE, BOX, PALLET) or INVENTORY type units (KG, L) depending on vendor packaging and ordering preferences. RECIPE type units (TSP, CUP) should not be used in purchase orders as they are too small for procurement.
+**Business Rule**: Purchase orders can use ORDER type units (CASE, BOX, PALLET) or INVENTORY type units (KG, L) depending on vendor packaging and ordering preferences. RECIPE type units (SERVING, PORTION) and MEASURE type units (TSP, CUP, PINCH) should not be used in purchase orders as they are too small for procurement.
 
 **Example Scenario**:
 ```
@@ -756,15 +780,16 @@ Business meaning:
 
 **Unit Type Index**:
 - **Field**: `type`
-- **Purpose**: Fast filtering by unit type (INVENTORY, ORDER, RECIPE)
+- **Purpose**: Fast filtering by unit type (INVENTORY, ORDER, RECIPE, MEASURE)
 - **Type**: B-tree index
 - **Use Cases**:
   - Filter units for base unit selection (INVENTORY type only)
-  - Filter units for recipe ingredient selection (RECIPE and INVENTORY types)
+  - Filter units for recipe ingredient measurement (MEASURE and INVENTORY types)
+  - Filter units for recipe yield/portion output (RECIPE type)
   - Filter units for purchase order selection (ORDER and INVENTORY types)
   - Analytics on unit type distribution
 - **Performance**: Efficient for low-cardinality filtering
-- **Cardinality**: Low (only three values: INVENTORY, ORDER, RECIPE)
+- **Cardinality**: Low (only four values: INVENTORY, ORDER, RECIPE, MEASURE)
 
 ### Composite Indexes
 
@@ -775,7 +800,8 @@ Business meaning:
 - **Partial Index**: WHERE deleted_at IS NULL (excludes soft-deleted records)
 - **Use Cases**:
   - Dropdown showing only active INVENTORY units for base unit selection
-  - Dropdown showing only active RECIPE units for recipe ingredients
+  - Dropdown showing only active MEASURE units for recipe ingredient measurements
+  - Dropdown showing only active RECIPE units for recipe yield/portion output
   - List pages filtered by type and status simultaneously
 - **Performance**: Optimal for combined queries, avoids index merge operations
 - **Query Pattern**: WHERE type = 'INVENTORY' AND isActive = true
@@ -883,7 +909,7 @@ Business meaning:
 - Type mismatches rejected at INSERT/UPDATE time with clear error messages
 
 **Check Constraints**:
-- **Unit Type Validation**: `type IN ('INVENTORY', 'ORDER', 'RECIPE')`
+- **Unit Type Validation**: `type IN ('INVENTORY', 'ORDER', 'RECIPE', 'MEASURE')`
   - Purpose: Only allow predefined unit type categories
   - Error: "Invalid unit type: {value}" when constraint violated
 
@@ -956,7 +982,7 @@ Business meaning:
 - Code length: 2-10 characters (enforced by CHECK constraint)
 - Name length: 2-100 characters (enforced by CHECK constraint)
 - Description length: 0-500 characters (enforced by CHECK constraint)
-- Type: Must be from enum list (INVENTORY, ORDER, RECIPE)
+- Type: Must be from enum list (INVENTORY, ORDER, RECIPE, MEASURE)
 - Boolean values: TRUE or FALSE only (no other values accepted)
 
 **Format Constraints**:
@@ -973,7 +999,8 @@ Business meaning:
 
 **Business Logic Constraints**:
 - Base units for products must be INVENTORY type (enforced at application layer)
-- Recipe ingredients should use RECIPE or INVENTORY type units (enforced at application layer)
+- Recipe ingredient measurements should use MEASURE or INVENTORY type units (enforced at application layer)
+- Recipe yield/portion output should use RECIPE type units (enforced at application layer)
 - ORDER type units typically used in purchase orders, not recipes
 - Deactivated units cannot be selected for new products/recipes (enforced at application layer)
 - Unit code immutable after creation if referenced by other entities (enforced at application layer)
@@ -1510,8 +1537,8 @@ Units are reference data and do not require traditional archival. Instead, soft 
 **Accuracy**:
 - **Metric**: % of units with correct unit types for their usage
 - **Target**: 100%
-- **Validation**: Base units for products are INVENTORY type, recipe ingredients use RECIPE or INVENTORY types
-- **Monitoring**: Query for products with non-INVENTORY base units, recipe ingredients with ORDER type units
+- **Validation**: Base units for products are INVENTORY type, recipe ingredient measurements use MEASURE or INVENTORY types, recipe yield/portion output uses RECIPE type
+- **Monitoring**: Query for products with non-INVENTORY base units, recipe ingredient measurements with ORDER or RECIPE type units
 
 **Consistency**:
 - **Metric**: % of unit codes matching uppercase format standard
@@ -1522,7 +1549,7 @@ Units are reference data and do not require traditional archival. Instead, soft 
 **Validity**:
 - **Metric**: % of units with valid type enum values
 - **Target**: 100% (enforced by CHECK constraint)
-- **Monitoring**: Verify type IN ('INVENTORY', 'ORDER', 'RECIPE')
+- **Monitoring**: Verify type IN ('INVENTORY', 'ORDER', 'RECIPE', 'MEASURE')
 
 **Uniqueness**:
 - **Metric**: % of units with unique codes (case-insensitive)
@@ -1549,7 +1576,7 @@ Action: Alert database administrator if any nulls found (indicates constraint fa
 **Check for Invalid Type Values**:
 ```
 Purpose: Ensure type field contains only allowed enum values
-Query Logic: SELECT COUNT(*) FROM units WHERE type NOT IN ('INVENTORY', 'ORDER', 'RECIPE')
+Query Logic: SELECT COUNT(*) FROM units WHERE type NOT IN ('INVENTORY', 'ORDER', 'RECIPE', 'MEASURE')
 Expected Result: 0 rows (all types valid)
 Action: Alert and investigate if invalid types found (indicates constraint bypass)
 ```
@@ -1658,10 +1685,18 @@ Is Active: true
 Created By: Test Admin User
 
 ID: 550e8400-e29b-41d4-a716-446655440097
+Code: TEST-SVG
+Name: Test Serving
+Description: Test recipe serving unit for recipe yield output testing
+Type: RECIPE
+Is Active: true
+Created By: Test Admin User
+
+ID: 550e8400-e29b-41d4-a716-446655440096
 Code: TEST-TSP
 Name: Test Teaspoon
-Description: Test recipe unit for recipe testing
-Type: RECIPE
+Description: Test measure unit for recipe ingredient measurement testing
+Type: MEASURE
 Is Active: true
 Created By: Test Admin User
 ```
@@ -1671,15 +1706,15 @@ Created By: Test Admin User
 Generate 20 test units:
 - Codes: TEST-UNIT-001 through TEST-UNIT-020
 - Names: Test Unit 001 through Test Unit 020
-- Types: Randomized across INVENTORY, ORDER, RECIPE
+- Types: Randomized across INVENTORY, ORDER, RECIPE, MEASURE
 - Active: Mix of true and false for testing both states
 - Created dates: Random dates within past year
 ```
 
 **Realistic Test Data**:
-- Use realistic unit codes: "KG", "ML", "BOX" (not "UNIT1", "UNIT2")
-- Use descriptive names: "Kilogram", "Milliliter" (not "Test Unit 1")
-- Vary types across realistic distribution: 50% INVENTORY, 30% ORDER, 20% RECIPE
+- Use realistic unit codes: "KG", "ML", "BOX", "TSP" (not "UNIT1", "UNIT2")
+- Use descriptive names: "Kilogram", "Milliliter", "Teaspoon" (not "Test Unit 1")
+- Vary types across realistic distribution: 40% INVENTORY, 25% ORDER, 15% RECIPE, 20% MEASURE
 - Include both active and inactive units for status filtering tests
 
 ### Test Scenarios
@@ -1762,9 +1797,9 @@ Delete test units:
 - **Base Unit**: Primary measurement unit for inventory (products.base_unit references units.id)
 
 **Business Terms**:
-- **Unit**: Measurement standard for quantities (Kilogram, Liter, Piece, Case)
-- **Unit Code**: Short identifier for unit (KG, ML, PC, BOX, TSP) - uppercase alphanumeric
-- **Unit Type**: Classification of unit usage (INVENTORY, ORDER, RECIPE)
+- **Unit**: Measurement standard for quantities (Kilogram, Liter, Piece, Case, Teaspoon)
+- **Unit Code**: Short identifier for unit (KG, ML, PC, BOX, TSP, SERVING) - uppercase alphanumeric
+- **Unit Type**: Classification of unit usage (INVENTORY for stock tracking, ORDER for purchasing, RECIPE for yield/portion output, MEASURE for ingredient measurements)
 - **Conversion Factor**: Ratio between alternative unit and base unit (1 CASE = 24 bottles)
 - **Active Status**: Whether unit is available for use in new records (isActive true/false)
 

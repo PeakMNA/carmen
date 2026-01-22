@@ -3,8 +3,8 @@
 ## Document Information
 - **Document Type**: Flow Diagrams Document
 - **Module**: Vendor Management > Pricelist Templates
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-25
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
 - **Document Status**: Active
 - **Mermaid Compatibility**: 8.8.2+
 
@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated route paths from /pricelist-templates to /templates; Added 3-step wizard flow; Added notification settings workflow; Updated product selection to hierarchical model |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-11-25 | Documentation Team | Simplified to align with BR-pricelist-templates.md; Removed distribution, approval, notification, and submission tracking workflows; Streamlined to core template functionality |
 | 1.1 | 2025-11-25 | Documentation Team | Updated Mermaid diagrams for 8.8.2 compatibility |
@@ -75,41 +76,45 @@ graph TB
 
 ```mermaid
 erDiagram
-    tb_currency ||--o{ tb_pricelist_template : "has"
-    tb_pricelist_template ||--o{ tb_pricelist_template_detail : "contains"
-    tb_product ||--o{ tb_pricelist_template_detail : "referenced_in"
-
-    tb_pricelist_template {
-        uuid id PK
-        string name UK
-        text description
-        uuid currency_id FK
-        string currency_name
-        text vendor_instructions
-        date effective_from
-        date effective_to
-        enum status
-        json info
-        decimal doc_version
-        timestamp created_at
-        uuid created_by_id
-        timestamp updated_at
-        uuid updated_by_id
-    }
-
-    tb_pricelist_template_detail {
-        uuid id PK
-        uuid pricelist_template_id FK
-        integer sequence_no
-        uuid product_id FK
-        string product_name
-        string unit_of_measure
-        decimal minimum_order_quantity
-        integer lead_time_days
-        json info
-        decimal doc_version
-    }
+    tb_currency ||--o{ tb_pricelist_template : has
+    tb_pricelist_template ||--o{ tb_pricelist_template_detail : contains
+    tb_product ||--o{ tb_pricelist_template_detail : referenced_in
 ```
+
+#### tb_pricelist_template
+
+| Field | Type | Key | Description |
+|-------|------|-----|-------------|
+| id | uuid | PK | Primary key |
+| name | string | UK | Template name (unique) |
+| description | text | | Template description |
+| currency_id | uuid | FK | Reference to tb_currency |
+| currency_name | string | | Currency display name |
+| vendor_instructions | text | | Instructions for vendors |
+| effective_from | date | | Start date |
+| effective_to | date | | End date |
+| status | enum | | Template status |
+| info | json | | Extended information |
+| doc_version | decimal | | Document version |
+| created_at | timestamp | | Creation timestamp |
+| created_by_id | uuid | | Creator reference |
+| updated_at | timestamp | | Last update timestamp |
+| updated_by_id | uuid | | Updater reference |
+
+#### tb_pricelist_template_detail
+
+| Field | Type | Key | Description |
+|-------|------|-----|-------------|
+| id | uuid | PK | Primary key |
+| pricelist_template_id | uuid | FK | Reference to template |
+| sequence_no | integer | | Item sequence |
+| product_id | uuid | FK | Reference to tb_product |
+| product_name | string | | Product display name |
+| unit_of_measure | string | | Unit of measure |
+| minimum_order_quantity | decimal | | Minimum order qty |
+| lead_time_days | integer | | Lead time in days |
+| info | json | | Extended information |
+| doc_version | decimal | | Document version |
 
 ---
 
@@ -152,7 +157,7 @@ stateDiagram-v2
 
 ## 5. Core Workflows
 
-### 5.1 Template Creation Workflow
+### 5.1 Template Creation Workflow (3-Step Wizard)
 
 ```mermaid
 flowchart TD
@@ -165,52 +170,48 @@ flowchart TD
     CheckPerm -->|Yes| ShowTemplates[Display Templates List]
 
     ShowTemplates --> UserAction{User Action?}
-    UserAction -->|Create New| CreateForm[Open Create Form]
-    UserAction -->|Edit Existing| LoadTemplate[Load Template]
+    UserAction -->|Create New| Step1[Step 1: Basic Information]
 
-    LoadTemplate --> CreateForm
-    CreateForm --> EnterBasic[Enter Basic Information]
-
-    EnterBasic --> EnterName[Enter Template Name]
+    Step1 --> EnterName[Enter Template Name]
     EnterName --> EnterDescription[Enter Description]
-    EnterDescription --> SelectCurrency[Select Currency]
-    SelectCurrency --> EnterInstructions[Enter Vendor Instructions]
-    EnterInstructions --> SetEffectiveDates[Set Effective Date Range]
+    EnterDescription --> SelectCurrency[Select Currency BHT/USD/CNY/SGD]
+    SelectCurrency --> SetValidity[Set Validity Period in Days]
+    SetValidity --> EnterInstructions[Enter Vendor Instructions]
 
-    SetEffectiveDates --> ValidateBasic{Valid?}
-    ValidateBasic -->|No| ShowErrors[Show Validation Errors]
-    ShowErrors --> EnterBasic
-    ValidateBasic -->|Yes| ProductAssignment[Product Assignment]
+    EnterInstructions --> ValidateStep1{Valid?}
+    ValidateStep1 -->|No| ShowErrors1[Show Validation Errors]
+    ShowErrors1 --> Step1
+    ValidateStep1 -->|Yes| Step2[Step 2: Product Selection]
 
-    ProductAssignment --> SelectProducts[Select Products]
-    SelectProducts --> CheckMinProducts{At Least 1 Product?}
+    Step2 --> SelectCategories[Select Categories]
+    SelectCategories --> SelectSubcategories[Select Subcategories]
+    SelectSubcategories --> SelectItemGroups[Select Item Groups]
+    SelectItemGroups --> SelectSpecificItems[Select Specific Items]
 
-    CheckMinProducts -->|No| ProductError[Show Minimum Product Error]
-    ProductError --> SelectProducts
-    CheckMinProducts -->|Yes| ConfigureProducts[Configure Product Details]
+    SelectSpecificItems --> CheckMinProducts{At Least 1 Selection?}
+    CheckMinProducts -->|No| ProductError[Show Minimum Selection Error]
+    ProductError --> Step2
+    CheckMinProducts -->|Yes| Step3[Step 3: Settings and Notifications]
 
-    ConfigureProducts --> SetUOM[Set Unit of Measure]
-    SetUOM --> SetMOQ[Set Minimum Order Qty]
-    SetMOQ --> SetLeadTime[Set Lead Time Days]
-    SetLeadTime --> SetSequence[Set Display Sequence]
+    Step3 --> ConfigureMOQ[Configure Multi-MOQ Setting]
+    ConfigureMOQ --> ConfigureLeadTime[Configure Lead Time Requirement]
+    ConfigureLeadTime --> SetMaxItems[Set Max Items Per Submission]
+    SetMaxItems --> ConfigureNotifications[Configure Notification Settings]
 
-    SetSequence --> MoreProducts{Add More Products?}
-    MoreProducts -->|Yes| SelectProducts
-    MoreProducts -->|No| ReviewTemplate[Review Template]
+    ConfigureNotifications --> SetReminders{Send Reminders?}
+    SetReminders -->|Yes| SetReminderDays[Set Reminder Days 14/7/3/1]
+    SetReminderDays --> SetEscalation[Set Escalation Days]
+    SetReminders -->|No| SetEscalation
+
+    SetEscalation --> ReviewTemplate[Review Template]
 
     ReviewTemplate --> UserDecision{User Decision?}
-    UserDecision -->|Go Back| EnterBasic
+    UserDecision -->|Previous| Step2
+    UserDecision -->|Cancel| ShowTemplates
 
-    UserDecision -->|Save Draft| SaveDraft[Save as Draft]
+    UserDecision -->|Create Template| SaveDraft[Save as Draft]
     SaveDraft --> DraftStatus[Status: DRAFT]
     DraftStatus --> SaveDB[(Save to Database)]
-
-    UserDecision -->|Activate| FinalValidation{All Required Fields Complete?}
-    FinalValidation -->|No| HighlightMissing[Highlight Missing Fields]
-    HighlightMissing --> EnterBasic
-
-    FinalValidation -->|Yes| ActiveStatus[Status: ACTIVE]
-    ActiveStatus --> SaveDB
 
     SaveDB --> LogAudit[Log in Audit Trail]
     LogAudit --> Success[Display Success Message]
@@ -220,72 +221,53 @@ flowchart TD
     Login --> End
 ```
 
-### 5.2 Product Assignment Workflow
+### 5.2 Product Assignment Workflow (Hierarchical Selection)
 
 ```mermaid
 flowchart TD
-    Start([User in Product Assignment]) --> ShowInterface[Display Product Selection Interface]
+    Start([User in Product Selection Step]) --> ShowInterface[Display ProductSelectionComponent]
 
-    ShowInterface --> SearchMethod{Selection Method?}
+    ShowInterface --> SelectionLevel{Selection Level?}
 
-    SearchMethod -->|Search Bar| EnterSearch[Enter Search Term]
-    SearchMethod -->|Category Tree| BrowseCategory[Browse Category Tree]
-    SearchMethod -->|Filters| ApplyFilters[Apply Product Filters]
+    SelectionLevel -->|Categories| BrowseCategories[Browse Category List]
+    SelectionLevel -->|Subcategories| BrowseSubcategories[Browse Subcategory List]
+    SelectionLevel -->|Item Groups| BrowseItemGroups[Browse Item Group List]
+    SelectionLevel -->|Specific Items| BrowseItems[Browse/Search Products]
 
-    EnterSearch --> SearchDB[(Query Database)]
-    BrowseCategory --> SearchDB
-    ApplyFilters --> FilterOptions[Filter by Category/Status]
-    FilterOptions --> SearchDB
+    BrowseCategories --> SelectCategories[Select Categories via Checkboxes]
+    BrowseSubcategories --> SelectSubcategories[Select Subcategories]
+    BrowseItemGroups --> SelectItemGroups[Select Item Groups]
+    BrowseItems --> SelectItems[Select Individual Products]
 
-    SearchDB --> DisplayResults[Display Product Results]
-    DisplayResults --> UserSelects[User Selects Products]
+    SelectCategories --> UpdateSelection[Update productSelection.categories]
+    SelectSubcategories --> UpdateSelection2[Update productSelection.subcategories]
+    SelectItemGroups --> UpdateSelection3[Update productSelection.itemGroups]
+    SelectItems --> UpdateSelection4[Update productSelection.specificItems]
 
-    UserSelects --> SelectMode{Selection Mode?}
-    SelectMode -->|Individual| SelectOne[Check Individual Product]
-    SelectMode -->|Bulk Category| SelectCategory[Select All in Category]
+    UpdateSelection --> ShowSummary[Show Selection Summary]
+    UpdateSelection2 --> ShowSummary
+    UpdateSelection3 --> ShowSummary
+    UpdateSelection4 --> ShowSummary
 
-    SelectOne --> AddToList
-    SelectCategory --> ConfirmBulk{Confirm Bulk Selection?}
-    ConfirmBulk -->|Yes| AddToList[Add to Template Product List]
-    ConfirmBulk -->|No| DisplayResults
+    ShowSummary --> UserAction{User Action?}
+    UserAction -->|Add More| SelectionLevel
+    UserAction -->|Remove Selection| RemoveItem[Remove from Selection]
+    RemoveItem --> ShowSummary
 
-    AddToList --> ShowProductList[Show Selected Products]
-    ShowProductList --> ConfigureProduct[Configure Product Settings]
+    UserAction -->|Continue| ValidateSelection{At Least 1 Selection?}
+    ValidateSelection -->|No| SelectionError[Show Minimum Selection Error]
+    SelectionError --> SelectionLevel
 
-    ConfigureProduct --> SetUOM[Set Unit of Measure]
-    SetUOM --> SetMOQ[Set Minimum Order Qty]
-    SetMOQ --> SetLeadTime[Set Expected Delivery Days]
-    SetLeadTime --> SetSequence[Set Display Sequence]
-
-    SetSequence --> MoreProducts{Add More Products?}
-    MoreProducts -->|Yes| SearchMethod
-    MoreProducts -->|No| ReviewList[Review Product List]
-
-    ReviewList --> ListAction{User Action?}
-    ListAction -->|Edit Product| SelectProduct[Select Product to Edit]
-    SelectProduct --> ConfigureProduct
-
-    ListAction -->|Remove Product| RemoveConfirm{Confirm Remove?}
-    RemoveConfirm -->|Yes| RemoveProduct[Remove from List]
-    RemoveProduct --> ReviewList
-    RemoveConfirm -->|No| ReviewList
-
-    ListAction -->|Reorder| DragDrop[Drag and Drop to Reorder]
-    DragDrop --> UpdateSequence[Update Sequence Numbers]
-    UpdateSequence --> ReviewList
-
-    ListAction -->|Continue| ValidateList{At Least 1 Product?}
-    ValidateList -->|No| MinProductError[Show Minimum Product Error]
-    MinProductError --> ReviewList
-
-    ValidateList -->|Yes| CheckDuplicates{Duplicate Products?}
-    CheckDuplicates -->|Yes| DuplicateWarning[Show Duplicate Warning]
-    DuplicateWarning --> ReviewList
-
-    CheckDuplicates -->|No| SaveProducts[Save Product Configuration]
-    SaveProducts --> Success[Display Success Message]
-    Success --> End([End])
+    ValidateSelection -->|Yes| ProceedToSettings[Proceed to Settings Step]
+    ProceedToSettings --> End([End])
 ```
+
+**Selection Interface Features**:
+- Checkbox-based multi-selection at each level
+- Collapsible/expandable category tree
+- Search/filter within each level
+- Selection count badges
+- Clear all selections option
 
 ### 5.3 Template Cloning Workflow
 

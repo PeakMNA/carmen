@@ -5,8 +5,15 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Inventory Balance |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 3.0.0 |
+| Last Updated | 2025-01-15 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Updated type definitions; Added MovementHistory component details; Updated FilterPanel component; Added inventory status logic; Corrected transaction types to IN/OUT only |
+| 2.0.0 | 2024-06-15 | System | Previous version |
+| 1.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -14,32 +21,32 @@
 
 ```mermaid
 graph TB
-    subgraph 'Frontend Layer'
-        A[InventoryBalancePage] --> B[ReportHeader]
-        A --> C[FilterPanel]
-        A --> D[BalanceTable]
-        A --> E[MovementHistory]
-        A --> F[Charts/Analytics]
+    subgraph Frontend
+        A[InventoryBalancePage] --> B[FilterPanel]
+        A --> C[BalanceTable]
+        A --> D[MovementHistory]
     end
 
-    subgraph 'Data Layer'
-        G[Mock Balance Report]
-        H[User Context]
-        I[Trend Data Generator]
+    subgraph Data Layer
+        E[Mock Balance Report]
+        F[User Context]
+        G[Mock Movement History]
     end
 
-    subgraph 'UI Components'
-        J[Summary Cards]
-        K[Low Stock Alert]
-        L[Insights Tables]
+    subgraph Utilities
+        H[formatNumber]
+        I[formatCurrency]
+        J[formatDate]
     end
 
-    A --> G
-    A --> H
-    A --> I
-    A --> J
-    A --> K
-    A --> L
+    A --> E
+    A --> F
+    D --> G
+    C --> H
+    C --> I
+    D --> H
+    D --> I
+    D --> J
 ```
 
 ---
@@ -50,9 +57,7 @@ graph TB
 graph LR
     A[Stock Overview] --> B[Inventory Balance]
     B --> C[Balance Report Tab]
-    B --> D[Analytics Tab]
-    B --> E[Movement History Tab]
-    B --> F[Insights Tab]
+    B --> D[Movement History Tab]
 ```
 
 **Route**: `/inventory-management/stock-overview/inventory-balance`
@@ -68,44 +73,28 @@ graph LR
 **Responsibilities**:
 - Manage filter state and tab state
 - Load balance data with permission filtering
-- Calculate chart data from report
 - Coordinate child components
+- Handle navigation to Stock Card
 
 **State Management**:
 ```typescript
 const [isLoading, setIsLoading] = useState(true)
-const [showFilters, setShowFilters] = useState(false)
-const [activeFilters, setActiveFilters] = useState<string[]>([])
-const [trendData] = useState(generateTrendData)
-const [report, setReport] = useState<BalanceReport>({...})
-const [params, setParams] = useState<BalanceReportParams>({...})
+const [report, setReport] = useState<BalanceReport | null>(null)
+const [params, setParams] = useState<BalanceReportParams>({
+  asOfDate: format(new Date(), 'yyyy-MM-dd'),
+  locationRange: { from: '', to: '' },
+  categoryRange: { from: '', to: '' },
+  productRange: { from: '', to: '' },
+  viewType: 'PRODUCT',
+  showLots: false
+})
 ```
 
 ---
 
-### 3.2 ReportHeader Component
+### 3.2 FilterPanel Component
 
-**File**: `components/ReportHeader.tsx`
-
-**Responsibilities**:
-- Display view type selector
-- Toggle show lots option
-- Provide quick actions
-
-**Props**:
-```typescript
-interface ReportHeaderProps {
-  params: BalanceReportParams
-  onViewChange: (viewType: 'CATEGORY' | 'PRODUCT' | 'LOT') => void
-  onShowLotsChange: (showLots: boolean) => void
-}
-```
-
----
-
-### 3.3 FilterPanel Component
-
-**File**: `components/FilterPanel.tsx`
+**File**: `app/(main)/inventory-management/stock-overview/inventory-balance/components/FilterPanel.tsx`
 
 **Responsibilities**:
 - Render filter inputs (location, category, product ranges)
@@ -116,42 +105,79 @@ interface ReportHeaderProps {
 ```typescript
 interface FilterPanelProps {
   params: BalanceReportParams
-  onFilterChange: (filterUpdates: Partial<BalanceReportParams>) => void
+  onFilterChange: (params: BalanceReportParams) => void
   isLoading: boolean
 }
 ```
 
+**Key Features**:
+- Calendar picker using shadcn/ui Calendar component
+- Range inputs for location, category, product codes
+- Apply button to execute filters
+- Reset button to clear all filters
+
+**Source Evidence**: `components/FilterPanel.tsx:1-210`
+
 ---
 
-### 3.4 BalanceTable Component
+### 3.3 BalanceTable Component
 
-**File**: `components/BalanceTable.tsx`
+**File**: `app/(main)/inventory-management/stock-overview/inventory-balance/components/BalanceTable.tsx`
 
 **Responsibilities**:
-- Render hierarchical balance data
-- Handle expand/collapse for locations, categories
-- Display quantities, values, and percentages
-- Support view type switching
+- Render hierarchical balance data (Location → Category → Product → Lot)
+- Handle expand/collapse for locations, categories, products
+- Display quantities, values, and inventory status
+- Navigate to Stock Card on product click
 
 **Props**:
 ```typescript
 interface BalanceTableProps {
   params: BalanceReportParams
-  report: BalanceReport
   isLoading: boolean
 }
 ```
 
+**Inventory Status Logic**:
+```typescript
+const getInventoryStatus = (product: ProductBalance): 'low' | 'high' | 'normal' => {
+  const quantity = product.totals.quantity
+  const minimum = product.thresholds.minimum
+  const maximum = product.thresholds.maximum
+
+  if (quantity <= minimum) return 'low'
+  if (quantity >= maximum) return 'high'
+  return 'normal'
+}
+```
+
+**Status Badge Rendering**:
+```typescript
+// Low stock - Red destructive badge
+<Badge variant="destructive">Low</Badge>
+
+// High stock - Amber badge
+<Badge className="bg-amber-100 text-amber-800 hover:bg-amber-100">High</Badge>
+
+// Normal stock - Green badge
+<Badge className="bg-green-100 text-green-800 hover:bg-green-100">Normal</Badge>
+```
+
+**Source Evidence**: `components/BalanceTable.tsx:112-121`
+
 ---
 
-### 3.5 MovementHistory Component
+### 3.4 MovementHistory Component
 
-**File**: `components/MovementHistory.tsx`
+**File**: `app/(main)/inventory-management/stock-overview/inventory-balance/components/MovementHistory.tsx`
 
 **Responsibilities**:
 - Display recent inventory movements
-- Filter by transaction type
-- Link to source documents
+- Filter by transaction type (IN/OUT only)
+- Filter by date range
+- Search by product, location, reference
+- Paginate results
+- Show summary cards
 
 **Props**:
 ```typescript
@@ -161,42 +187,57 @@ interface MovementHistoryProps {
 }
 ```
 
----
-
-## 4. Data Flow
-
-```mermaid
-sequenceDiagram
-    participant User
-    participant Page
-    participant UserContext
-    participant MockData
-    participant Table
-    participant Charts
-
-    User->>Page: Navigate to Balance
-    Page->>UserContext: Get user permissions
-    UserContext-->>Page: User role, availableLocations
-    Page->>MockData: Load mockBalanceReport
-    MockData-->>Page: Full balance data
-    Page->>Page: Filter by availableLocations
-    Page->>Page: Recalculate totals
-    Page->>Table: Filtered report
-    Page->>Charts: Chart data (calculated)
-
-    User->>Page: Apply filter
-    Page->>Page: Update params state
-    Page->>MockData: Reload with filters
-    MockData-->>Page: Filtered data
-    Page->>Table: Updated report
-    Page->>Charts: Updated chart data
+**State Management**:
+```typescript
+const [movementData, setMovementData] = useState<MovementHistoryData | null>(null)
+const [localLoading, setLocalLoading] = useState(true)
+const [dateRange, setDateRange] = useState<{
+  from: Date | undefined
+  to: Date | undefined
+}>({ from: undefined, to: undefined })
+const [transactionType, setTransactionType] = useState<string>("ALL")
+const [searchTerm, setSearchTerm] = useState("")
+const [currentPage, setCurrentPage] = useState(1)
+const itemsPerPage = 10
 ```
 
+**Transaction Type Badge Function**:
+```typescript
+const getTransactionTypeBadge = (type: string) => {
+  switch (type) {
+    case 'IN':
+      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100">In</Badge>
+    case 'OUT':
+      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100">Out</Badge>
+    default:
+      return null
+  }
+}
+```
+
+**Reference Type Badge Function**:
+```typescript
+const getReferenceTypeBadge = (type: string) => {
+  const colors: Record<string, string> = {
+    'GRN': 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+    'SO': 'bg-purple-100 text-purple-800 hover:bg-purple-100',
+    'ADJ': 'bg-amber-100 text-amber-800 hover:bg-amber-100',
+    'TRF': 'bg-indigo-100 text-indigo-800 hover:bg-indigo-100',
+    'PO': 'bg-cyan-100 text-cyan-800 hover:bg-cyan-100',
+    'WO': 'bg-rose-100 text-rose-800 hover:bg-rose-100',
+    'SR': 'bg-emerald-100 text-emerald-800 hover:bg-emerald-100'
+  }
+  return <Badge className={colors[type] || 'bg-gray-100 text-gray-800'}>{type}</Badge>
+}
+```
+
+**Source Evidence**: `components/MovementHistory.tsx:111-136`
+
 ---
 
-## 5. Type Definitions
+## 4. Type Definitions
 
-### 5.1 BalanceReport
+### 4.1 BalanceReport
 ```typescript
 interface BalanceReport {
   locations: LocationBalance[]
@@ -207,43 +248,72 @@ interface BalanceReport {
 }
 ```
 
-### 5.2 LocationBalance
+### 4.2 LocationBalance
 ```typescript
 interface LocationBalance {
   id: string
+  code: string
   name: string
   categories: CategoryBalance[]
+  totals: {
+    quantity: number
+    value: number
+  }
 }
 ```
 
-### 5.3 CategoryBalance
+### 4.3 CategoryBalance
 ```typescript
 interface CategoryBalance {
   id: string
+  code: string
   name: string
   products: ProductBalance[]
+  totals: {
+    quantity: number
+    value: number
+  }
 }
 ```
 
-### 5.4 ProductBalance
+### 4.4 ProductBalance
 ```typescript
 interface ProductBalance {
   id: string
   code: string
   name: string
   unit: string
+  tracking: {
+    batch: boolean
+  }
+  thresholds: {
+    minimum: number
+    maximum: number
+  }
   totals: {
     quantity: number
+    averageCost: number
     value: number
   }
-  lots?: LotBalance[]
+  lots: LotBalance[]
 }
 ```
 
-### 5.5 BalanceReportParams
+### 4.5 LotBalance
+```typescript
+interface LotBalance {
+  lotNumber: string
+  expiryDate?: string
+  quantity: number
+  unitCost: number
+  value: number
+}
+```
+
+### 4.6 BalanceReportParams
 ```typescript
 interface BalanceReportParams {
-  asOfDate: string
+  asOfDate: string  // YYYY-MM-DD format
   locationRange: { from: string; to: string }
   categoryRange: { from: string; to: string }
   productRange: { from: string; to: string }
@@ -252,70 +322,188 @@ interface BalanceReportParams {
 }
 ```
 
----
-
-## 6. Chart Data Calculation
-
-### 6.1 Category Distribution
+### 4.7 MovementHistoryData
 ```typescript
-const categoryData = report.locations.flatMap(loc => loc.categories)
-  .reduce((acc, cat) => {
-    // Aggregate by category name
-    // Sum quantities and values
-    return acc
-  }, [])
-  .sort((a, b) => b.value - a.value)
-```
-
-### 6.2 Location Distribution
-```typescript
-const locationData = report.locations.map(loc => {
-  const totals = loc.categories.reduce((acc, cat) => {
-    // Sum all products in category
-    return acc
-  }, { quantity: 0, value: 0 })
-
-  return { name: loc.name, ...totals }
-}).sort((a, b) => b.value - a.value)
-```
-
-### 6.3 Low Stock Items
-```typescript
-const lowStockItems = report.locations.flatMap(loc =>
-  loc.categories.flatMap(cat =>
-    cat.products.filter(prod => prod.totals.quantity < 20)
-  )
-).slice(0, 5)
-```
-
-### 6.4 High Value Items
-```typescript
-const highValueItems = report.locations.flatMap(loc =>
-  loc.categories.flatMap(cat => cat.products)
-).sort((a, b) => b.totals.value - a.totals.value).slice(0, 5)
-```
-
----
-
-## 7. Permission Filtering
-
-### 7.1 Location Access Logic
-```typescript
-useEffect(() => {
-  let filteredReport = { ...mockBalanceReport }
-
-  if (user?.role !== 'System Administrator' && user?.availableLocations) {
-    const userLocationIds = user.availableLocations.map(l => l.id)
-    filteredReport.locations = mockBalanceReport.locations.filter(loc =>
-      userLocationIds.includes(loc.id)
-    )
-
-    // Recalculate totals
-    filteredReport.totals = calculateTotals(filteredReport.locations)
+interface MovementHistoryData {
+  records: MovementRecord[]
+  summary: {
+    totalIn: number
+    totalValueIn: number
+    totalOut: number
+    totalValueOut: number
+    netChange: number
+    netValueChange: number
+    transactionCount: number
   }
+}
+```
 
-  setReport(filteredReport)
-}, [user])
+### 4.8 MovementRecord
+```typescript
+interface MovementRecord {
+  id: string
+  date: string
+  time: string
+  reference: string
+  referenceType: 'GRN' | 'SO' | 'ADJ' | 'TRF' | 'PO' | 'WO' | 'SR'
+  productId: string
+  productCode: string
+  productName: string
+  lotNumber?: string
+  locationId: string
+  locationName: string
+  transactionType: 'IN' | 'OUT'
+  reason: string
+  quantityBefore: number
+  quantityChange: number
+  quantityAfter: number
+  valueBefore: number
+  valueChange: number
+  valueAfter: number
+}
+```
+
+**Source Evidence**: `inventory-balance/types.ts`
+
+---
+
+## 5. Utility Functions
+
+**File**: `app/(main)/inventory-management/stock-overview/inventory-balance/utils.ts`
+
+### 5.1 formatNumber
+```typescript
+export function formatNumber(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(value)
+}
+```
+
+### 5.2 formatCurrency
+```typescript
+export function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+  }).format(value)
+}
+```
+
+### 5.3 formatPercent
+```typescript
+export function formatPercent(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'percent',
+    minimumFractionDigits: 1,
+    maximumFractionDigits: 1,
+  }).format(value / 100)
+}
+```
+
+### 5.4 formatDate
+```typescript
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+  }).format(date)
+}
+```
+
+### 5.5 truncateText
+```typescript
+export function truncateText(text: string, maxLength: number): string {
+  if (text.length <= maxLength) return text
+  return text.slice(0, maxLength) + '...'
+}
+```
+
+### 5.6 stringToColor
+```typescript
+export function stringToColor(str: string): string {
+  // Generates consistent color from string for visual grouping
+}
+```
+
+**Source Evidence**: `utils.ts:1-65`
+
+---
+
+## 6. Data Flow
+
+```mermaid
+sequenceDiagram
+    participant User
+    participant Page
+    participant FilterPanel
+    participant BalanceTable
+    participant MovementHistory
+    participant MockData
+
+    User->>Page: Navigate to Balance
+    Page->>MockData: Load mockBalanceReport
+    MockData-->>Page: Balance data
+    Page->>BalanceTable: Pass report data
+    Page->>FilterPanel: Pass params
+
+    User->>FilterPanel: Change filters
+    FilterPanel->>Page: onFilterChange(params)
+    Page->>Page: Update state
+    Page->>MockData: Reload with filters
+    MockData-->>Page: Filtered data
+    Page->>BalanceTable: Updated report
+
+    User->>BalanceTable: Click product row
+    BalanceTable->>Page: Navigate to Stock Card
+```
+
+---
+
+## 7. Component Tree
+
+```
+InventoryBalancePage
+├── PageHeader
+│   ├── BackLink
+│   ├── Title with Icon
+│   └── As-of-date display
+├── Tabs
+│   ├── TabsList
+│   │   ├── Balance Report
+│   │   └── Movement History
+│   ├── TabsContent[Balance Report]
+│   │   ├── FilterPanel
+│   │   │   ├── DatePicker (As-of Date)
+│   │   │   ├── LocationRange (From/To)
+│   │   │   ├── CategoryRange (From/To)
+│   │   │   ├── ProductRange (From/To)
+│   │   │   ├── ApplyButton
+│   │   │   └── ResetButton
+│   │   └── BalanceTable
+│   │       ├── LocationRows (expandable)
+│   │       │   └── CategoryRows (expandable)
+│   │       │       └── ProductRows (expandable)
+│   │       │           └── LotRows
+│   │       └── TotalsRow
+│   └── TabsContent[Movement History]
+│       └── MovementHistory
+│           ├── SummaryCards (4 cards)
+│           │   ├── TotalIn
+│           │   ├── TotalOut
+│           │   ├── NetChange
+│           │   └── Transactions
+│           ├── Filters
+│           │   ├── DateRangePicker
+│           │   ├── TransactionTypeSelect
+│           │   └── SearchInput
+│           ├── ExportButton
+│           ├── MovementTable
+│           │   └── MovementRows
+│           └── Pagination
 ```
 
 ---
@@ -324,69 +512,25 @@ useEffect(() => {
 
 | Library | Version | Usage |
 |---------|---------|-------|
-| Recharts | ^2.x | AreaChart, PieChart, BarChart |
 | date-fns | ^2.x | Date formatting |
-| lucide-react | ^0.x | Icons |
-| shadcn/ui | ^0.x | Card, Table, Badge, Progress, Tabs |
+| lucide-react | ^0.x | Icons (CalendarIcon, Download, FileDown, Search) |
+| shadcn/ui | ^0.x | Card, Table, Badge, Tabs, Button, Input, Calendar, Popover, Select, Skeleton |
 
 ---
 
-## 9. Component Tree
-
-```
-InventoryBalancePage
-├── PageHeader
-│   ├── BackLink
-│   ├── Title with Icon
-│   └── As-of-date display
-├── ActionBar
-│   ├── RefreshButton
-│   ├── ExportButton
-│   └── ReportHeader (view controls)
-├── SummaryCards (4 cards)
-│   ├── TotalQuantity
-│   ├── TotalValue
-│   ├── Locations
-│   └── Categories
-├── LowStockAlert (conditional)
-├── FilterSection
-│   ├── CollapsibleTrigger
-│   ├── ActiveFilterBadges
-│   └── FilterPanel (collapsible)
-└── MainContent (Card with Tabs)
-    ├── TabsList
-    │   ├── Balance Report
-    │   ├── Analytics
-    │   ├── Movement History
-    │   └── Insights
-    ├── BalanceTable (tab content)
-    ├── AnalyticsCharts (tab content)
-    │   ├── ValueTrendChart
-    │   ├── CategoryPieChart
-    │   ├── LocationQuantityBar
-    │   └── LocationValueBar
-    ├── MovementHistory (tab content)
-    └── InsightsPanel (tab content)
-        ├── HighValueTable
-        ├── LowStockTable
-        └── LocationPerformance
-```
-
----
-
-## 10. Performance Considerations
+## 9. Performance Considerations
 
 | Concern | Mitigation |
 |---------|------------|
 | Large dataset | Hierarchical lazy expansion |
-| Chart rendering | ResponsiveContainer with memoization |
 | Filter changes | Debounced state updates |
 | Permission filtering | Client-side filtering with caching |
+| Movement history | Pagination (10 items per page) |
 | Export | Async generation with progress |
 
 ---
 
-## 11. Accessibility
+## 10. Accessibility
 
 | Feature | Implementation |
 |---------|---------------|
@@ -394,11 +538,11 @@ InventoryBalancePage
 | Screen readers | ARIA labels on all interactive elements |
 | Color contrast | 4.5:1 minimum ratio |
 | Focus indicators | Visible focus rings |
-| Chart accessibility | Tooltips with values |
+| Status indicators | Badge colors with text labels |
 
 ---
 
-## 12. Error Handling
+## 11. Error Handling
 
 | Scenario | Handling |
 |----------|----------|
@@ -406,3 +550,13 @@ InventoryBalancePage
 | Empty data | Display "No data available" message |
 | Permission denied | Redirect or show access denied |
 | Export failure | Toast notification with error |
+| Invalid date | Show validation error message |
+
+---
+
+## 12. Related Documents
+
+- [BR-inventory-balance.md](./BR-inventory-balance.md) - Business Requirements
+- [FD-inventory-balance.md](./FD-inventory-balance.md) - Flow Diagrams
+- [UC-inventory-balance.md](./UC-inventory-balance.md) - Use Cases
+- [VAL-inventory-balance.md](./VAL-inventory-balance.md) - Validations

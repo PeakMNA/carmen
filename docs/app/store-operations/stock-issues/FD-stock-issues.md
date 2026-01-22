@@ -175,7 +175,7 @@ The following capabilities have been **removed** as Stock Issues are now views:
 ### 3.1 View Issue List
 1. User navigates to Stock Issues
 2. System filters mockStoreRequisitions for:
-   - stage = 'issue' OR stage = 'complete'
+   - stage = 'issue' (NOTE: Only Issue stage, not Complete)
    - destinationLocationType = 'DIRECT'
 3. System displays filtered results
 4. User can search, filter, and sort
@@ -220,7 +220,7 @@ The following interactions have been **removed**:
 | In Progress | blue-100 | blue-800 | blue-200 |
 | Completed | green-100 | green-800 | green-200 |
 
-**Note**: Only `in_progress` and `completed` statuses appear in issue view (filtered by stage).
+**Note**: Only SRs with status `in_progress` at the Issue stage appear in the Stock Issue view. Once an SR moves to Complete stage, it no longer appears in this view.
 
 ### 4.2 Removed Status Badges
 
@@ -372,8 +372,9 @@ The following features have been **removed** as Stock Issues are now views:
 ```
 mockStoreRequisitions
          │
-         │ Filter: stage IN ('issue', 'complete')
-         │         AND destinationLocationType = 'DIRECT'
+         │ Filter: stage === 'issue'
+         │         AND destinationLocationType === 'DIRECT'
+         │         (via getStoreRequisitionsForStockIssue())
          ▼
 filteredIssues (StoreRequisition[])
          │
@@ -384,6 +385,8 @@ displayedIssues
          ▼
 Stock Issues List UI
 ```
+
+**Note**: Current implementation only filters for `SRStage.Issue` (not 'issue' OR 'complete').
 
 ### 10.2 Detail Page Data Flow
 

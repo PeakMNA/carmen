@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Validations Specification
 - **Module**: Operational Planning > Recipe Management > Cuisine Types
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2024-01-15 | System | Initial validations document created |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: added spiceLevel enum validation (mild, medium, hot, very_hot), added typicalIngredients, cookingMethods, flavorProfile array validations |
 
 ---
 

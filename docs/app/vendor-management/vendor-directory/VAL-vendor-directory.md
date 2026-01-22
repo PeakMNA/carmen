@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Validations Document
 - **Module**: Vendor Management > Vendor Directory
-- **Version**: 2.2.0
-- **Last Updated**: 2025-11-25
+- **Version**: 2.3.0
+- **Last Updated**: 2025-01-15
 - **Document Status**: Updated
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.3.0 | 2025-01-15 | Claude | Synced with current code implementation: Updated vendor status to 3-value system (active, inactive, suspended); Updated supported currencies to 12 values (BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN); Changed default currency from USD to BHT |
 | 2.2.0 | 2025-11-25 | System | Added certification management validations (16 types, status auto-calculation, 30-day threshold); Added Asian international address format validations (15 countries, subDistrict, district fields, country-specific postal codes) |
 | 2.1.0 | 2025-11-25 | System | Added multi-address and multi-contact management validations |
 | 2.0.0 | 2025-11-25 | System | Updated to match actual code implementation |
@@ -302,10 +303,10 @@ defaultCurrency: z.string()
   .length(3, 'Currency code must be exactly 3 characters')
   .regex(/^[A-Z]{3}$/, 'Currency code must be uppercase letters')
   .refine((code) => {
-    const supportedCurrencies = ['USD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY'];
+    const supportedCurrencies = ['BHT', 'USD', 'CNY', 'SGD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'INR', 'MXN'];
     return supportedCurrencies.includes(code);
   }, 'Currency not supported')
-  .default('USD')
+  .default('BHT')
 ```
 
 ### 2.4 Address Information (Asian International Format)
@@ -1370,17 +1371,12 @@ export const vendorSchema = z.object({
     .uuid('Invalid tax profile ID')
     .optional(),
 
-  // Status
+  // Status (3 values used in service layer)
   status: z.enum([
-    'draft',
-    'pending_approval',
-    'approved',
-    'preferred',
-    'provisional',
-    'blocked',
-    'blacklisted',
+    'active',
     'inactive',
-  ]).default('draft'),
+    'suspended',
+  ]).default('active'),
 
   // Financial
   paymentTermsType: z.enum([
@@ -1411,7 +1407,11 @@ export const vendorSchema = z.object({
   defaultCurrency: z.string()
     .length(3, 'Currency code must be exactly 3 characters')
     .regex(/^[A-Z]{3}$/, 'Currency code must be uppercase letters')
-    .default('USD'),
+    .refine((code) => {
+      const supportedCurrencies = ['BHT', 'USD', 'CNY', 'SGD', 'EUR', 'GBP', 'CAD', 'AUD', 'JPY', 'CHF', 'INR', 'MXN'];
+      return supportedCurrencies.includes(code);
+    }, 'Currency not supported')
+    .default('BHT'),
 });
 
 export type VendorFormData = z.infer<typeof vendorSchema>;

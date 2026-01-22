@@ -5,8 +5,14 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Transactions |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-16 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 2.0.0 | 2025-01-16 | Documentation Team | Updated architecture; Corrected transaction types; Updated reference types; Added source evidence |
+| 1.0.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -14,24 +20,25 @@
 
 ```mermaid
 graph TB
-    subgraph 'Frontend Layer'
+    subgraph Frontend
         A[TransactionsPage] --> B[TransactionSummaryCards]
         A --> C[TransactionFilters]
         A --> D[TransactionTable]
         A --> E[TransactionAnalytics]
     end
 
-    subgraph 'Data Layer'
+    subgraph DataLayer
         F[Mock Data Generator]
         G[User Context]
     end
 
-    subgraph 'External Sources'
+    subgraph TransactionSources
         H[GRN Module]
-        I[Store Requisitions]
-        J[Inventory Adjustments]
-        K[Stock Transfers]
-        L[Physical Counts]
+        I[Stock Transfers ST]
+        J[Stock Issues SI]
+        K[Physical Counts]
+        L[Adjustments]
+        M[Wastage Reports]
     end
 
     A --> F
@@ -41,6 +48,7 @@ graph TB
     F -.-> J
     F -.-> K
     F -.-> L
+    F -.-> M
 ```
 
 ---
@@ -71,10 +79,12 @@ graph LR
 - Handle data refresh and CSV export
 
 **State Management**:
-- `filters`: TransactionFilterParams - Current filter selections
-- `data`: TransactionHistoryData - Loaded transaction data
-- `isLoading`: boolean - Loading indicator
-- `activeTab`: string - Current tab (transactions/analytics)
+| State | Type | Description |
+|-------|------|-------------|
+| filters | TransactionFilterParams | Current filter selections |
+| data | TransactionHistoryData | Loaded transaction data |
+| isLoading | boolean | Loading indicator |
+| activeTab | string | Current tab (transactions/analytics) |
 
 ---
 
@@ -86,10 +96,19 @@ graph LR
 - Display 4 summary metric cards
 - Format currency and number values
 - Show loading skeleton during data fetch
+- Color-code positive/negative values
 
 **Props**:
-- `summary`: TransactionSummary - Calculated totals
-- `isLoading`: boolean - Loading state
+| Prop | Type | Description |
+|------|------|-------------|
+| summary | TransactionSummary | Calculated totals |
+| isLoading | boolean | Loading state |
+
+**Cards Displayed**:
+1. Total Transactions (with adjustment count subtitle)
+2. Total Inbound (value and quantity)
+3. Total Outbound (value and quantity)
+4. Net Change (with quantity net)
 
 ---
 
@@ -105,10 +124,18 @@ graph LR
 - Provide quick date filter buttons
 
 **Props**:
-- `filters`: TransactionFilterParams - Current filters
-- `onFiltersChange`: Function - Filter update callback
-- `availableLocations`: Array - Permitted locations
-- `availableCategories`: Array - Product categories
+| Prop | Type | Description |
+|------|------|-------------|
+| filters | TransactionFilterParams | Current filters |
+| onFiltersChange | Function | Filter update callback |
+| availableLocations | Array | Permitted locations |
+| availableCategories | Array | Product categories |
+
+**Features**:
+- Quick date buttons: Today, 7 Days, 30 Days, This Month
+- Collapsible advanced filters
+- Active filter badge display with removal
+- Clear All functionality
 
 ---
 
@@ -124,13 +151,29 @@ graph LR
 - Display empty state when no data
 
 **Props**:
-- `records`: TransactionRecord[] - Transaction list
-- `isLoading`: boolean - Loading state
+| Prop | Type | Description |
+|------|------|-------------|
+| records | TransactionRecord[] | Transaction list |
+| isLoading | boolean | Loading state |
 
 **Internal State**:
-- `currentPage`: number - Current page number
-- `pageSize`: number - Items per page (10/25/50)
-- `sortConfig`: SortConfig - Current sort field and direction
+| State | Type | Default |
+|-------|------|---------|
+| currentPage | number | 1 |
+| pageSize | number | 10 |
+| sortConfig | SortConfig | { field: 'date', direction: 'desc' } |
+
+**Table Columns**:
+1. Date/Time
+2. Reference (with type badge)
+3. Product (name, code, category)
+4. Location
+5. Type (IN/OUT badge)
+6. Qty In (green, positive)
+7. Qty Out (red, negative)
+8. Value (color-coded)
+9. Balance (before → after)
+10. User
 
 ---
 
@@ -140,15 +183,23 @@ graph LR
 
 **Responsibilities**:
 - Render 5 analytics charts using Recharts
-- Transaction Trend (AreaChart)
-- Distribution by Type (PieChart)
-- Location Activity (BarChart)
-- Reference Type Distribution (BarChart)
-- Top Categories by Value (BarChart)
+- Handle loading state with skeleton
+- Format tooltips and labels
 
 **Props**:
-- `analytics`: TransactionAnalytics - Chart data
-- `isLoading`: boolean - Loading state
+| Prop | Type | Description |
+|------|------|-------------|
+| analytics | TransactionAnalytics | Chart data |
+| isLoading | boolean | Loading state |
+
+**Charts**:
+| Chart | Type | Data |
+|-------|------|------|
+| Transaction Trend | AreaChart | Daily inbound/outbound/adjustment |
+| Distribution by Type | PieChart | IN/OUT counts |
+| Location Activity | BarChart | Inbound vs Outbound by location |
+| Reference Type | BarChart (horizontal) | Count by reference type |
+| Top Categories | BarChart (horizontal) | Top 8 by value |
 
 ---
 
@@ -183,7 +234,6 @@ sequenceDiagram
 ### 5.1 TransactionRecord
 Core transaction entity with all display fields.
 
-**Fields**:
 | Field | Type | Description |
 |-------|------|-------------|
 | id | string | Unique identifier |
@@ -198,7 +248,7 @@ Core transaction entity with all display fields.
 | productName | string | Product display name |
 | categoryId | string | Category identifier |
 | categoryName | string | Category display name |
-| transactionType | TransactionType | IN/OUT/ADJUSTMENT |
+| transactionType | TransactionType | IN or OUT |
 | reason | string | Transaction reason |
 | lotNumber | string? | Optional lot/batch number |
 | quantityIn | number | Quantity received |
@@ -211,18 +261,37 @@ Core transaction entity with all display fields.
 | createdBy | string | User ID |
 | createdByName | string | User display name |
 
+**Source Evidence**: `types.ts:9-34`
+
 ### 5.2 TransactionFilterParams
 Filter criteria for querying transactions.
 
-**Fields**:
 | Field | Type | Description |
 |-------|------|-------------|
 | dateRange | { from, to } | Date range selection |
-| transactionTypes | TransactionType[] | Selected types |
+| transactionTypes | TransactionType[] | Selected types (IN, OUT) |
 | referenceTypes | ReferenceType[] | Selected reference types |
 | locations | string[] | Selected location IDs |
 | categories | string[] | Selected category IDs |
 | searchTerm | string | Text search query |
+
+**Source Evidence**: `types.ts:48-58`
+
+### 5.3 ReferenceType
+Valid reference type codes.
+
+**Values**: 'GRN' | 'SO' | 'ADJ' | 'ST' | 'SI' | 'PO' | 'WO' | 'SR' | 'PC' | 'WR' | 'PR'
+
+**Source Evidence**: `types.ts:6`
+
+### 5.4 TransactionType
+Valid transaction type codes.
+
+**Values**: 'IN' | 'OUT'
+
+**Note**: No ADJUSTMENT type - adjustments use IN/OUT with referenceType='ADJ'
+
+**Source Evidence**: `types.ts:7`
 
 ---
 
@@ -238,16 +307,23 @@ Filter criteria for querying transactions.
 **Path**: Inventory Management > Transactions
 **Route**: `/inventory-management/transactions`
 
+### 6.3 Mock Data Generator
+**Source**: `lib/mock-data/transactions.ts`
+**Functions**:
+- `generateMockTransactionHistory(params?, count?)` - Generate transaction data
+- `getAvailableLocations()` - Get location list
+- `getAvailableCategories()` - Get category list
+
 ---
 
 ## 7. Third-Party Libraries
 
-| Library | Version | Usage |
-|---------|---------|-------|
-| Recharts | ^2.x | Analytics charts |
-| date-fns | ^2.x | Date manipulation |
-| lucide-react | ^0.x | Icons |
-| shadcn/ui | ^0.x | UI components |
+| Library | Usage |
+|---------|-------|
+| Recharts | Analytics charts (AreaChart, PieChart, BarChart) |
+| date-fns | Date manipulation (subDays, format, startOfMonth) |
+| lucide-react | Icons |
+| shadcn/ui | UI components (Button, Card, Table, Tabs, etc.) |
 
 ---
 
@@ -257,8 +333,9 @@ Filter criteria for querying transactions.
 |---------|------------|
 | Large dataset rendering | Client-side pagination (10/25/50 per page) |
 | Filter re-renders | useMemo for sorted/filtered records |
-| Chart rendering | ResponsiveContainer with lazy loading |
-| Export performance | Stream CSV generation for large exports |
+| Chart rendering | ResponsiveContainer with skeleton loading |
+| Export performance | Blob streaming for CSV generation |
+| Location filtering | useMemo for available locations |
 
 ---
 
@@ -269,4 +346,14 @@ Filter criteria for querying transactions.
 | Keyboard navigation | Standard table navigation |
 | Screen readers | ARIA labels on buttons and controls |
 | Color contrast | Minimum 4.5:1 ratio |
-| Focus indicators | Visible focus rings |
+| Focus indicators | Visible focus rings on interactive elements |
+| Loading states | Skeleton components with aria-busy |
+
+---
+
+## Related Documents
+
+- [BR-inventory-transactions.md](./BR-inventory-transactions.md) - Business Requirements
+- [UC-inventory-transactions.md](./UC-inventory-transactions.md) - Use Cases
+- [FD-inventory-transactions.md](./FD-inventory-transactions.md) - Flow Diagrams
+- [VAL-inventory-transactions.md](./VAL-inventory-transactions.md) - Validations

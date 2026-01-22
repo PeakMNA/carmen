@@ -5,9 +5,9 @@
 - **System**: Vendor Price Submission Portal
 - **Module**: Vendor Management > Vendor Portal
 - **Version**: 3.0.0
-- **Status**: Updated
+- **Status**: Active
 - **Created**: 2025-01-23
-- **Last Updated**: 2025-11-26
+- **Last Updated**: 2026-01-15
 - **Author**: Product Team
 - **Related Documents**:
   - [Business Requirements](./BR-vendor-portal.md)
@@ -19,10 +19,11 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2024-01-15 | System | Initial version (INCORRECT - full vendor portal) |
-| 2.0 | 2025-01-23 | Product Team | Complete rewrite based on actual implementation - token-based price submission only |
-| 2.1.0 | 2025-11-26 | System | Removed approval workflow; Updated status to draft → submitted; Aligned with BR v2.1.0 |
+| 3.0.1 | 2026-01-15 | Documentation Team | Synced with current code; Verified ProductItem interface; Confirmed supported currencies (BHT, USD, CNY, SGD); Updated source file references |
 | 3.0.0 | 2025-11-26 | System | Complete refactor - removed staff-side use cases (UC-VPP-001 to UC-VPP-005). This document now focuses ONLY on vendor-facing portal. See related modules for staff-side functionality. |
+| 2.1.0 | 2025-11-26 | System | Removed approval workflow; Updated status to draft to submitted; Aligned with BR v2.1.0 |
+| 2.0 | 2025-01-23 | Product Team | Complete rewrite based on actual implementation - token-based price submission only |
+| 1.0 | 2024-01-15 | System | Initial version (INCORRECT - full vendor portal) |
 
 ---
 

@@ -3,13 +3,14 @@
 **Module**: Product Management
 **Sub-Module**: Products
 **Route**: `/product-management/products`
-**Document Version**: 1.1
-**Last Updated**: 2025-11-26
+**Document Version**: 1.2
+**Last Updated**: 2026-01-15
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2026-01-15 | Documentation Team | Updated unit types (RECIPE→INGREDIENT), added is_inverse flag, enhanced location assignments with shelf/par_level/tags |
 | 1.1.0 | 2025-11-26 | Documentation Team | Added route reference, aligned with BR-products.md |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
@@ -146,6 +147,7 @@ CREATE TYPE tax_type AS ENUM (
 | unit_type | VARCHAR(20) | No | - | Unit usage type | ENUM unit_types |
 | conversion_factor | DECIMAL(12,5) | No | - | Conversion to base unit | CHECK (conversion_factor > 0) |
 | is_default | BOOLEAN | No | false | Default unit for this type | - |
+| is_inverse | BOOLEAN | No | false | Conversion direction flag | - |
 | description | VARCHAR(255) | Yes | NULL | Unit description | - |
 | barcode | VARCHAR(50) | Yes | NULL | Unit-specific barcode | INDEX |
 | created_by | UUID | No | - | User who created record | FK users(id) |
@@ -166,23 +168,33 @@ CREATE TYPE tax_type AS ENUM (
 -- unit_types enum
 CREATE TYPE unit_type AS ENUM (
   'INVENTORY',      -- Base inventory unit (conversion_factor = 1)
-  'ORDER',          -- Purchasing/ordering unit
-  'RECIPE',         -- Recipe ingredient unit
+  'ORDER',          -- Purchasing/ordering unit (BAG, BOX, CASE, PALLET, PACK)
+  'INGREDIENT',     -- Ingredient unit for recipes (G, KG, LB, OZ)
   'COUNT'           -- Physical count unit
 );
 ```
 
+**Conversion Logic**:
+The `is_inverse` flag controls how the conversion factor is applied:
+- **is_inverse = false**: Result = Quantity × conversion_factor
+- **is_inverse = true**: Result = Quantity × (1 / conversion_factor)
+
+Example: For ingredient unit G (Gram) with factor 0.001 and is_inverse=true:
+- 1 KG = 1 × (1/0.001) = 1000 G
+
 **Business Rules**:
 - Each product must have exactly one INVENTORY unit type (conversion_factor = 1.00000)
-- Each product can have multiple ORDER, RECIPE, and COUNT unit types
+- Each product can have multiple ORDER, INGREDIENT, and COUNT unit types
 - Only one unit per type can be marked as default (is_default = true)
 - The combination of (product_id, unit_id, unit_type) must be unique
+- Available ORDER units: BAG, BOX, CASE, PALLET, PACK
+- Available INGREDIENT units: G, KG, LB, OZ
 
 ---
 
 ### 3.3 product_locations Table
 
-**Purpose**: Store product assignments to specific locations with min/max thresholds
+**Purpose**: Store product assignments to specific locations with inventory thresholds, shelf assignment, and tags
 
 **Table Name**: `product_locations`
 
@@ -191,10 +203,13 @@ CREATE TYPE unit_type AS ENUM (
 | id | UUID | No | gen_random_uuid() | Unique assignment identifier | PRIMARY KEY |
 | product_id | UUID | No | - | Foreign key to products | FK products(id) ON DELETE CASCADE |
 | location_id | UUID | No | - | Foreign key to locations | FK locations(id) |
-| minimum_stock_level | DECIMAL(12,3) | No | 0 | Min stock for this location | CHECK (minimum_stock_level >= 0) |
-| maximum_stock_level | DECIMAL(12,3) | No | 0 | Max stock for this location | CHECK (maximum_stock_level >= minimum_stock_level) |
+| shelf_id | UUID | Yes | NULL | Foreign key to shelves | FK shelves(id) |
+| min_quantity | DECIMAL(12,3) | No | 0 | Minimum stock for this location | CHECK (min_quantity >= 0) |
+| max_quantity | DECIMAL(12,3) | No | 0 | Maximum stock for this location | CHECK (max_quantity >= min_quantity) |
 | reorder_point | DECIMAL(12,3) | Yes | NULL | Reorder trigger level | CHECK (reorder_point >= 0) |
+| par_level | DECIMAL(12,3) | Yes | NULL | Optimal stock level | CHECK (par_level >= 0) |
 | reorder_quantity | DECIMAL(12,3) | Yes | NULL | Standard reorder quantity | CHECK (reorder_quantity > 0) |
+| tags | JSONB | Yes | '[]' | Location-specific product tags | - |
 | is_active | BOOLEAN | No | true | Assignment active status | - |
 | created_by | UUID | No | - | User who created record | FK users(id) |
 | created_at | TIMESTAMP | No | CURRENT_TIMESTAMP | Creation timestamp | - |
@@ -206,13 +221,17 @@ CREATE TYPE unit_type AS ENUM (
 - `UNIQUE INDEX idx_product_locations_unique ON product_locations(product_id, location_id)`
 - `INDEX idx_product_locations_product ON product_locations(product_id)`
 - `INDEX idx_product_locations_location ON product_locations(location_id)`
+- `INDEX idx_product_locations_shelf ON product_locations(shelf_id) WHERE shelf_id IS NOT NULL`
 - `INDEX idx_product_locations_active ON product_locations(is_active) WHERE is_active = true`
+- `GIN INDEX idx_product_locations_tags ON product_locations USING GIN (tags)`
 
 **Business Rules**:
 - Each product can be assigned to a location only once
 - Maximum stock level must be greater than or equal to minimum stock level
 - All stock levels are in the product's base inventory unit
-- Reorder point typically set between minimum and maximum levels
+- Par level represents optimal stock; typically between min and max
+- Reorder point triggers replenishment; typically between min and par level
+- Tags allow location-specific categorization (e.g., "dry-goods", "high-usage")
 
 ---
 
@@ -292,7 +311,7 @@ export type ProductStatus =
 export type UnitType =
   | 'INVENTORY'
   | 'ORDER'
-  | 'RECIPE'
+  | 'INGREDIENT'
   | 'COUNT';
 
 // Core Product Interface
@@ -403,6 +422,7 @@ export interface ProductUnit {
   conversionFactor: number;
   isActive: boolean;
   isDefault: boolean;
+  isInverse: boolean;           // Conversion direction flag
   isPurchaseUnit?: boolean;
   isSalesUnit?: boolean;
   isInventoryUnit?: boolean;
@@ -418,10 +438,15 @@ export interface ProductLocation {
   productId: string;
   locationId: string;
   locationName?: string;
-  minimumStockLevel: number;
-  maximumStockLevel: number;
+  locationCode?: string;
+  shelfId?: string;
+  shelfName?: string;
+  minQuantity: number;
+  maxQuantity: number;
   reorderPoint?: number;
+  parLevel?: number;
   reorderQuantity?: number;
+  tags: string[];
   isActive: boolean;
   createdAt?: Date;
   updatedAt?: Date;
@@ -653,6 +678,7 @@ The following fields are **CALCULATED** or **SYSTEM-MANAGED**:
 **product_locations Table**:
 - `product_id` → `products(id)` - ON DELETE CASCADE
 - `location_id` → `locations(id)` - ON DELETE RESTRICT
+- `shelf_id` → `shelves(id)` - ON DELETE SET NULL
 - `created_by` → `users(id)` - ON DELETE RESTRICT
 - `updated_by` → `users(id)` - ON DELETE RESTRICT
 
@@ -694,11 +720,13 @@ All tables have clustered primary key indexes on the `id` (UUID) column.
 3. (product_id, unit_type) composite (for unit type filtering)
 4. (product_id, unit_type, is_default) partial (for default unit lookup)
 
-**product_locations Table** (4 indexes):
+**product_locations Table** (6 indexes):
 1. Unique (product_id, location_id)
 2. product_id (for location lookup)
 3. location_id (for location-product lookup)
-4. is_active partial (for active assignments)
+4. shelf_id partial (for shelf-based queries)
+5. is_active partial (for active assignments)
+6. GIN on tags (for tag-based filtering)
 
 **product_activity_log Table** (4 indexes):
 1. (product_id, created_at DESC) composite (for product history)
@@ -773,8 +801,9 @@ interface UnitConversion {
   unitId: string;
   unitName: string;
   conversionFactor: number;
-  unitType: 'ORDER' | 'RECIPE' | 'COUNT';
+  unitType: 'ORDER' | 'INGREDIENT' | 'COUNT';
   isDefault: boolean;
+  isInverse: boolean;
   description?: string;
 }
 ```

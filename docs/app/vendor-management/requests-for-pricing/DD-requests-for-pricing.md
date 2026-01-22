@@ -3,13 +3,14 @@
 ## Module Information
 - **Module**: Vendor Management
 - **Sub-module**: Requests for Pricing (Price Collection Campaigns)
-- **Version**: 2.0.0
+- **Version**: 3.0.0
 - **Status**: Active
-- **Last Updated**: 2025-11-26
+- **Last Updated**: 2026-01-15
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated CampaignVendorStatus with full interface including portal fields; Added CampaignAnalytics and CampaignDuplicationRequest interfaces; Updated ReminderSchedule escalationRules structure; Added tags field; Updated priority to include 'normal' |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code implementation; Removed fictional RFQ features (evaluation scoring, awards, contracts); Updated to reflect Price Collection Campaign functionality |
 | 1.2.0 | 2025-11-18 | Documentation Team | Updated Change Request reference |
 | 1.1.0 | 2025-11-17 | Documentation Team | Previous version with RFQ features |
@@ -136,23 +137,25 @@ Vendor (1) ──── (N) CampaignVendorInvitation
 | `reminderSchedule` | object | | Reminder configuration |
 | `emailTemplate` | string | | Email template name |
 | `customInstructions` | string | | Additional vendor instructions |
-| `priority` | enum | 'medium' | low, medium, high, urgent |
+| `priority` | enum | 'medium' | low, normal, medium, high, urgent |
 
 #### Reminder Schedule Structure
 
 | Field Name | Data Type | Description |
 |-----------|-----------|-------------|
 | `enabled` | boolean | Enable/disable reminders |
-| `intervals` | number[] | Days before deadline (e.g., [7, 3, 1]) |
-| `escalation` | object | Escalation configuration |
+| `intervals` | number[] | Days before deadline (e.g., [14, 7, 3, 1]) |
+| `escalationRules` | array | Array of escalation rules |
 
-#### Escalation Structure
+#### Escalation Rules Structure
+
+Each escalation rule in the `escalationRules` array:
 
 | Field Name | Data Type | Description |
 |-----------|-----------|-------------|
-| `enabled` | boolean | Enable/disable escalation |
-| `overdueThreshold` | number | Days overdue before escalation |
-| `recipients` | string[] | Escalation recipient emails |
+| `daysOverdue` | number | Days overdue before this rule triggers |
+| `escalateTo` | string[] | Escalation recipient emails |
+| `messageTemplate` | string | Template for escalation message |
 
 ---
 
@@ -193,19 +196,121 @@ Vendor (1) ──── (N) CampaignVendorInvitation
 |-----------|-----------|-------------|
 | `vendorId` | string | Vendor identifier |
 | `vendorName` | string | Vendor display name |
-| `status` | enum | pending, in_progress, completed |
-| `progress` | number | Completion percentage (0-100) |
-| `lastActivity` | Date | Last vendor activity timestamp |
+| `email` | string | Vendor email address |
+| `status` | enum | pending, invited, accessed, in_progress, completed, overdue, failed |
+| `invitationSent` | Date | When invitation was sent (optional) |
+| `portalAccessed` | Date | When portal was first accessed (optional) |
+| `lastActivity` | Date | Last vendor activity timestamp (optional) |
+| `submissionCompleted` | Date | When submission was completed (optional) |
+| `itemsSubmitted` | number | Number of items submitted |
+| `totalItemsExpected` | number | Total items expected |
+| `completionRate` | number | Completion percentage (0-100) |
+| `portalToken` | string | Unique portal access token (optional) |
+| `portalUrl` | string | Direct portal URL for vendor (optional) |
 | `remindersSent` | number | Count of reminders sent |
-| `lastReminderDate` | Date | Last reminder timestamp |
+| `lastReminderSent` | Date | Last reminder timestamp (optional) |
 
 #### Vendor Status Values
 
 | Status | Description |
 |--------|-------------|
-| `pending` | Invitation sent, no activity |
+| `pending` | Invitation not yet sent |
+| `invited` | Invitation sent, awaiting portal access |
+| `accessed` | Vendor has accessed the portal |
 | `in_progress` | Vendor has started submission |
 | `completed` | Submission completed |
+| `overdue` | Submission past deadline |
+| `failed` | Submission failed |
+
+---
+
+### 6. CampaignAnalytics
+
+**Purpose**: Provides comprehensive analytics data for campaign performance tracking.
+
+#### Overview Fields
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `campaignId` | string | Campaign identifier |
+| `totalVendors` | number | Total vendors in campaign |
+| `responseRate` | number | Percentage of vendors who responded |
+| `completionRate` | number | Percentage of completed submissions |
+| `averageResponseTime` | number | Average response time in hours |
+| `totalSubmissions` | number | Total number of submissions |
+| `qualityScore` | number | Overall quality score |
+
+#### Vendor Performance Array
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `vendorId` | string | Vendor identifier |
+| `vendorName` | string | Vendor display name |
+| `responseTime` | number | Response time in hours |
+| `completionRate` | number | Completion percentage |
+| `qualityScore` | number | Vendor quality score |
+| `submissionCount` | number | Number of submissions |
+
+#### Timeline Metrics Array
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `date` | Date | Metric date |
+| `invitationsSent` | number | Invitations sent on date |
+| `portalAccesses` | number | Portal accesses on date |
+| `submissionsReceived` | number | Submissions received on date |
+| `completions` | number | Completions on date |
+
+#### Issues and Alerts Array
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `type` | enum | overdue, non_responsive, quality_issue, technical_error |
+| `description` | string | Issue description |
+| `vendorId` | string | Related vendor ID (optional) |
+| `severity` | enum | low, medium, high |
+| `createdAt` | Date | Issue creation timestamp |
+
+---
+
+### 7. CampaignDuplicationRequest
+
+**Purpose**: Defines the request structure for duplicating campaigns.
+
+#### Fields
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `sourceCampaignId` | string | ID of campaign to duplicate |
+| `newName` | string | Name for the duplicated campaign |
+| `newDescription` | string | Description for duplicated campaign (optional) |
+| `preserveVendors` | boolean | Whether to copy vendor selections |
+| `preserveCategories` | boolean | Whether to copy category selections |
+| `preserveSettings` | boolean | Whether to copy campaign settings |
+| `newScheduledStart` | Date | New start date (optional) |
+
+---
+
+### 8. CampaignValidationResult
+
+**Purpose**: Response structure for campaign validation.
+
+#### Fields
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `isValid` | boolean | Whether campaign is valid |
+| `errors` | array | Array of validation errors |
+| `warnings` | array | Array of validation warnings |
+
+#### Error/Warning Structure
+
+| Field Name | Data Type | Description |
+|-----------|-----------|-------------|
+| `field` | string | Field name with error |
+| `message` | string | Error/warning message |
+| `severity` | enum | error, warning |
+| `suggestion` | string | Suggested fix (warnings only) |
 
 ---
 

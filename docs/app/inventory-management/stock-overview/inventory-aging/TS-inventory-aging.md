@@ -5,8 +5,15 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Inventory Aging |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 3.0.0 |
+| Last Updated | 2025-01-15 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Updated interface field names; Updated expiry thresholds (30/90 days); Added alert system; Added expiry timeline chart; Added location aging performance; Added oldest items feature; Updated component tree |
+| 2.0.0 | 2024-06-15 | System | Previous version |
+| 1.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -14,30 +21,32 @@
 
 ```mermaid
 graph TB
-    subgraph 'Frontend Layer'
+    subgraph Frontend
         A[InventoryAgingPage] --> B[SummaryCards]
-        A --> C[ValueAtRiskPanel]
+        A --> C[AlertSection]
         A --> D[InventoryList Tab]
         A --> E[Analytics Tab]
         A --> F[Action Center Tab]
     end
 
-    subgraph 'Components'
+    subgraph Components
         G[GroupedTable]
         H[ExportButton]
         I[Charts - Recharts]
+        J[ValueAtRiskPanel]
     end
 
-    subgraph 'Data Layer'
-        J[Mock Data Generator]
-        K[User Context]
+    subgraph Data
+        K[Mock Data Generator]
+        L[User Context]
     end
 
     D --> G
     A --> H
     E --> I
-    A --> J
+    F --> J
     A --> K
+    A --> L
 ```
 
 ---
@@ -62,6 +71,8 @@ graph LR
 
 **File**: `app/(main)/inventory-management/stock-overview/inventory-aging/page.tsx`
 
+**Directive**: `"use client"`
+
 **State Management**:
 ```typescript
 const [isLoading, setIsLoading] = useState(true)
@@ -73,8 +84,9 @@ const [locationFilter, setLocationFilter] = useState('all')
 const [viewMode, setViewMode] = useState<'list' | 'grouped'>('list')
 const [groupBy, setGroupBy] = useState<'location' | 'ageBucket'>('location')
 const [agingItems, setAgingItems] = useState<AgingItem[]>([])
-const [groupedItems, setGroupedItems] = useState<GroupedData[]>([])
 ```
+
+**Source Evidence**: `inventory-aging/page.tsx:84-92`
 
 ---
 
@@ -84,50 +96,53 @@ const [groupedItems, setGroupedItems] = useState<GroupedData[]>([])
 ```typescript
 interface AgingItem {
   id: string
-  code: string
-  name: string
+  productId: string
+  productCode: string
+  productName: string
   category: string
   unit: string
-  lotNumber: string
-  receivedDate: string
-  age: number
+  lotNumber?: string
+  locationId: string
+  locationName: string
+  receiptDate: Date
+  ageInDays: number
   ageBucket: '0-30' | '31-60' | '61-90' | '90+'
-  expiryDate: string | null
-  daysToExpiry: number | null
-  expiryStatus: 'good' | 'expiring-soon' | 'critical' | 'expired' | 'no-expiry'
+  expiryDate?: Date
   quantity: number
   value: number
-  location: {
-    id: string
-    name: string
-  }
 }
 ```
+
+**Source Evidence**: `lib/mock-data/location-inventory.ts`
 
 ### 4.2 Age Bucket Type
 ```typescript
 type AgeBucket = '0-30' | '31-60' | '61-90' | '90+'
 
-const AGE_BUCKETS: Record<AgeBucket, { label: string; color: string; range: string }> = {
-  '0-30': { label: '0-30 Days', color: 'green', range: 'Fresh' },
-  '31-60': { label: '31-60 Days', color: 'blue', range: 'Normal' },
-  '61-90': { label: '61-90 Days', color: 'amber', range: 'Aging' },
-  '90+': { label: '90+ Days', color: 'red', range: 'Old' }
+const AGE_BUCKET_COLORS: Record<AgeBucket, string> = {
+  '0-30': '#22c55e',   // Green
+  '31-60': '#eab308',  // Yellow
+  '61-90': '#f97316',  // Orange
+  '90+': '#ef4444'     // Red
 }
 ```
+
+**Source Evidence**: `inventory-aging/page.tsx:281-296`
 
 ### 4.3 Expiry Status Type
 ```typescript
 type ExpiryStatus = 'good' | 'expiring-soon' | 'critical' | 'expired' | 'no-expiry'
 
-const EXPIRY_STATUSES: Record<ExpiryStatus, { label: string; color: string; days: string }> = {
-  'good': { label: 'Good', color: 'green', days: '> 30 days' },
-  'expiring-soon': { label: 'Expiring Soon', color: 'amber', days: '15-30 days' },
-  'critical': { label: 'Critical', color: 'orange', days: '< 15 days' },
-  'expired': { label: 'Expired', color: 'red', days: 'Past expiry' },
-  'no-expiry': { label: 'No Expiry', color: 'gray', days: 'N/A' }
+const EXPIRY_STATUS_CONFIG: Record<ExpiryStatus, { label: string; color: string; days: string }> = {
+  'good': { label: 'Good', color: '#22c55e', days: '> 90 days' },
+  'expiring-soon': { label: 'Expiring Soon', color: '#eab308', days: '30-90 days' },
+  'critical': { label: 'Critical', color: '#f97316', days: '< 30 days' },
+  'expired': { label: 'Expired', color: '#ef4444', days: 'Past expiry' },
+  'no-expiry': { label: 'No Expiry', color: '#94a3b8', days: 'N/A' }
 }
 ```
+
+**Source Evidence**: `inventory-aging/page.tsx:129-136`
 
 ### 4.4 Value at Risk
 ```typescript
@@ -139,47 +154,65 @@ interface ValueAtRisk {
 }
 ```
 
+**Source Evidence**: `inventory-aging/page.tsx:503-517`
+
+### 4.5 Summary Statistics
+```typescript
+interface AgingStats {
+  totalItems: number
+  totalValue: number
+  avgAge: number
+  expiredItems: number
+  nearExpiryItems: number
+}
+```
+
+**Source Evidence**: `inventory-aging/page.tsx:332-353`
+
 ---
 
 ## 5. Age & Expiry Calculation Logic
 
 ### 5.1 Age Calculation
 ```typescript
-const calculateAge = (receivedDate: string): number => {
-  const received = new Date(receivedDate)
-  const today = new Date()
-  const diffTime = Math.abs(today.getTime() - received.getTime())
-  return Math.ceil(diffTime / (1000 * 60 * 60 * 24))
+const calculateAgeInDays = (receiptDate: Date): number => {
+  return Math.ceil(
+    (Date.now() - new Date(receiptDate).getTime()) / (1000 * 60 * 60 * 24)
+  )
 }
 
-const getAgeBucket = (age: number): AgeBucket => {
-  if (age <= 30) return '0-30'
-  if (age <= 60) return '31-60'
-  if (age <= 90) return '61-90'
+const getAgeBucket = (ageInDays: number): AgeBucket => {
+  if (ageInDays <= 30) return '0-30'
+  if (ageInDays <= 60) return '31-60'
+  if (ageInDays <= 90) return '61-90'
   return '90+'
 }
 ```
 
 ### 5.2 Expiry Status Calculation
 ```typescript
-const calculateExpiryStatus = (expiryDate: string | null): ExpiryStatus => {
+const getExpiryStatus = (expiryDate?: Date): ExpiryStatus => {
   if (!expiryDate) return 'no-expiry'
 
-  const expiry = new Date(expiryDate)
-  const today = new Date()
-  const daysUntilExpiry = differenceInDays(expiry, today)
+  const daysToExpiry = Math.ceil(
+    (new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  )
 
-  if (daysUntilExpiry < 0) return 'expired'
-  if (daysUntilExpiry < 15) return 'critical'
-  if (daysUntilExpiry <= 30) return 'expiring-soon'
+  if (daysToExpiry < 0) return 'expired'
+  if (daysToExpiry < 30) return 'critical'
+  if (daysToExpiry < 90) return 'expiring-soon'
   return 'good'
 }
 
-const calculateDaysToExpiry = (expiryDate: string | null): number | null => {
+const calculateDaysToExpiry = (expiryDate?: Date): number | null => {
   if (!expiryDate) return null
-  return differenceInDays(new Date(expiryDate), new Date())
+  return Math.ceil(
+    (new Date(expiryDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  )
 }
 ```
+
+**Source Evidence**: `inventory-aging/page.tsx:129-136`
 
 ---
 
@@ -202,11 +235,13 @@ sequenceDiagram
     Page->>Page: Calculate expiry statuses
     Page->>Page: Filter by permissions
     Page->>Page: Calculate value at risk
+    Page->>Page: Generate alerts
     Page->>Charts: Render analytics
 
     User->>Page: Apply filter
     Page->>Page: Filter items
     Page->>Page: Update statistics
+    Page->>Page: Update alerts
     Page->>Charts: Update charts
 ```
 
@@ -218,25 +253,30 @@ sequenceDiagram
 const summaryStats = useMemo(() => {
   const totalItems = filteredItems.length
   const totalValue = filteredItems.reduce((sum, item) => sum + item.value, 0)
-  const avgAge = filteredItems.reduce((sum, item) => sum + item.age, 0) / totalItems || 0
+  const avgAge = totalItems > 0
+    ? filteredItems.reduce((sum, item) => sum + item.ageInDays, 0) / totalItems
+    : 0
 
-  const nearExpiry = filteredItems.filter(item =>
-    item.expiryStatus === 'expiring-soon' || item.expiryStatus === 'critical'
-  ).length
+  const nearExpiryItems = filteredItems.filter(item => {
+    const status = getExpiryStatus(item.expiryDate)
+    return status === 'expiring-soon' || status === 'critical'
+  }).length
 
   const expiredItems = filteredItems.filter(item =>
-    item.expiryStatus === 'expired'
+    getExpiryStatus(item.expiryDate) === 'expired'
   ).length
 
   return {
     totalItems,
     totalValue,
     avgAge: Math.round(avgAge),
-    nearExpiry,
+    nearExpiryItems,
     expiredItems
   }
 }, [filteredItems])
 ```
+
+**Source Evidence**: `inventory-aging/page.tsx:332-353`
 
 ---
 
@@ -245,15 +285,15 @@ const summaryStats = useMemo(() => {
 ```typescript
 const valueAtRisk = useMemo((): ValueAtRisk => {
   const expired = filteredItems
-    .filter(item => item.expiryStatus === 'expired')
+    .filter(item => getExpiryStatus(item.expiryDate) === 'expired')
     .reduce((sum, item) => sum + item.value, 0)
 
   const critical = filteredItems
-    .filter(item => item.expiryStatus === 'critical')
+    .filter(item => getExpiryStatus(item.expiryDate) === 'critical')
     .reduce((sum, item) => sum + item.value, 0)
 
   const expiringSoon = filteredItems
-    .filter(item => item.expiryStatus === 'expiring-soon')
+    .filter(item => getExpiryStatus(item.expiryDate) === 'expiring-soon')
     .reduce((sum, item) => sum + item.value, 0)
 
   return {
@@ -265,74 +305,195 @@ const valueAtRisk = useMemo((): ValueAtRisk => {
 }, [filteredItems])
 ```
 
+**Source Evidence**: `inventory-aging/page.tsx:503-517`
+
 ---
 
-## 9. Chart Data Preparation
+## 9. Alert Generation
 
-### 9.1 Age Distribution Data
 ```typescript
-const ageDistributionData = useMemo(() => {
+const alerts = useMemo(() => {
+  const alertList: Alert[] = []
+
+  if (summaryStats.expiredItems > 0) {
+    alertList.push({
+      type: 'destructive',
+      title: 'Expired Items',
+      description: `${summaryStats.expiredItems} items have expired and require immediate action`,
+      icon: AlertCircle
+    })
+  }
+
+  if (summaryStats.nearExpiryItems > 0) {
+    alertList.push({
+      type: 'warning',
+      title: 'Items Expiring Soon',
+      description: `${summaryStats.nearExpiryItems} items are expiring within 90 days`,
+      icon: AlertTriangle
+    })
+  }
+
+  return alertList
+}, [summaryStats])
+```
+
+**Source Evidence**: `inventory-aging/page.tsx:694-718`
+
+---
+
+## 10. Chart Data Preparation
+
+### 10.1 Expiry Timeline Data (12 Weeks)
+```typescript
+const expiryTimelineData = useMemo(() => {
+  const weeks: { week: string; items: number; value: number }[] = []
+  const today = new Date()
+
+  for (let i = 0; i < 12; i++) {
+    const weekStart = addWeeks(today, i)
+    const weekEnd = addWeeks(today, i + 1)
+
+    const weekItems = filteredItems.filter(item => {
+      if (!item.expiryDate) return false
+      const expiry = new Date(item.expiryDate)
+      return expiry >= weekStart && expiry < weekEnd
+    })
+
+    weeks.push({
+      week: format(weekStart, 'MMM d'),
+      items: weekItems.length,
+      value: weekItems.reduce((sum, item) => sum + item.value, 0)
+    })
+  }
+
+  return weeks
+}, [filteredItems])
+```
+
+**Source Evidence**: `inventory-aging/page.tsx:1124-1156`
+
+### 10.2 Age Bucket Distribution Data
+```typescript
+const ageBucketData = useMemo(() => {
   const distribution = filteredItems.reduce((acc, item) => {
     acc[item.ageBucket] = (acc[item.ageBucket] || 0) + 1
     return acc
   }, {} as Record<AgeBucket, number>)
 
   return Object.entries(distribution).map(([bucket, count]) => ({
-    bucket,
-    count,
-    color: AGE_BUCKETS[bucket as AgeBucket].color
+    name: bucket,
+    value: count,
+    color: AGE_BUCKET_COLORS[bucket as AgeBucket]
   }))
 }, [filteredItems])
 ```
 
-### 9.2 Expiry Status Data
+**Source Evidence**: `inventory-aging/page.tsx:1159-1203`
+
+### 10.3 Expiry Status Data
 ```typescript
 const expiryStatusData = useMemo(() => {
   const distribution = filteredItems.reduce((acc, item) => {
-    acc[item.expiryStatus] = (acc[item.expiryStatus] || 0) + 1
+    const status = getExpiryStatus(item.expiryDate)
+    acc[status] = (acc[status] || 0) + 1
     return acc
   }, {} as Record<ExpiryStatus, number>)
 
   return Object.entries(distribution).map(([status, count]) => ({
-    name: EXPIRY_STATUSES[status as ExpiryStatus].label,
+    name: EXPIRY_STATUS_CONFIG[status as ExpiryStatus].label,
     value: count,
-    color: EXPIRY_STATUSES[status as ExpiryStatus].color
+    color: EXPIRY_STATUS_CONFIG[status as ExpiryStatus].color
   }))
 }, [filteredItems])
 ```
 
-### 9.3 Category Age Data
-```typescript
-const categoryAgeData = useMemo(() => {
-  const categoryGroups = filteredItems.reduce((acc, item) => {
-    if (!acc[item.category]) {
-      acc[item.category] = { totalAge: 0, count: 0 }
-    }
-    acc[item.category].totalAge += item.age
-    acc[item.category].count += 1
-    return acc
-  }, {} as Record<string, { totalAge: number; count: number }>)
+**Source Evidence**: `inventory-aging/page.tsx:1205-1241`
 
-  return Object.entries(categoryGroups)
+### 10.4 Location Aging Data
+```typescript
+const locationAgingData = useMemo(() => {
+  const locationMap = new Map<string, {
+    items: number;
+    totalAge: number;
+    atRisk: number;
+    value: number
+  }>()
+
+  filteredItems.forEach(item => {
+    const existing = locationMap.get(item.locationName) || {
+      items: 0, totalAge: 0, atRisk: 0, value: 0
+    }
+    const status = getExpiryStatus(item.expiryDate)
+    const isAtRisk = ['expired', 'critical', 'expiring-soon'].includes(status)
+
+    locationMap.set(item.locationName, {
+      items: existing.items + 1,
+      totalAge: existing.totalAge + item.ageInDays,
+      atRisk: existing.atRisk + (isAtRisk ? 1 : 0),
+      value: existing.value + item.value
+    })
+  })
+
+  return Array.from(locationMap.entries()).map(([location, data]) => ({
+    location,
+    avgAge: Math.round(data.totalAge / data.items),
+    atRisk: data.atRisk,
+    value: data.value
+  }))
+}, [filteredItems])
+```
+
+**Source Evidence**: `inventory-aging/page.tsx:1244-1278`
+
+### 10.5 Category Aging Data
+```typescript
+const categoryAgingData = useMemo(() => {
+  const categoryMap = new Map<string, {
+    items: number;
+    totalAge: number;
+    value: number;
+    expiredValue: number
+  }>()
+
+  filteredItems.forEach(item => {
+    const existing = categoryMap.get(item.category) || {
+      items: 0, totalAge: 0, value: 0, expiredValue: 0
+    }
+    const isExpired = getExpiryStatus(item.expiryDate) === 'expired'
+
+    categoryMap.set(item.category, {
+      items: existing.items + 1,
+      totalAge: existing.totalAge + item.ageInDays,
+      value: existing.value + item.value,
+      expiredValue: existing.expiredValue + (isExpired ? item.value : 0)
+    })
+  })
+
+  return Array.from(categoryMap.entries())
     .map(([category, data]) => ({
       category,
-      avgAge: Math.round(data.totalAge / data.count)
+      items: data.items,
+      avgAge: Math.round(data.totalAge / data.items),
+      value: data.value,
+      expiredValue: data.expiredValue
     }))
     .sort((a, b) => b.avgAge - a.avgAge)
 }, [filteredItems])
 ```
 
+**Source Evidence**: `inventory-aging/page.tsx:1281-1323`
+
 ---
 
-## 10. Grouping Logic
+## 11. Grouping Logic
 
-### 10.1 Group by Location
+### 11.1 Group by Location
 ```typescript
 const groupByLocation = (items: AgingItem[]): GroupedData[] => {
   const locationMap = new Map<string, AgingItem[]>()
 
   items.forEach(item => {
-    const key = item.location.id
+    const key = item.locationId
     if (!locationMap.has(key)) {
       locationMap.set(key, [])
     }
@@ -341,19 +502,19 @@ const groupByLocation = (items: AgingItem[]): GroupedData[] => {
 
   return Array.from(locationMap.entries()).map(([locationId, items]) => ({
     groupId: locationId,
-    groupName: items[0].location.name,
-    items: items.sort((a, b) => b.age - a.age),
+    groupName: items[0].locationName,
+    items: items.sort((a, b) => b.ageInDays - a.ageInDays),
     subtotals: calculateSubtotals(items),
     isExpanded: false
   }))
 }
 ```
 
-### 10.2 Group by Age Bucket
+### 11.2 Group by Age Bucket
 ```typescript
 const groupByAgeBucket = (items: AgingItem[]): GroupedData[] => {
-  const bucketOrder = ['90+', '61-90', '31-60', '0-30']
-  const bucketMap = new Map<string, AgingItem[]>()
+  const bucketOrder: AgeBucket[] = ['90+', '61-90', '31-60', '0-30']
+  const bucketMap = new Map<AgeBucket, AgingItem[]>()
 
   items.forEach(item => {
     const key = item.ageBucket
@@ -367,8 +528,8 @@ const groupByAgeBucket = (items: AgingItem[]): GroupedData[] => {
     .filter(bucket => bucketMap.has(bucket))
     .map(bucket => ({
       groupId: bucket,
-      groupName: AGE_BUCKETS[bucket as AgeBucket].label,
-      items: bucketMap.get(bucket)!.sort((a, b) => b.age - a.age),
+      groupName: `${bucket} Days`,
+      items: bucketMap.get(bucket)!.sort((a, b) => b.ageInDays - a.ageInDays),
       subtotals: calculateSubtotals(bucketMap.get(bucket)!),
       isExpanded: false
     }))
@@ -377,31 +538,24 @@ const groupByAgeBucket = (items: AgingItem[]): GroupedData[] => {
 
 ---
 
-## 11. Component Tree
+## 12. Component Tree
 
 ```
 InventoryAgingPage
 ├── PageHeader
 │   ├── BackLink
-│   ├── Title with Icon
+│   ├── Title with CalendarClock Icon
 │   └── Description
-├── ActionBar
-│   ├── ViewModeToggle (List/Grouped)
-│   ├── GroupBySelect (when grouped)
-│   ├── ExportButton
-│   └── RefreshButton
+├── AlertSection
+│   ├── ExpiredItemsAlert (destructive)
+│   └── NearExpiryAlert (warning)
 ├── SummaryCards (6 cards)
-│   ├── TotalItems
-│   ├── TotalValue
-│   ├── AverageAge
-│   ├── NearExpiry
-│   ├── ExpiredItems
-│   └── ValueAtRisk
-├── ValueAtRiskPanel
-│   ├── ExpiredValue
-│   ├── CriticalValue
-│   ├── ExpiringSoonValue
-│   └── TotalAtRisk
+│   ├── TotalItems (Package icon, blue)
+│   ├── TotalValue (DollarSign icon, green)
+│   ├── AverageAge (Clock icon, orange)
+│   ├── NearExpiry (Timer icon, yellow)
+│   ├── ExpiredItems (AlertCircle icon, red)
+│   └── ValueAtRisk (TrendingDown icon, red)
 ├── MainContent (Card with Tabs)
 │   ├── TabsList
 │   │   ├── Inventory List
@@ -409,62 +563,92 @@ InventoryAgingPage
 │   │   └── Action Center
 │   ├── InventoryListTab
 │   │   ├── FilterBar
+│   │   │   ├── SearchInput
+│   │   │   ├── CategorySelect
+│   │   │   ├── AgeBucketSelect
+│   │   │   ├── ExpiryStatusSelect
+│   │   │   └── LocationSelect
+│   │   ├── ViewControls
+│   │   │   ├── ViewModeToggle (List/Grouped)
+│   │   │   └── GroupBySelect (when grouped)
 │   │   └── DataTable or GroupedTable
 │   ├── AnalyticsTab
-│   │   ├── AgeDistributionChart
-│   │   ├── ExpiryStatusChart
-│   │   ├── CategoryAgeChart
-│   │   └── ValueAtRiskBreakdown
+│   │   ├── ExpiryTimelineChart (ComposedChart)
+│   │   ├── AgeBucketDistribution (PieChart)
+│   │   ├── ExpiryStatusChart (BarChart)
+│   │   ├── LocationAgingPerformance (ComposedChart)
+│   │   └── CategoryAgingAnalysis (Table)
 │   └── ActionCenterTab
-│       ├── ExpiredItemsQueue
-│       ├── CriticalItemsQueue
-│       ├── FIFORecommendations
-│       └── ActionButtons
+│       ├── ValueAtRiskSummary
+│       │   ├── ExpiredValue (critical badge)
+│       │   ├── CriticalValue (urgent badge)
+│       │   └── ExpiringSoonValue (monitor badge)
+│       ├── CriticalItemsList (top 10)
+│       ├── OldestItemsList (top 10)
+│       └── RecommendedActions
+│           ├── DisposeExpired
+│           ├── PrioritizeUsage
+│           └── RebalanceStock
 └── Footer
     └── RecordCount
 ```
 
+**Source Evidence**: `inventory-aging/page.tsx:694-1538`
+
 ---
 
-## 12. Third-Party Libraries
+## 13. Third-Party Libraries
 
 | Library | Version | Usage |
 |---------|---------|-------|
-| Recharts | ^2.x | AreaChart, PieChart, BarChart, ComposedChart |
-| lucide-react | ^0.x | Icons |
-| shadcn/ui | ^0.x | Card, Table, Badge, Progress, Tabs, Alert |
-| date-fns | ^2.x | Date calculations (differenceInDays) |
+| Recharts | ^2.x | PieChart, BarChart, ComposedChart, Bar, Line |
+| lucide-react | ^0.x | CalendarClock, Package, DollarSign, Clock, Timer, AlertCircle, TrendingDown, AlertTriangle |
+| shadcn/ui | ^0.x | Card, Table, Badge, Progress, Tabs, Alert, Button, Select |
+| date-fns | ^2.x | addWeeks, format, differenceInDays |
 
 ---
 
-## 13. Badge Rendering
+## 14. Badge Rendering
 
-### 13.1 Age Bucket Badge
+### 14.1 Age Bucket Badge
 ```typescript
 const renderAgeBucketBadge = (bucket: AgeBucket) => {
-  const config = AGE_BUCKETS[bucket]
+  const colorMap = {
+    '0-30': 'bg-green-100 text-green-800',
+    '31-60': 'bg-yellow-100 text-yellow-800',
+    '61-90': 'bg-orange-100 text-orange-800',
+    '90+': 'destructive'
+  }
+
+  if (bucket === '90+') {
+    return <Badge variant="destructive">{bucket}</Badge>
+  }
+
   return (
-    <Badge className={`bg-${config.color}-100 text-${config.color}-800`}>
-      {config.label}
+    <Badge variant="outline" className={colorMap[bucket]}>
+      {bucket}
     </Badge>
   )
 }
 ```
 
-### 13.2 Expiry Status Badge
+**Source Evidence**: `inventory-aging/page.tsx:281-296`
+
+### 14.2 Expiry Status Badge
 ```typescript
 const renderExpiryBadge = (status: ExpiryStatus) => {
-  const config = EXPIRY_STATUSES[status]
   const variants = {
-    'good': 'success',
-    'expiring-soon': 'warning',
-    'critical': 'warning',
-    'expired': 'destructive',
-    'no-expiry': 'secondary'
+    'good': { variant: 'outline', className: 'bg-green-100 text-green-800' },
+    'expiring-soon': { variant: 'outline', className: 'bg-yellow-100 text-yellow-800' },
+    'critical': { variant: 'destructive', className: '' },
+    'expired': { variant: 'destructive', className: '' },
+    'no-expiry': { variant: 'secondary', className: '' }
   }
+
+  const config = variants[status]
   return (
-    <Badge variant={variants[status]}>
-      {config.label}
+    <Badge variant={config.variant} className={config.className}>
+      {EXPIRY_STATUS_CONFIG[status].label}
     </Badge>
   )
 }
@@ -472,23 +656,34 @@ const renderExpiryBadge = (status: ExpiryStatus) => {
 
 ---
 
-## 14. Performance Considerations
+## 15. Performance Considerations
 
 | Concern | Mitigation |
 |---------|------------|
-| Large item list | useMemo for filtering |
-| Date calculations | Cache age/expiry on load |
-| Chart rendering | Lazy loading tabs |
-| Grouping changes | Memoized grouping |
+| Large item list | useMemo for filtering and statistics |
+| Date calculations | Cache age/expiry on initial load |
+| Chart rendering | Lazy loading tabs with TabsContent |
+| Grouping changes | Memoized grouping functions |
+| Alert calculation | Derived from memoized stats |
 
 ---
 
-## 15. Accessibility
+## 16. Accessibility
 
 | Feature | Implementation |
 |---------|---------------|
-| Keyboard navigation | Tab through items |
-| Screen readers | ARIA labels on badges |
-| Color contrast | 4.5:1 minimum |
-| Focus indicators | Visible focus rings |
-| Status indicators | Text labels with colors |
+| Keyboard navigation | Tab through filters and items |
+| Screen readers | ARIA labels on badges and alerts |
+| Color contrast | 4.5:1 minimum ratio |
+| Focus indicators | Visible focus rings on interactive elements |
+| Status indicators | Text labels accompany colors |
+| Alert announcements | Alert role for screen reader announcement |
+
+---
+
+## Related Documents
+
+- [BR-inventory-aging.md](./BR-inventory-aging.md) - Business Requirements
+- [FD-inventory-aging.md](./FD-inventory-aging.md) - Flow Diagrams
+- [UC-inventory-aging.md](./UC-inventory-aging.md) - Use Cases
+- [VAL-inventory-aging.md](./VAL-inventory-aging.md) - Validations

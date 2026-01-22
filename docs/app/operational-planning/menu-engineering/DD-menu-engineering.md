@@ -1,15 +1,16 @@
-# Menu Engineering - Data Definition (DS)
+# Menu Engineering - Data Dictionary (DD)
 
 ## Document Information
-- **Document Type**: Data Schema Document
+- **Document Type**: Data Dictionary Document
 - **Module**: Operational Planning > Menu Engineering
-- **Version**: 1.1.0
-- **Last Updated**: 2025-01-05
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.0.0 | 2025-01-16 | Development Team | Updated to v2.0.0, verified alignment with source code implementation |
 | 1.1 | 2025-01-05 | System | Added implementation status section |
 | 1.0 | 2024-01-15 | System | Initial data schema document created |
 

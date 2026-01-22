@@ -14,9 +14,9 @@
 |---------|------|--------|---------|
 | 2.3.0 | 2025-12-17 | Documentation Team | Updated list page UI - removed tabs, added Stock-in/Stock-out buttons in header |
 | 2.2.0 | 2025-12-13 | Documentation Team | Added Two-Level Category/Reason Classification flow (Category at header-level, Reason at item-level) |
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
-| 2.1.0 | 2025-12-09 | Documentation Team | Updated GL account mapping to use 1310/5110, type-specific reasons, costing rules |
-| 2.0.0 | 2025-01-10 | Documentation Team | Aligned with shared methods infrastructure |
+| 2.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.0.0 | 2025-12-09 | Documentation Team | Updated GL account mapping to use 1310/5110, type-specific reasons, costing rules |
+| 1.1.0 | 2025-01-10 | Documentation Team | Aligned with shared methods infrastructure |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
 **IMPORTANT**: Inventory adjustments use the **shared costing methods infrastructure** for all stock transactions and lot tracking. This document references the shared transaction system defined in the Shared Methods documentation.

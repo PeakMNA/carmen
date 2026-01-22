@@ -2,13 +2,14 @@
 
 **Module**: Inventory Management
 **Sub-module**: Inventory Adjustments
-**Version**: 1.1
-**Last Updated**: 2025-12-09
+**Version**: 2.0.0
+**Last Updated**: 2026-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.0.0 | 2026-01-16 | Documentation Team | Updated to match current UI: Stock-in/Stock-out header buttons, Two-Level Category/Reason classification, updated source evidence |
 | 1.1.0 | 2025-12-09 | Documentation Team | Updated to match implementation: type-specific adjustment reasons, costing rules, type change restrictions |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
@@ -26,7 +27,7 @@
 **Module Documentation**:
 - [Business Requirements](./BR-inventory-adjustments.md)
 - [Technical Specification](./TS-inventory-adjustments.md)
-- [Data Schema](./DS-inventory-adjustments.md)
+- [Data Definition](./DD-inventory-adjustments.md)
 - [Flow Diagrams](./FD-inventory-adjustments.md)
 - [Validations](./VAL-inventory-adjustments.md)
 
@@ -38,7 +39,7 @@
 - **UC-INV-ADJ-001**: View Adjustment List
 - **UC-INV-ADJ-002**: Search and Filter Adjustments
 - **UC-INV-ADJ-003**: Navigate to Adjustment Details
-- **UC-INV-ADJ-004**: Create New Adjustment
+- **UC-INV-ADJ-004**: Create New Adjustment (Stock-in or Stock-out)
 - **UC-INV-ADJ-005**: Edit Draft Adjustment
 - **UC-INV-ADJ-006**: Add Items to Adjustment
 - **UC-INV-ADJ-007**: View Stock Movement by Lot
@@ -75,29 +76,33 @@
 1. User navigates to `/inventory-management/inventory-adjustments` route
 2. System displays loading state
 3. System loads adjustment list data (UC-INV-ADJ-101)
-4. System renders adjustment list table with columns:
-   - Adjustment # (ID)
+4. System renders page header with:
+   - Title: "Inventory Adjustments"
+   - **Stock-in button** (green, navigates to `/new?type=in`)
+   - **Stock-out button** (red/destructive, navigates to `/new?type=out`)
+5. System renders adjustment list table with columns:
+   - Adjustment # (ID) - format ADJ-YYMM-NNNN
    - Date
-   - Type (IN/OUT badge)
+   - Type (IN/OUT with StatusBadge)
    - Location
    - Reason
    - Items count
    - Total Value (formatted currency)
-   - Status (badge)
-   - Actions menu
-5. System displays search bar at top
-6. System displays filter/sort options button
-7. List renders with all adjustments visible
+   - Status (Draft/Posted/Voided badge)
+   - Actions menu (three-dot icon)
+6. System displays search bar above table
+7. System displays filter/sort options button
+8. List renders with all adjustments visible (consolidated view, no tabs)
 
 **Alternative Flows**:
 
 **AF-001: First Time User**
-- At step 4: No adjustments exist yet
+- At step 5: No adjustments exist yet
 - System displays empty state message
-- System shows "Create New Adjustment" call-to-action button
+- User can click Stock-in or Stock-out button to create first adjustment
 
 **AF-002: Large Dataset**
-- At step 4: More than 50 adjustments exist
+- At step 5: More than 50 adjustments exist
 - System implements pagination
 - User can navigate between pages
 
@@ -108,7 +113,7 @@
 - System displays error message
 - System offers "Retry" button
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/page.tsx:8-25`, `components/inventory-adjustment-list.tsx:111-237`
+**Source Evidence**: `page.tsx:63-96` (header with Stock-in/Stock-out buttons), `components/inventory-adjustment-list.tsx:273-376` (table rendering)
 
 ---
 
@@ -135,10 +140,10 @@
 6. User clicks "Filter/Sort" button
 7. System displays filter options:
    - Status: Posted, Draft, Voided
-   - Type: IN, OUT
+   - Type: Stock In, Stock Out (maps to IN/OUT values)
    - Location: Main Warehouse, Production Store, etc.
 8. User selects one or more filters
-9. System applies filters cumulatively
+9. System applies filters cumulatively (four-stage pipeline)
 10. User selects sort field (Date, ID, Total Value, Items)
 11. System sorts results ascending or descending
 12. Filtered and sorted list displays
@@ -162,7 +167,7 @@
 - System implements debouncing (300ms delay)
 - Results update after user stops typing
 
-**Source Evidence**: `components/inventory-adjustment-list.tsx:113-115, 117-155, 159-173` (search and filter logic)
+**Source Evidence**: `components/inventory-adjustment-list.tsx:186-191` (searchQuery state), `209-267` (filteredAndSortedData useMemo with four-stage pipeline), `components/filter-sort-options.tsx`
 
 ---
 
@@ -178,7 +183,7 @@
 
 **Postconditions**:
 - User viewing full adjustment details
-- All tabs and data loaded
+- All data loaded
 
 **Main Flow**:
 1. User views adjustment list
@@ -186,29 +191,34 @@
 3. System navigates to `/inventory-management/inventory-adjustments/[id]`
 4. System displays loading state
 5. System loads adjustment data including:
-   - Header information
-   - All items with quantities and costs
-   - Stock movement with lot details
-   - Journal entries (if posted)
+   - Header information (ID, date, type, status, location, category, description)
+   - All items with quantities, costs, reasons
+   - Audit trail (Created By/At, Posted By/At)
 6. System renders detail page with:
-   - Header section (ID, date, type, status, location, reason, description)
-   - Action buttons (Edit, Post, Void based on status)
-   - Three tabs: Items, Stock Movement, Journal Entries
-7. Default tab "Stock Movement" displays first
-8. User can switch between tabs
+   - Color-coded type indicator (green banner for IN, red banner for OUT)
+   - Header section (ID, date, status, location, category, description)
+   - Action buttons (Edit for Draft, Print)
+   - Items table with product details
+   - Summary section with totals
+7. User can view all adjustment details
 
 **Alternative Flows**:
 
 **AF-001: Draft Adjustment**
 - At step 6: Adjustment status is "Draft"
-- System shows "Edit" and "Post" buttons
-- Items tab shows editable fields
+- System shows "Edit" button in header
+- Edit button navigates to `/[id]/edit`
 
 **AF-002: Posted Adjustment**
 - At step 6: Adjustment status is "Posted"
-- System shows "Void" button only
+- No Edit button visible
 - All fields read-only
-- Journal Entries tab populated
+- Shows Posted By and Posted At in audit trail
+
+**AF-003: Voided Adjustment**
+- At step 6: Adjustment status is "Voided"
+- All fields read-only
+- Shows Voided status badge
 
 **Exception Flows**:
 
@@ -217,11 +227,11 @@
 - System displays "Adjustment not found" error
 - System offers "Back to List" button
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/[id]/page.tsx:6-18`, `components/inventory-adjustment-detail.tsx:251-417`
+**Source Evidence**: `[id]/page.tsx:1-683` (detail page), `components/inventory-adjustment-list.tsx:313` (row click navigation)
 
 ---
 
-### UC-INV-ADJ-004: Create New Adjustment
+### UC-INV-ADJ-004: Create New Adjustment (Stock-in or Stock-out)
 
 **Actor(s)**: Storekeeper, Warehouse Manager
 
@@ -233,74 +243,77 @@
 
 **Postconditions**:
 - New adjustment created in Draft status
-- Adjustment # auto-generated
+- Adjustment # auto-generated (ADJ-YYMM-NNNN format)
 - Ready for item entry
 
 **Main Flow**:
 1. User views adjustment list page
-2. User clicks "New Adjustment" button
-3. System opens adjustment creation form/page
-4. System displays Adjustment Type selection:
-   - Stock OUT (decrease inventory) - default selection
-   - Stock IN (increase inventory)
-5. User selects adjustment type using visual card buttons
-6. System displays header fields:
-   - Date (defaults to today)
+2. User clicks **Stock-in** button (green) OR **Stock-out** button (red)
+3. System navigates to `/inventory-management/inventory-adjustments/new?type=in` or `?type=out`
+4. System displays adjustment creation form with:
+   - Type indicator locked based on URL parameter (cannot change)
+   - Date field (defaults to today)
    - Location dropdown (user's accessible locations)
-   - Reason dropdown (TYPE-SPECIFIC options - see below)
-   - Description (free text)
-7. System displays **type-specific** reason dropdown:
+   - **Category dropdown** (Two-Level Classification - header level)
+   - Description (free text, optional)
+5. System displays **type-specific category options**:
 
-   **For Stock OUT adjustments:**
+   **For Stock IN adjustments (type=in):**
+   - Physical Count Variance
+   - Found Items
+   - Return to Stock
+   - System Correction
+   - Other
+
+   **For Stock OUT adjustments (type=out):**
    - Damaged Goods
    - Expired Items
    - Theft / Loss
    - Spoilage
    - Physical Count Variance
    - Quality Control Rejection
-   - Other (requires notes)
+   - Other
 
-   **For Stock IN adjustments:**
-   - Physical Count Variance
-   - Found Items
-   - Return to Stock
-   - System Correction
-   - Other (requires notes)
-
-8. User fills required fields: Location, Reason
-9. User optionally adds Description
-10. User adds items to adjustment:
-    - Search and select products
-    - Enter adjustment quantities
-    - For Stock IN: Enter unit cost (required)
-    - For Stock OUT: System uses average cost automatically
-11. User clicks "Save as Draft" or "Post Adjustment"
-12. System validates all required fields
-13. System generates Adjustment # (ADJ-YYMM-NNNN format)
-14. System creates adjustment with appropriate status
-15. System navigates to adjustment detail page or list
+6. User fills required fields: Location, Category
+7. User optionally adds Description
+8. User adds items using inline add pattern:
+   - Search and select products from dropdown
+   - Enter adjustment quantity
+   - Select item-level **Reason** (filtered by header category)
+   - For Stock IN: Enter unit cost (required)
+   - For Stock OUT: System uses average cost automatically (read-only)
+9. System calculates line totals and summary totals in real-time
+10. User clicks "Save as Draft" or can navigate away
+11. System validates all required fields
+12. System generates Adjustment # (ADJ-YYMM-NNNN format)
+13. System creates adjustment with Draft status
+14. System navigates to adjustment detail page or list
 
 **Alternative Flows**:
 
-**AF-001: Save and Add Items**
-- At step 7: User clicks "Save & Add Items"
-- System saves and navigates to Items tab
-- User can immediately add items
+**AF-001: Discard Changes**
+- At any time: User clicks back or navigates away with unsaved changes
+- System shows discard confirmation dialog
+- User confirms discard or cancels to stay on page
+
+**AF-002: Bulk Item Selection**
+- At step 8: User selects multiple items using checkboxes
+- User can delete selected items in bulk
 
 **Exception Flows**:
 
 **EF-001: Validation Error**
-- At step 8: Required fields missing
+- At step 11: Required fields missing
 - System displays validation errors
-- System highlights missing fields
+- System highlights missing fields with red indicators
 - User corrects and resubmits
 
-**EF-002: Duplicate Prevention**
-- At step 9: Check for duplicate adjustments (same date, location, type)
-- System warns user of potential duplicate
-- User confirms or cancels creation
+**EF-002: No Items Added**
+- At step 10: User tries to save without items
+- System prevents save
+- System displays "At least one item required" message
 
-**Source Evidence**: `app/(main)/inventory-management/inventory-adjustments/page.tsx:13-16` (New Adjustment button)
+**Source Evidence**: `page.tsx:72-85` (Stock-in/Stock-out buttons), `new/page.tsx:1-1237` (create form with inline item add), `new/page.tsx:99-149` (AdjustmentItem and AdjustmentFormData interfaces)
 
 ---
 
@@ -321,58 +334,55 @@
 
 **Main Flow**:
 1. User views adjustment detail page (Draft status)
-2. System displays "Edit" button
+2. System displays "Edit" button in header
 3. User clicks "Edit" button
-4. System enables edit mode:
-   - Header fields become editable (except Type - cannot change after creation)
-   - Items table shows edit/delete buttons
-   - "Add Item" button enabled
-5. User modifies header fields:
+4. System navigates to `/inventory-management/inventory-adjustments/[id]/edit`
+5. System loads current adjustment data into edit form
+6. User can modify:
    - Location
-   - Reason (type-specific dropdown - options depend on adjustment type)
+   - Category (type-specific dropdown)
    - Description
    - **Note**: Type (IN/OUT) cannot be changed after creation
-6. User modifies items:
+7. User can modify items:
    - Edit quantities
+   - Edit item-level reasons
    - For Stock IN: Edit unit costs (required)
-   - For Stock OUT: Unit costs auto-calculated from average cost
-   - Add new items
-   - Remove items
-7. System recalculates totals in real-time
-8. User clicks "Save" button
-9. System validates all changes:
-   - Location required
-   - Reason required
-   - At least one item required
-   - For Stock IN: All items have unit cost > 0
-   - For Stock OUT: Quantities do not exceed current stock
-10. System updates adjustment record
-11. System displays success message
-12. System exits edit mode
+   - For Stock OUT: Unit costs auto-calculated from average cost (read-only)
+   - Add new items using inline add pattern
+   - Remove items (individual or bulk selection)
+8. System recalculates totals in real-time
+9. User clicks "Save" button
+10. System validates all changes:
+    - Location required
+    - Category required
+    - At least one item required
+    - For Stock IN: All items have unit cost > 0
+    - For Stock OUT: Quantities validated
+11. System updates adjustment record
+12. System displays success message
+13. System navigates to detail page
 
 **Alternative Flows**:
 
-**AF-001: Cancel Edit**
-- At step 8: User clicks "Cancel" button
-- System discards all changes
-- System exits edit mode
-- Original data restored
+**AF-001: Discard Changes**
+- At any time: User clicks "Cancel" or navigates away
+- System shows discard confirmation dialog if unsaved changes exist
+- User confirms discard or cancels to stay
 
 **Exception Flows**:
 
 **EF-001: Validation Error**
-- At step 9: Invalid data entered (negative quantities, missing costs)
+- At step 10: Invalid data entered (negative quantities, missing costs)
 - System displays validation errors
-- System keeps edit mode active
 - User corrects errors
 
 **EF-002: Concurrent Edit**
-- At step 10: Another user modified same adjustment
+- At step 11: Another user modified same adjustment
 - System detects conflict
 - System displays warning
 - User chooses to overwrite or reload
 
-**Source Evidence**: `components/inventory-adjustment-detail.tsx:253, 275-277` (edit mode state), `components/header-actions.tsx`
+**Source Evidence**: `[id]/edit/page.tsx` (edit page), `[id]/page.tsx:282-287` (Edit button visibility for Draft status)
 
 ---
 
@@ -383,9 +393,8 @@
 **Priority**: Critical
 
 **Preconditions**:
-- Adjustment in Draft status
-- Edit mode enabled
-- User on Items tab
+- Adjustment in Draft status (new or edit mode)
+- User on create/edit page
 
 **Postconditions**:
 - New items added to adjustment
@@ -393,38 +402,35 @@
 - Items ready for posting
 
 **Main Flow**:
-1. User views adjustment detail (Draft status, edit mode)
-2. User switches to "Items" tab
-3. System displays items table
-4. User clicks "Add Item" button
-5. System opens item selection dialog/form
-6. User searches for product by name or SKU
-7. System displays matching products
-8. User selects product
-9. System pre-fills based on adjustment type:
+1. User views adjustment create/edit page
+2. System displays items section with:
+   - Search/select product dropdown
+   - Items table showing added items
+   - Summary totals
+3. User searches for product by name in dropdown
+4. System displays matching products from inventory
+5. User selects product from dropdown
+6. System adds item row to table with:
    - Product name and SKU
    - Current stock (On Hand)
    - UOM
+   - Adjustment quantity field (editable)
+   - **Reason dropdown** (item-level, filtered by header category)
 
    **For Stock OUT adjustments:**
    - Unit cost = product's average cost (auto-filled, read-only)
 
    **For Stock IN adjustments:**
-   - Unit cost = 0 (user must enter)
+   - Unit cost field (editable, required)
 
-10. User enters:
-    - Adjustment quantity (positive integer)
-    - For Stock IN: Unit cost (required, affects inventory valuation)
-    - Item-level reason (optional, uses type-specific dropdown)
-11. System calculates:
-    - Total value = Unit Cost × Adjustment Quantity
-12. User clicks "Add" (or item is added directly to table)
-13. System validates:
-    - Quantity > 0
-    - For Stock OUT: Quantity ≤ current stock
-    - For Stock IN: Unit cost > 0
-14. System adds item to table
-15. System updates summary section:
+7. User enters:
+   - Adjustment quantity (positive number)
+   - Item-level reason (optional, filtered by category)
+   - For Stock IN: Unit cost (required)
+8. System calculates:
+   - Total value = Unit Cost x Adjustment Quantity
+9. Item appears in table with all details
+10. System updates summary section:
     - Total items count
     - Total quantity
     - Total value (color-coded: green for IN, red for OUT)
@@ -432,28 +438,38 @@
 **Alternative Flows**:
 
 **AF-001: Add Multiple Items**
-- At step 12: User clicks "Add & Continue"
-- Item added, dialog remains open
-- User can add another item immediately
+- At step 5: User can repeat selection to add more items
+- Each selection adds a new row
+- User can continue adding without saving
 
 **AF-002: Edit Item Inline**
-- At any time: User clicks edit icon on existing item
-- Fields become editable inline
-- User modifies and saves
+- At any time: User modifies quantity or cost directly in table row
+- Changes reflected immediately
+- Totals recalculate in real-time
+
+**AF-003: Remove Items**
+- User clicks delete icon on item row
+- Item removed from table
+- Totals recalculate
+
+**AF-004: Bulk Delete Items**
+- User selects multiple items using checkboxes
+- User clicks bulk delete button
+- Selected items removed
 
 **Exception Flows**:
 
 **EF-001: Product Not Found**
-- At step 7: Search yields no results
-- System displays "Product not found"
-- User refines search or cancels
+- At step 4: Search yields no results
+- System displays "No products found" in dropdown
+- User refines search
 
-**EF-002: Insufficient Stock for OUT**
-- At step 10: OUT quantity exceeds on hand
-- System displays warning
-- User confirms or adjusts quantity
+**EF-002: Duplicate Product**
+- At step 5: Product already in items list
+- System may warn or allow (depends on implementation)
+- User can increase quantity of existing item instead
 
-**Source Evidence**: `components/inventory-adjustment-detail.tsx:330-411` (Items tab), lines 103-211 (mock item data)
+**Source Evidence**: `new/page.tsx:610-850` (inline item add pattern), `new/page.tsx:99-149` (AdjustmentItem interface), `new/page.tsx:272-305` (addItem handler)
 
 ---
 
@@ -473,46 +489,40 @@
 
 **Main Flow**:
 1. User views adjustment detail page
-2. User clicks "Stock Movement" tab
-3. System displays stock movement table
-4. For each item, system shows:
+2. System displays items table with:
    - Product name and SKU
-   - Location (type, code, name)
-   - Lot numbers affected
-   - IN quantity per lot (if Type = IN)
-   - OUT quantity per lot (if Type = OUT)
+   - Quantity
    - UOM
    - Unit cost
    - Total cost per item
-5. System displays subtotals:
-   - Total IN for item
-   - Total OUT for item
-6. System displays grand totals:
-   - Total IN all items
-   - Total OUT all items
-   - Total cost
-7. User can view all lots affected by adjustment
+3. For posted adjustments, lot information included:
+   - Lot numbers affected
+   - IN/OUT quantity per lot
+4. System displays totals:
+   - Total quantity
+   - Total value
+5. User can view all items affected by adjustment
 
 **Alternative Flows**:
 
 **AF-001: Multiple Lots Per Item**
-- At step 4: Item has multiple lots
-- System shows expandable rows
+- At step 3: Item has multiple lots
+- System shows expanded view with lot details
 - Each lot displayed separately with quantities
 
 **AF-002: No Lots Yet (Draft)**
-- At step 3: Adjustment in Draft, lots not assigned
+- At step 2: Adjustment in Draft, lots not assigned
 - System displays items without lot details
 - Message: "Lot assignment will occur on posting"
 
 **Exception Flows**:
 
 **EF-001: Missing Lot Data**
-- At step 4: Lot information incomplete
+- At step 3: Lot information incomplete
 - System displays "N/A" for missing data
 - System highlights items needing attention
 
-**Source Evidence**: `components/inventory-adjustment-detail.tsx:302-323` (Stock Movement tab), `components/stock-movement/stock-movement-table.tsx`, `components/types.ts:7-22` (Lot interface)
+**Source Evidence**: `[id]/page.tsx:383-456` (items table in detail view)
 
 ---
 
@@ -533,58 +543,48 @@
 
 **Main Flow**:
 1. User views adjustment detail page (Posted status)
-2. User clicks "Journal Entries" tab
-3. System displays journal header information:
-   - Status badge (Posted)
+2. System displays journal information section:
    - Journal # (JE-YYMM-NNNN)
    - Posting Date
    - Posting Period (YYYY-MM)
-   - Description
    - Reference (links to adjustment #)
-4. System displays audit trail:
+3. System displays audit trail:
    - Created By (user name)
    - Created At (timestamp)
    - Posted By (user name)
    - Posted At (timestamp)
-5. System displays journal entries table:
+4. System displays journal entries:
    - Account code
    - Account name
    - Debit amount
    - Credit amount
    - Department
-   - Reference
-6. System shows totals:
+5. System shows totals:
    - Total Debits
    - Total Credits
-7. System verifies balance: Total Debits = Total Credits
-8. User can review accounting impact
+6. System verifies balance: Total Debits = Total Credits
+7. User can review accounting impact
 
 **Alternative Flows**:
 
 **AF-001: Multiple Departments**
-- At step 5: Adjustment spans multiple departments
+- At step 4: Adjustment spans multiple departments
 - Each entry shows department allocation
 - User can filter by department
 
 **AF-002: Export Journal Entries**
-- At any time: User clicks "Export" button
-- System generates PDF or Excel
+- At any time: User clicks "Print" button
+- System generates printable view
 - File includes all journal details
 
 **Exception Flows**:
 
-**EF-001: Unbalanced Entry**
-- At step 7: Debits ≠ Credits (system error)
-- System displays error message
-- System prevents completion until balanced
-- Admin notification sent
-
-**EF-002: Draft Adjustment**
-- At step 2: Adjustment not yet posted
-- Journal Entries tab disabled or shows placeholder
+**EF-001: Draft Adjustment**
+- At step 1: Adjustment not yet posted
+- Journal entries section not displayed
 - Message: "Journal entries will be generated upon posting"
 
-**Source Evidence**: `components/inventory-adjustment-detail.tsx:213-249` (mock journal data), lines 325-328 (Journal tab), `components/journal-entries/journal-header.tsx`, `components/journal-entries/journal-table.tsx`
+**Source Evidence**: `[id]/page.tsx:146-205` (mock journal data), journal entry display in detail page
 
 ---
 
@@ -622,6 +622,7 @@
    - All items have unit costs
    - At least one item exists
    - Location is valid
+   - Category is set
 8. System begins posting process:
    - Creates inventory transactions for each item
    - Updates stock balances by location and lot
@@ -633,7 +634,7 @@
    - Posted At = current timestamp
 10. System displays success message: "Adjustment posted successfully"
 11. System refreshes page showing Posted status
-12. "Post" button removed, "Void" button appears
+12. "Post" button removed, "Edit" button hidden
 
 **Alternative Flows**:
 
@@ -662,7 +663,7 @@
 - Error logged and admin notified
 - User shown error message with reference #
 
-**Source Evidence**: `components/header-actions.tsx` (Post button), mock data shows status transitions
+**Source Evidence**: `[id]/page.tsx:299-318` (Post button and handler)
 
 ---
 
@@ -744,7 +745,7 @@
 - Adjustment remains Posted
 - Error logged and admin notified
 
-**Source Evidence**: `components/inventory-adjustment-list.tsx:86-89` (Voided status in mock data)
+**Source Evidence**: `components/inventory-adjustment-list.tsx:124` (Voided status in mock data)
 
 ---
 
@@ -796,7 +797,7 @@
 - System returns empty array
 - Client displays empty state
 
-**Source Evidence**: `components/inventory-adjustment-list.tsx:28-109` (mock data structure)
+**Source Evidence**: `components/inventory-adjustment-list.tsx:69-150` (mock data structure)
 
 ---
 
@@ -818,31 +819,27 @@
 **Main Flow**:
 1. System receives adjustment with items
 2. System initializes totals:
-   - totalInQty = 0
-   - totalOutQty = 0
+   - totalItems = 0
+   - totalQuantity = 0
    - totalCost = 0
 3. System iterates through each item:
    ```
    For each item:
-     itemTotal = unitCost × adjustmentQuantity
-
-     If adjustmentQuantity > 0:
-       totalInQty += adjustmentQuantity
-     Else:
-       totalOutQty += abs(adjustmentQuantity)
-
-     totalCost += abs(itemTotal)
+     itemTotal = unitCost x adjustmentQty
+     totalItems += 1
+     totalQuantity += adjustmentQty
+     totalCost += itemTotal
    ```
-4. System updates adjustment totals:
-   - totals.inQty = totalInQty
-   - totals.outQty = totalOutQty
-   - totals.totalCost = totalCost
-5. System validates calculation:
+4. System updates adjustment totals in summary section
+5. System displays formatted values:
+   - Total items count
+   - Total quantity with UOM
+   - Total cost in currency format (color-coded by type)
+6. System validates calculation:
    - Verify no negative totals
    - Verify cost matches sum of items
-6. System returns calculated totals
 
-**Source Evidence**: `components/types.ts:35-40` (totals interface), mock data lines 206-210
+**Source Evidence**: `new/page.tsx:307-324` (calculateTotals function), `new/page.tsx:908-963` (summary section display)
 
 ---
 
@@ -867,28 +864,32 @@
 **Main Flow**:
 1. System receives posting request for adjustment
 2. System retrieves adjustment data and items
-3. System determines journal entry type based on adjustment type:
+3. System determines journal entry type based on adjustment type and **category**:
 
    **For IN adjustments (increase stock):**
-   - Debit: Raw Materials Inventory (1310)
-   - Credit: Inventory Variance (5110)
+   - Debit: Raw Materials Inventory (account based on category)
+   - Credit: Inventory Variance (account based on category)
 
    **For OUT adjustments (decrease stock):**
-   - Debit: Inventory Variance (5110)
-   - Credit: Raw Materials Inventory (1310)
+   - Debit: Inventory Variance/Expense (account based on category)
+   - Credit: Raw Materials Inventory (account based on category)
+
+   **Category-to-GL Account Mapping:**
+   - Category at header level maps to appropriate GL accounts
+   - Different categories may map to different expense/variance accounts
 
 4. System creates journal header:
    - Journal # = "JE-" + YYMM + "-" + sequence
    - Posting Date = adjustment date
    - Posting Period = YYYY-MM from date
-   - Description = "Inventory Adjustment - " + reason
+   - Description = "Inventory Adjustment - " + category
    - Reference = adjustment #
    - Created By = current user
    - Created At = current timestamp
 
 5. System creates journal entries:
    - Entry 1: Inventory account with amount
-   - Entry 2: Variance account with offset amount
+   - Entry 2: Variance/expense account with offset amount
    - Department = adjustment location department
    - Reference = adjustment #
 
@@ -909,7 +910,7 @@
 **Exception Flows**:
 
 **EF-001: Unbalanced Entry**
-- At step 6: Debits ≠ Credits
+- At step 6: Debits != Credits
 - System logs error with details
 - System cancels posting
 - System rolls back changes
@@ -921,7 +922,7 @@
 - System logs warning
 - Continues with posting
 
-**Source Evidence**: `components/inventory-adjustment-detail.tsx:213-249` (journal entry structure), `components/types.ts:42-63` (JournalEntry interface)
+**Source Evidence**: `[id]/page.tsx:146-205` (journal entry structure in mock data), Two-Level Category/Reason classification in DD
 
 ---
 
@@ -949,15 +950,15 @@
    ```
    For each lot in item:
      Get current stock balance for:
-       - item_id
+       - product_id
        - location_id
        - lot_no
 
      Calculate new balance:
        If adjustment type = IN:
-         new_balance = current_balance + lot_quantity
+         new_balance = current_balance + adjustment_qty
        Else (OUT):
-         new_balance = current_balance - lot_quantity
+         new_balance = current_balance - adjustment_qty
 
      Validate:
        If new_balance < 0:
@@ -972,23 +973,24 @@
 
 4. System creates inventory transaction record:
    - transaction_id = unique ID
-   - item_id = item
+   - product_id = product
    - location_id = location
-   - transaction_type = ADJUST_UP or ADJUST_DOWN
+   - transaction_type = ADJ (Adjustment)
+   - movement_type = IN or OUT
    - quantity = adjustment quantity
    - unit_cost = item unit cost
-   - total_cost = quantity × unit cost
+   - total_cost = quantity x unit cost
    - balance_after = new stock balance
    - transaction_date = adjustment date
    - reference_no = adjustment #
-   - reference_type = "ADJUSTMENT"
+   - reference_type = "ADJ"
    - lot_no = lot number
    - user_id = posting user
 
 5. System updates aggregate balances:
    - Recalculate quantity_available
-   - Update total_value = quantity × average_cost
-   - Update average_cost if needed (based on costing method)
+   - Update total_value = quantity x average_cost
+   - Update average_cost if needed (for Stock IN with new unit cost)
 
 6. System logs all balance changes for audit
 
@@ -1006,7 +1008,7 @@
 - System logs new lot creation
 - Continues with balance update
 
-**Source Evidence**: `lib/types/inventory.ts:52-64` (StockBalance interface), lines 86-104 (InventoryTransaction interface)
+**Source Evidence**: Integration with Inventory Transactions module (see `docs/app/inventory-management/transactions/`)
 
 ---
 
@@ -1022,21 +1024,48 @@
 | Post | ✅ | ❌ | ❌ |
 | Void | ❌ | ✅ | ❌ |
 | Delete | ✅ | ❌ | ❌ |
+| Print | ✅ | ✅ | ✅ |
 
 ### Appendix B: System Transaction Flow
 
 ```
-Create Draft → Add Items → Post → Update Stock & GL → Complete
-                         ↓
-                      Void → Reverse Stock & GL → Complete
+[List Page]
+     |
+     v
+[Stock-in/Stock-out Button] --> [Create Form /new?type=in|out]
+     |                                    |
+     v                                    v
+[Select Location, Category]          [Add Items]
+     |                                    |
+     v                                    v
+[Save as Draft] -----------------------> [Draft Adjustment]
+                                              |
+                                              v
+                                         [Post] --> [Update Stock & GL] --> [Posted]
+                                              |
+                                              v
+                                         [Void] --> [Reverse Stock & GL] --> [Voided]
 ```
 
-### Appendix C: Integration Points
+### Appendix C: Two-Level Category/Reason Classification
 
-- **Inventory Transactions**: All posted adjustments create inventory transactions
-- **General Ledger**: Journal entries posted to GL on adjustment posting
+**Header Level - Category (maps to GL accounts):**
+- Stock IN categories: Physical Count Variance, Found Items, Return to Stock, System Correction, Other
+- Stock OUT categories: Damaged Goods, Expired Items, Theft/Loss, Spoilage, Physical Count Variance, Quality Control Rejection, Other
+
+**Item Level - Reason (filtered by header category):**
+- Each item can have a specific reason within the selected category
+- Reasons provide granular tracking within the broader category
+- Category drives GL account selection for financial reporting
+
+### Appendix D: Integration Points
+
+- **Inventory Transactions**: All posted adjustments create inventory transactions (Reference Type: ADJ)
+- **General Ledger**: Journal entries posted to GL on adjustment posting (category determines accounts)
 - **Stock Balances**: Real-time updates to location and lot-level balances
 - **Audit Log**: All actions logged for compliance and traceability
+- **Physical Count**: Generates adjustments from count variances
+- **Spot Check**: Can trigger adjustment for discrepancies
 
 ---
 
@@ -1044,4 +1073,6 @@ Create Draft → Add Items → Post → Update Stock & GL → Complete
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2025-01-10 | System | Initial creation from source code analysis |
+| 2.0.0 | 2025-01-16 | Documentation Team | Updated UI flow, Two-Level Category/Reason, source evidence |
+| 1.1.0 | 2025-12-09 | Documentation Team | Type-specific reasons, costing rules |
+| 1.0.0 | 2025-11-19 | Documentation Team | Initial creation |

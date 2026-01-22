@@ -3,13 +3,14 @@
 **Module**: Product Management
 **Sub-Module**: Products
 **Route**: `/product-management/products`
-**Document Version**: 1.1
-**Last Updated**: 2025-11-26
+**Document Version**: 1.2
+**Last Updated**: 2026-01-15
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2026-01-15 | Documentation Team | Updated RECIPE to INGREDIENT unit type, added is_inverse validation, added par_level and shelf validations for location assignments |
 | 1.1.0 | 2025-11-26 | Documentation Team | Added route reference, aligned with BR-products.md |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 ---
@@ -800,6 +801,44 @@ if (data.isDefault === true) {
 
 ---
 
+#### VAL-PROD-022A: Inverse Flag Validation
+
+**Rule**: The `is_inverse` flag determines conversion calculation direction. When true, conversion uses `Qty × (1/factor)`; when false, uses `Qty × factor`
+
+**Validation Logic**:
+```typescript
+// Validate is_inverse flag type
+if (typeof data.isInverse !== 'boolean') {
+  throw new Error("is_inverse must be a boolean value")
+}
+
+// Calculate conversion based on is_inverse flag
+const calculateConversion = (qty: number, factor: number, isInverse: boolean): number => {
+  if (factor <= 0) {
+    throw new Error("Conversion factor must be greater than 0")
+  }
+  return isInverse ? qty * (1 / factor) : qty * factor
+}
+```
+
+**UI Display Logic**:
+```typescript
+const getConversionText = (unit: ProductUnit) => {
+  if (unit.isInverse) {
+    return `1 ${baseUnit} = ${(1 / unit.factor).toFixed(5)} ${unit.unitCode}`
+  }
+  return `1 ${unit.unitCode} = ${unit.factor.toFixed(5)} ${baseUnit}`
+}
+```
+
+**Error Message**: "is_inverse must be a boolean value" / "Conversion factor must be greater than 0"
+
+**Validation Timing**: Server-side on unit create/update
+
+**Severity**: ERROR
+
+---
+
 #### VAL-PROD-023: Inventory Unit Conversion Factor
 
 **Rule**: INVENTORY unit type must have conversion_factor = 1.00000
@@ -863,6 +902,131 @@ if (data.reorderPoint !== null) {
 **Validation Timing**: Client and server-side
 
 **Severity**: WARNING
+
+---
+
+#### VAL-PROD-025A: Par Level Validation
+
+**Rule**: Par level (optimal stock level) should be between minimum and maximum quantities when provided
+
+**Validation Logic**:
+```typescript
+if (data.parLevel !== null && data.parLevel !== undefined) {
+  // Par level must be non-negative
+  if (data.parLevel < 0) {
+    throw new Error("Par level cannot be negative")
+  }
+
+  // Par level should be within min/max range (warning only)
+  if (data.parLevel < data.minQuantity || data.parLevel > data.maxQuantity) {
+    return {
+      type: 'WARNING',
+      message: `Par level (${data.parLevel}) is outside the min/max range (${data.minQuantity} - ${data.maxQuantity})`
+    }
+  }
+}
+```
+
+**Error Message**: "Par level cannot be negative"
+
+**Warning Message**: "Par level ({value}) is outside the min/max range ({min} - {max}). Proceed anyway?"
+
+**Validation Timing**: Client and server-side
+
+**Severity**: ERROR (for negative) / WARNING (for range)
+
+---
+
+#### VAL-PROD-025B: Shelf Assignment Validation
+
+**Rule**: When a shelf is assigned, it must belong to the same location as the product assignment
+
+**Validation Logic**:
+```typescript
+if (data.shelfId) {
+  const shelf = await db.shelves.findUnique({
+    where: { id: data.shelfId },
+    select: { locationId: true, isActive: true }
+  })
+
+  if (!shelf) {
+    throw new Error("Selected shelf does not exist")
+  }
+
+  if (!shelf.isActive) {
+    throw new Error("Selected shelf is inactive")
+  }
+
+  if (shelf.locationId !== data.locationId) {
+    throw new Error("Selected shelf does not belong to the assigned location")
+  }
+}
+```
+
+**Error Messages**:
+- "Selected shelf does not exist"
+- "Selected shelf is inactive"
+- "Selected shelf does not belong to the assigned location"
+
+**Validation Timing**: Server-side on location assignment
+
+**Severity**: ERROR
+
+---
+
+#### VAL-PROD-025C: Location Tags Validation
+
+**Rule**: Location-specific product tags must be valid strings with limited count
+
+**Validation Logic**:
+```typescript
+// Validate tags array
+if (data.tags !== undefined) {
+  if (!Array.isArray(data.tags)) {
+    throw new Error("Tags must be an array")
+  }
+
+  // Maximum 10 tags per location assignment
+  if (data.tags.length > 10) {
+    throw new Error("Maximum of 10 tags allowed per location assignment")
+  }
+
+  // Validate each tag
+  for (const tag of data.tags) {
+    if (typeof tag !== 'string') {
+      throw new Error("Each tag must be a string")
+    }
+    if (tag.length === 0 || tag.length > 50) {
+      throw new Error("Each tag must be between 1 and 50 characters")
+    }
+    // Only allow alphanumeric, spaces, and hyphens
+    if (!/^[a-zA-Z0-9\s\-]+$/.test(tag)) {
+      throw new Error("Tags can only contain letters, numbers, spaces, and hyphens")
+    }
+  }
+}
+```
+
+**Zod Schema**:
+```typescript
+tags: z.array(
+  z.string()
+    .min(1, "Tag cannot be empty")
+    .max(50, "Tag must be 50 characters or less")
+    .regex(/^[a-zA-Z0-9\s\-]+$/, "Tags can only contain letters, numbers, spaces, and hyphens")
+).max(10, "Maximum of 10 tags allowed").default([])
+```
+
+**Error Messages**:
+- "Tags must be an array"
+- "Maximum of 10 tags allowed per location assignment"
+- "Each tag must be a string"
+- "Each tag must be between 1 and 50 characters"
+- "Tags can only contain letters, numbers, spaces, and hyphens"
+
+**Validation Timing**: Client and server-side
+
+**Severity**: ERROR
 
 ---
 
@@ -1159,7 +1323,7 @@ for (const [index, row] of rows.entries()) {
 
 #### VAL-PROD-037: Unit Count Limit
 
-**Rule**: Maximum 100 units per unit type per product (ORDER, RECIPE, COUNT)
+**Rule**: Maximum 100 units per unit type per product (ORDER, INGREDIENT, COUNT)
 
 **Validation Logic**:
 ```typescript

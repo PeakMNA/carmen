@@ -3,15 +3,16 @@
 ## Document Information
 - **Document Type**: Flow Diagrams Document
 - **Module**: Vendor Management > Requests for Pricing
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 - **Mermaid Version**: 8.8.2
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated priority field in flows to include 'normal'; Added tags field to creation flow; Updated vendor status states to match code |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional RFQ features (bidding, evaluation, awards, contracts); Updated to reflect Price Collection Campaign functionality; Updated mermaid syntax to 8.8.2 |
 | 1.0 | 2024-01-15 | System | Initial flow diagrams document |
@@ -32,20 +33,20 @@ The module enables procurement staff to create pricing collection campaigns, inv
 
 ```mermaid
 graph TB
-    subgraph Frontend['Frontend Layer']
+    subgraph Frontend_Layer
         UI[Next.js UI Components]
         Wizard[4-Step Campaign Wizard]
         Forms[React Hook Form + Zod]
         State[Zustand + React Query]
     end
 
-    subgraph Application['Application Layer']
+    subgraph Application_Layer
         Pages[Server Components]
         Actions[Server Actions]
         API[Route Handlers]
     end
 
-    subgraph Business['Business Logic Layer']
+    subgraph Business_Logic_Layer
         Auth[Authentication Service]
         Validation[Validation Service]
         Campaign[Campaign Service]
@@ -54,7 +55,7 @@ graph TB
         Notification[Notification Service]
     end
 
-    subgraph Data['Data Layer']
+    subgraph Data_Layer
         MockData[Mock Data Layer]
         Types[TypeScript Interfaces]
     end
@@ -231,7 +232,7 @@ flowchart TD
 
     UserDecision -->|Launch Campaign| LaunchCampaign[Launch Campaign]
     LaunchCampaign --> CreateCampaign[Create Campaign Record]
-    CreateCampaign --> SetActive[Set Status: Active]
+    CreateCampaign --> SetActive[Set Status to Active]
     SetActive --> SendInvitations[Send Vendor Invitations]
     SendInvitations --> Success[Show Success Message]
     Success --> NavigateDetail[Go to Campaign Detail]
@@ -529,8 +530,8 @@ flowchart LR
 flowchart TD
     Start([Click Duplicate]) --> LoadCampaign[Load Original Campaign]
     LoadCampaign --> CopyData[Copy Campaign Data]
-    CopyData --> ModifyName[Add ' (Copy)' to Name]
-    ModifyName --> ResetStatus[Set Status: Draft]
+    CopyData --> ModifyName[Append Copy suffix to Name]
+    ModifyName --> ResetStatus[Set Status to Draft]
     ResetStatus --> ResetProgress[Reset Progress Metrics]
     ResetProgress --> CreateNew[Create New Campaign]
     CreateNew --> ShowToast[Show Success Toast]

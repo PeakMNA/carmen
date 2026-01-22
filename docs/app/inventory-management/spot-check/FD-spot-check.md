@@ -4,18 +4,19 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Spot Check
 - **Route**: `/app/(main)/inventory-management/spot-check`
-- **Version**: 2.1.0
-- **Last Updated**: 2025-12-09
+- **Version**: 2.2.0
+- **Last Updated**: 2025-01-16
 - **Owner**: Inventory Management Team
 - **Status**: Implemented
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.2.0 | 2025-01-16 | Documentation Team | Verified against source code implementation |
+| 2.1.0 | 2025-12-09 | System | Updated to 2-step wizard, added active/completed page flows |
+| 2.0.0 | 2025-12-06 | System | Updated to reflect actual implementation |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-01-11 | System | Initial version |
-| 2.0.0 | 2025-12-06 | System | Updated to reflect actual implementation |
-| 2.1.0 | 2025-12-09 | System | Updated to 2-step wizard, added active/completed page flows |
 
 ---
 

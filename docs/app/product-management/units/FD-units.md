@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2026-01-15 | Documentation Team | Added MEASURE unit type; clarified RECIPE vs MEASURE distinction |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-02 | Documentation Team | Initial version |
 
@@ -20,10 +21,11 @@
 
 This document provides comprehensive flow diagrams for the Units Management sub-module within the CARMEN ERP system. These diagrams illustrate the processes, data flows, and interactions involved in managing measurement units used throughout the hospitality operations.
 
-The Units Management module supports three types of measurement units:
+The Units Management module supports four types of measurement units:
 - **INVENTORY Units**: For stock measurement and tracking (e.g., KG, L, PC)
 - **ORDER Units**: For purchasing and procurement (e.g., BOX, CASE, PALLET)
-- **RECIPE Units**: For kitchen and culinary operations (e.g., TSP, TBSP, CUP)
+- **RECIPE Units**: For recipe yield output and serving portions (e.g., SERVING, PORTION, PLATE, BOWL, SLICE)
+- **MEASURE Units**: For recipe ingredient measurements (e.g., TSP, TBSP, CUP, OZ, PINCH)
 
 **Related Documents**:
 - [Business Requirements](./BR-units.md)
@@ -316,7 +318,7 @@ flowchart TD
 | Code | Required, 2-10 chars, alphanumeric | "Code is required and must be 2-10 characters" |
 | Code | Unique (case-insensitive) | "Unit code {CODE} already exists" |
 | Name | Required, 1-100 chars | "Name is required and must be 1-100 characters" |
-| Type | Required, valid enum | "Type must be INVENTORY, ORDER, or RECIPE" |
+| Type | Required, valid enum | "Type must be INVENTORY, ORDER, RECIPE, or MEASURE" |
 | Description | Optional, max 500 chars | "Description must be less than 500 characters" |
 
 **Business Rules Enforced**:
@@ -651,7 +653,7 @@ RETURN filteredUnits
 |--------|---------|---------|-------------|
 | Search | Free text | "" | Searches code, name, description |
 | Status | All, Active, Inactive | All | Filters by isActive flag |
-| Type | All, INVENTORY, ORDER, RECIPE | All | Filters by unit type |
+| Type | All, INVENTORY, ORDER, RECIPE, MEASURE | All | Filters by unit type |
 
 **Performance Characteristics**:
 - Filtering: Client-side, no server requests
@@ -1138,8 +1140,10 @@ sequenceDiagram
     User->>ProductForm: Create/Edit Product
     ProductForm->>UnitAPI: GET /api/units?type=INVENTORY&status=active
     UnitAPI->>DB: SELECT * FROM units WHERE type='INVENTORY' AND isActive=true
-    DB-->>UnitAPI: Return active inventory units
+    DB-->>UnitAPI: Return active inventory units (KG, L, PC, etc.)
     UnitAPI-->>ProductForm: Return unit options
+
+    Note over ProductForm: Only INVENTORY units allowed<br>for base unit selection
 
     ProductForm->>ProductForm: Display base unit dropdown
     User->>ProductForm: Select base unit (e.g., KG)
@@ -1167,7 +1171,8 @@ sequenceDiagram
 
 **Integration Rules**:
 - Only INVENTORY units can be used as base_unit
-- All unit types can be used as alternative units
+- INVENTORY and ORDER unit types can be used as alternative units
+- RECIPE and MEASURE units are not used for product definitions
 - Conversion factors are stored in product_units table
 - Unit code changes blocked if product references exist
 
@@ -1186,26 +1191,29 @@ sequenceDiagram
     participant DB as Database
 
     Chef->>RecipeForm: Create/Edit Recipe
-    RecipeForm->>UnitAPI: GET /api/units?type=RECIPE&status=active
-    UnitAPI->>DB: SELECT * FROM units WHERE type='RECIPE' AND isActive=true
-    DB-->>UnitAPI: Return active recipe units (TSP, TBSP, CUP, etc.)
-    UnitAPI-->>RecipeForm: Return recipe unit options
+
+    Note over RecipeForm: Recipe uses two unit types:<br>MEASURE for ingredients<br>RECIPE for yield output
+
+    RecipeForm->>UnitAPI: GET /api/units?type=MEASURE&status=active
+    UnitAPI->>DB: SELECT * FROM units WHERE type='MEASURE' AND isActive=true
+    DB-->>UnitAPI: Return active measure units (TSP, TBSP, CUP, OZ, etc.)
+    UnitAPI-->>RecipeForm: Return measure unit options for ingredients
 
     RecipeForm->>RecipeForm: Display ingredient list
-    Chef->>RecipeForm: Add ingredient: "500 ML Milk"
+    Chef->>RecipeForm: Add ingredient: "2 CUP Milk"
 
-    Note over RecipeForm: ML is a RECIPE type unit
+    Note over RecipeForm: CUP is a MEASURE type unit<br>for ingredient measurements
 
     RecipeForm->>UnitAPI: Validate unit exists and is active
-    UnitAPI->>DB: SELECT * FROM units WHERE code='ML' AND type='RECIPE'
+    UnitAPI->>DB: SELECT * FROM units WHERE code='CUP' AND type='MEASURE'
     DB-->>UnitAPI: Return unit details
     UnitAPI-->>RecipeForm: Unit valid
 
     Chef->>RecipeForm: Submit recipe
     RecipeForm->>RecipeService: POST /api/recipes
     RecipeService->>DB: BEGIN TRANSACTION
-    RecipeService->>DB: INSERT INTO recipes
-    RecipeService->>DB: INSERT INTO recipe_ingredients (quantity=500, unit_id=ML)
+    RecipeService->>DB: INSERT INTO recipes (yield_unit_id=SERVING)
+    RecipeService->>DB: INSERT INTO recipe_ingredients (quantity=2, unit_id=CUP)
     RecipeService->>DB: COMMIT
     DB-->>RecipeService: Success
     RecipeService-->>RecipeForm: Recipe created
@@ -1215,7 +1223,9 @@ sequenceDiagram
 ```
 
 **Integration Rules**:
-- Only RECIPE and INVENTORY units can be used in recipes
+- MEASURE units are used for ingredient quantities (TSP, TBSP, CUP, OZ, PINCH)
+- RECIPE units are used for yield output (SERVING, PORTION, PLATE, BOWL, SLICE)
+- INVENTORY units can also be used in recipes for bulk ingredients (KG, L)
 - Recipe ingredients store quantity and unit_id
 - Unit deactivation prevents selection in new recipes
 - Existing recipes continue to display deactivated units

@@ -109,8 +109,9 @@ interface StoreRequisition {
   requestDate: Date                   // Date request was created
   requiredDate: Date                  // Required delivery date
   
-  // Status & Workflow
+  // Status & Stage
   status: SRStatus                    // Current document status
+  stage: SRStage                      // Current workflow stage
   workflowType: SRWorkflowType        // Determines approval & doc generation
   
   // Source Location (From)
@@ -163,16 +164,32 @@ interface StoreRequisition {
   updatedBy?: string
 }
 
+// SR Status (5 simplified values)
 enum SRStatus {
   Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Processing = 'processing',
-  Processed = 'processed',
-  PartialComplete = 'partial_complete',
+  InProgress = 'in_progress',
   Completed = 'completed',
-  Rejected = 'rejected',
-  Cancelled = 'cancelled'
+  Cancelled = 'cancelled',
+  Voided = 'voided'
+}
+
+// SR Workflow Stage (5 stages)
+// Multiple stages map to the same status
+enum SRStage {
+  Draft = 'draft',
+  Submit = 'submit',
+  Approve = 'approve',
+  Issue = 'issue',
+  Complete = 'complete'
+}
+
+// Stage to Status Mapping
+const STAGE_TO_STATUS: Record<SRStage, SRStatus> = {
+  [SRStage.Draft]: SRStatus.Draft,
+  [SRStage.Submit]: SRStatus.InProgress,
+  [SRStage.Approve]: SRStatus.InProgress,
+  [SRStage.Issue]: SRStatus.InProgress,
+  [SRStage.Complete]: SRStatus.Completed
 }
 
 enum SRWorkflowType {
@@ -493,3 +510,12 @@ const mockSuggestions: ReplenishmentSuggestion[] = [
   }
 ]
 ```
+
+---
+
+## Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2024-12-01 | System | Initial creation |
+| 1.1.0 | 2025-01-15 | Claude | Updated SRStatus enum to 5-value simplified model; Added SRStage enum with STAGE_TO_STATUS mapping; Added `stage` field to StoreRequisition interface |

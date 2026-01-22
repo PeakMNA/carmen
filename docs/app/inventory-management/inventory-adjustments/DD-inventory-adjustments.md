@@ -10,7 +10,7 @@
 | 2.1.0 | 2025-12-09 | Documentation Team | Updated enum_adjustment_reason to type-specific (IN/OUT), added costing rules |
 | 2.0.0 | 2025-11-19 | Documentation Team | Aligned with Shared Methods |
 | 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
-| 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.0.0 | 2025-11-10 | Documentation Team | Initial version |
 
 **Module**: Inventory Management
 **Sub-Module**: Inventory Adjustments

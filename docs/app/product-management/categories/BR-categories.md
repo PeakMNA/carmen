@@ -504,50 +504,72 @@ The system must provide full category management functionality on mobile devices
 
 ### Category Entity
 
-**Purpose**: Represents a node in the three-level product classification hierarchy. Can be a top-level category, subcategory, or item group depending on its type and parent relationship.
+**Purpose**: Represents a node in the three-level product classification hierarchy. Can be a top-level category, subcategory, or item group depending on its level and parent relationship.
 
 **Conceptual Structure**:
 
 ```typescript
+/**
+ * Base Category interface (from lib/types/common.ts)
+ * Supports three-level hierarchy: CATEGORY → SUBCATEGORY → ITEM_GROUP
+ */
 interface Category {
   // Primary key
   id: string;                          // UUID, unique identifier
 
   // Core fields
   name: string;                        // Display name (1-100 chars, required)
-  description: string;                 // Detailed description (0-500 chars, optional)
-  type: CategoryType;                  // CATEGORY | SUBCATEGORY | ITEM_GROUP
+  description?: string;                // Detailed description (0-500 chars, optional)
 
   // Hierarchy relationships
-  parentId: string | null;             // Parent category ID (null for root level)
-  parent?: Category;                   // Navigation property to parent
-  children: Category[];                // Child categories/subcategories/item groups
+  parentId?: string;                   // Parent category ID (undefined for root level)
+  level: number;                       // Hierarchy level: 1=Category, 2=Subcategory, 3=ItemGroup
 
   // Ordering and display
-  sortOrder: number;                   // Position among siblings (0-based)
-  level: number;                       // Hierarchy depth (1, 2, or 3)
-  path: string;                        // Full hierarchy path (computed)
+  sortOrder?: number;                  // Position among siblings (BR-CAT-008)
+  path?: string;                       // Full hierarchy path (e.g., "Food > Dairy > Cheese")
 
-  // Product relationships
-  products: Product[];                 // Products directly assigned to this category
-  itemCount: number;                   // Direct product count (computed)
-  totalItemCount: number;              // Direct + nested product count (computed)
+  // Product relationships (computed fields)
+  itemCount?: number;                  // Direct product count (BR-CAT-012)
+  totalItemCount?: number;             // Nested product count including children (BR-CAT-012)
 
   // Status and visibility
   isActive: boolean;                   // Active status (default: true)
 
-  // Audit fields
-  createdAt: Date;                     // Creation timestamp
-  createdBy: string;                   // Creator user ID
-  updatedAt: Date;                     // Last update timestamp
-  updatedBy: string;                   // Last updater user ID
-  deletedAt: Date | null;              // Soft delete timestamp (null if active)
-  deletedBy: string | null;            // User who deleted (null if active)
+  // Audit fields (BR-CAT-017)
+  createdAt?: Date;                    // Creation timestamp
+  createdBy?: string;                  // Creator user ID
+  updatedAt?: Date;                    // Last update timestamp
+  updatedBy?: string;                  // Last updater user ID
+
+  // Soft delete fields (BR-CAT-018)
+  deletedAt?: Date | null;             // Soft delete timestamp (null if active)
+  deletedBy?: string | null;           // User who deleted (null if active)
 }
 
-// Enum for category types
+/**
+ * Category type classification (from lib/types/product.ts)
+ * Used in UI tree operations, not stored on base Category
+ */
 type CategoryType = 'CATEGORY' | 'SUBCATEGORY' | 'ITEM_GROUP';
+
+/**
+ * Extended CategoryItem for UI tree operations (from lib/types/product.ts)
+ * Includes type and UI state for tree manipulation
+ */
+interface CategoryItem {
+  id: string;
+  name: string;
+  type: CategoryType;                  // Explicit type for UI tree operations
+  itemCount: number;
+  children?: CategoryItem[];
+  parentId?: string;
+  isExpanded?: boolean;                // UI expansion state
+  isEditing?: boolean;                 // UI editing state
+}
 ```
+
+**Note**: The `CategoryType` enum is used in the UI layer (`CategoryItem` interface) for tree operations and display. The base `Category` interface uses the `level` field (1, 2, or 3) to determine hierarchy position. This separation allows flexibility in the data model while providing explicit typing for UI components.
 
 ### Product Data Definition (Referenced)
 

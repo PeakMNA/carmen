@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Validations Document
 - **Module**: Vendor Management > Pricelist Templates
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-25
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
 - **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated to use validityPeriod instead of effective dates; Added notification settings validation; Added currency options (BHT, USD, CNY, SGD); Added productSelection validation |
 | 2.0.0 | 2025-11-25 | Documentation Team | Simplified to align with BR-pricelist-templates.md; Removed distribution, submission, approval, and pricing structure validations; Streamlined to core template functionality |
 | 1.1 | 2025-11-25 | Documentation Team | Updated document metadata |
 | 1.0 | 2024-01-15 | System | Initial creation |
@@ -89,23 +90,60 @@ vendor_instructions: z.string()
   .or(z.literal(''))
 ```
 
-#### Effective Date Range
-**Field**: `effective_from`, `effective_to` (stored in `tb_pricelist_template`)
+#### Validity Period
+**Field**: `validityPeriod` (stored in `tb_pricelist_template.validity_period`)
 
 | Rule | Validation | Error Message |
 |------|------------|---------------|
-| Optional (From) | Can be empty for templates without date constraint | N/A |
-| Optional (To) | Can be empty for indefinite templates | N/A |
-| Format | ISO 8601 date string | "Invalid date format" |
-| Consistency | End date must be after start date if both specified | "Effective end date must be after start date" |
+| Required | Must specify validity period | "Validity period is required" |
+| Type | Must be positive integer | "Validity period must be a positive number" |
+| Range | 1 to 365 days | "Validity period must be between 1 and 365 days" |
 
 **Zod Schema**:
 ```typescript
-effective_from: z.coerce.date().optional().nullable(),
+validityPeriod: z.number()
+  .int('Validity period must be a whole number')
+  .positive('Validity period must be a positive number')
+  .min(1, 'Validity period must be at least 1 day')
+  .max(365, 'Validity period must not exceed 365 days')
+  .default(90)
+```
 
-effective_to: z.coerce.date()
-  .optional()
-  .nullable()
+#### Default Currency
+**Field**: `defaultCurrency` (stored in `tb_pricelist_template.default_currency`)
+
+| Rule | Validation | Error Message |
+|------|------------|---------------|
+| Required | Must select a currency | "Currency is required" |
+| Valid | Must be one of: BHT, USD, CNY, SGD | "Invalid currency selected" |
+
+**Zod Schema**:
+```typescript
+defaultCurrency: z.enum(['BHT', 'USD', 'CNY', 'SGD'], {
+  errorMap: () => ({ message: 'Invalid currency' }),
+}).default('BHT')
+```
+
+#### Notification Settings
+**Field**: `notificationSettings` (stored in `tb_pricelist_template.notification_settings`)
+
+| Rule | Validation | Error Message |
+|------|------------|---------------|
+| Send Reminders | Boolean | N/A |
+| Reminder Days | Array of valid days (14, 7, 3, 1) | "Invalid reminder days" |
+| Escalation Days | 1 to 90 days | "Escalation days must be between 1 and 90" |
+
+**Zod Schema**:
+```typescript
+notificationSettings: z.object({
+  sendReminders: z.boolean().default(true),
+  reminderDays: z.array(z.number().int().positive()).default([7, 3, 1]),
+  escalationDays: z.number()
+    .int('Escalation days must be a whole number')
+    .min(1, 'Escalation days must be at least 1')
+    .max(90, 'Escalation days must not exceed 90')
+    .default(14)
+})
 ```
 
 #### Status

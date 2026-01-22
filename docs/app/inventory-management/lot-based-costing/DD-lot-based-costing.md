@@ -6,7 +6,9 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-11-19 | Documentation Team | Migrated from DS to DD format |
+| 1.0.0 | 2025-11-15 | Documentation Team | Initial version |
+
 **Module**: Inventory Management
 **Feature**: Lot-Based Costing with Automatic Lot Creation
 
@@ -18,8 +20,6 @@ This document provides comprehensive data schema documentation for the lot-based
 
 **Related Documents**:
 - [BR-LOT: Business Requirements](./BR-lot-based-costing.md)
-| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
-
 - [UC-LOT: Use Cases](./UC-lot-based-costing.md)
 - [TS-LOT: Technical Specification](./TS-lot-based-costing.md)
 

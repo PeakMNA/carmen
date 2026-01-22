@@ -3,13 +3,14 @@
 ## Module Information
 - **Module**: Vendor Management
 - **Sub-module**: Price Lists
-- **Version**: 2.1.0
+- **Version**: 3.0.0
 - **Status**: Active
-- **Last Updated**: 2025-11-26
+- **Last Updated**: 2026-01-15
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added VendorPricelist interface from vendor-management/types; Updated status values (draft, submitted, approved, rejected, expired); Added MOQPricing interface; Added PricelistItem interface; Added creation method types |
 | 2.1.0 | 2025-11-26 | System | Updated to reflect actual Prisma schema (tb_pricelist, tb_pricelist_detail); Added proposed fields section highlighting deviations from current database |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code implementation |
 | 1.2.0 | 2025-11-18 | Documentation Team | Previous version with vendor portal UI specifications |
@@ -215,8 +216,9 @@ For full workflow support matching the UI implementation:
 ```prisma
 enum enum_pricelist_status {
   draft
-  pending
-  active
+  submitted
+  approved
+  rejected
   expired
 }
 ```
@@ -224,9 +226,12 @@ enum enum_pricelist_status {
 | Status | Description | UI Color Code |
 |--------|-------------|---------------|
 | `draft` | Initial creation, not finalized | Gray (bg-gray-100 text-gray-800) |
-| `pending` | Awaiting review/approval | Yellow (bg-yellow-100 text-yellow-800) |
-| `active` | Current and in use | Green (bg-green-100 text-green-800) |
+| `submitted` | Submitted for review | Yellow (bg-yellow-100 text-yellow-800) |
+| `approved` | Approved and in use | Green (bg-green-100 text-green-800) |
+| `rejected` | Rejected with reason | Red (bg-red-100 text-red-800) |
 | `expired` | Past effective end date | Red (bg-red-100 text-red-800) |
+
+> **Legacy Support**: UI code also supports `active` (maps to `approved`) and `pending` (maps to `submitted`) for backwards compatibility.
 
 ---
 

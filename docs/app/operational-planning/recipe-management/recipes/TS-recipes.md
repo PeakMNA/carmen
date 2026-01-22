@@ -3,15 +3,16 @@
 ## Document Information
 - **Document Type**: Technical Specification Document
 - **Module**: Operational Planning > Recipe Management > Recipes
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial technical specification document created |
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: updated status types (draft, under_review, approved, rejected, published, archived), complexity types (simple, moderate, complex, advanced), documented quality control workflow |
 
 ---
 

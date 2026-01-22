@@ -25,6 +25,22 @@ The architecture follows a modern React pattern with clear separation between se
 
 Key technical features include optimized database queries with proper indexing, soft delete implementation for data preservation, real-time item count aggregation, and comprehensive validation at both client and server levels. The system supports concurrent user access with proper locking mechanisms and includes full audit trail logging for all operations.
 
+### Implementation Note: Type vs Level Field
+
+> **⚠️ Database Schema vs TypeScript Implementation**
+>
+> This technical specification describes the **database schema design** which includes a `type` field (VARCHAR) storing values 'CATEGORY', 'SUBCATEGORY', or 'ITEM_GROUP'.
+>
+> However, the current **TypeScript implementation** in `/lib/types/common.ts` uses a `level` field (number: 1, 2, or 3) instead of a `type` field on the base `Category` interface:
+>
+> - `level: 1` = Category (root level)
+> - `level: 2` = Subcategory (middle level)
+> - `level: 3` = Item Group (leaf level)
+>
+> The `CategoryType` enum and explicit `type` field exist only in the UI-focused `CategoryItem` interface in `/lib/types/product.ts`, used for tree rendering and display purposes.
+>
+> When implementing, use the `level` field from the `Category` interface for hierarchy operations, and `CategoryType`/`CategoryItem.type` for UI display logic.
+
 **⚠️ IMPORTANT: This is a Technical Specification Document - TEXT FORMAT ONLY**
 - **DO NOT include actual code** - describe implementation patterns in text
 - **DO NOT include TypeScript/JavaScript code** - describe component responsibilities

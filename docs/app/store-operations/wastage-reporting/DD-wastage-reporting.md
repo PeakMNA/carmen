@@ -4,8 +4,8 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Database**: PostgreSQL 14+ (via Supabase)
-- **Schema Version**: 1.2.0
-- **Last Updated**: 2025-12-09
+- **Schema Version**: 1.4.0
+- **Last Updated**: 2025-01-15
 - **Owner**: Store Operations Team
 - **Status**: Partially Implemented
 - **Implementation Status**: FRONTEND IMPLEMENTED (Mock data exists, database tables pending)
@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.4.0 | 2025-01-15 | Claude | Updated status values to match code: Draft, Submitted, Under Review, Approved, Rejected, Posted |
 | 1.3.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented mock data structures |
 | 1.2.0 | 2025-12-05 | Documentation Team | Added implementation status warning |
 | 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
@@ -32,7 +33,7 @@ The Wastage Reporting module frontend has been implemented with comprehensive mo
 - ✅ `approvalRules` - Configurable approval rules with conditions and actions
 - ✅ Chart data arrays for analytics (monthly trends, by reason, by location, by category)
 
-**Status Values**: `pending`, `under_review`, `approved`, `rejected`
+**Status Values**: `Draft`, `Submitted`, `Under Review`, `Approved`, `Rejected`, `Posted`
 
 **Reason Categories**: `expiration`, `damage`, `quality`, `spoilage`, `overproduction`, `contamination`, `other`
 
@@ -260,16 +261,17 @@ Key design principles include: (1) Separation of header and line items to suppor
 
 - **doc_status** - VARCHAR(50) - Current status in approval workflow
   - Required: Yes
-  - Default: 'draft'
-  - Allowed values: 'draft', 'pending_approval', 'approved', 'partially_approved', 'rejected', 'cancelled'
+  - Default: 'Draft'
+  - Allowed values: 'Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Posted'
   - Status transitions:
-    - draft → pending_approval (user submits)
-    - pending_approval → approved (approver approves)
-    - pending_approval → partially_approved (partial quantity approved)
-    - pending_approval → rejected (approver rejects)
-    - draft → cancelled (user cancels before submission)
-    - pending_approval → cancelled (user withdraws submission)
-  - Immutability: Cannot change status from 'approved' once inventory adjusted (prevent tampering)
+    - Draft → Submitted (user submits)
+    - Submitted → Under Review (reviewer picks up)
+    - Under Review → Approved (approver approves)
+    - Under Review → Rejected (approver rejects)
+    - Approved → Posted (posted to inventory and GL)
+    - Under Review → Draft (returned for revision)
+    - Rejected → Draft (user revises)
+  - Immutability: Cannot change status from 'Posted' (prevent tampering)
 
 - **approval_level_required** - INTEGER - Number of approval levels required based on value
   - Required: Yes
@@ -400,7 +402,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 | grn_reference | VARCHAR(50) | No | NULL | Goods receipt note number | GRN-2501-0110-0015 | - |
 | total_value | DECIMAL(15,2) | Yes | 0.00 | Total wastage value | 31.25, 125.00 | NOT NULL, >= 0 |
 | currency | VARCHAR(3) | Yes | 'USD' | ISO currency code | USD, EUR, GBP | NOT NULL, valid ISO code |
-| doc_status | VARCHAR(50) | Yes | 'draft' | Current workflow status | pending_approval | NOT NULL, CHECK (valid values) |
+| doc_status | VARCHAR(50) | Yes | 'Draft' | Current workflow status | Submitted, Under Review | NOT NULL, CHECK (valid values) |
 | approval_level_required | INTEGER | Yes | Calculated | Required approval levels | 0, 1, 2, 3 | NOT NULL, >= 0, <= 3 |
 | current_approval_level | INTEGER | Yes | 0 | Current approval level reached | 0, 1, 2 | NOT NULL, >= 0 |
 | is_auto_approved | BOOLEAN | Yes | false | Auto-approved by rules | true, false | NOT NULL |
@@ -483,7 +485,7 @@ Key design principles include: (1) Separation of header and line items to suppor
   - Constraint: CHECK (wastage_category IN (...))
 
 - **Status Values**: `doc_status` must be one of allowed values
-  - Values: 'draft', 'pending_approval', 'approved', 'partially_approved', 'rejected', 'cancelled'
+  - Values: 'Draft', 'Submitted', 'Under Review', 'Approved', 'Rejected', 'Posted'
   - Constraint: CHECK (doc_status IN (...))
 
 - **Total Value Non-Negative**: `total_value` must be >= 0
@@ -511,7 +513,7 @@ Key design principles include: (1) Separation of header and line items to suppor
 **Default Values**:
 - `wastage_time`: CURRENT_TIME - Defaults to submission time if not specified
 - `currency`: 'USD' - Default currency (or location's currency from configuration)
-- `doc_status`: 'draft' - New records start in draft status
+- `doc_status`: 'Draft' - New records start in Draft status
 - `total_value`: 0.00 - Initialize to zero (calculated from line items)
 - `approval_level_required`: Calculated based on total_value and thresholds
 - `current_approval_level`: 0 - No approvals yet
@@ -778,7 +780,7 @@ Notes: "Resubmit with better documentation for approval"
 - **line_status** - VARCHAR(50) - Line item approval status
   - Required: Yes
   - Default: 'pending'
-  - Allowed values: 'pending', 'approved', 'partially_approved', 'rejected'
+  - Allowed values: 'pending', 'approved', 'rejected'
   - Business meaning: Independent status allows partial approval of batch transactions
 
 **Audit Fields**:
@@ -838,7 +840,7 @@ Notes: "Resubmit with better documentation for approval"
 - `stock_on_hand_after` >= 0
 - `approved_quantity` <= `quantity` (if not NULL)
 - `rejected_quantity` <= `quantity` (if not NULL)
-- `line_status` IN ('pending', 'approved', 'partially_approved', 'rejected')
+- `line_status` IN ('pending', 'approved', 'rejected')
 - `costing_method` IN ('FIFO', 'LIFO', 'WeightedAverage', 'SpecificIdentification')
 
 **Indexes**:
@@ -1165,13 +1167,11 @@ Notes: "Resubmit with better documentation for approval"
 **Approval Action**:
 - **approval_action** - VARCHAR(50) - Action taken by approver
   - Required: Yes
-  - Allowed values: 'approved', 'partially_approved', 'rejected', 'escalated', 'returned'
+  - Allowed values: 'approved', 'rejected', 'pending'
   - Business meaning:
     - approved: Full approval of wastage
-    - partially_approved: Approved reduced value/quantity
     - rejected: Rejected wastage with reason
-    - escalated: Forwarded to higher authority
-    - returned: Sent back to submitter for revision
+    - pending: Awaiting approver decision
   - Example: approved, rejected
 
 - **approval_date** - TIMESTAMPTZ - When approval action was taken
@@ -1187,13 +1187,13 @@ Notes: "Resubmit with better documentation for approval"
   - Example: 125.00
 
 - **approved_value** - DECIMAL(15,2) - Value approved by this approver
-  - Required: If action = 'approved' or 'partially_approved'
+  - Required: If action = 'approved'
   - Business meaning: Value after approver adjustments (if any)
   - Validation: approved_value <= original_value
   - Example: 100.00 (reduced from 125.00)
 
 - **rejected_value** - DECIMAL(15,2) - Value not approved
-  - Required: If action = 'partially_approved' or 'rejected'
+  - Required: If action = 'rejected'
   - Calculated: original_value - approved_value
   - Business meaning: Portion of wastage not approved
   - Example: 25.00
@@ -1346,15 +1346,14 @@ Notes: "Resubmit with better documentation for approval"
 
 **Check Constraints**:
 - `approval_level` >= 1 AND `approval_level` <= 3
-- `approval_action` IN ('approved', 'partially_approved', 'rejected', 'escalated', 'returned')
+- `approval_action` IN ('approved', 'rejected', 'pending')
 - `original_value` >= 0
 - `approved_value` <= `original_value` (if not NULL)
 - `rejected_value` <= `original_value` (if not NULL)
 - `time_to_approve_seconds` >= 0
 - `approval_authority_limit` >= 0
 - `rejection_reason` IS NOT NULL if action = 'rejected'
-- `escalation_reason` IS NOT NULL if action = 'escalated'
-- `approved_value` IS NOT NULL if action IN ('approved', 'partially_approved')
+- `approved_value` IS NOT NULL if action = 'approved'
 
 **Business Rules**:
 - Approval records are immutable (no updates after creation, only inserts)

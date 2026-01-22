@@ -30,6 +30,20 @@ The use cases encompass category viewing and navigation, creation and editing op
 - [Flow Diagrams](./FD-categories.md)
 - [Validations](./VAL-categories.md)
 
+### Implementation Note: Type vs Level Field
+
+> **⚠️ Database Schema vs TypeScript Implementation**
+>
+> Use case flows in this document reference a `type` field with values 'CATEGORY', 'SUBCATEGORY', or 'ITEM_GROUP' as part of the **database schema design**.
+>
+> The current **TypeScript implementation** in `/lib/types/common.ts` uses a `level` field (number: 1, 2, or 3) instead:
+>
+> - `level: 1` = Category (type = 'CATEGORY' in use case flows)
+> - `level: 2` = Subcategory (type = 'SUBCATEGORY' in use case flows)
+> - `level: 3` = Item Group (type = 'ITEM_GROUP' in use case flows)
+>
+> The `CategoryType` enum and `CategoryItem.type` field exist only in the UI layer (`/lib/types/product.ts`) for tree rendering and display purposes.
+
 ---
 
 ## Actors

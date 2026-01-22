@@ -4,11 +4,18 @@
 
 | Field | Value |
 |-------|-------|
-| Module | Inventory Planning |
-| Version | 1.0.0 |
-| Last Updated | 2025-12-06 |
-| Status | Draft |
+| Module | Operational Planning > Inventory Planning |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-17 |
+| Status | Implemented |
 | Diagram Format | Mermaid 8.8.2 Compatible |
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2025-12-06 | Development Team | Initial documentation |
+| 2.0.0 | 2025-01-17 | Development Team | Updated to match actual UI implementation |
 
 ---
 
@@ -27,9 +34,24 @@ graph TB
 
     B --> C
     B --> D
-    C --> E
-    D --> H[Item Detail]
-    F --> I[Transfer Request]
+    B --> F
+    B --> G
+    C --> H[Store Operations Stock Replenishment]
+    D --> I[Export Dead Stock]
+    F --> J[Transfer Recommendations]
+```
+
+### 1.2 Cross-Module Navigation
+
+```mermaid
+graph TB
+    A[Inventory Planning Dashboard] --> B[Demand Forecasting]
+    A --> C[Inventory Management]
+
+    D[Reorder Management] --> E[Stock Replenishment]
+    D --> F[Procurement]
+
+    G[Dead Stock Analysis] --> H[Inventory Adjustments]
 ```
 
 ---
@@ -41,19 +63,33 @@ graph TB
 ```mermaid
 graph TB
     A[User Opens Dashboard] --> B[Load User Context]
-    B --> C[Fetch Performance Dashboard]
+    B --> C[Fetch Dashboard Data]
     C --> D{Data Available?}
 
     D -->|Yes| E[Calculate KPIs]
     D -->|No| F[Show No Data Message]
 
     E --> G[Render KPI Cards]
-    G --> H[Render Alert Summary]
-    H --> I[Render Charts]
-    I --> J[Render Recent Recommendations]
-    J --> K[Dashboard Ready]
+    G --> H[Total Savings Card]
+    G --> I[Items at Risk Card]
+    G --> J[Optimization Rate Card]
+    G --> K[Dead Stock Value Card]
 
-    F --> L[Show Setup Instructions]
+    H --> L[Render Charts]
+    I --> L
+    J --> L
+    K --> L
+
+    L --> M[Optimization Actions Pie Chart]
+    L --> N[Location Performance Bar Chart]
+
+    M --> O[Render Alert Summary Grid]
+    N --> O
+
+    O --> P[Render Recent Recommendations Table]
+    P --> Q[Dashboard Ready]
+
+    F --> R[Show Setup Instructions]
 ```
 
 ### 2.2 Dashboard Interaction Flow
@@ -62,62 +98,79 @@ graph TB
 graph TB
     A[Dashboard Displayed] --> B{User Action}
 
-    B -->|Click Location Filter| C[Filter Dashboard]
-    B -->|Click Alert Count| D[Navigate to Detail]
-    B -->|Click Quick Action| E[Navigate to Page]
-    B -->|Click Recommendation| F[Expand Details]
+    B -->|Click Location Filter| C[Filter Dashboard Data]
+    B -->|Click Alert Category| D[Navigate to Detail Page]
+    B -->|Click Quick Action| E[Navigate to Feature Page]
+    B -->|Click Recommendation| F[Navigate to Reorder Management]
 
-    C --> G[Refresh Data]
+    C --> G[Refresh Dashboard]
     G --> A
 
-    D -->|Low Stock| H[Reorder Management]
-    D -->|Dead Stock| I[Dead Stock Analysis]
-    D -->|Overstock| J[Reorder Management]
+    D -->|Low Stock| H[Reorder Management with filter]
+    D -->|Overstock| I[Reorder Management with filter]
+    D -->|Dead Stock| J[Dead Stock Analysis]
+    D -->|Expiring| K[Inventory Expiring Page]
+    D -->|High Value| L[Reorder Management with filter]
 
-    E -->|Generate Optimization| H
-    E -->|Analyze Dead Stock| I
-    E -->|Review Locations| K[Multi-Location]
-    E -->|Configure Settings| L[Settings]
+    E -->|Optimize Inventory| M[Reorder Management Page]
+    E -->|Analyze Dead Stock| N[Dead Stock Analysis Page]
+    E -->|Review Locations| O[Multi-Location Page]
+    E -->|Configure Settings| P[Settings Page]
+```
+
+### 2.3 Quick Actions Flow
+
+```mermaid
+graph TB
+    A[Quick Actions Section] --> B[Optimize Inventory Button]
+    A --> C[Analyze Dead Stock Button]
+    A --> D[Review Locations Button]
+    A --> E[Configure Settings Button]
+
+    B --> F[/operational-planning/inventory-planning/reorder]
+    C --> G[/operational-planning/inventory-planning/dead-stock]
+    D --> H[/operational-planning/inventory-planning/locations]
+    E --> I[/operational-planning/inventory-planning/settings]
 ```
 
 ---
 
-## 3. Optimization Flow
+## 3. Reorder Management Flow
 
-### 3.1 Generate Optimization Recommendations
+### 3.1 Reorder Recommendations Load Flow
 
 ```mermaid
 graph TB
-    A[User Opens Reorder Management] --> B[Select Filters]
-    B --> C[Click Generate Recommendations]
-    C --> D[API: generateOptimizationRecommendations]
+    A[User Opens Reorder Page] --> B[Load Mock Data]
+    B --> C[Display Summary Cards]
 
-    D --> E{For Each Item}
-    E --> F[Get Historical Data]
-    F --> G[Calculate EOQ]
-    G --> H[Calculate Reorder Point]
-    H --> I[Calculate Safety Stock]
-    I --> J[Assess Risk]
-    J --> K[Calculate Savings]
-    K --> L[Determine Action]
-    L --> M{More Items?}
+    C --> D[Items Card - Total Count]
+    C --> E[Changes Card - Proposed Changes]
+    C --> F[Savings Card - Annual Savings]
 
-    M -->|Yes| E
-    M -->|No| N[Aggregate Results]
-    N --> O[Return Recommendations]
-    O --> P[Display Table]
+    D --> G[Load Recommendations Table]
+    E --> G
+    F --> G
+
+    G --> H[Display Table with Columns]
+    H --> I[Product Code and Name]
+    H --> J[Location]
+    H --> K[Current vs Recommended ROP/EOQ]
+    H --> L[Annual Savings]
+    H --> M[Risk Level Badge]
+    H --> N[Action Type Badge]
 ```
 
-### 3.2 EOQ Calculation Detail
+### 3.2 EOQ Calculation Flow
 
 ```mermaid
 graph TB
-    A[Start EOQ Calculation] --> B[Get Annual Demand]
-    B --> C[Get Order Cost]
-    C --> D[Get Holding Cost]
+    A[Start EOQ Calculation] --> B[Get Annual Demand D]
+    B --> C[Get Order Cost S]
+    C --> D[Get Holding Cost H]
 
     D --> E{All Data Valid?}
-    E -->|No| F[Use Defaults]
+    E -->|No| F[Use Default Values]
     E -->|Yes| G[Calculate EOQ]
 
     F --> G
@@ -133,53 +186,105 @@ graph TB
     M --> L
 ```
 
-### 3.3 Apply Recommendations Flow
+### 3.3 Reorder Point Calculation Flow
 
 ```mermaid
 graph TB
-    A[User Selects Items] --> B[Click Apply Selected]
-    B --> C[Show Confirmation Dialog]
-    C --> D{User Confirms?}
+    A[Start ROP Calculation] --> B[Get Lead Time LT]
+    B --> C[Get Daily Demand DD]
+    C --> D[Get Safety Stock SS]
 
-    D -->|No| E[Cancel]
-    D -->|Yes| F[Validate Selection]
+    D --> E[Calculate Base ROP]
+    E --> F[ROP = LT x DD + SS]
 
-    F --> G{Validation Pass?}
-    G -->|No| H[Show Errors]
-    G -->|Yes| I[Update Reorder Points]
+    F --> G{ROP > Max Stock?}
+    G -->|Yes| H[Cap at Max Stock]
+    G -->|No| I[Return ROP]
+    H --> I
+```
 
-    I --> J[Update Order Quantities]
-    J --> K[Log Audit Trail]
-    K --> L[Show Success Message]
-    L --> M[Refresh Table]
+### 3.4 Apply Recommendations Flow
+
+```mermaid
+graph TB
+    A[User Selects Items via Checkbox] --> B[Enable Apply Selected Button]
+    B --> C[Click Apply Selected]
+    C --> D[Show Confirmation Dialog]
+
+    D --> E{User Confirms?}
+    E -->|No| F[Cancel]
+    E -->|Yes| G[Validate Selection]
+
+    G --> H{Validation Pass?}
+    H -->|No| I[Show Validation Errors]
+    H -->|Yes| J[Update Reorder Points]
+
+    J --> K[Update Order Quantities]
+    K --> L[Update Safety Stock Values]
+    L --> M[Log Audit Trail with Timestamp]
+    M --> N[Show Success Message]
+    N --> O[Refresh Table with Updated Status]
+```
+
+### 3.5 Expandable Row Details Flow
+
+```mermaid
+graph TB
+    A[User Clicks Table Row] --> B[Toggle Expanded State]
+    B --> C{Row Expanded?}
+
+    C -->|Yes| D[Show Expanded Content]
+    C -->|No| E[Collapse Row]
+
+    D --> F[Current Metrics Section]
+    D --> G[Recommended Changes Section]
+    D --> H[Potential Impact Section]
+
+    F --> I[Display ROP, EOQ, Safety Stock]
+    F --> J[Display Service Level, Lead Time]
+
+    G --> K[Display Recommended ROP]
+    G --> L[Display Recommended EOQ]
+    G --> M[Display Recommended Safety Stock]
+
+    H --> N[Display Payback Period]
+    H --> O[Display Turnover Rate]
+    H --> P[Display Daily Demand]
 ```
 
 ---
 
 ## 4. Dead Stock Analysis Flow
 
-### 4.1 Dead Stock Identification
+### 4.1 Dead Stock Page Load Flow
 
 ```mermaid
 graph TB
-    A[User Opens Dead Stock Page] --> B[Set Threshold Days]
-    B --> C[API: analyzeDeadStock]
+    A[User Opens Dead Stock Page] --> B[Load Mock Dead Stock Data]
+    B --> C[Calculate Risk Overview]
 
-    C --> D{For Each Item}
-    D --> E[Get Last Movement Date]
-    E --> F[Calculate Days Since Movement]
-    F --> G[Calculate Months of Stock]
-    G --> H[Determine Risk Level]
-    H --> I[Recommend Action]
-    I --> J[Calculate Financial Impact]
-    J --> K{More Items?}
+    C --> D[Count Critical Items]
+    C --> E[Count High Risk Items]
+    C --> F[Count Medium Risk Items]
+    C --> G[Count Low Risk Items]
 
-    K -->|Yes| D
-    K -->|No| L[Sort by Risk]
-    L --> M[Display Results]
+    D --> H[Display Risk Overview Cards]
+    E --> H
+    F --> H
+    G --> H
+
+    H --> I[Critical Card - Red]
+    H --> J[High Card - Orange]
+    H --> K[Medium Card - Yellow]
+    H --> L[Low Card - Green]
+
+    I --> M[Load Dead Stock Table]
+    J --> M
+    K --> M
+    L --> M
 ```
 
-### 4.2 Risk Classification Logic
+### 4.2 Risk Classification Flow
 
 ```mermaid
 graph TB
@@ -196,74 +301,118 @@ graph TB
     H -->|Yes| I[Risk = MEDIUM]
     H -->|No| J[Risk = LOW]
 
-    E --> K[Return Risk Level]
+    E --> K[Return Risk Level with Color]
     G --> K
     I --> K
     J --> K
 ```
 
-### 4.3 Dead Stock Action Flow
+### 4.3 Dead Stock Filtering Flow
 
 ```mermaid
 graph TB
-    A[User Views Dead Stock Item] --> B{Select Action}
+    A[User Applies Filter] --> B{Filter Type}
 
-    B -->|Continue Stocking| C[Mark as Reviewed]
-    B -->|Reduce Stock| D[Create Reduction Plan]
-    B -->|Liquidate| E[Create Liquidation Request]
-    B -->|Return to Supplier| F[Create Return Request]
-    B -->|Write Off| G[Create Write-Off Request]
+    B -->|Threshold Days| C[Select 60/90/120/180/365 days]
+    B -->|Location| D[Select Location from Dropdown]
+    B -->|Risk Level| E[Select Risk Level]
 
-    C --> H[Update Status]
-    D --> I[Calculate Target Level]
-    E --> J[Set Liquidation Price]
-    F --> K[Check Supplier Agreement]
-    G --> L[Calculate Write-Off Value]
+    C --> F[Filter by Days Since Movement]
+    D --> G[Filter by Location ID]
+    E --> H[Filter by Risk Level]
 
-    I --> M[Update Item Parameters]
-    J --> N[Create Sales Order]
-    K --> O[Create Return Order]
-    L --> P[Create Adjustment]
+    F --> I[Apply Combined Filters]
+    G --> I
+    H --> I
 
-    H --> Q[Log Action]
-    M --> Q
-    N --> Q
-    O --> Q
-    P --> Q
+    I --> J[Recalculate Risk Overview]
+    J --> K[Update Table Display]
+    K --> L[Update Summary Cards]
+```
+
+### 4.4 Dead Stock Action Flow
+
+```mermaid
+graph TB
+    A[User Views Dead Stock Item] --> B[Expand Row]
+    B --> C[View Stock Analysis Section]
+    B --> D[View Financial Impact Section]
+
+    C --> E[Months of Stock]
+    C --> F[Expiry Date if applicable]
+    C --> G[Days Until Expiry]
+
+    D --> H[Potential Loss Amount]
+    D --> I[Liquidation Value]
+    D --> J[Recovery Rate Percent]
+
+    K[Select Action] --> L{Action Type}
+
+    L -->|Liquidate| M[Mark for Sale at Discount]
+    L -->|Return| N[Create Return to Supplier]
+    L -->|Write Off| O[Create Write Off Entry]
+    L -->|Continue| P[Mark as Reviewed]
+    L -->|Reduce| Q[Create Stock Reduction Plan]
+
+    M --> R[Update Item Status]
+    N --> R
+    O --> R
+    P --> R
+    Q --> R
 ```
 
 ---
 
 ## 5. Safety Stock Flow
 
-### 5.1 Safety Stock Calculation
+### 5.1 Safety Stock Page Load Flow
 
 ```mermaid
 graph TB
     A[User Opens Safety Stock Page] --> B[Load Current Service Level]
-    B --> C[Display Current vs Recommended]
+    B --> C[Default to 95 Percent Tab]
 
-    C --> D{User Changes Service Level}
-    D -->|90%| E[Z-Score = 1.28]
-    D -->|95%| F[Z-Score = 1.65]
-    D -->|99%| G[Z-Score = 2.33]
+    C --> D[Load Safety Stock Items]
+    D --> E[Calculate Current Safety Stock]
+    D --> F[Calculate Recommended for 90 Percent]
+    D --> G[Calculate Recommended for 95 Percent]
+    D --> H[Calculate Recommended for 99 Percent]
 
-    E --> H[Recalculate Safety Stock]
-    F --> H
-    G --> H
+    E --> I[Display Comparison Table]
+    F --> I
+    G --> I
+    H --> I
 
-    H --> I[Safety Stock = Z x Sigma x sqrt LT]
-    I --> J[Update Comparison Table]
-    J --> K[Calculate Value Impact]
-    K --> L[Update What-If Chart]
+    I --> J[Render What-If Analysis Chart]
+    J --> K[LineChart with Cost vs Service Level]
 ```
 
-### 5.2 Apply Safety Stock Changes
+### 5.2 Service Level Selection Flow
 
 ```mermaid
 graph TB
-    A[User Reviews Changes] --> B[Select Items to Update]
-    B --> C[Click Apply]
+    A[User Clicks Service Level Tab] --> B{Selected Level}
+
+    B -->|90 Percent| C[Z-Score = 1.28]
+    B -->|95 Percent| D[Z-Score = 1.65]
+    B -->|99 Percent| E[Z-Score = 2.33]
+
+    C --> F[Recalculate Safety Stock]
+    D --> F
+    E --> F
+
+    F --> G[Safety Stock = Z x Sigma x sqrt LT]
+    G --> H[Update Comparison Table]
+    H --> I[Calculate Cost Impact]
+    I --> J[Update What-If Chart Highlight]
+```
+
+### 5.3 Apply Safety Stock Changes Flow
+
+```mermaid
+graph TB
+    A[User Reviews Comparison Table] --> B[Select Items via Checkbox]
+    B --> C[Click Apply Selected]
 
     C --> D[Validate Changes]
     D --> E{Changes Valid?}
@@ -271,89 +420,192 @@ graph TB
     E -->|No| F[Show Validation Errors]
     E -->|Yes| G[Calculate Impact Summary]
 
-    G --> H[Show Confirmation]
+    G --> H[Show Confirmation Dialog]
     H --> I{User Confirms?}
 
     I -->|No| J[Cancel]
     I -->|Yes| K[Update Safety Stock Values]
 
     K --> L[Recalculate Reorder Points]
-    L --> M[Log Changes]
-    M --> N[Show Success]
+    L --> M[Log Changes with User and Timestamp]
+    M --> N[Show Success Message]
+    N --> O[Refresh Table]
 ```
 
 ---
 
 ## 6. Multi-Location Flow
 
-### 6.1 Location Performance Analysis
+### 6.1 Location Performance Load Flow
 
 ```mermaid
 graph TB
-    A[User Opens Multi-Location] --> B[Load Location Data]
-    B --> C[API: getLocationBreakdown]
+    A[User Opens Multi-Location Page] --> B[Load Location Data]
+    B --> C[Calculate Location Metrics]
 
-    C --> D{For Each Location}
+    C --> D[For Each Location]
     D --> E[Calculate Total Value]
-    E --> F[Calculate Turnover]
-    F --> G[Count Alerts]
-    G --> H[Determine Status]
-    H --> I{More Locations?}
+    D --> F[Calculate Turnover Rate]
+    D --> G[Count Alert Items]
+    D --> H[Determine Status]
 
-    I -->|Yes| D
-    I -->|No| J[Identify Imbalances]
+    E --> I[Aggregate Results]
+    F --> I
+    G --> I
+    H --> I
 
-    J --> K[Generate Transfer Recommendations]
-    K --> L[Display Results]
+    I --> J[Display Location Summary Cards]
+    J --> K[Optimal Count Card - Green]
+    J --> L[Overstocked Count Card - Yellow]
+    J --> M[Understocked Count Card - Red]
+
+    K --> N[Render Location Performance Chart]
+    L --> N
+    M --> N
 ```
 
-### 6.2 Transfer Recommendation Logic
+### 6.2 Location Status Classification Flow
 
 ```mermaid
 graph TB
-    A[Start Transfer Analysis] --> B[Identify Overstocked Location]
-    B --> C[Identify Understocked Location]
+    A[Evaluate Location] --> B[Get Efficiency Score]
+    B --> C[Get Capacity Utilization]
 
-    C --> D{Imbalance > 20%?}
+    C --> D{Utilization < 70 Percent?}
+    D -->|Yes| E[Status = UNDERSTOCKED]
+    D -->|No| F{Utilization > 90 Percent?}
+
+    F -->|Yes| G[Status = OVERSTOCKED]
+    F -->|No| H[Status = OPTIMAL]
+
+    E --> I[Return Status with Color]
+    G --> I
+    H --> I
+```
+
+### 6.3 Transfer Recommendation Flow
+
+```mermaid
+graph TB
+    A[Analyze Location Imbalances] --> B[Identify Overstocked Locations]
+    B --> C[Identify Understocked Locations]
+
+    C --> D{Imbalance Detected?}
     D -->|No| E[No Transfer Needed]
     D -->|Yes| F[Calculate Transfer Quantity]
 
-    F --> G[Estimate Transfer Cost]
-    G --> H{Cost < Stockout Risk?}
+    F --> G[Determine Priority]
+    G --> H{Stock Differential}
 
-    H -->|No| E
-    H -->|Yes| I[Create Transfer Recommendation]
+    H -->|High| I[Priority = HIGH]
+    H -->|Medium| J[Priority = MEDIUM]
+    H -->|Low| K[Priority = LOW]
 
-    I --> J[Set Source Location]
-    J --> K[Set Destination Location]
-    K --> L[Set Transfer Quantity]
-    L --> M[Return Recommendation]
+    I --> L[Calculate Estimated Savings]
+    J --> L
+    K --> L
+
+    L --> M[Create Transfer Recommendation]
+    M --> N[Add to Recommendations Table]
+```
+
+### 6.4 Create Transfer Flow
+
+```mermaid
+graph TB
+    A[User Reviews Transfer Recommendation] --> B[Click Create Transfer Button]
+    B --> C[Validate Transfer Parameters]
+
+    C --> D{Valid?}
+    D -->|No| E[Show Validation Error]
+    D -->|Yes| F[Create Transfer Request]
+
+    F --> G[Set Source Location]
+    G --> H[Set Destination Location]
+    H --> I[Set Quantity and Unit]
+    I --> J[Set Priority Level]
+
+    J --> K[Navigate to Stock Transfers]
+    K --> L[Pre-fill Transfer Form]
 ```
 
 ---
 
 ## 7. Settings Configuration Flow
 
-### 7.1 Save Settings Flow
+### 7.1 Settings Page Load Flow
 
 ```mermaid
 graph TB
-    A[User Opens Settings] --> B[Load Current Settings]
-    B --> C[Display Form]
+    A[User Opens Settings Page] --> B[Load Current Settings]
+    B --> C[Display Settings Form]
 
-    C --> D[User Modifies Settings]
-    D --> E[Click Save]
+    C --> D[Default Parameters Section]
+    C --> E[Alert Thresholds Section]
+    C --> F[Notification Settings Section]
+    C --> G[Automation Settings Section]
 
-    E --> F[Validate Settings]
-    F --> G{Valid?}
+    D --> H[Service Level Select]
+    D --> I[Order Cost Input]
+    D --> J[Holding Cost Rate Input]
+    D --> K[Default Lead Time Input]
 
-    G -->|No| H[Show Errors]
-    G -->|Yes| I[Save to Configuration]
+    E --> L[Dead Stock Threshold Input]
+    E --> M[Low Stock Alert Switch]
+    E --> N[Dead Stock Alert Switch]
+    E --> O[Overstock Alert Switch]
 
-    I --> J[Apply to Future Calculations]
-    J --> K[Show Success Message]
+    F --> P[Email Notifications Switch]
+    F --> Q[Notification Email Input]
+    F --> R[Digest Frequency Select]
 
-    H --> D
+    G --> S[Auto-Apply Low Risk Switch]
+    G --> T[Auto-Generate Weekly Switch]
+    G --> U[Sync with Procurement Switch]
+```
+
+### 7.2 Save Settings Flow
+
+```mermaid
+graph TB
+    A[User Modifies Settings] --> B[Click Save Settings]
+    B --> C[Validate All Fields]
+
+    C --> D{All Valid?}
+    D -->|No| E[Show Validation Errors]
+    D -->|Yes| F[Save to Configuration]
+
+    E --> G[Highlight Invalid Fields]
+    G --> H[User Corrects Input]
+    H --> A
+
+    F --> I[Apply to Future Calculations]
+    I --> J[Show Success Toast]
+```
+
+### 7.3 Reset to Defaults Flow
+
+```mermaid
+graph TB
+    A[User Clicks Reset to Defaults] --> B[Show Confirmation Dialog]
+    B --> C{User Confirms?}
+
+    C -->|No| D[Cancel]
+    C -->|Yes| E[Load Default Values]
+
+    E --> F[Service Level = 95 Percent]
+    E --> G[Order Cost = 50 USD]
+    E --> H[Holding Cost Rate = 25 Percent]
+    E --> I[Lead Time = 7 days]
+    E --> J[Dead Stock Threshold = 90 days]
+
+    F --> K[Update Form Fields]
+    G --> K
+    H --> K
+    I --> K
+    J --> K
+
+    K --> L[Show Reset Success Message]
 ```
 
 ---
@@ -364,89 +616,95 @@ graph TB
 
 ```mermaid
 graph TB
-    A[Inventory Planning Dashboard] --> B{User Action}
+    A[Inventory Planning Dashboard] --> B[Click Go to Demand Forecasting Link]
+    B --> C[Navigate to Demand Forecasting]
+    C --> D[Pass Location Context if filtered]
 
-    B -->|View Forecast Link| C[Navigate to Demand Forecasting]
-    C --> D[Pass Item Context]
     D --> E[Demand Forecasting Dashboard]
-
-    E --> F{User Action}
-    F -->|View Optimization Link| G[Navigate to Inventory Planning]
-    G --> H[Pass Forecast Data]
-    H --> A
+    E --> F[View Forecast Data]
+    F --> G[Return to Inventory Planning]
 ```
 
-### 8.2 Inventory Management Integration
+### 8.2 Store Operations Integration
 
 ```mermaid
 graph TB
-    A[Apply Recommendation] --> B[Get Current Item Data]
+    A[Reorder Management Page] --> B[Click Stock Replenishment Link]
+    B --> C[Navigate to Store Operations]
+    C --> D[Stock Replenishment Page]
+
+    D --> E[View Replenishment Needs]
+    E --> F[Create Replenishment Request]
+```
+
+### 8.3 Inventory Management Integration
+
+```mermaid
+graph TB
+    A[Apply Optimization Recommendation] --> B[Get Current Item Data]
     B --> C[Calculate New Parameters]
 
-    C --> D[Update Inventory Item]
-    D --> E[Reorder Point]
-    D --> F[Order Quantity]
-    D --> G[Safety Stock]
+    C --> D[Update Reorder Point]
+    C --> E[Update Order Quantity]
+    C --> F[Update Safety Stock]
 
-    E --> H[Save Changes]
-    F --> H
-    G --> H
+    D --> G[Save Changes to Inventory Item]
+    E --> G
+    F --> G
 
-    H --> I[Trigger Reorder Check]
-    I --> J{Stock Below ROP?}
+    G --> H[Trigger Reorder Check]
+    H --> I{Stock Below ROP?}
 
-    J -->|Yes| K[Create Purchase Suggestion]
-    J -->|No| L[Complete]
+    I -->|Yes| J[Flag for Replenishment]
+    I -->|No| K[Complete Update]
 ```
 
 ---
 
 ## 9. Error Handling Flows
 
-### 9.1 API Error Flow
+### 9.1 Data Load Error Flow
 
 ```mermaid
 graph TB
-    A[API Request] --> B{Response OK?}
+    A[Page Load Request] --> B{Data Available?}
 
-    B -->|Yes| C[Process Data]
+    B -->|Yes| C[Render Page Content]
     B -->|No| D{Error Type}
 
-    D -->|400 Bad Request| E[Show Validation Error]
-    D -->|404 Not Found| F[Show Not Found Message]
-    D -->|500 Server Error| G[Show Retry Option]
-    D -->|Network Error| H[Show Offline Message]
+    D -->|No Data| E[Show Empty State]
+    D -->|Network Error| F[Show Retry Option]
+    D -->|Permission Error| G[Show Access Denied]
 
-    E --> I[User Corrects Input]
+    E --> H[Display Setup Instructions]
+    F --> I[User Clicks Retry]
     I --> A
 
-    G --> J{Retry?}
-    J -->|Yes| A
-    J -->|No| K[Show Error State]
-
-    H --> L[Enable Offline Mode]
+    G --> J[Contact Admin Message]
 ```
 
-### 9.2 Data Validation Flow
+### 9.2 Validation Error Flow
 
 ```mermaid
 graph TB
-    A[User Input] --> B[Client Validation]
+    A[User Submits Form] --> B[Client-Side Validation]
     B --> C{Valid?}
 
-    C -->|No| D[Show Inline Error]
-    C -->|Yes| E[Submit to API]
+    C -->|No| D[Show Inline Errors]
+    C -->|Yes| E[Submit to Server]
 
-    E --> F[Server Validation]
-    F --> G{Valid?}
+    D --> F[Highlight Invalid Fields]
+    F --> G[User Corrects Input]
+    G --> A
 
-    G -->|No| H[Return Error Response]
-    G -->|Yes| I[Process Request]
+    E --> H[Server Validation]
+    H --> I{Valid?}
 
-    H --> J[Show Server Errors]
-    D --> K[User Corrects Input]
-    J --> K
-    K --> A
+    I -->|No| J[Return Error Response]
+    I -->|Yes| K[Process Request]
+
+    J --> L[Show Server Errors]
+    L --> G
 ```
 
 ---
@@ -457,31 +715,43 @@ graph TB
 
 ```mermaid
 graph TB
-    A[User Changes Filter] --> B[Update Store State]
-    B --> C[Trigger React Query Refetch]
-    C --> D[API Request with New Params]
-    D --> E[Update Cache]
+    A[User Changes Filter] --> B[Update Local State]
+    B --> C[Filter Data Array]
+    C --> D[Update Displayed Items]
+    D --> E[Recalculate Summary Cards]
     E --> F[Re-render Components]
-    F --> G[Display Updated Data]
 ```
 
 ### 10.2 Selection State Flow
 
 ```mermaid
 graph TB
-    A[User Clicks Checkbox] --> B[Toggle Item Selection]
-    B --> C[Update Selected Items Set]
-    C --> D{Any Selected?}
+    A[User Clicks Checkbox] --> B[Toggle Item in Selected Set]
+    B --> C{Any Items Selected?}
 
-    D -->|Yes| E[Enable Bulk Actions]
-    D -->|No| F[Disable Bulk Actions]
+    C -->|Yes| D[Enable Bulk Actions]
+    C -->|No| E[Disable Bulk Actions]
 
-    E --> G[Update Action Bar]
-    F --> G
+    D --> F[Update Action Bar]
+    E --> F
 
-    G --> H[User Clicks Select All]
-    H --> I[Add All Visible Items]
-    I --> E
+    G[User Clicks Select All] --> H[Add All Visible Items to Selection]
+    H --> D
+```
+
+### 10.3 Expanded Row State Flow
+
+```mermaid
+graph TB
+    A[User Clicks Row] --> B[Get Row ID]
+    B --> C{Already Expanded?}
+
+    C -->|Yes| D[Remove from Expanded Set]
+    C -->|No| E[Add to Expanded Set]
+
+    D --> F[Collapse Row UI]
+    E --> G[Expand Row UI]
+    G --> H[Load Expanded Content]
 ```
 
 ---

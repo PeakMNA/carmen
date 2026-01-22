@@ -11,6 +11,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.0.0 | 2026-01-15 | Documentation Team | Major update: Added 3-step wizard flow, hierarchical items view, item detail form 5-tab structure, location type processing, tax tab, related PO list |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.5 | 2025-12-03 | Documentation Team | Added costing method context (FIFO or Periodic Average configurable at system level) |
 | 1.0.4 | 2025-12-03 | Documentation Team | Mermaid 8.8.2 compatibility: Removed colons, equals signs, and parentheses from flowchart node labels in Diagrams 1, 2, 4, 5 |
@@ -38,9 +39,12 @@ This document provides visual representations of the key workflows, data flows, 
 
 | Diagram | Type | Purpose | Complexity |
 |---------|------|---------|------------|
-| [PO-Based GRN Creation](#po-based-grn-creation-flow) | Process | Create GRN from purchase order | High |
+| [PO-Based GRN Creation](#po-based-grn-creation-flow) | Process | Create GRN from purchase order (3-step wizard) | High |
 | [Manual GRN Creation](#manual-grn-creation-flow) | Process | Create standalone GRN | Medium |
 | [GRN State Transitions](#grn-state-transition-diagram) | State | Status lifecycle management | Medium |
+| [Hierarchical Items View](#hierarchical-items-view-flow) | UI | Product to Location to PO grouping | Medium |
+| [Item Detail Form 5-Tab](#item-detail-form-flow) | UI | Comprehensive item editing interface | Medium |
+| [Location Type Processing](#location-type-processing-flow) | Process | INV, DIR, CON location handling | Medium |
 | [GRN Commitment](#grn-commitment-workflow) | Workflow | Finalize GRN and update inventory | High |
 | [Extra Cost Distribution](#extra-cost-distribution-flow) | Process | Allocate additional costs to items | Medium |
 | [System Integration](#system-integration-flow) | Integration | Module integrations on commitment | High |
@@ -49,7 +53,7 @@ This document provides visual representations of the key workflows, data flows, 
 
 ## PO-Based GRN Creation Flow
 
-**Purpose**: Document the complete workflow for creating a Goods Received Note from existing Purchase Orders
+**Purpose**: Document the complete 3-step wizard workflow for creating a Goods Received Note from existing Purchase Orders
 
 **Multi-PO Support**: A single GRN can receive items from multiple POs. Each line item stores its own PO reference (purchaseOrderId, purchaseOrderItemId) rather than a single PO at header level.
 
@@ -57,73 +61,102 @@ This document provides visual representations of the key workflows, data flows, 
 
 **Trigger**: User clicks "New GRN" button and selects "From PO" option
 
+**Source Files**:
+- `app/(main)/procurement/goods-received-note/page.tsx` (Entry point)
+- `app/(main)/procurement/goods-received-note/new/vendor-selection/page.tsx` (Step 1)
+- `app/(main)/procurement/goods-received-note/new/po-selection/page.tsx` (Step 2)
+- `app/(main)/procurement/goods-received-note/new/item-location-selection/page.tsx` (Step 3)
+- `lib/store/grn-creation.store.ts` (Zustand store for wizard state)
+
 ```mermaid
 flowchart TD
     Start([User clicks New GRN]) --> Select{Select Process Type}
-    Select -->|From PO| VendorSelect[Select Vendor]
+    Select -->|From PO| Step1[Step 1: Vendor Selection<br>vendor-selection page]
 
-    VendorSelect --> LoadPOs[System loads<br>pending POs for vendor]
-    LoadPOs --> DisplayPOs[Display pending<br>PO list]
+    subgraph Step1Flow[Step 1 - Vendor Selection]
+        Step1 --> SearchVendor[User searches vendors<br>by name or code]
+        SearchVendor --> SelectVendor[User selects vendor<br>from list]
+        SelectVendor --> StoreVendor[Store vendor in<br>Zustand store]
+    end
 
-    DisplayPOs --> SelectPO[User selects<br>PO lines to receive<br>from one or more POs]
-    SelectPO --> CreateGRN[System creates GRN<br>with line-level PO references]
+    StoreVendor --> Step2[Step 2: PO Selection<br>po-selection page]
 
-    CreateGRN --> PrePopulate[Pre-populate<br>Vendor info, Items,<br>Ordered qty, Prices]
+    subgraph Step2Flow[Step 2 - PO Selection]
+        Step2 --> LoadPOs[System loads POs<br>status OPEN or PARTIAL]
+        LoadPOs --> DisplayPOs[Display PO list<br>with inline items]
+        DisplayPOs --> MultiSelect[User multi-selects<br>POs with checkboxes]
+        MultiSelect --> StorePOs[Store selected POs<br>in Zustand store]
+    end
 
-    PrePopulate --> EnterQty[User enters<br>received quantities]
-    EnterQty --> AutoDisc[System auto-detects<br>discrepancies]
+    StorePOs --> Step3[Step 3: Item and Location<br>item-location-selection page]
 
-    AutoDisc --> CheckDisc{Has<br>discrepancies?}
-    CheckDisc -->|Yes| FlagItems[Flag items<br>with discrepancy indicator]
-    CheckDisc -->|No| EnterDelivery
-    FlagItems --> EnterDelivery[User enters delivery info<br>Invoice, Delivery note,<br>Vehicle and driver]
+    subgraph Step3Flow[Step 3 - Item Location Selection]
+        Step3 --> FlattenItems[System flattens<br>PO items list]
+        FlattenItems --> ShowLocTypes[Display location type<br>badges INV DIR CON]
+        ShowLocTypes --> SelectItems[User selects items<br>to receive]
+        SelectItems --> SetLocations[Assign storage<br>locations per item]
+        SetLocations --> CheckDirect{Any DIRECT<br>locations?}
+        CheckDirect -->|Yes| ShowAlert[Show Direct Expense<br>alert warning]
+        CheckDirect -->|No| CreateItems
+        ShowAlert --> CreateItems[Create GRN items<br>with PO references]
+    end
 
-    EnterDelivery --> Validate{Validation<br>passed?}
-    Validate -->|No| ShowErrors[Display<br>validation errors]
-    ShowErrors --> EnterQty
-
-    Validate -->|Yes| GenNumber[System generates<br>GRN number<br>GRN-YYMM-NNNN]
-    GenNumber --> SetStatus[Set status to<br>RECEIVED]
-
-    SetStatus --> SaveGRN[(Save GRN to<br>Zustand store)]
-    SaveGRN --> NavDetail[Navigate to<br>GRN detail page]
-    NavDetail --> Success([GRN Created<br>Successfully])
+    CreateItems --> NavConfirm[Navigate to detail<br>page mode confirm]
+    NavConfirm --> ReviewGRN[User reviews GRN<br>in confirm mode]
+    ReviewGRN --> SaveGRN[(Save GRN)]
+    SaveGRN --> Success([GRN Created<br>Successfully])
 
     style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
     style Success fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
-    style ShowErrors fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
-    style FlagItems fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
+    style ShowAlert fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
     style SaveGRN fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
 ```
 
 **Flow Steps**:
 
-1. **Start**: User navigates to GRN list and clicks "New GRN" button
-2. **Select Process Type**: Dialog appears with two options: "From PO" or "Manual"
-3. **User selects "From PO"**: Routes to PO-based creation workflow
-4. **Vendor Selection**: System navigates to `/goods-received-note/new/vendor-selection` page
-5. **Load POs**: System filters purchase orders for selected vendor with status allowing receipt
-6. **Display POs**: Pending PO list shown with PO number, date, items, amounts
-7. **Select PO Lines**: User selects one or more PO lines to receive (checkboxes)
-8. **Create GRN**: System creates new GRN object in Zustand store
-9. **Pre-populate**: System fills GRN with PO data (vendor, items, ordered quantities, prices)
-10. **Enter Quantities**: User enters actual received, rejected, damaged quantities for each item
-11. **Auto-detect Discrepancies**: System compares received vs ordered, flags mismatches
-12. **Flag Items**: Items with discrepancies get visual indicator and hasDiscrepancy flag set
-13. **Enter Delivery Info**: User enters invoice number/date, delivery note, vehicle, driver
-14. **Validation**: System validates required fields, quantity rules, date constraints
-    - If invalid: Show specific error messages, return to entry
-    - If valid: Continue to save
-15. **Generate GRN Number**: System assigns unique sequential number GRN-2401-001
-16. **Set Status**: GRN status set to RECEIVED (skipping DRAFT for PO-based)
-17. **Save GRN**: Data saved to Zustand store (future: database via server action)
-18. **Navigate**: Route to GRN detail page for review and further actions
-19. **Success**: GRN created and ready for review or commitment
+**Step 1 - Vendor Selection** (`/goods-received-note/new/vendor-selection`):
+1. User navigates from GRN list by clicking "New GRN" → "From PO"
+2. System displays searchable vendor list (active vendors only)
+3. User searches by vendor name or registration number
+4. User selects vendor from search results
+5. System stores selected vendor in Zustand store (`setSelectedVendor`)
+6. System navigates to Step 2
+
+**Step 2 - PO Selection** (`/goods-received-note/new/po-selection`):
+7. System loads POs for selected vendor with status OPEN or PARTIAL
+8. Display PO list with expandable rows showing PO items
+9. User multi-selects POs using checkboxes (can select from multiple POs)
+10. For each selected PO, display: PO number, date, total amount, items count
+11. System stores selected POs in Zustand store (`setSelectedPOs`)
+12. System navigates to Step 3
+
+**Step 3 - Item & Location Selection** (`/goods-received-note/new/item-location-selection`):
+13. System flattens all items from selected POs into consolidated list
+14. Display items with columns: Item, PO #, Location, Ordered, Remaining, Receiving Qty/Unit
+15. Location type badges displayed with icons:
+    - **INV (Package icon)**: Inventory - standard stock-in
+    - **DIR (DollarSign icon)**: Direct - immediate expense (no stock movement)
+    - **CON (Truck icon)**: Consignment - vendor-owned inventory
+16. If DIRECT locations detected, system shows alert warning
+17. User selects items to receive using checkboxes (Select All available)
+18. User enters receiving quantities and assigns storage locations
+19. System calculates base quantity and amount for each item
+20. System creates GRN items array with PO references (purchaseOrderId, purchaseOrderItemId)
+21. System navigates to detail page with `?mode=confirm`
+
+**Confirmation & Save**:
+22. User reviews GRN data in confirm mode on detail page
+23. User can edit quantities, add extra costs, enter invoice details
+24. User saves GRN (or cancels to discard)
+25. System generates GRN number (GRN-YYMM-NNNN)
+26. System sets status to RECEIVED
+27. GRN created and ready for commitment
 
 **Exception Handling**:
-- No pending POs for vendor: Display message, allow manual GRN creation
-- Validation failures: Inline error messages, prevent save
-- PO already fully received: Warning message, allow over-receipt with confirmation
+- No pending POs for vendor: Display message, suggest manual GRN creation
+- Validation failures: Inline error messages at each step, prevent navigation
+- PO already fully received: PO not shown in list (status not OPEN or PARTIAL)
+- Direct expense items: Alert shown to inform user items won't create stock movements
 
 ---
 
@@ -286,6 +319,192 @@ stateDiagram-v2
 - Any → VOID: Manager permission required (except DRAFT)
 - COMMITTED → VOID: Generates reversing stock movements and journal entries
 - No transitions allowed FROM VOID or COMMITTED except VOID
+
+---
+
+## Hierarchical Items View Flow
+
+**Purpose**: Document the Product → Location → PO Line grouping structure used in GRN items display
+
+**Source Files**:
+- `app/(main)/procurement/goods-received-note/components/tabs/GRNItemsHierarchical.tsx`
+- `app/(main)/procurement/goods-received-note/lib/groupItems.ts`
+
+```mermaid
+flowchart TD
+    Start([GRN Items Array]) --> Group[groupItemsByProductLocation<br>utility function]
+
+    subgraph Grouping[Hierarchical Grouping]
+        Group --> ProductLevel[Level 1: Product Groups<br>Map by productId]
+        ProductLevel --> LocationLevel[Level 2: Location Groups<br>Map by storageLocationId]
+        LocationLevel --> POLevel[Level 3: PO Lines<br>Array of POLineInfo]
+    end
+
+    POLevel --> Render[Render Hierarchical View]
+
+    subgraph Display[UI Display Structure]
+        Render --> ProductSection[ProductSection Component<br>Collapsible product group]
+        ProductSection --> LocationSection[LocationSection Component<br>Collapsible location group]
+        LocationSection --> POLineCard[POLineEntryCard Component<br>4-column entry grid]
+    end
+
+    POLineCard --> EntryGrid[Entry Grid Columns<br>Received Qty - Receive Unit<br>FOC Qty - FOC Unit]
+    EntryGrid --> ItemClick{User clicks<br>item row?}
+
+    ItemClick -->|Yes| OpenSheet[Open Sheet Panel<br>with ItemDetailForm]
+    ItemClick -->|No| Continue[Continue editing<br>inline quantities]
+
+    OpenSheet --> DetailForm[5-Tab Item Detail Form]
+    DetailForm --> SaveChanges[Save changes<br>to grouped structure]
+    SaveChanges --> Flatten[flattenGroupedItems<br>back to array]
+
+    style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
+    style Flatten fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
+    style OpenSheet fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
+```
+
+**Grouping Structure**:
+
+| Level | Key | Contains | Component |
+|-------|-----|----------|-----------|
+| 1 | Product ID | ProductGroup with locations Map | ProductSection |
+| 2 | Location ID | LocationGroup with PO lines array | LocationSection |
+| 3 | PO Reference | POLineInfo with GRN item | POLineEntryCard |
+
+**Key Features**:
+- **Expand/Collapse**: Products and locations are collapsible sections
+- **Expand All/Collapse All**: Bulk toggle for all groups
+- **4-Column Entry Grid**: Received Qty, Receive Unit, FOC Qty, FOC Unit
+- **Detail Panel**: Right-side Sheet component opens ItemDetailForm
+- **Selection**: Checkbox selection for bulk actions across hierarchy
+
+---
+
+## Item Detail Form Flow
+
+**Purpose**: Document the 5-tab item detail form structure for comprehensive item editing
+
+**Source File**: `app/(main)/procurement/goods-received-note/components/tabs/itemDetailForm.tsx`
+
+```mermaid
+flowchart LR
+    subgraph Tabs[5-Tab Structure]
+        Tab1[Tab 1: Details<br>Location, Job, Event<br>Project, Lot, Serial<br>Expiry, Notes]
+        Tab2[Tab 2: Quantity<br>Ordered, Received<br>FOC, Rejected<br>Damaged, Remaining]
+        Tab3[Tab 3: Pricing<br>Unit Price, Tax<br>Discount, Totals<br>Multi-currency]
+        Tab4[Tab 4: Related PRs<br>PR Allocations<br>Job/Event/Project<br>Quantity tracking]
+        Tab5[Tab 5: Inventory<br>On-hand, On-order<br>Reorder levels<br>Last purchase info]
+    end
+
+    Tab1 --> Tab2
+    Tab2 --> Tab3
+    Tab3 --> Tab4
+    Tab4 --> Tab5
+```
+
+**Tab 1 - Details**:
+- Item name and description
+- Storage location and delivery point
+- Job code, event, project, market segment
+- Lot/batch number and serial number
+- Expiry date
+- Line item notes
+
+**Tab 2 - Quantity**:
+- Ordered quantity and unit (from PO)
+- Received quantity and unit
+- FOC (Free of Charge) quantity and unit
+- Base quantity calculations with conversion rates
+- Rejected and damaged quantities
+- Remaining quantity to receive
+
+**Tab 3 - Pricing**:
+- Unit price (transaction currency)
+- Tax rate and tax system (GST/VAT)
+- Tax inclusive/exclusive toggle
+- Discount rate and amount
+- Calculated totals: subtotal, net, tax, total
+- Exchange rate and base currency amounts
+- Extra cost allocation display
+
+**Tab 4 - Related PRs** (RelatedPRAllocation interface):
+- List of linked Purchase Requests
+- PR number, line number, PR line item ID
+- Business context: job code, event, project, market segment
+- Requester name and department
+- Quantity tracking: requested, previously received, this GRN, remaining
+- Add/Edit/Delete PR allocations
+
+**Tab 5 - Inventory** (Read-only reference):
+- Current on-hand quantity
+- On-order quantity
+- Reorder threshold and restock level
+- Last purchase price, date, and vendor
+
+---
+
+## Location Type Processing Flow
+
+**Purpose**: Document how different location types affect GRN processing and GL entries
+
+**Source Files**:
+- `app/(main)/procurement/goods-received-note/components/goods-receive-note.tsx` (documentation comments)
+- `app/(main)/procurement/goods-received-note/new/item-location-selection/page.tsx` (getLocationTypeIcon function)
+
+```mermaid
+flowchart TD
+    Start([GRN Item Received]) --> CheckLocType{Location<br>Type?}
+
+    CheckLocType -->|INV| InventoryPath[INVENTORY Location]
+    CheckLocType -->|DIR| DirectPath[DIRECT Location]
+    CheckLocType -->|CON| ConsignmentPath[CONSIGNMENT Location]
+
+    subgraph InventoryFlow[INVENTORY Processing]
+        InventoryPath --> InvStock[Create Stock Movement<br>FIFO cost layer]
+        InvStock --> InvGL[Journal Entry<br>DR Inventory Asset<br>CR Accounts Payable]
+        InvGL --> InvResult[Inventory increases<br>AP liability created]
+    end
+
+    subgraph DirectFlow[DIRECT Processing]
+        DirectPath --> DirNoStock[NO Stock Movement<br>Immediate expense]
+        DirNoStock --> DirGL[Journal Entry<br>DR Expense Account<br>CR Accounts Payable]
+        DirGL --> DirResult[No inventory impact<br>Expense recorded]
+    end
+
+    subgraph ConsignmentFlow[CONSIGNMENT Processing]
+        ConsignmentPath --> ConStock[Create Stock Movement<br>Vendor-owned tracking]
+        ConStock --> ConGL[Journal Entry<br>DR Consignment Asset<br>CR Vendor Liability]
+        ConGL --> ConResult[Consignment inventory<br>Vendor liability tracked]
+    end
+
+    InvResult --> End([Processing Complete])
+    DirResult --> End
+    ConResult --> End
+
+    style Start fill:#cce5ff,stroke:#0066cc,stroke-width:2px,color:#000
+    style End fill:#ccffcc,stroke:#00cc00,stroke-width:2px,color:#000
+    style InvResult fill:#e8e8e8,stroke:#333,stroke-width:2px,color:#000
+    style DirResult fill:#ffe0b3,stroke:#cc6600,stroke-width:2px,color:#000
+    style ConResult fill:#e0ccff,stroke:#6600cc,stroke-width:2px,color:#000
+```
+
+**Location Type Details**:
+
+| Type | Icon | Stock Movement | GL Treatment | Use Case |
+|------|------|----------------|--------------|----------|
+| **INV** (Inventory) | Package | Yes - FIFO cost layer | DR Inventory Asset, CR AP | Standard inventory items |
+| **DIR** (Direct) | DollarSign | No - immediate expense | DR Expense Account, CR AP | Operating supplies, consumables |
+| **CON** (Consignment) | Truck | Yes - vendor-owned | DR Consignment Asset, CR Vendor Liability | Vendor-owned stock on premises |
+
+**Key Behaviors**:
+1. **INVENTORY**: Full inventory tracking with cost layers for FIFO/Average costing
+2. **DIRECT**: Bypasses inventory - items expensed immediately on receipt
+3. **CONSIGNMENT**: Special tracking for vendor-owned inventory, payment due when goods sold/used
+
+**UI Indicators**:
+- Location type badges shown in item-location-selection step
+- Alert warning displayed when DIRECT locations selected
+- Tooltip on consignment checkbox explains vendor-owned inventory concept
 
 ---
 

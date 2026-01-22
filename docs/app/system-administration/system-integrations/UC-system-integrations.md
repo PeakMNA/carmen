@@ -2,7 +2,7 @@
 
 **Module**: System Administration - System Integrations
 **Version**: 1.0
-**Last Updated**: 2025-01-16
+**Last Updated**: 2026-01-16
 ## Document History
 
 | Version | Date | Author | Changes |
@@ -290,7 +290,7 @@ This document defines use cases for the System Integrations module, focusing on 
    - POS Item Code: "PIZZA-MARG-SLICE"
    - Quantity: 3
    - POS Location ID: "POS-LOC-001"
-   - Timestamp: "2025-01-16 14:30:00"
+   - Timestamp: "2026-01-16 14:30:00"
 2. System validates transaction completeness:
    - All required fields present
    - Timestamp within acceptable range (not future, not >90 days old)
@@ -435,7 +435,7 @@ This document defines use cases for the System Integrations module, focusing on 
    - **Required**: 10 servings
    - **Shortage**: 7 servings
    - Location: Main Kitchen
-   - Transaction Date: 2025-01-16 18:45
+   - Transaction Date: 2026-01-16 18:45
 4. System displays stock impact:
    - "Approving will result in stock level of -7 servings"
    - Ingredient impact shown (lettuce, dressing, croutons, etc.)
@@ -518,7 +518,7 @@ This document defines use cases for the System Integrations module, focusing on 
 1. User navigates to System Integrations > POS > Reports > Consumption
 2. System displays consumption report interface
 3. User sets report parameters:
-   - **Date Range**: Last 30 days (2024-12-17 to 2025-01-16)
+   - **Date Range**: Last 30 days (2024-12-17 to 2026-01-16)
    - **Location**: Main Kitchen (or "All Locations")
    - **Category**: Pizzas (or "All Categories")
    - **Group By**: Recipe
@@ -547,7 +547,7 @@ This document defines use cases for the System Integrations module, focusing on 
     - Summary tab
     - Detail tab (transaction-level data)
     - Charts tab (visualizations)
-12. System downloads file: "Consumption_Report_2025-01-16.xlsx"
+12. System downloads file: "Consumption_Report_2026-01-16.xlsx"
 13. User can print or email report
 
 ### Report Features
@@ -580,7 +580,7 @@ This document defines use cases for the System Integrations module, focusing on 
 1. User navigates to System Integrations > POS > Reports > Gross Profit
 2. System displays gross profit report interface
 3. User sets report parameters:
-   - **Date Range**: Current Month (2025-01-01 to 2025-01-16)
+   - **Date Range**: Current Month (2025-01-01 to 2026-01-16)
    - **Location**: All Locations
    - **Sort By**: Profit Margin % (descending)
 4. User clicks "Generate Report"
@@ -682,7 +682,7 @@ Aggregate by item, location, or category as needed
 19. System logs change in audit trail:
     - User: admin@hotel.com
     - Change: API Endpoint updated, Unmapped Item Handling changed
-    - Timestamp: 2025-01-16 15:30:00
+    - Timestamp: 2026-01-16 15:30:00
 20. System displays success message: "Settings saved successfully"
 21. System applies new settings immediately
 
@@ -779,8 +779,8 @@ Aggregate by item, location, or category as needed
 ---
 
 **Document Control**:
-- **Created**: 2025-01-16
-- **Last Modified**: 2025-01-16
+- **Created**: 2026-01-16
+- **Last Modified**: 2026-01-16
 - **Version**: 1.0
 - **Status**: Active
 - **Review Cycle**: Quarterly

@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Validations Document
 - **Module**: Vendor Management > Price Lists
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added MOQ tier validations from PriceValidation.ts; Added product pricing validations; Added pricelist-level validations; Updated status values; Added smart defaults documentation |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional validations (approval workflows, price alerts, contract pricing, bulk import, price history); Updated to reflect implemented functionality |
 | 1.1.0 | 2025-11-18 | Documentation Team | Previous version with aspirational features |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
@@ -181,16 +182,20 @@ This document defines validation rules, error messages, and data integrity const
 | Status | Description | Valid |
 |--------|-------------|-------|
 | draft | Initial creation, not finalized | Yes |
-| pending | Awaiting review | Yes |
-| active | Current and in use | Yes |
+| submitted | Submitted for review | Yes |
+| approved | Approved and in use | Yes |
+| rejected | Rejected with reason | Yes |
 | expired | Past effective end date | Yes |
+| active | Legacy: maps to approved | Yes |
+| pending | Legacy: maps to submitted | Yes |
 
 ### 3.2 Status Rules
 
 | Rule ID | Rule | Error Message |
 |---------|------|---------------|
 | VAL-STS-001 | Status must be valid enum value | "Invalid status value" |
-| VAL-STS-002 | Only active price lists should be used for purchasing | N/A (informational) |
+| VAL-STS-002 | Only approved/active price lists should be used for purchasing | N/A (informational) |
+| VAL-STS-003 | Rejected status should have reason | N/A (informational) |
 
 ---
 
@@ -221,6 +226,59 @@ This document defines validation rules, error messages, and data integrity const
 |---------|------|---------------|
 | VAL-DSC-001 | Discount tiers must have ascending quantity thresholds | "Discount tiers must be in ascending order" |
 | VAL-DSC-002 | Percentage discounts must be 0-100 | "Percentage must be 0-100" |
+
+### 4.4 MOQ Pricing Tier Rules (from PriceValidation.ts)
+
+#### Single Tier Validation
+
+| Rule ID | Rule | Error Message |
+|---------|------|---------------|
+| VAL-MOQ-001 | MOQ must be greater than 0 | "MOQ must be greater than 0" |
+| VAL-MOQ-002 | Unit price must be greater than 0 | "Unit price must be greater than 0" |
+| VAL-MOQ-003 | Lead time must be at least 1 day | "Lead time must be at least 1 day" |
+| VAL-MOQ-004 | Unit is required | "Unit is required" |
+
+#### Tier Warnings (non-blocking)
+
+| Rule ID | Condition | Warning Message |
+|---------|-----------|-----------------|
+| VAL-MOQ-W001 | Unit price > 10,000 | "Unit price seems unusually high - please verify" |
+| VAL-MOQ-W002 | Lead time > 365 days | "Lead time over 1 year - please verify" |
+| VAL-MOQ-W003 | MOQ < 10 for g/ml/oz units | "MOQ seems low for this unit type" |
+| VAL-MOQ-W004 | MOQ > 1,000 for kg/L/lb units | "MOQ seems high for this unit type" |
+
+#### Multiple Tier Validation
+
+| Rule ID | Rule | Error Message |
+|---------|------|---------------|
+| VAL-MOQ-005 | At least one price tier is required | "At least one price tier is required" |
+| VAL-MOQ-006 | MOQ values should increase with each tier | "MOQ values should increase with each tier" |
+| VAL-MOQ-W005 | Unit price typically decreases with higher MOQ | "Unit price typically decreases with higher MOQ" (warning) |
+
+#### Product Completion Status
+
+| Status | Description |
+|--------|-------------|
+| not_started | No pricing tiers exist |
+| partial | Some tiers incomplete |
+| completed | All tiers have valid pricing |
+
+#### Smart MOQ Defaults
+
+| Unit Type | Default MOQ | Notes |
+|-----------|-------------|-------|
+| g, ml, oz | 100 | Smaller units need higher quantities |
+| kg, L, lb | 0.5 | Larger units can start with fractional amounts |
+| piece, box, pack | 1 | Count-based units typically whole numbers |
+| Default | 0.001 | Allows very small fractional quantities |
+
+#### Smart Lead Time Defaults
+
+| Unit Type | Default Lead Time | Notes |
+|-----------|-------------------|-------|
+| piece, box, pack | 3 days | Manufactured items |
+| kg, L, lb, g, ml, oz | 7 days | Raw materials |
+| Default | 5 days | Standard default |
 
 ---
 

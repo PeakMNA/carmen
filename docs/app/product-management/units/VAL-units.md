@@ -12,6 +12,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2026-01-15 | Documentation Team | Added MEASURE unit type for recipe ingredient measurements; updated all type-related validations |
 ---
 
 ## 1. Overview
@@ -352,18 +353,19 @@ Data Stored
 **Validation Rule**: Unit type is mandatory and must be one of the allowed values.
 
 **Implementation Requirements**:
-- **Client-Side**: Display as required dropdown with three options. No default selection (forces explicit choice). Show error if not selected.
+- **Client-Side**: Display as required dropdown with four options. No default selection (forces explicit choice). Show error if not selected.
 - **Server-Side**: Reject if type is missing or not one of the allowed enum values.
 - **Database**: Column defined as NOT NULL with CHECK constraint for enum values.
 
 **Error Code**: VAL-UNIT-010
-**Error Message**: "Unit type is required. Please select INVENTORY, ORDER, or RECIPE."
-**User Action**: User must select one of the three unit types.
+**Error Message**: "Unit type is required. Please select INVENTORY, ORDER, RECIPE, or MEASURE."
+**User Action**: User must select one of the four unit types.
 
 **Test Cases**:
 - ✅ Valid: "INVENTORY"
 - ✅ Valid: "ORDER"
 - ✅ Valid: "RECIPE"
+- ✅ Valid: "MEASURE"
 - ❌ Invalid: null or undefined
 - ❌ Invalid: empty string
 - ❌ Invalid: "INVALID_TYPE"
@@ -376,28 +378,30 @@ Data Stored
 
 **Field**: `type`
 
-**Validation Rule**: Unit type must be exactly one of the following enum values: "INVENTORY", "ORDER", or "RECIPE" (case-sensitive).
+**Validation Rule**: Unit type must be exactly one of the following enum values: "INVENTORY", "ORDER", "RECIPE", or "MEASURE" (case-sensitive).
 
 **Allowed Values**:
 - **INVENTORY**: Units for stock measurement and inventory tracking (e.g., KG, L, PC)
 - **ORDER**: Units for purchasing and procurement (e.g., BOX, CASE, PALLET)
-- **RECIPE**: Units for kitchen and culinary operations (e.g., TSP, TBSP, CUP, ML)
+- **RECIPE**: Units for recipe yield/portion output (e.g., SERVING, PORTION, PLATE, BOWL, SLICE)
+- **MEASURE**: Units for recipe ingredient measurements (e.g., TSP, TBSP, CUP, OZ, PINCH)
 
-**Rationale**: These three types cover all measurement contexts in hospitality operations. Type determines where and how the unit can be used throughout the system.
+**Rationale**: These four types cover all measurement contexts in hospitality operations. Type determines where and how the unit can be used throughout the system. RECIPE type is for output (yields and portions), while MEASURE type is for input (ingredient quantities).
 
 **Implementation Requirements**:
-- **Client-Side**: Dropdown with three options, each with descriptive tooltip. Cannot type custom values.
-- **Server-Side**: Verify value is exactly one of the three allowed strings (case-sensitive).
-- **Database**: CHECK constraint: `type IN ('INVENTORY', 'ORDER', 'RECIPE')`
+- **Client-Side**: Dropdown with four options, each with descriptive tooltip. Cannot type custom values.
+- **Server-Side**: Verify value is exactly one of the four allowed strings (case-sensitive).
+- **Database**: CHECK constraint: `type IN ('INVENTORY', 'ORDER', 'RECIPE', 'MEASURE')`
 
 **Error Code**: VAL-UNIT-011
-**Error Message**: "Unit type must be INVENTORY, ORDER, or RECIPE"
+**Error Message**: "Unit type must be INVENTORY, ORDER, RECIPE, or MEASURE"
 **User Action**: User must select one of the valid unit types from the dropdown.
 
 **Test Cases**:
 - ✅ Valid: "INVENTORY"
 - ✅ Valid: "ORDER"
 - ✅ Valid: "RECIPE"
+- ✅ Valid: "MEASURE"
 - ❌ Invalid: "inventory" (wrong case)
 - ❌ Invalid: "Inventory" (wrong case)
 - ❌ Invalid: "STOCK" (not in enum)
@@ -553,10 +557,10 @@ Data Stored
 - Result: ❌ Type change blocked
 - Reason: Products require INVENTORY type base units (BR-UNIT-010)
 
-**Scenario 2: RECIPE to INVENTORY - Has Recipe References**
-- Current: Unit "TSP" with type=RECIPE, used in 50 recipes
-- User tries to change type from RECIPE to INVENTORY
-- Check: Query finds 50 active recipe references
+**Scenario 2: MEASURE to INVENTORY - Has Recipe References**
+- Current: Unit "TSP" with type=MEASURE, used in 50 recipe ingredient measurements
+- User tries to change type from MEASURE to INVENTORY
+- Check: Query finds 50 active recipe ingredient references
 - Result: ❌ Type change blocked
 - Reason: Changing type could break recipe calculations
 
@@ -737,7 +741,7 @@ Please deactivate this unit instead, or remove all references before deleting."
 **Validation Logic**:
 1. When assigning a unit as a product's base_unit
 2. Verify selected unit has type = 'INVENTORY'
-3. If unit type is ORDER or RECIPE, reject assignment
+3. If unit type is ORDER, RECIPE, or MEASURE, reject assignment
 4. Only allow INVENTORY units for base_unit selection
 
 **When Validated**: When creating or updating a product's base_unit field
@@ -746,7 +750,7 @@ Please deactivate this unit instead, or remove all references before deleting."
 - **Client-Side**:
   * Base unit dropdown filters to type=INVENTORY only
   * Query: `GET /api/units?type=INVENTORY&status=active`
-  * Disable selection of ORDER and RECIPE units
+  * Disable selection of ORDER, RECIPE, and MEASURE units
 - **Server-Side**:
   * Before saving product, verify base_unit references an INVENTORY type unit
   * Query unit by ID and check type field
@@ -780,10 +784,18 @@ Please deactivate this unit instead, or remove all references before deleting."
 
 **Scenario 3: Invalid Base Unit - RECIPE Type**
 - Product: "Flour"
-- Selected base unit: "CUP" (type=RECIPE)
-- Check: Unit "CUP" has type='RECIPE'
+- Selected base unit: "SERVING" (type=RECIPE)
+- Check: Unit "SERVING" has type='RECIPE'
 - Result: ❌ Assignment blocked
-- Error: "Base unit must be an INVENTORY type unit. 'CUP' is a RECIPE unit and cannot be used for inventory valuation."
+- Error: "Base unit must be an INVENTORY type unit. 'SERVING' is a RECIPE unit and cannot be used for inventory valuation."
+- User must: Select an INVENTORY unit like "KG" instead
+
+**Scenario 4: Invalid Base Unit - MEASURE Type**
+- Product: "Sugar"
+- Selected base unit: "CUP" (type=MEASURE)
+- Check: Unit "CUP" has type='MEASURE'
+- Result: ❌ Assignment blocked
+- Error: "Base unit must be an INVENTORY type unit. 'CUP' is a MEASURE unit and cannot be used for inventory valuation."
 - User must: Select an INVENTORY unit like "KG" instead
 
 ---
@@ -1274,13 +1286,13 @@ All validation rules must have test cases covering:
 **Test Steps**:
 1. Enter Code: "TABLESPOON" (exactly 10 characters)
 2. Enter Name: "Tablespoon"
-3. Select Type: "RECIPE"
+3. Select Type: "MEASURE"
 4. Click "Save"
 
 **Input Data**:
 - code: "TABLESPOON" (length = 10, maximum allowed)
 - name: "Tablespoon"
-- type: "RECIPE"
+- type: "MEASURE"
 - isActive: true
 
 **Expected Result**: ✅ Unit created successfully (boundary value is acceptable)
@@ -1398,38 +1410,38 @@ All validation rules must have test cases covering:
 
 ---
 
-#### Integration Test: Create Unit with RECIPE Type and Use as Product Base Unit (Should Block)
+#### Integration Test: Create Unit with MEASURE Type and Use as Product Base Unit (Should Block)
 
 **Test ID**: VAL-UNIT-T303
 
-**Test Description**: Attempt to use RECIPE type unit as product base unit (should be prevented)
+**Test Description**: Attempt to use MEASURE type unit as product base unit (should be prevented)
 
 **Test Type**: Integration (Business Rule)
 
 **Preconditions**:
-- Unit "CUP" exists with type=RECIPE
+- Unit "CUP" exists with type=MEASURE
 - User is creating a new product
 
 **Test Steps**:
-1. Create unit "CUP" with type=RECIPE
+1. Create unit "CUP" with type=MEASURE
 2. Navigate to Create Product page
 3. Open "Base Unit" dropdown
 4. Verify "CUP" is NOT in the dropdown
 
 **Input Data**:
-- Unit "CUP" with type=RECIPE exists
+- Unit "CUP" with type=MEASURE exists
 - Attempting to select as base_unit
 
-**Expected Result**: ✅ RECIPE unit not available for base unit selection
+**Expected Result**: ✅ MEASURE unit not available for base unit selection
 
 **Validation Layer**: Client (filtered dropdown) and Server (validation)
 
 **Pass/Fail Criteria**:
 - Base unit dropdown only shows INVENTORY type units
-- "CUP" (RECIPE type) is not in dropdown
+- "CUP" (MEASURE type) is not in dropdown
 - Only INVENTORY units like "KG", "L", "PC" are selectable
 - If somehow bypassed, server rejects with error:
-  "Base unit must be an INVENTORY type unit. 'CUP' is a RECIPE unit."
+  "Base unit must be an INVENTORY type unit. 'CUP' is a MEASURE unit."
 
 ---
 

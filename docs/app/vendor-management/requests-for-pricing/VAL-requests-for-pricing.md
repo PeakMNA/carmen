@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Validations Document
 - **Module**: Vendor Management > Requests for Pricing
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated priority enum to include 'normal'; Added tags validation; Updated vendor status values; Updated escalation rules structure |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional RFQ validations (bid dates, evaluation criteria, award processes); Updated to reflect Price Collection Campaign functionality |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
@@ -52,8 +53,18 @@ This document defines all validation rules, error messages, and data integrity c
 | Rule | Validation | Error Message |
 |------|------------|---------------|
 | Required | Must select priority | "Priority is required" |
-| Valid | Must be one of: low, medium, high, urgent | "Invalid priority level" |
-| Default | Defaults to "medium" if not specified | N/A |
+| Valid | Must be one of: low, normal, medium, high, urgent | "Invalid priority level" |
+| Default | Defaults to "normal" if not specified | N/A |
+
+#### Campaign Tags
+**Field**: `tags`
+
+| Rule | Validation | Error Message |
+|------|------------|---------------|
+| Optional | Can be empty array | N/A |
+| Type | Must be array of strings | "Tags must be an array of strings" |
+| Item Length | Each tag 1-50 characters | "Each tag must be 1-50 characters" |
+| Max Items | Maximum 10 tags | "Maximum 10 tags allowed" |
 
 ### 2.2 Campaign Schedule Validations
 
@@ -381,17 +392,23 @@ This document defines all validation rules, error messages, and data integrity c
 
 | Status | Description | Valid Transitions |
 |--------|-------------|-------------------|
-| pending | Invitation sent, no activity | in_progress |
-| in_progress | Vendor started submission | completed |
+| pending | Invitation not yet sent | invited |
+| invited | Invitation sent, awaiting access | accessed |
+| accessed | Portal accessed | in_progress |
+| in_progress | Vendor started submission | completed, overdue |
 | completed | Submission completed | (final state) |
+| overdue | Past deadline without completion | completed, failed |
+| failed | Submission failed | (final state) |
 
 ### 9.2 Vendor Status Rules
 
 | Rule ID | Rule | Error Message |
 |---------|------|---------------|
 | VAL-VND-001 | New vendors start with pending status | N/A |
-| VAL-VND-002 | Reminder can only be sent to pending or in_progress | "Cannot send reminder to completed vendor" |
+| VAL-VND-002 | Reminder can only be sent to pending, invited, accessed, or in_progress | "Cannot send reminder to completed vendor" |
 | VAL-VND-003 | Completed status is final | "Cannot change status of completed vendor" |
+| VAL-VND-004 | Failed status is final | "Cannot change status of failed vendor" |
+| VAL-VND-005 | Overdue can transition to completed or failed | N/A |
 
 ---
 

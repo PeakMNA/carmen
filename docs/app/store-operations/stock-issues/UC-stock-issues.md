@@ -45,7 +45,7 @@
 **Main Flow**:
 1. User navigates to Stock Issues list
 2. System filters mockStoreRequisitions where:
-   - `stage === 'issue' OR stage === 'complete'`
+   - `stage === 'issue'` (NOTE: Only Issue stage, not Complete)
    - `destinationLocationType === 'DIRECT'`
 3. System displays summary cards:
    - Total Issues (count)

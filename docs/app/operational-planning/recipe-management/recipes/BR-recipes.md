@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Operational Planning > Recipe Management > Recipes
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2024-01-15 | System | Initial business requirements document created |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: updated RecipeStatus enum (draft, published, archived, under_review, approved, rejected), RecipeComplexity (simple, moderate, complex, advanced), added quality control workflow, enhanced audit trail fields |
 
 
 ## 1. Overview
@@ -75,7 +76,7 @@ This document defines business requirements for:
 - Preparation time (minutes)
 - Cooking time (minutes)
 - Total time (auto-calculated)
-- Difficulty level (easy, medium, hard)
+- Complexity level (simple, moderate, complex, advanced)
 - Recipe image upload with preview
 - Tags for searchability
 - Allergen information
@@ -519,17 +520,30 @@ Gross Margin % = (Gross Profit / Selling Price) × 100
 
 **Workflow**:
 1. **Draft**: Initial creation, editing allowed
-2. **Published**: Active for production use, version control on changes
+2. **Under Review**: Submitted for approval, limited editing
+3. **Approved**: Quality checked and approved, pending publish
+4. **Rejected**: Returned for corrections with review notes
+5. **Published**: Active for production use, version control on changes
+6. **Archived**: No longer in active use, preserved for historical records
+
+**Valid Status Values**: `draft | under_review | approved | rejected | published | archived`
 
 **State Transitions**:
-- Draft → Published: Requires validation and approval
+- Draft → Under Review: Recipe submitted for approval
+- Under Review → Approved: Passes quality review
+- Under Review → Rejected: Requires corrections (with review notes)
+- Rejected → Draft: Author revises recipe
+- Approved → Published: Made available for production
+- Published → Archived: Recipe retired from active use
 - Published → Draft: Reverts to editable state (creates new version)
 - No deletion of published recipes (archive only)
 
 **Business Logic**:
-- Draft recipes not visible to kitchen staff
+- Draft and Rejected recipes not visible to kitchen staff
+- Only Approved recipes can be published
 - Published recipes available in POS and production
 - Changing published recipe creates new version automatically
+- Archived recipes preserved for cost analysis and historical reporting
 
 ### BR-REC-010: Pricing Alert Thresholds
 **Rule**: System generates alerts when pricing metrics fall outside acceptable ranges.
@@ -618,7 +632,7 @@ interface Recipe {
   // Classification
   category: string                  // FK to RecipeCategory
   cuisine: string                   // FK to RecipeCuisine
-  status: RecipeStatus              // draft | published
+  status: RecipeStatus              // draft | under_review | approved | rejected | published | archived
 
   // Media
   image: string                     // Main recipe image URL
@@ -636,7 +650,7 @@ interface Recipe {
   prepTime: number                  // Preparation time (minutes)
   cookTime: number                  // Cooking time (minutes)
   totalTime: number                 // Total time (auto-calculated)
-  difficulty: DifficultyLevel       // easy | medium | hard
+  complexity: RecipeComplexity      // simple | moderate | complex | advanced
 
   // Cost Analysis
   costPerPortion: number            // Cost per single portion
@@ -736,13 +750,18 @@ interface PreparationStep {
 ```typescript
 enum RecipeStatus {
   DRAFT = 'draft',
-  PUBLISHED = 'published'
+  UNDER_REVIEW = 'under_review',
+  APPROVED = 'approved',
+  REJECTED = 'rejected',
+  PUBLISHED = 'published',
+  ARCHIVED = 'archived'
 }
 
-enum DifficultyLevel {
-  EASY = 'easy',
-  MEDIUM = 'medium',
-  HARD = 'hard'
+enum RecipeComplexity {
+  SIMPLE = 'simple',
+  MODERATE = 'moderate',
+  COMPLEX = 'complex',
+  ADVANCED = 'advanced'
 }
 
 enum IngredientType {

@@ -26,10 +26,9 @@ This document defines comprehensive validation rules for the Inventory Adjustmen
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.1.0 | 2025-12-10 | Development Team | Standardized reference number format (XXX-YYMM-NNNN); Updated VAL-INV-ADJ-003 with type-specific adjustment reasons (IN/OUT), added VAL-INV-ADJ-007 costing rules based on type |
+| 2.0.0 | 2025-12-09 | Development Team | Updated for shared costing methods |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
-| 2.0.0 | 2025-01-10 | Development Team | Updated for shared costing methods |
-| 2.1.0 | 2025-12-09 | Development Team | Updated VAL-INV-ADJ-003 with type-specific adjustment reasons (IN/OUT), added VAL-INV-ADJ-007 costing rules based on type |
 ---
 
 ## Validation Categories

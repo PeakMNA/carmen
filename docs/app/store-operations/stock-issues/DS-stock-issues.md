@@ -41,15 +41,14 @@
   │ lastUpdated      │                                      │     Item         │
   └──────────────────┘         ┌─ ─ ─ ─ ─ ─ ─ ─ ─┐        ├──────────────────┤
                                    STOCK ISSUE            │ id               │
-                               │       VIEW       │        │ requisitionId    │
-                                     (Filter)              │ productId        │
+                               │       VIEW       │        │ productId        │
+                                     (Filter)              │ productCode      │
                                │                  │        │ requestedQty     │
                                │ stage = 'issue'  │        │ approvedQty      │
-                               │ OR 'complete'    │        │ issuedQty        │
-                               │       AND        │        │ unitCost         │
-                               │ destLocationType │        │ totalCost        │
-                               │ = 'DIRECT'       │        └──────────────────┘
-                               └─ ─ ─ ─ ─ ─ ─ ─ ─┘
+                               │       AND        │        │ issuedQty        │
+                               │ destLocationType │        │ unitCost         │
+                               │ = 'DIRECT'       │        │ totalCost        │
+                               └─ ─ ─ ─ ─ ─ ─ ─ ─┘        └──────────────────┘
 ```
 
 ## 3. Source Entity: StoreRequisition
@@ -148,13 +147,15 @@ const SR_STATUS_LABELS: Record<SRStatus, string> = {
 interface StoreRequisitionItem {
   // Identity
   id: string                              // Line item ID
-  requisitionId: string                   // FK to StoreRequisition
 
   // Product Reference
   productId: string                       // FK to Product
   productCode: string                     // Product SKU (denormalized)
   productName: string                     // Product name (denormalized)
+  categoryId?: string                     // Category ID (optional)
+  categoryName?: string                   // Category name (denormalized)
   unit: string                            // Unit of measure
+  unitId?: string                         // Unit ID (optional)
 
   // Quantities
   requestedQty: number                    // Originally requested quantity
@@ -162,8 +163,24 @@ interface StoreRequisitionItem {
   issuedQty: number                       // Quantity issued
 
   // Costing
-  unitCost: Money                         // Cost per unit
-  totalCost: Money                        // issuedQty × unitCost
+  unitCost: number                        // Cost per unit (numeric)
+  totalCost: number                       // issuedQty × unitCost (numeric)
+
+  // Stock Availability
+  sourceAvailableQty: number              // Available quantity at source
+
+  // Fulfillment
+  fulfillment: SRLineItemFulfillment      // Fulfillment breakdown
+
+  // Business Dimensions
+  jobCodeId?: string                      // Job code reference
+  jobCodeName?: string                    // Job code name (denormalized)
+  projectId?: string                      // Project reference
+  projectName?: string                    // Project name (denormalized)
+
+  // Approval Tracking
+  approvalStatus: ApprovalStatus          // Item-level approval status
+  approvalNotes?: string                  // Approval notes
 
   // Notes
   notes?: string                          // Line item notes
@@ -221,15 +238,23 @@ Stock Issues are SRs that match these criteria:
 
 ```typescript
 // Filter function to identify SRs that appear in Stock Issue view
-const isStockIssue = (sr: StoreRequisition): boolean => {
-  return (
-    // Must be at Issue or Complete stage
-    (sr.stage === SRStage.Issue || sr.stage === SRStage.Complete) &&
-    // Destination must be DIRECT type
-    sr.destinationLocationType === InventoryLocationType.DIRECT
+// Actual implementation in lib/mock-data/store-requisitions.ts
+export function getStoreRequisitionsForStockIssue(): StoreRequisition[] {
+  return mockStoreRequisitions.filter(
+    sr => sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT
   )
 }
+
+export function getStoreRequisitionForStockIssueById(id: string): StoreRequisition | undefined {
+  const sr = mockStoreRequisitions.find(sr => sr.id === id)
+  if (sr && sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT) {
+    return sr
+  }
+  return undefined
+}
 ```
+
+**Note**: The current implementation filters only for `SRStage.Issue`. Documentation previously mentioned `'issue' OR 'complete'` which was a planned enhancement.
 
 ### 4.2 View vs Entity Comparison
 
@@ -259,8 +284,8 @@ const isStockIssue = (sr: StoreRequisition): boolean => {
 ```
 StoreRequisition
        │
-       │ Filter: stage IN ('issue', 'complete')
-       │         AND destinationLocationType = 'DIRECT'
+       │ Filter: stage === SRStage.Issue
+       │         AND destinationLocationType === InventoryLocationType.DIRECT
        ▼
 Stock Issue View (Read-Only)
        │
@@ -285,9 +310,9 @@ function calculateTotalQuantity(items: StoreRequisitionItem[]): number {
 }
 
 // Calculate total value
-function calculateTotalValue(items: StoreRequisitionItem[]): Money {
-  const total = items.reduce((sum, item) => sum + item.totalCost.amount, 0)
-  return { amount: total, currency: 'USD' }
+// Note: totalCost is a number in the actual implementation
+function calculateTotalValue(items: StoreRequisitionItem[]): number {
+  return items.reduce((sum, item) => sum + item.totalCost, 0)
 }
 ```
 
@@ -297,9 +322,10 @@ function calculateTotalValue(items: StoreRequisitionItem[]): Money {
 
 ```typescript
 // Get all stock issues (from SR data)
+// Actual implementation filters only for Issue stage
 function getStockIssues(srs: StoreRequisition[]): StoreRequisition[] {
   return srs.filter(sr =>
-    (sr.stage === SRStage.Issue || sr.stage === SRStage.Complete) &&
+    sr.stage === SRStage.Issue &&
     sr.destinationLocationType === InventoryLocationType.DIRECT
   )
 }
@@ -324,7 +350,7 @@ function getIssuesByDepartment(srs: StoreRequisition[], deptId: string): StoreRe
 
 | Action | Purpose | Endpoint |
 |--------|---------|----------|
-| List Issues | Filter SR list | `GET /api/store-requisitions?stage=issue,complete&destType=DIRECT` |
+| List Issues | Filter SR list | `GET /api/store-requisitions?stage=issue&destType=DIRECT` |
 | Get Issue | Get SR by ID | `GET /api/store-requisitions/:id` |
 | Complete | Complete SR | `POST /api/store-requisitions/:id/complete` |
 
@@ -385,16 +411,22 @@ const sampleIssueSR: StoreRequisition = {
   items: [
     {
       id: 'sri-004-01',
-      requisitionId: 'sr-004',
       productId: 'product-wine-001',
       productCode: 'BEV-WIN-001',
       productName: 'House Red Wine',
+      categoryId: 'cat-beverages',
+      categoryName: 'Beverages',
       unit: 'bottle',
+      unitId: 'unit-bottle',
       requestedQty: 12,
       approvedQty: 12,
       issuedQty: 12,
-      unitCost: { amount: 15.00, currency: 'USD' },
-      totalCost: { amount: 180.00, currency: 'USD' }
+      unitCost: 15.00,                           // number, not Money
+      totalCost: 180.00,                         // number, not Money
+      sourceAvailableQty: 50,
+      fulfillment: { /* fulfillment breakdown */ },
+      approvalStatus: ApprovalStatus.Approved,
+      notes: 'For bar service'
     }
   ],
 
@@ -465,7 +497,7 @@ The following fields have been **removed** as Stock Issues are now views, not en
 
 // New query (use SR with filter)
 // SELECT * FROM store_requisition
-// WHERE stage IN ('issue', 'complete')
+// WHERE stage = 'issue'
 // AND destination_location_type = 'DIRECT'
 ```
 
@@ -474,3 +506,31 @@ The following fields have been **removed** as Stock Issues are now views, not en
 - Remove imports of `IssueStatus`, `StockIssue`, `StockIssueItem`
 - Replace with `SRStatus`, `SRStage`, `StoreRequisition`, `StoreRequisitionItem`
 - Update queries to filter SR data instead of querying separate SI table
+
+## 13. Implementation Notes
+
+### 13.1 Code vs Documentation Alignment
+
+This documentation has been synchronized with the actual code implementation:
+
+| Aspect | Documentation | Code (`lib/types/store-requisition.ts`) |
+|--------|---------------|------------------------------------------|
+| `unitCost` type | `number` | `number` (line 181) |
+| `totalCost` type | `number` | `number` (line 182) |
+| `requisitionId` field | Not present | Not in interface (removed) |
+| Filter criteria | `stage === SRStage.Issue` | `sr.stage === SRStage.Issue` |
+| Helper functions | Documented | `getStoreRequisitionsForStockIssue()` in `lib/mock-data/store-requisitions.ts` |
+
+### 13.2 Key Implementation Details
+
+1. **Cost Types**: The `StoreRequisitionItem` interface uses `number` types for `unitCost` and `totalCost`, not the `Money` interface. This simplifies calculations and aligns with how the detail page computes totals.
+
+2. **Filter Logic**: The actual helper function `getStoreRequisitionsForStockIssue()` filters only for `SRStage.Issue`, not `'issue' OR 'complete'` as previously documented.
+
+3. **Sort Fields**: The list page uses `requestDate` for sorting (not `requiredDate`). Both fields exist on `StoreRequisition`:
+   - `requestDate`: When the requisition was requested
+   - `requiredDate`: When items are needed by
+
+4. **Color Scheme**: Stock Issues use a purple color scheme, distinguishing them from Stock Transfers (blue).
+
+**Last synchronized**: January 2026 with code in `lib/types/store-requisition.ts` and `app/(main)/store-operations/stock-issues/`

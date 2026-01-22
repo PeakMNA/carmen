@@ -5,8 +5,14 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Transactions |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-16 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 2.0.0 | 2025-01-16 | Documentation Team | Updated transaction types; Updated reference types (ST, SI); Fixed Mermaid compatibility |
+| 1.0.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -31,6 +37,8 @@ flowchart TD
     N --> O[Display Transaction Table]
 ```
 
+**Source Evidence**: `page.tsx:43-89`
+
 ---
 
 ## 2. Filter Application Flow
@@ -40,7 +48,7 @@ flowchart TD
     A[User Changes Filter] --> B[Update Filter State]
     B --> C[Set Loading True]
     C --> D{Location Filter Applied?}
-    D -->|Yes| E[Validate Against User Permissions]
+    D -->|Yes| E[Validate Against Permissions]
     D -->|No| F[Use Default Locations]
     E --> G{Valid Locations?}
     G -->|Yes| H[Apply All Filters]
@@ -55,48 +63,47 @@ flowchart TD
     N --> O[Display Active Filters]
 ```
 
+**Source Evidence**: `page.tsx:60-89`, `components/TransactionFilters.tsx:43-133`
+
 ---
 
 ## 3. Transaction Type Flow
 
 ```mermaid
 flowchart LR
-    subgraph 'Inbound (IN)'
+    subgraph Inbound_IN
         A1[GRN - Goods Received]
-        A2[TRF - Transfer In]
-        A3[PO - Purchase Order]
-        A4[PC - Physical Count +]
+        A2[ST - Transfer In]
+        A3[PC - Physical Count plus]
+        A4[ADJ - Adjustment plus]
     end
 
-    subgraph 'Outbound (OUT)'
+    subgraph Outbound_OUT
         B1[SO - Sales Order]
-        B2[TRF - Transfer Out]
-        B3[SR - Store Requisition]
+        B2[ST - Transfer Out]
+        B3[SI - Stock Issue]
         B4[WO - Write Off]
         B5[WR - Wastage Report]
+        B6[ADJ - Adjustment minus]
+        B7[PC - Physical Count minus]
     end
 
-    subgraph 'Adjustment'
-        C1[ADJ - Manual Adjustment]
-        C2[PC - Physical Count]
-        C3[WO - Write Off]
-        C4[WR - Wastage Report]
-    end
-
-    A1 --> D[Transaction Record]
-    A2 --> D
-    A3 --> D
-    A4 --> D
-    B1 --> D
-    B2 --> D
-    B3 --> D
-    B4 --> D
-    B5 --> D
-    C1 --> D
-    C2 --> D
-    C3 --> D
-    C4 --> D
+    A1 --> C[Transaction Record]
+    A2 --> C
+    A3 --> C
+    A4 --> C
+    B1 --> C
+    B2 --> C
+    B3 --> C
+    B4 --> C
+    B5 --> C
+    B6 --> C
+    B7 --> C
 ```
+
+**Note**: Transaction types are only IN or OUT. Adjustments (ADJ) create either IN or OUT based on direction.
+
+**Source Evidence**: `types.ts:6-7`, `lib/mock-data/transactions.ts:73-76`
 
 ---
 
@@ -115,6 +122,8 @@ flowchart TD
     G --> H[Update Sort Icon]
     H --> I[Re-render Table]
 ```
+
+**Source Evidence**: `components/TransactionTable.tsx:104-118`
 
 ---
 
@@ -141,6 +150,8 @@ flowchart TD
     O --> B
 ```
 
+**Source Evidence**: `components/TransactionTable.tsx:44-46, 96-123`
+
 ---
 
 ## 6. CSV Export Flow
@@ -151,13 +162,16 @@ flowchart TD
     B -->|No| C[Button Disabled]
     B -->|Yes| D[Generate Headers Array]
     D --> E[Map Records to Rows]
-    E --> F[Join with Commas]
-    F --> G[Create Blob]
-    G --> H[Generate Filename with Date]
-    H --> I[Create Download Link]
-    I --> J[Trigger Download]
-    J --> K[Cleanup Link]
+    E --> F[Quote All Values]
+    F --> G[Join with Commas]
+    G --> H[Create Blob]
+    H --> I[Generate Filename with Date]
+    I --> J[Create Download Link]
+    J --> K[Trigger Download]
+    K --> L[Cleanup Link]
 ```
+
+**Source Evidence**: `page.tsx:97-154`
 
 ---
 
@@ -171,6 +185,8 @@ flowchart LR
     A --> C[Show TransactionTable]
     B --> D[Show TransactionAnalytics]
 ```
+
+**Source Evidence**: `page.tsx:226-257`
 
 ---
 
@@ -189,12 +205,14 @@ flowchart TD
     G --> I
     H --> I
     I --> J[Load Transaction Data]
-    J --> K{Location Filter Applied?}
+    J --> K{User Has Location Filter?}
     K -->|No| L[Auto-filter to User Locations]
     K -->|Yes| M[Validate Against Permissions]
     L --> N[Display Filtered Transactions]
     M --> N
 ```
+
+**Source Evidence**: `page.tsx:43-56`, `page.tsx:66-81`
 
 ---
 
@@ -212,6 +230,8 @@ flowchart TD
     H --> I[Charts Complete]
 ```
 
+**Source Evidence**: `components/TransactionAnalytics.tsx:29-59, 61-293`
+
 ---
 
 ## 10. Quick Date Filter Flow
@@ -219,10 +239,10 @@ flowchart TD
 ```mermaid
 flowchart TD
     A[Click Quick Filter Button] --> B{Which Button?}
-    B -->|Today| C[Set from: today start, to: now]
-    B -->|7 Days| D[Set from: 7 days ago, to: now]
-    B -->|30 Days| E[Set from: 30 days ago, to: now]
-    B -->|This Month| F[Set from: month start, to: month end]
+    B -->|Today| C[Set from: today start to: now]
+    B -->|7 Days| D[Set from: 7 days ago to: now]
+    B -->|30 Days| E[Set from: 30 days ago to: now]
+    B -->|This Month| F[Set from: month start to: month end]
     C --> G[Update dateRange Filter]
     D --> G
     E --> G
@@ -230,3 +250,65 @@ flowchart TD
     G --> H[Trigger Filter Change]
     H --> I[Reload Data]
 ```
+
+**Source Evidence**: `components/TransactionFilters.tsx:94-122`
+
+---
+
+## 11. Search Filter Flow
+
+```mermaid
+flowchart TD
+    A[User Types in Search Box] --> B[Update searchTerm State]
+    B --> C[Debounce Input]
+    C --> D[Filter Records]
+    D --> E{Match Found?}
+    E -->|Product Name| F[Include Record]
+    E -->|Product Code| F
+    E -->|Reference| F
+    E -->|Location| F
+    E -->|Category| F
+    E -->|User Name| F
+    E -->|No Match| G[Exclude Record]
+    F --> H[Update Results]
+    G --> H
+```
+
+**Source Evidence**: `components/TransactionFilters.tsx:51-53`, `lib/mock-data/transactions.ts:350-365`
+
+---
+
+## 12. Summary Calculation Flow
+
+```mermaid
+flowchart TD
+    A[Filtered Records] --> B[Initialize Totals]
+    B --> C[Loop Through Records]
+    C --> D{Transaction Type?}
+    D -->|IN| E[Add to totalInQuantity]
+    D -->|OUT| F[Add to totalOutQuantity]
+    E --> G[Add to totalInValue]
+    F --> H[Add to totalOutValue]
+    G --> I{Is ADJ Reference?}
+    H --> I
+    I -->|Yes| J[Increment adjustmentCount]
+    I -->|No| K[Continue]
+    J --> L[Update adjustmentValue]
+    K --> M{More Records?}
+    L --> M
+    M -->|Yes| C
+    M -->|No| N[Calculate netQuantityChange]
+    N --> O[Calculate netValueChange]
+    O --> P[Return Summary]
+```
+
+**Source Evidence**: `lib/mock-data/transactions.ts:164-197`
+
+---
+
+## Related Documents
+
+- [BR-inventory-transactions.md](./BR-inventory-transactions.md) - Business Requirements
+- [TS-inventory-transactions.md](./TS-inventory-transactions.md) - Technical Specification
+- [UC-inventory-transactions.md](./UC-inventory-transactions.md) - Use Cases
+- [VAL-inventory-transactions.md](./VAL-inventory-transactions.md) - Validations

@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Vendor Management > Requests for Pricing
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-25
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2025-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Updated priority levels to include 'normal'; Added tags field; Updated CampaignVendorStatus with portal fields; Updated ReminderSchedule with escalationRules array structure; Added CampaignAnalytics and CampaignDuplicationRequest references |
 | 2.0.0 | 2025-11-25 | System | Complete rewrite to match actual code implementation; Removed fictional RFQ features (bidding, evaluation, negotiation, awards, contracts); Updated to reflect price collection campaign functionality |
 | 1.1 | 2025-11-18 | System | Previous version with RFQ features |
 | 1.0 | 2024-01-15 | System | Initial creation |
@@ -82,9 +83,10 @@ The Requests for Pricing module provides a campaign-based system to collect pric
 - Step 1 - Basic Information:
   - Campaign name (required)
   - Description (required)
-  - Priority (normal, urgent)
+  - Priority (low, normal, medium, high, urgent - default: normal)
   - Start date (required)
   - End date (required)
+  - Tags (optional, array of strings)
 - Step 2 - Template Selection:
   - Select from available pricelist templates
   - Display template details (validity period, currency)
@@ -258,7 +260,7 @@ The Requests for Pricing module provides a campaign-based system to collect pric
   - Escalation recipients
 - Email Template: Template for invitation emails
 - Custom Instructions: Additional instructions for vendors
-- Priority: low, medium, high, urgent
+- Priority: low, normal, medium, high, urgent
 
 **Business Rules**:
 - Default portal access duration: 30 days
@@ -433,7 +435,8 @@ The Requests for Pricing module provides a campaign-based system to collect pric
 | reminderSchedule | object | Reminder configuration |
 | emailTemplate | string | Email template name |
 | customInstructions | string | Additional instructions |
-| priority | enum | low, medium, high, urgent |
+| priority | enum | low, normal, medium, high, urgent |
+| tags | string[] | Optional campaign tags |
 
 ### 4.4 Recurring Pattern Object
 

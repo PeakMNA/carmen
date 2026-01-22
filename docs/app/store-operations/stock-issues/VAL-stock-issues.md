@@ -33,25 +33,28 @@ This document defines validation rules for the Stock Issues **view**. All docume
 
 | Rule ID | Criteria | Validation | Error Message |
 |---------|----------|------------|---------------|
-| VAL-VIEW-001 | Stage | stage IN ('issue', 'complete') | SR must be at Issue or Complete stage |
+| VAL-VIEW-001 | Stage | stage === 'issue' | SR must be at Issue stage |
 | VAL-VIEW-002 | Destination Type | destinationLocationType = 'DIRECT' | Destination must be DIRECT type |
-| VAL-VIEW-003 | Status | status IN ('in_progress', 'completed') | SR must be active or completed |
+
+**Note**: Current implementation only filters for `SRStage.Issue` (not 'issue' OR 'complete'). Completed SRs are NOT shown in the Stock Issue view.
 
 ### 3.2 View Filter Function
 
 ```typescript
-// Validation function for issue view
-function isValidIssue(sr: StoreRequisition): boolean {
-  // VAL-VIEW-001: Check stage
-  const validStage = sr.stage === SRStage.Issue || sr.stage === SRStage.Complete
+// Actual validation function for issue view (from lib/mock-data/store-requisitions.ts)
+export function getStoreRequisitionsForStockIssue(): StoreRequisition[] {
+  return mockStoreRequisitions.filter(
+    sr => sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT
+  )
+}
 
-  // VAL-VIEW-002: Check destination type
-  const validDestination = sr.destinationLocationType === InventoryLocationType.DIRECT
-
-  // VAL-VIEW-003: Check status (cancelled/voided don't appear in view)
-  const validStatus = sr.status === SRStatus.InProgress || sr.status === SRStatus.Completed
-
-  return validStage && validDestination && validStatus
+// For single item validation
+export function getStoreRequisitionForStockIssueById(id: string): StoreRequisition | undefined {
+  const sr = mockStoreRequisitions.find(sr => sr.id === id)
+  if (sr && sr.stage === SRStage.Issue && sr.destinationLocationType === InventoryLocationType.DIRECT) {
+    return sr
+  }
+  return undefined
 }
 ```
 
@@ -119,16 +122,16 @@ function isValidIssue(sr: StoreRequisition): boolean {
 ```typescript
 import { SRStage, SRStatus, InventoryLocationType, StoreRequisition } from '@/lib/types'
 
-// View filter validation
+// View filter validation (aligned with actual implementation)
 export function validateIssueView(sr: StoreRequisition): ValidationResult {
   const errors: ValidationError[] = []
 
-  // VAL-VIEW-001: Stage validation
-  if (sr.stage !== SRStage.Issue && sr.stage !== SRStage.Complete) {
+  // VAL-VIEW-001: Stage validation (NOTE: Only Issue stage, not Complete)
+  if (sr.stage !== SRStage.Issue) {
     errors.push({
       field: 'stage',
       ruleId: 'VAL-VIEW-001',
-      message: 'SR must be at Issue or Complete stage',
+      message: 'SR must be at Issue stage',
       severity: 'error'
     })
   }
@@ -143,15 +146,8 @@ export function validateIssueView(sr: StoreRequisition): ValidationResult {
     })
   }
 
-  // VAL-VIEW-003: Status validation
-  if (sr.status !== SRStatus.InProgress && sr.status !== SRStatus.Completed) {
-    errors.push({
-      field: 'status',
-      ruleId: 'VAL-VIEW-003',
-      message: 'SR must be active or completed',
-      severity: 'error'
-    })
-  }
+  // NOTE: VAL-VIEW-003 (Status validation) removed as current implementation
+  // does not filter by status - only by stage and destination type
 
   return {
     valid: errors.length === 0,
@@ -325,11 +321,13 @@ interface ValidationResponse {
 
 | Trigger Point | Validations Applied |
 |---------------|---------------------|
-| List Page Load | VAL-VIEW-001, VAL-VIEW-002, VAL-VIEW-003, VAL-SEC-001 |
+| List Page Load | VAL-VIEW-001, VAL-VIEW-002, VAL-SEC-001 |
 | Detail Page Load | VAL-VIEW-004, VAL-VIEW-005, VAL-SEC-001, VAL-SEC-002, VAL-SEC-003 |
 | Search/Filter | VAL-DSP-* (display validations) |
 | Print Action | VAL-SEC-005 |
 | View Full SR | VAL-SEC-006 |
+
+**Note**: VAL-VIEW-003 (Status validation) was removed as the current implementation does not filter by status.
 
 ## 9. Validation Summary Matrix
 

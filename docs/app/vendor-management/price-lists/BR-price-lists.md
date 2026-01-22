@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Vendor Management > Price Lists
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added 5-step staff creation wizard; Added edit page routes; Updated status values (draft, submitted, approved, rejected, expired); Added creation methods (template, manual, import); Added supported currencies; Updated MOQ pricing validation |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match actual code implementation; Removed fictional features (RFQ integration, contract pricing, complex approval workflows, price alerts, bulk operations, analytics dashboard, archival); Updated to reflect implemented price list functionality |
 | 1.1.0 | 2025-11-18 | Documentation Team | Previous version with aspirational features |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
@@ -107,13 +108,16 @@ The Price Lists module provides a centralized system for managing vendor-submitt
 **Requirements**:
 - Support statuses:
   - **draft**: Initial creation, not finalized
-  - **pending**: Awaiting review or activation
-  - **active**: Current and in use
+  - **submitted**: Submitted for review
+  - **approved**: Approved and in use
+  - **rejected**: Rejected with reason
   - **expired**: Past effective end date
+  - **active**: Current and in use (legacy support, maps to approved)
+  - **pending**: Awaiting review (legacy support, maps to submitted)
 - Status badges with color coding:
-  - Active: Green (bg-green-100 text-green-800)
-  - Expired: Red (bg-red-100 text-red-800)
-  - Pending: Yellow (bg-yellow-100 text-yellow-800)
+  - Active/Approved: Green (bg-green-100 text-green-800)
+  - Expired/Rejected: Red (bg-red-100 text-red-800)
+  - Pending/Submitted: Yellow (bg-yellow-100 text-yellow-800)
   - Draft: Gray (bg-gray-100 text-gray-800)
 
 **Business Rules**:
@@ -157,25 +161,53 @@ The Price Lists module provides a centralized system for managing vendor-submitt
 **Description**: System shall allow users to create new price lists with line items.
 
 **Requirements**:
-- Enter basic information:
-  - Price list number (auto-generated or manual)
-  - Vendor selection
-  - Currency selection
-  - Valid from date
-  - Valid to date
-  - Submission notes
-- Add line items with:
-  - Product selection
-  - MOQ (Minimum Order Quantity)
-  - Unit of measure
-  - Unit price
-  - Lead time (days)
-  - Notes
+- Two creation methods available:
+  1. **Simple Add Form** (`/vendor-management/pricelists/add`):
+     - Price list number (auto-generated or manual)
+     - Vendor selection (required)
+     - Currency selection (USD, BHT, EUR, CNY default options)
+     - Valid from date (required)
+     - Valid to date (required, defaults to 90 days from start)
+     - Submission notes
+     - Add line items with pricing tiers
+
+  2. **5-Step Staff Creation Wizard** (`/vendor-management/pricelists/new`):
+     - Step 1 - Basic Information: Pricelist number, creation notes
+     - Step 2 - Vendor Selection: Search and select vendor
+     - Step 3 - Creation Method: Template-based, Manual, or Excel Import
+     - Step 4 - Configuration: Currency, validity dates, template selection (if applicable)
+     - Step 5 - Review & Create: Summary and confirmation
+
+- Line items include:
+  - Product name and code (required)
+  - Product description
+  - Category and subcategory
+  - MOQ pricing tiers with:
+    - MOQ (Minimum Order Quantity)
+    - Unit of measure
+    - Unit price
+    - Lead time (days)
+    - Notes
+  - Multiple pricing tiers per item supported
+
+**Supported Currencies**:
+- USD (US Dollar)
+- BHT (Thai Baht)
+- EUR (Euro)
+- CNY (Chinese Yuan)
+- SGD (Singapore Dollar)
+
+**Creation Methods** (5-step wizard):
+- **Template-based**: Create from existing pricelist template
+- **Manual**: Start with empty pricelist, add products manually
+- **Excel Import**: Upload Excel file with pricing data (xlsx, xls, csv)
 
 **Business Rules**:
 - Valid to date must be after valid from date
 - At least one line item recommended
 - Currency applies to all items in price list
+- Duplicate pricelist stores data in sessionStorage for pre-population
+- Staff creation wizard logs action for audit purposes
 
 **Acceptance Criteria**:
 - Create form displays all required fields
@@ -183,6 +215,8 @@ The Price Lists module provides a centralized system for managing vendor-submitt
 - Line items can be added and removed
 - Form validates required fields
 - Price list created successfully
+- 5-step wizard progress indicator shows current step
+- Template selection filters active templates only
 
 ---
 

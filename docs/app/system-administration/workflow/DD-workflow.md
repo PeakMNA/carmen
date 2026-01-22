@@ -3,7 +3,7 @@
 ## Document Information
 - **Module**: System Administration / Workflow Management
 - **Version**: 1.0
-- **Last Updated**: 2025-01-16
+- **Last Updated**: 2026-01-16
 - **Status**: Active
 - **Related Documents**: BR-workflow.md, UC-workflow.md, TS-workflow.md
 
@@ -171,8 +171,8 @@ CREATE INDEX workflow_deleted_idx ON tb_workflow(deleted_at);
 [
   {
     "stage": "Request Creation",
-    "enteredAt": "2025-01-15T08:00:00Z",
-    "exitedAt": "2025-01-15T09:30:00Z",
+    "enteredAt": "2026-01-15T08:00:00Z",
+    "exitedAt": "2026-01-15T09:30:00Z",
     "duration": 90,
     "action": "Submit",
     "userId": "user-uuid",
@@ -181,8 +181,8 @@ CREATE INDEX workflow_deleted_idx ON tb_workflow(deleted_at);
   },
   {
     "stage": "Purchasing Review",
-    "enteredAt": "2025-01-15T09:30:00Z",
-    "exitedAt": "2025-01-15T11:00:00Z",
+    "enteredAt": "2026-01-15T09:30:00Z",
+    "exitedAt": "2026-01-15T11:00:00Z",
     "duration": 90,
     "action": "Approve",
     "userId": "reviewer-uuid",
@@ -1331,4 +1331,4 @@ See sample workflow JSON structure in Section 1.1.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2025-01-16 | System | Initial data definition documentation |
+| 1.0 | 2026-01-16 | System | Initial data definition documentation |

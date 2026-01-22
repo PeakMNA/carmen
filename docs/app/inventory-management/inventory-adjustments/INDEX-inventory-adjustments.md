@@ -8,6 +8,15 @@
 
 ---
 
+## Quick Navigation
+
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/inventory-management/inventory-adjustments/business-requirements)<br/>Business Requirements | [**UC**](/inventory-management/inventory-adjustments/use-cases)<br/>Use Cases | [**TS**](/inventory-management/inventory-adjustments/technical-specification)<br/>Technical Spec |
+| [**DD**](/inventory-management/inventory-adjustments/data-dictionary)<br/>Data Dictionary | [**FD**](/inventory-management/inventory-adjustments/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/inventory-management/inventory-adjustments/validations)<br/>Validations |
+
+---
+
 ## Quick Links
 
 | Document | Description | Status |
@@ -294,7 +303,8 @@ app/(main)/inventory-management/inventory-adjustments/
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.3.0 | 2025-12-17 | Documentation Team | Updated UI: removed tabs, added Stock-in/Stock-out header buttons; Enhanced Two-Level Category/Reason |
+| 2.0.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
 ---

@@ -6,7 +6,9 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-11-19 | Documentation Team | Migrated from DS to DD format |
+| 1.0.0 | 2025-11-15 | Documentation Team | Initial version |
+
 **Module**: Inventory Management
 **Sub-Module**: Stock Overview
 
@@ -18,8 +20,6 @@ This document provides comprehensive data schema documentation for the Stock Ove
 
 **Related Documents**:
 - [BR-INV-OVW: Business Requirements](./BR-stock-overview.md)
-| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
-
 - [UC-INV-OVW: Use Cases](./UC-stock-overview.md)
 - [TS-INV-OVW: Technical Specification](./TS-stock-overview.md)
 - [FD-INV-OVW: Flow Diagrams](./FD-stock-overview.md)

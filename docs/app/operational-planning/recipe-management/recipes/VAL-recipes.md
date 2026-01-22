@@ -3,15 +3,16 @@
 ## Document Information
 - **Document Type**: Validations Specification
 - **Module**: Operational Planning > Recipe Management > Recipes
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial validations specification document created for Recipe Management |
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: updated RecipeStatus enum (draft, under_review, approved, rejected, published, archived), updated complexity validation (simple, moderate, complex, advanced) |
 
 ---
 
@@ -22,14 +23,14 @@
 ```typescript
 import { z } from "zod"
 
-// Recipe difficulty enum
-const recipeDifficultySchema = z.enum(['easy', 'medium', 'hard'], {
-  required_error: "Difficulty is required",
-  invalid_type_error: "Invalid difficulty level"
+// Recipe complexity enum
+const recipeComplexitySchema = z.enum(['simple', 'moderate', 'complex', 'advanced'], {
+  required_error: "Complexity is required",
+  invalid_type_error: "Invalid complexity level"
 })
 
-// Recipe status enum
-const recipeStatusSchema = z.enum(['draft', 'published', 'archived'], {
+// Recipe status enum (includes quality control workflow)
+const recipeStatusSchema = z.enum(['draft', 'under_review', 'approved', 'rejected', 'published', 'archived'], {
   required_error: "Status is required",
   invalid_type_error: "Invalid status"
 })
@@ -79,7 +80,7 @@ export const recipeSchema = z.object({
     .string({ required_error: "Cuisine is required" })
     .min(1, "Cuisine is required"),
 
-  difficulty: recipeDifficultySchema.default('medium'),
+  complexity: recipeComplexitySchema.default('moderate'),
 
   // Yield Configuration
   baseYield: z

@@ -1,16 +1,17 @@
 # Flow Diagrams: Recipe Categories
 
 **Module**: Operational Planning > Recipe Management > Categories
-**Version**: 1.0
-**Last Updated**: 2025-01-11
+**Version**: 2.0.0
+**Last Updated**: 2025-01-16
 **Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: added kitchen workflow and food safety fields |
 ---
 
 ## 1. Create Category Workflow

@@ -42,11 +42,66 @@ The database design emphasizes referential integrity, data quality, and performa
 
 ---
 
+## TypeScript Interface Reference
+
+**Important**: This section documents the current TypeScript interfaces that correspond to the database entities described below. Developers should reference these interfaces from `lib/types/` when implementing features.
+
+### Base Category Interface (lib/types/common.ts)
+
+```typescript
+interface Category {
+  id: string;
+  name: string;
+  description?: string;
+  parentId?: string;
+  level: number;                    // 1=Category, 2=Subcategory, 3=ItemGroup
+  sortOrder?: number;
+  path?: string;                    // e.g., "Food > Dairy > Cheese"
+  itemCount?: number;               // Direct product count
+  totalItemCount?: number;          // Nested count including children
+  isActive: boolean;
+  createdAt?: Date;
+  createdBy?: string;
+  updatedAt?: Date;
+  updatedBy?: string;
+  deletedAt?: Date | null;
+  deletedBy?: string | null;
+}
+```
+
+### UI Tree Operations Interface (lib/types/product.ts)
+
+```typescript
+type CategoryType = 'CATEGORY' | 'SUBCATEGORY' | 'ITEM_GROUP';
+
+interface CategoryItem {
+  id: string;
+  name: string;
+  type: CategoryType;              // Explicit type for UI tree display
+  itemCount: number;
+  children?: CategoryItem[];
+  parentId?: string;
+  isExpanded?: boolean;
+  isEditing?: boolean;
+}
+
+interface CategoryTreeOperations {
+  onMove: (dragId: string, hoverId: string) => void;
+  onDelete: (id: string) => void;
+  onEdit: (id: string, newName: string) => void;
+  onAdd: (parentId: string, type: CategoryType) => void;
+}
+```
+
+**Note**: The base `Category` interface uses `level` (1, 2, 3) to determine hierarchy position. The `CategoryItem` interface adds an explicit `type` field for UI tree operations. When mapping between database entities and UI components, derive `CategoryType` from `level`: level 1 = 'CATEGORY', level 2 = 'SUBCATEGORY', level 3 = 'ITEM_GROUP'.
+
+---
+
 ## Entity Relationship Overview
 
 **Primary Entities**: The Categories sub-module consists of one primary entity with self-referencing relationships
 
-- **categories**: Represents all nodes in the three-level product classification hierarchy. Each record can be a Category (level 1), Subcategory (level 2), or Item Group (level 3) depending on its type and parent relationship. This single-table design simplifies hierarchy management while supporting flexible depth structures.
+- **categories**: Represents all nodes in the three-level product classification hierarchy. Each record can be a Category (level 1), Subcategory (level 2), or Item Group (level 3) depending on its level and parent relationship. This single-table design simplifies hierarchy management while supporting flexible depth structures.
 
 **Key Relationships**:
 
@@ -132,6 +187,7 @@ The database design emphasizes referential integrity, data quality, and performa
   - Example values: "CATEGORY" (for "Raw Materials"), "SUBCATEGORY" (for "Coffee Beans"), "ITEM_GROUP" (for "Arabica")
   - Constraints: Must be one of three allowed values. Check constraint enforces valid types. Cannot be changed once set (type is immutable).
   - Business rule: Type must match level field and parent constraints (CATEGORY at level 1, SUBCATEGORY at level 2, ITEM_GROUP at level 3).
+  - **Implementation Note**: The `type` field is defined in the database schema for explicit hierarchy identification. However, the base TypeScript `Category` interface (in `lib/types/common.ts`) does NOT include this field - it relies on the `level` field (1, 2, 3) to determine hierarchy position. The `CategoryType` enum ('CATEGORY' | 'SUBCATEGORY' | 'ITEM_GROUP') is used separately in the `CategoryItem` interface (in `lib/types/product.ts`) for UI tree operations. If database implementation proceeds, consider adding type derivation logic based on level.
 
 **Hierarchy and Relationship Fields**:
 

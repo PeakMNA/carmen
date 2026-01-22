@@ -3,8 +3,8 @@
 ## Document Information
 - **Document Type**: Data Schema Document
 - **Module**: Operational Planning > Recipe Management > Recipes
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 - **Related Documents**:
   - [BR-recipes.md](./BR-recipes.md) - Business Requirements
   - [UC-recipes.md](./UC-recipes.md) - Use Cases
@@ -15,11 +15,12 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2024-01-15 | System | Initial data schema document created for Recipe Management |
+| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: updated RecipeStatus enum (draft, under_review, approved, rejected, published, archived), complexity levels (simple, moderate, complex, advanced), added quality control and audit fields |
 
 ---
 
 ## 1. Database Schema
-| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
 
 ### 1.1 Main Recipe Table
 
@@ -38,7 +39,7 @@ CREATE TABLE recipes (
   -- Classification
   category_id VARCHAR(30) NOT NULL,
   cuisine_id VARCHAR(30) NOT NULL,
-  difficulty VARCHAR(20) NOT NULL DEFAULT 'medium',
+  complexity VARCHAR(20) NOT NULL DEFAULT 'moderate',
 
   -- Yield Configuration
   base_yield DECIMAL(10, 3) NOT NULL DEFAULT 1,
@@ -90,8 +91,8 @@ CREATE TABLE recipes (
   deleted BOOLEAN NOT NULL DEFAULT false,
 
   -- Constraints
-  CONSTRAINT chk_recipe_difficulty CHECK (difficulty IN ('easy', 'medium', 'hard')),
-  CONSTRAINT chk_recipe_status CHECK (status IN ('draft', 'published', 'archived')),
+  CONSTRAINT chk_recipe_complexity CHECK (complexity IN ('simple', 'moderate', 'complex', 'advanced')),
+  CONSTRAINT chk_recipe_status CHECK (status IN ('draft', 'under_review', 'approved', 'rejected', 'published', 'archived')),
   CONSTRAINT chk_fractional_sales_type CHECK (fractional_sales_type IN ('pizza-slice', 'cake-slice', 'bottle-glass', 'portion-control', 'custom') OR fractional_sales_type IS NULL),
   CONSTRAINT chk_base_yield CHECK (base_yield > 0),
   CONSTRAINT chk_prep_time CHECK (prep_time >= 0),
@@ -117,7 +118,7 @@ CREATE TABLE recipes (
 CREATE INDEX idx_recipes_status ON recipes(status) WHERE deleted = false;
 CREATE INDEX idx_recipes_category ON recipes(category_id) WHERE deleted = false;
 CREATE INDEX idx_recipes_cuisine ON recipes(cuisine_id) WHERE deleted = false;
-CREATE INDEX idx_recipes_difficulty ON recipes(difficulty);
+CREATE INDEX idx_recipes_complexity ON recipes(complexity);
 CREATE INDEX idx_recipes_created_by ON recipes(created_by);
 CREATE INDEX idx_recipes_recipe_code ON recipes(recipe_code);
 CREATE INDEX idx_recipes_deleted ON recipes(deleted);
@@ -1974,7 +1975,7 @@ CREATE TABLE recipes (
   image_url VARCHAR(500),
   category_id VARCHAR(30) NOT NULL,
   cuisine_id VARCHAR(30) NOT NULL,
-  difficulty VARCHAR(20) NOT NULL DEFAULT 'medium',
+  complexity VARCHAR(20) NOT NULL DEFAULT 'moderate',
   base_yield DECIMAL(10, 3) NOT NULL DEFAULT 1,
   base_yield_unit VARCHAR(50) NOT NULL,
   allows_fractional_sales BOOLEAN NOT NULL DEFAULT false,
@@ -2007,8 +2008,8 @@ CREATE TABLE recipes (
   updated_by VARCHAR(30) NOT NULL,
   deleted BOOLEAN NOT NULL DEFAULT false,
 
-  CONSTRAINT chk_recipe_difficulty CHECK (difficulty IN ('easy', 'medium', 'hard')),
-  CONSTRAINT chk_recipe_status CHECK (status IN ('draft', 'published', 'archived')),
+  CONSTRAINT chk_recipe_complexity CHECK (complexity IN ('simple', 'moderate', 'complex', 'advanced')),
+  CONSTRAINT chk_recipe_status CHECK (status IN ('draft', 'under_review', 'approved', 'rejected', 'published', 'archived')),
   CONSTRAINT chk_fractional_sales_type CHECK (fractional_sales_type IN ('pizza-slice', 'cake-slice', 'bottle-glass', 'portion-control', 'custom') OR fractional_sales_type IS NULL),
   CONSTRAINT chk_base_yield CHECK (base_yield > 0),
   CONSTRAINT chk_prep_time CHECK (prep_time >= 0),
@@ -2033,7 +2034,7 @@ CREATE TABLE recipes (
 CREATE INDEX idx_recipes_status ON recipes(status) WHERE deleted = false;
 CREATE INDEX idx_recipes_category ON recipes(category_id) WHERE deleted = false;
 CREATE INDEX idx_recipes_cuisine ON recipes(cuisine_id) WHERE deleted = false;
-CREATE INDEX idx_recipes_difficulty ON recipes(difficulty);
+CREATE INDEX idx_recipes_complexity ON recipes(complexity);
 CREATE INDEX idx_recipes_created_by ON recipes(created_by);
 CREATE INDEX idx_recipes_recipe_code ON recipes(recipe_code);
 CREATE INDEX idx_recipes_deleted ON recipes(deleted);

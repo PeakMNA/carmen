@@ -4,15 +4,16 @@
 - **Module**: Product Management
 - **Sub-Module**: Units Management
 - **Route**: `/product-management/units`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Version**: 1.1.0
+- **Last Updated**: 2026-01-15
 - **Owner**: Product Management Team
 - **Status**: Approved
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 1.1.0 | 2026-01-15 | Documentation Team | Added MEASURE unit type for ingredient measurements; updated all references to include four unit types |
+| 1.0.1 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-02-11 | Product Management Team | Initial version |
 
 ---
@@ -23,7 +24,7 @@ The Units Management sub-module provides a comprehensive system for managing mea
 
 The implementation follows a clean architecture pattern with clear separation between presentation (React components), state management (local state with hooks), and business logic (server actions). The user interface is built with Shadcn/ui components styled with Tailwind CSS, providing a consistent and responsive user experience.
 
-Units are categorized into three types: INVENTORY units for stock management, ORDER units for purchasing operations, and RECIPE units for kitchen preparation. This categorization ensures proper unit usage across different operational contexts while maintaining data integrity through validation rules and business logic enforcement.
+Units are categorized into four types: INVENTORY units for stock management, ORDER units for purchasing operations, RECIPE units for serving/portion output (recipe yield), and MEASURE units for ingredient measurements in recipes. This categorization ensures proper unit usage across different operational contexts while maintaining data integrity through validation rules and business logic enforcement.
 
 **⚠️ IMPORTANT: This is a Technical Specification Document - TEXT FORMAT ONLY**
 - **DO NOT include actual code** - describe implementation patterns in text
@@ -339,7 +340,7 @@ lib/
 - Display paginated list of units in table or card view format
 - Implement real-time search functionality across unit code and name
 - Provide status filtering (all, active, inactive)
-- Provide type filtering (all, INVENTORY, ORDER, RECIPE)
+- Provide type filtering (all, INVENTORY, ORDER, RECIPE, MEASURE)
 - Handle view mode toggle between table and card layouts
 - Manage inline editing through dialog components
 - Trigger server actions for create, update, and delete operations
@@ -385,7 +386,7 @@ lib/
 - Code: Text input, required, uppercase transformation, 2-10 characters
 - Name: Text input, required, 2-100 characters
 - Description: Textarea, optional, max 500 characters
-- Type: Select dropdown with three options (INVENTORY, ORDER, RECIPE)
+- Type: Select dropdown with four options (INVENTORY, ORDER, RECIPE, MEASURE)
 - Status: Toggle or checkbox for isActive boolean
 
 **Validation**: Client-side validation using Zod schema that mirrors the server-side schema, providing immediate feedback before server submission. Server-side validation provides final verification and handles duplicate checking.
@@ -404,7 +405,7 @@ lib/
 **Responsibilities**:
 - Render search input field with search icon
 - Render status filter dropdown (All, Active, Inactive)
-- Render type filter dropdown (All, INVENTORY, ORDER, RECIPE)
+- Render type filter dropdown (All, INVENTORY, ORDER, RECIPE, MEASURE)
 - Render view mode toggle buttons (Table, Cards)
 - Emit filter changes to parent component
 - Maintain responsive layout that adapts to screen size
@@ -650,7 +651,7 @@ All server actions use the "use server" directive to mark them as server-only co
 - code: String value for unit code (required)
 - name: String value for unit name (required)
 - description: Optional string for unit description
-- type: Enum value (INVENTORY | ORDER | RECIPE)
+- type: Enum value (INVENTORY | ORDER | RECIPE | MEASURE)
 - isActive: Boolean for active status (defaults to true)
 
 **Validation Steps**:
@@ -747,10 +748,10 @@ All server actions use the "use server" directive to mark them as server-only co
 **Purpose**: Fetch all units of a specific type
 
 **Input Parameters**:
-- type: Enum value (INVENTORY | ORDER | RECIPE)
+- type: Enum value (INVENTORY | ORDER | RECIPE | MEASURE)
 
 **Validation Steps**:
-1. Validate type is one of the allowed enum values
+1. Validate type is one of the allowed enum values (INVENTORY, ORDER, RECIPE, MEASURE)
 
 **Database Query**:
 - Select all columns from units table
@@ -775,7 +776,7 @@ All server actions use the "use server" directive to mark them as server-only co
 - code: Optional string (code cannot be changed if already referenced)
 - name: Optional string for updated name
 - description: Optional string for updated description
-- type: Optional enum value (type cannot be changed if already referenced)
+- type: Optional enum value (INVENTORY | ORDER | RECIPE | MEASURE; type cannot be changed if already referenced)
 - isActive: Optional boolean for status update
 
 **Validation Steps**:
@@ -865,7 +866,7 @@ All server actions use the "use server" directive to mark them as server-only co
 - code: Unique unit code (e.g., "KG", "ML"), varchar(10), uppercase, indexed
 - name: Full unit name (e.g., "Kilogram"), varchar(100), required
 - description: Optional text description, varchar(500)
-- type: Enum (INVENTORY, ORDER, RECIPE), indexed for filtered queries
+- type: Enum (INVENTORY, ORDER, RECIPE, MEASURE), indexed for filtered queries
 - isActive: Boolean status flag, indexed, defaults to true
 - created_at: Timestamp with timezone, defaults to current timestamp
 - created_by: UUID foreign key to users table
@@ -877,7 +878,7 @@ All server actions use the "use server" directive to mark them as server-only co
 - Unique constraint on code column (case-insensitive)
 - Foreign key on created_by referencing users(id)
 - Foreign key on updated_by referencing users(id)
-- Check constraint: type must be one of allowed enum values
+- Check constraint: type must be one of allowed enum values (INVENTORY, ORDER, RECIPE, MEASURE)
 - Check constraint: code length between 1 and 10 characters
 - Check constraint: name length between 1 and 100 characters
 
@@ -938,7 +939,7 @@ The Units Management sub-module uses only local component state managed with Rea
 - Default: "all"
 
 **typeFilter**:
-- Type: String ("all" | "INVENTORY" | "ORDER" | "RECIPE")
+- Type: String ("all" | "INVENTORY" | "ORDER" | "RECIPE" | "MEASURE")
 - Purpose: Track selected type filter
 - Updates: When user selects from type dropdown
 - Default: "all"
@@ -1697,7 +1698,7 @@ This sub-module is a new implementation with no migration from existing systems 
 ### Migration Steps
 
 1. **Audit Existing Units**: Review all measurement units in legacy system
-2. **Map Unit Types**: Categorize legacy units into INVENTORY, ORDER, or RECIPE types
+2. **Map Unit Types**: Categorize legacy units into INVENTORY, ORDER, RECIPE, or MEASURE types
 3. **Standardize Codes**: Ensure all unit codes follow uppercase convention and uniqueness
 4. **Clean Data**: Remove duplicate or unused units
 5. **Create Migration Script**: Generate SQL or script to bulk insert units

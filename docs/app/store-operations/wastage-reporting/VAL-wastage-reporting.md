@@ -3,8 +3,8 @@
 **Module**: Store Operations
 **Sub-Module**: Wastage Reporting
 **Document Type**: Validations (VAL)
-**Version**: 1.2.0
-**Last Updated**: 2025-12-09
+**Version**: 1.3.0
+**Last Updated**: 2025-01-15
 **Status**: Active
 **Implementation Status**: PARTIALLY IMPLEMENTED (Frontend validation exists, backend pending)
 
@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2025-01-15 | Claude | Synced status values to match code: Draft, Submitted, Under Review, Approved, Rejected, Posted; Updated status transitions; Added reason codes (EXP, SPOIL, QUAL, DMG, CONT, OVERPROD, PREP, PLATE, SPILL); Added category codes (WST, DMG, THEFT, SAMPLE, WRITE) |
 | 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend validation |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
@@ -25,7 +26,7 @@ The Wastage Reporting module frontend has been implemented with client-side vali
 **Implemented Validation Contexts**:
 - ✅ **New Report Form** - Location required, item selection required, quantity > 0, reason selection required
 - ✅ **Category Form** - Name required, code max 4 chars, color selection, approval threshold numeric
-- ✅ **Report Status** - Valid transitions: pending → under_review → approved/rejected
+- ✅ **Report Status** - Valid transitions: Draft → Submitted → Under Review → Approved/Rejected → Posted
 - ✅ **High Value Alert** - Reports > $100 display manager approval warning
 
 **Validation Status**:
@@ -588,7 +589,7 @@ Data Stored
 - Total Value: $45.00
 - Threshold Check: < $50
 - Result: approval_level_required = 0 (check auto-approve rules)
-- If auto-approve rule matches: doc_status = 'approved', is_auto_approved = true
+- If auto-approve rule matches: status = 'Approved', is_auto_approved = true
 - If no rule matches: approval_level_required = 1
 
 **Scenario 2: Medium Value - Single Level**
@@ -619,7 +620,7 @@ Data Stored
    - Category match (e.g., category = 'expired')
    - Condition match (e.g., days_past_expiry <= 1)
    - Value limit (e.g., total_value <= 50.00)
-4. If any rule matches completely, set is_auto_approved = true, doc_status = 'approved'
+4. If any rule matches completely, set is_auto_approved = true, status = 'Approved'
 5. If no rules match, set approval_level_required = 1 (default to Level 1)
 
 **When Validated**: On submission, after total value calculation
@@ -770,22 +771,20 @@ Data Stored
 
 **Business Justification**: Enforces workflow integrity. Prevents invalid status changes that could bypass approvals.
 
-**Valid Transitions**:
-- `draft` → `pending_approval` (Submit)
-- `draft` → `[deleted]` (Delete)
-- `pending_approval` → `approved` (Approve)
-- `pending_approval` → `partially_approved` (Partial approve)
-- `pending_approval` → `rejected` (Reject)
-- `pending_approval` → `draft` (Return for revision)
-- `pending_approval` → `cancelled` (Withdraw)
-- `approved` → `cancelled` (Cancel if not yet adjusted)
-- `rejected` → `draft` (Revise and resubmit)
+**Valid Transitions** (from `lib/types/wastage.ts`):
+- `Draft` → `Submitted` (Submit for review)
+- `Draft` → `[deleted]` (Delete draft)
+- `Submitted` → `Under Review` (Begin review)
+- `Under Review` → `Approved` (Approve)
+- `Under Review` → `Rejected` (Reject)
+- `Approved` → `Posted` (Post to inventory adjustment)
+- `Rejected` → `Submitted` (Resubmit after revision)
 
 **Invalid Transitions**:
-- `approved` → `draft` (Cannot un-approve)
-- `approved` → `rejected` (Cannot reject after approval)
-- `rejected` → `approved` (Cannot directly approve rejected)
-- `approved` → `pending_approval` (Cannot return to pending)
+- `Approved` → `Draft` (Cannot un-approve)
+- `Approved` → `Rejected` (Cannot reject after approval)
+- `Rejected` → `Approved` (Cannot directly approve rejected - must resubmit)
+- `Posted` → any status (Terminal state - no transitions allowed)
 
 **When Validated**: On status change operations
 
@@ -799,10 +798,11 @@ Data Stored
 **User Action**: User cannot perform this action. Status transition not allowed.
 
 **Test Cases**:
-- ✅ Valid: draft → pending_approval (Submit action)
-- ✅ Valid: pending_approval → approved (Approve action)
-- ❌ Invalid: approved → draft (Cannot un-approve)
-- ❌ Invalid: rejected → approved (Cannot skip revision)
+- ✅ Valid: Draft → Submitted (Submit action)
+- ✅ Valid: Under Review → Approved (Approve action)
+- ✅ Valid: Approved → Posted (Post to inventory)
+- ❌ Invalid: Approved → Draft (Cannot un-approve)
+- ❌ Invalid: Rejected → Approved (Cannot skip revision - must resubmit first)
 
 ---
 
@@ -813,32 +813,31 @@ Data Stored
 **Business Justification**: Maintains audit trail integrity. Prevents tampering with approved financial records.
 
 **Validation Logic**:
-1. Check wastage doc_status = 'approved'
-2. Check inventory_adjusted = true
-3. If both true, reject any edit or delete operations
-4. Only allow viewing and audit field updates (updated_date, updated_by)
+1. Check wastage status = 'Posted'
+2. If Posted, reject any edit or delete operations (Posted is terminal state after inventory adjustment)
+3. Only allow viewing and audit field updates (updatedAt)
 
 **When Validated**: On update or delete operations
 
 **Implementation Requirements**:
-- **Client-Side**: Disable edit/delete buttons if approved and adjusted
-- **Server-Side**: Reject update/delete requests if status = 'approved' AND inventory_adjusted = true
-- **Database**: Not enforced (application logic)
+- **Client-Side**: Disable edit/delete buttons if status = 'Posted'
+- **Server-Side**: Reject update/delete requests if status = 'Posted'
+- **Database**: Not enforced (application logic via `canEditWastageReport()` helper)
 
 **Error Code**: VAL-WAST-107
-**Error Message**: "Cannot modify approved wastage that has been inventory adjusted. Record is locked for audit compliance."
+**Error Message**: "Cannot modify posted wastage. Record is locked for audit compliance."
 **User Action**: User cannot edit. If correction needed, create adjustment transaction.
 
 **Exceptions**:
-- Audit fields (updated_date, updated_by) can be updated
+- Audit fields (updatedAt) can be updated
 - System processes can add approval records, inventory adjustment links
 - Admin "unlock" function with special permission and audit log
 
 **Test Cases**:
-- ✅ Valid: Edit draft wastage
-- ✅ Valid: Edit pending_approval wastage (by creator)
-- ❌ Invalid: Edit approved + inventory_adjusted = true wastage
-- ❌ Invalid: Delete approved wastage
+- ✅ Valid: Edit Draft wastage
+- ✅ Valid: Edit Rejected wastage (for revision)
+- ❌ Invalid: Edit Posted wastage
+- ❌ Invalid: Edit Approved wastage (must be posted first or reverted)
 
 ---
 
@@ -1146,7 +1145,7 @@ Data Stored
 
 **Ownership Rules**:
 - Creator can edit/delete own draft wastage
-- Creator can edit own pending_approval wastage (before approval starts)
+- Creator can edit own Submitted wastage (before approval starts)
 - Creator cannot edit approved/rejected wastage
 - Department Managers can edit/delete wastage from their department (draft only)
 - Store Managers can edit/delete wastage from their location (draft only)
@@ -1522,27 +1521,22 @@ export type WastageSubmissionInput = z.infer<typeof wastageSubmissionSchema>;
 export const approvalActionSchema = z.object({
   wastage_id: z.string().uuid(),
 
-  approval_action: z.enum(['approved', 'partially_approved', 'rejected', 'returned', 'escalated']),
+  approval_action: z.enum(['approved', 'rejected', 'pending']),
 
   comments: z.string()
     .min(1, "Comments are required")
     .max(1000, "Comments cannot exceed 1000 characters")
     .trim(),
 
-  // For partial approval
+  // For approval
   approved_value: z.number().positive().optional(),
 
   rejected_value: z.number().min(0).optional(),
 
-  adjustment_reason: z.string().min(20).max(500).optional(),
-
   // For rejection
   rejection_reason: z.string().min(20).max(500).optional(),
 
-  // For escalation
-  escalation_reason: z.string().min(20).max(500).optional(),
-
-  // Line item adjustments (for partial approval of batch)
+  // Line item adjustments (for batch)
   line_item_adjustments: z.array(z.object({
     line_item_id: z.string().uuid(),
     original_quantity: z.number().positive(),
@@ -1562,32 +1556,6 @@ export const approvalActionSchema = z.object({
   {
     message: "Rejection reason is required when rejecting wastage",
     path: ['rejection_reason']
-  }
-).refine(
-  (data) => {
-    // If partially approved, adjustment_reason is required
-    if (data.approval_action === 'partially_approved' && !data.adjustment_reason) {
-      return false;
-    }
-    return true;
-  },
-  {
-    message: "Adjustment reason is required for partial approvals",
-    path: ['adjustment_reason']
-  }
-).refine(
-  (data) => {
-    // If partially approved, approved_value must be less than original
-    if (data.approval_action === 'partially_approved') {
-      if (!data.approved_value || data.approved_value <= 0) {
-        return false;
-      }
-    }
-    return true;
-  },
-  {
-    message: "Approved value must be greater than zero for partial approvals",
-    path: ['approved_value']
   }
 );
 
@@ -1713,11 +1681,11 @@ All validation error messages follow this format:
 
 **Pass Criteria**:
 - No validation errors displayed
-- Wastage saved with status "pending_approval"
-- Wastage number generated: WST-2501-0112-NNNN
+- Wastage saved with status "Submitted"
+- Wastage number generated: WR-2501-NNNN (format: WR-YYMM-NNNN)
 - Approval level determined: Level 1 (value $31.25)
 - Department Manager notified via email
-- Success message: "Wastage WST-2501-0112-NNNN submitted successfully"
+- Success message: "Wastage WR-2501-NNNN submitted successfully"
 - User redirected to wastage detail page
 
 ---
@@ -1789,7 +1757,7 @@ All validation error messages follow this format:
 **Preconditions**:
 - User is Department Manager (has approve-wastage permission)
 - User created wastage WST-2501-0112-0023 yesterday
-- Wastage status: pending_approval, Level 1 required
+- Wastage status: Submitted, Level 1 required
 
 **Test Steps**:
 1. Navigate to Approval Queue
@@ -1804,7 +1772,7 @@ All validation error messages follow this format:
 **Pass Criteria**:
 - Error message: "You cannot approve your own wastage submission. Please request approval from your manager."
 - Approval not recorded
-- Wastage status remains: pending_approval
+- Wastage status remains: Submitted
 - User returned to approval queue
 
 ---
@@ -1850,12 +1818,12 @@ All validation error messages follow this format:
 
 **Test Steps**:
 1. **Kitchen Staff**: Create wastage ($125, 1 line item, 2 photos)
-2. Verify: Status = pending_approval, Level 1 required
+2. Verify: Status = Submitted, Level 1 required
 3. Verify: Department Manager receives email notification
 4. **Department Manager**: Navigate to approval queue
 5. View wastage details, review photos
 6. Approve with comments: "Approved. Photos clearly show overcooked condition."
-7. Verify: Status = approved, current_approval_level = 1
+7. Verify: Status = Approved, current_approval_level = 1
 8. Verify: Inventory adjustment created (stock reduced by wastage quantity)
 9. Verify: GL journal entry created (wastage expense posted)
 10. Verify: Kitchen Staff receives approval notification email

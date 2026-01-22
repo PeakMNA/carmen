@@ -4,10 +4,17 @@
 
 | Field | Value |
 |-------|-------|
-| Module | Inventory Planning |
-| Version | 1.0.0 |
-| Last Updated | 2025-12-06 |
-| Status | Draft |
+| Module | Operational Planning > Inventory Planning |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-17 |
+| Status | Implemented |
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2025-12-06 | Development Team | Initial documentation |
+| 2.0.0 | 2025-01-17 | Development Team | Updated to match actual UI implementation |
 
 ---
 
@@ -16,9 +23,9 @@
 | ID | Name | Primary Actor | Priority |
 |----|------|---------------|----------|
 | UC-IP-001 | View Inventory Planning Dashboard | All Users | High |
-| UC-IP-002 | Generate Optimization Recommendations | Inventory Manager | High |
+| UC-IP-002 | Analyze Reorder Recommendations | Inventory Manager | High |
 | UC-IP-003 | Analyze Dead Stock | Inventory Manager | High |
-| UC-IP-004 | Configure Safety Stock Levels | Inventory Manager | Medium |
+| UC-IP-004 | Configure Safety Stock by Service Level | Inventory Manager | Medium |
 | UC-IP-005 | Review Multi-Location Performance | Operations Manager | Medium |
 | UC-IP-006 | Apply Optimization Recommendations | Inventory Manager | High |
 | UC-IP-007 | Configure Planning Settings | Inventory Manager | Low |
@@ -39,7 +46,7 @@
 
 ### Description
 
-User accesses the Inventory Planning dashboard to view key performance indicators, alerts, and summary metrics for inventory optimization.
+User accesses the Inventory Planning dashboard to view key performance indicators, alerts, charts, and recent recommendations for inventory optimization.
 
 ### Preconditions
 
@@ -53,30 +60,32 @@ User accesses the Inventory Planning dashboard to view key performance indicator
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Operational Planning → Inventory Planning | Display Dashboard page |
-| 2 | System | - | Load performance metrics via generatePerformanceDashboard() |
-| 3 | System | - | Display KPI cards (Total Value, Turnover, Days of Inventory, Fill Rate) |
-| 4 | System | - | Display alert summary by severity |
-| 5 | System | - | Display optimization actions chart |
-| 6 | System | - | Display location performance chart |
-| 7 | User | Select location filter (optional) | Refresh dashboard with filtered data |
-| 8 | User | Click on alert category | Navigate to relevant detail page |
+| 1 | User | Navigate to Operational Planning > Inventory Planning | Display Dashboard page |
+| 2 | System | - | Load KPI cards (Total Savings, Items at Risk, Optimization Rate, Dead Stock Value) |
+| 3 | System | - | Display trend indicators with month-over-month comparisons |
+| 4 | System | - | Render Optimization Actions pie chart |
+| 5 | System | - | Render Location Performance bar chart |
+| 6 | System | - | Display Alert Summary grid with clickable categories |
+| 7 | System | - | Display Recent Recommendations table |
+| 8 | User | Select location filter (optional) | Refresh dashboard with filtered data |
+| 9 | User | Click alert category | Navigate to relevant detail page |
 
 ### Alternative Flows
 
-#### AF-001: No Data Available
+#### AF-001: Navigate via Quick Actions
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 2a | System | No inventory data exists | Display "No data available" message |
-| 2b | System | - | Show data requirements and setup instructions |
+| 3a | User | Click "Optimize Inventory" button | Navigate to Reorder Management page |
+| 3b | User | Click "Analyze Dead Stock" button | Navigate to Dead Stock Analysis page |
+| 3c | User | Click "Review Locations" button | Navigate to Multi-Location page |
+| 3d | User | Click "Configure Settings" button | Navigate to Settings page |
 
-#### AF-002: View Specific Alert
+#### AF-002: Navigate to Demand Forecasting
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 8a | User | Click "Low Stock" alert count | Navigate to items at reorder point |
-| 8b | User | Click "Dead Stock" alert count | Navigate to Dead Stock Analysis page |
+| 10a | User | Click "Go to Demand Forecasting" link | Navigate to Demand Forecasting module |
 
 ### Postconditions
 
@@ -84,77 +93,72 @@ User accesses the Inventory Planning dashboard to view key performance indicator
 |----|-----------|
 | POST-001 | Dashboard displayed with current data |
 | POST-002 | User can navigate to detail pages |
+| POST-003 | Cross-navigation to related modules available |
 
 ### Business Rules Applied
 
-- BR-IP-DASH-001: Overall metrics calculation
-- BR-IP-DASH-004: Alert severity classification
+- BR-IP-DASH-001 to BR-IP-DASH-005: Dashboard display rules
 
 ---
 
-## UC-IP-002: Generate Optimization Recommendations
+## UC-IP-002: Analyze Reorder Recommendations
 
 ### Overview
 
 | Attribute | Value |
 |-----------|-------|
 | ID | UC-IP-002 |
-| Name | Generate Optimization Recommendations |
+| Name | Analyze Reorder Recommendations |
 | Primary Actor | Inventory Manager |
 | Priority | High |
 | Frequency | Weekly |
 
 ### Description
 
-Inventory Manager generates optimization recommendations for inventory items to reduce carrying costs while maintaining service levels.
+Inventory Manager reviews EOQ and ROP recommendations for inventory items, comparing current vs recommended parameters with risk assessment and savings projections.
 
 ### Preconditions
 
 | ID | Condition |
 |----|-----------|
 | PRE-001 | User is authenticated |
-| PRE-002 | User has optimization permission |
-| PRE-003 | Items have sufficient transaction history (≥90 days) |
+| PRE-002 | User has reorder management permission |
+| PRE-003 | Items have sufficient transaction history |
 
 ### Main Flow
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Inventory Planning → Reorder Management | Display Reorder Management page |
-| 2 | User | Select location filter (optional) | Filter to selected location |
-| 3 | User | Select category filter (optional) | Filter to selected category |
-| 4 | User | Click "Generate Recommendations" | Trigger generateOptimizationRecommendations() |
-| 5 | System | - | Calculate EOQ for each item |
-| 6 | System | - | Calculate optimal reorder point |
-| 7 | System | - | Calculate recommended safety stock |
-| 8 | System | - | Assess implementation risk |
-| 9 | System | - | Calculate potential savings |
-| 10 | System | - | Display recommendations table |
-| 11 | User | Expand item row to view details | Show current vs recommended comparison |
-| 12 | User | Sort by savings or risk | Reorder recommendations |
+| 1 | User | Navigate to Inventory Planning > Reorder | Display Reorder Management page |
+| 2 | System | - | Load recommendations table with columns: Product, Current ROP/EOQ, Recommended ROP/EOQ, Savings, Risk, Action |
+| 3 | User | Select action type filter (optional) | Filter table by action type (implement, pilot, monitor, reject) |
+| 4 | User | Click row to expand | Display expanded details with Current Metrics, Recommended Changes, and Potential Impact sections |
+| 5 | User | Review current vs recommended values | View ROP, EOQ, Safety Stock, Service Level comparisons |
+| 6 | User | Select items via checkbox | Enable bulk actions |
+| 7 | User | Click "Apply Selected" | Display confirmation dialog |
+| 8 | User | Confirm application | Apply recommendations to selected items |
 
 ### Alternative Flows
 
-#### AF-001: Insufficient History
+#### AF-001: Export Recommendations
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 5a | System | Item has < 90 days history | Skip item with "Insufficient data" note |
-| 5b | System | - | Continue with remaining items |
+| 6a | User | Click "Export" button | Download recommendations as file |
 
-#### AF-002: Filter by Action Type
+#### AF-002: Navigate to Stock Replenishment
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 10a | User | Select "Implement" filter | Show only items with IMPLEMENT recommendation |
-| 10b | User | Select "High Risk" filter | Show only items with HIGH risk |
+| 9a | User | Click "Stock Replenishment" link | Navigate to Store Operations Stock Replenishment page |
 
 ### Postconditions
 
 | ID | Condition |
 |----|-----------|
-| POST-001 | Recommendations displayed for filtered items |
-| POST-002 | Each recommendation includes savings and risk |
+| POST-001 | Recommendations displayed with risk and savings |
+| POST-002 | Selected recommendations applied (if confirmed) |
+| POST-003 | Audit trail created for applied changes |
 
 ### Business Rules Applied
 
@@ -179,7 +183,7 @@ Inventory Manager generates optimization recommendations for inventory items to 
 
 ### Description
 
-Inventory Manager analyzes items with no recent movement to identify obsolete inventory and determine appropriate actions.
+Inventory Manager analyzes items with no recent movement to identify obsolete inventory, assess risk levels, and determine appropriate actions.
 
 ### Preconditions
 
@@ -193,33 +197,31 @@ Inventory Manager analyzes items with no recent movement to identify obsolete in
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Inventory Planning → Dead Stock Analysis | Display Dead Stock Analysis page |
-| 2 | System | - | Load risk overview cards (Critical/High/Medium/Low counts) |
-| 3 | User | Set threshold days filter (default: 90) | Filter items by days since movement |
+| 1 | User | Navigate to Inventory Planning > Dead Stock | Display Dead Stock Analysis page |
+| 2 | System | - | Display Risk Overview cards (Critical, High, Medium, Low) with counts and values |
+| 3 | User | Set threshold days filter (60, 90, 120, 180, 365) | Filter items by days since movement |
 | 4 | User | Select location filter (optional) | Filter to selected location |
 | 5 | User | Select risk level filter (optional) | Filter by risk classification |
-| 6 | System | - | Call analyzeDeadStock() with parameters |
-| 7 | System | - | Display dead stock table with columns: Item, Stock, Value, Last Movement, Days Idle, Risk, Action |
-| 8 | User | Click item row to expand | Show detailed analysis |
-| 9 | System | - | Display months of stock, potential loss, liquidation value |
-| 10 | User | Select action for item | Record planned action |
+| 6 | System | - | Display dead stock table with columns: Product, Stock, Value, Last Movement, Days, Risk, Action |
+| 7 | User | Click row to expand | Display Stock Analysis and Financial Impact sections |
+| 8 | System | - | Show Months of Stock, Expiry Date, Potential Loss, Liquidation Value |
+| 9 | User | Select action for item | Record planned action (liquidate, return, writeoff, continue, reduce) |
 
 ### Alternative Flows
 
-#### AF-001: No Dead Stock
+#### AF-001: Bulk Action
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 7a | System | No items meet threshold | Display "No dead stock identified" message |
-| 7b | System | - | Show congratulatory message with healthy inventory status |
+| 9a | User | Select multiple items via checkboxes | Enable bulk action button |
+| 9b | User | Choose bulk action | Apply action to all selected items |
+| 9c | System | - | Update status for selected items |
 
-#### AF-002: Bulk Action
+#### AF-002: Export Dead Stock Report
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 10a | User | Select multiple items | Enable bulk action button |
-| 10b | User | Choose bulk action (e.g., "Mark for Liquidation") | Apply action to all selected items |
-| 10c | System | - | Update status for selected items |
+| 10a | User | Click "Export" button | Download dead stock report |
 
 ### Postconditions
 
@@ -232,26 +234,26 @@ Inventory Manager analyzes items with no recent movement to identify obsolete in
 ### Business Rules Applied
 
 - BR-IP-020 to BR-IP-023: Dead Stock Risk Classification
-- BR-IP-DS-002: Recommended Actions
-- BR-IP-DS-003: Financial Impact Calculation
+- FR-IP-DS-004: Recommended Actions
+- FR-IP-DS-006: Risk Classification Rules
 
 ---
 
-## UC-IP-004: Configure Safety Stock Levels
+## UC-IP-004: Configure Safety Stock by Service Level
 
 ### Overview
 
 | Attribute | Value |
 |-----------|-------|
 | ID | UC-IP-004 |
-| Name | Configure Safety Stock Levels |
+| Name | Configure Safety Stock by Service Level |
 | Primary Actor | Inventory Manager |
 | Priority | Medium |
 | Frequency | Monthly |
 
 ### Description
 
-Inventory Manager adjusts safety stock parameters by service level to balance inventory costs with availability targets.
+Inventory Manager adjusts safety stock parameters by selecting target service level (90%, 95%, 99%) and reviewing the impact on inventory costs.
 
 ### Preconditions
 
@@ -265,31 +267,24 @@ Inventory Manager adjusts safety stock parameters by service level to balance in
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Inventory Planning → Safety Stock | Display Safety Stock page |
-| 2 | System | - | Display current service level setting |
+| 1 | User | Navigate to Inventory Planning > Safety Stock | Display Safety Stock page |
+| 2 | System | - | Display current service level setting (default 95%) |
 | 3 | System | - | Display comparison table: Current vs Recommended safety stock |
-| 4 | User | Select service level (90%, 95%, 99%) | Recalculate safety stock using Z-score |
+| 4 | User | Select service level tab (90%, 95%, 99%) | Recalculate safety stock using Z-score |
 | 5 | System | - | Update comparison table with new calculations |
-| 6 | System | - | Show impact on inventory value |
-| 7 | User | View What-If chart | Display cost vs service level curve |
-| 8 | User | Click "Apply Recommendations" | Update safety stock for selected items |
+| 6 | System | - | Display cost impact column |
+| 7 | System | - | Render What-If Analysis line chart |
+| 8 | User | Review cost vs service level trade-off | Evaluate chart showing cost curve |
+| 9 | User | Select items to update | Enable "Apply Selected" button |
+| 10 | User | Click "Apply Selected" | Update safety stock for selected items |
 
 ### Alternative Flows
 
-#### AF-001: Category-Level Configuration
+#### AF-001: Category-Level View
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
 | 4a | User | Select specific category | Filter items to category |
-| 4b | User | Set different service level for category | Calculate with category-specific setting |
-
-#### AF-002: Item-Level Override
-
-| Step | Actor | Action | System Response |
-|------|-------|--------|-----------------|
-| 5a | User | Click item to override | Open item detail |
-| 5b | User | Set custom safety stock | Override calculated value |
-| 5c | System | - | Mark item as manually overridden |
 
 ### Postconditions
 
@@ -297,7 +292,7 @@ Inventory Manager adjusts safety stock parameters by service level to balance in
 |----|-----------|
 | POST-001 | Safety stock recalculated based on service level |
 | POST-002 | Inventory value impact displayed |
-| POST-003 | Changes can be applied or discarded |
+| POST-003 | Changes applied to selected items |
 
 ### Business Rules Applied
 
@@ -320,7 +315,7 @@ Inventory Manager adjusts safety stock parameters by service level to balance in
 
 ### Description
 
-Operations Manager reviews inventory performance across multiple locations to identify imbalances and transfer opportunities.
+Operations Manager reviews inventory performance across multiple locations to identify imbalances, status issues, and transfer opportunities.
 
 ### Preconditions
 
@@ -334,16 +329,14 @@ Operations Manager reviews inventory performance across multiple locations to id
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Inventory Planning → Multi-Location | Display Multi-Location page |
-| 2 | System | - | Load location summary (Optimal/Overstocked/Understocked) |
-| 3 | System | - | Display location breakdown chart |
+| 1 | User | Navigate to Inventory Planning > Locations | Display Multi-Location page |
+| 2 | System | - | Display Location Summary cards (Optimal, Overstocked, Understocked counts) |
+| 3 | System | - | Render Location Performance bar chart |
 | 4 | User | Select location filter (optional) | Focus on specific locations |
-| 5 | System | - | Display Location Breakdown table |
-| 6 | System | - | Calculate stock balance by location |
-| 7 | System | - | Identify transfer opportunities |
-| 8 | System | - | Display Transfer Recommendations panel |
-| 9 | User | Click transfer recommendation | View transfer details |
-| 10 | User | Approve transfer | Create transfer request |
+| 5 | System | - | Display Location Breakdown table with: Location, Value, Turnover, Alerts, Status |
+| 6 | System | - | Display Transfer Recommendations table |
+| 7 | User | Review transfer recommendation | View source, destination, quantity, priority, estimated savings |
+| 8 | User | Click "Create Transfer" (optional) | Create transfer request |
 
 ### Alternative Flows
 
@@ -352,14 +345,12 @@ Operations Manager reviews inventory performance across multiple locations to id
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
 | 2a | System | Only one location exists | Display message: "Multi-location analysis requires 2+ locations" |
-| 2b | System | - | Redirect to Dashboard |
 
 #### AF-002: No Transfer Opportunities
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 8a | System | All locations balanced | Display "No transfers recommended" |
-| 8b | System | - | Show healthy distribution message |
+| 6a | System | All locations balanced | Display "No transfers recommended" message |
 
 ### Postconditions
 
@@ -371,8 +362,7 @@ Operations Manager reviews inventory performance across multiple locations to id
 
 ### Business Rules Applied
 
-- BR-IP-LOC-001: Location Performance Comparison
-- BR-IP-LOC-002: Transfer Recommendations
+- FR-IP-LOC-001 to FR-IP-LOC-005: Location Performance and Transfer Rules
 
 ---
 
@@ -390,7 +380,7 @@ Operations Manager reviews inventory performance across multiple locations to id
 
 ### Description
 
-Inventory Manager reviews and applies optimization recommendations to update reorder points and order quantities.
+Inventory Manager reviews and applies optimization recommendations to update reorder points, order quantities, and safety stock levels.
 
 ### Preconditions
 
@@ -404,7 +394,7 @@ Inventory Manager reviews and applies optimization recommendations to update reo
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Reorder Management page | Display recommendations |
+| 1 | User | Navigate to Reorder Management page | Display recommendations table |
 | 2 | User | Review recommendation details | Expand row to see current vs recommended |
 | 3 | User | Select items to apply (checkbox) | Enable "Apply Selected" button |
 | 4 | User | Click "Apply Selected" | Display confirmation dialog |
@@ -414,6 +404,7 @@ Inventory Manager reviews and applies optimization recommendations to update reo
 | 8 | System | - | Update order quantities |
 | 9 | System | - | Log changes with timestamp and user |
 | 10 | System | - | Display success message |
+| 11 | System | - | Refresh table with updated status |
 
 ### Alternative Flows
 
@@ -421,24 +412,8 @@ Inventory Manager reviews and applies optimization recommendations to update reo
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 3a | User | Click "Apply" button on single row | Display item-specific confirmation |
+| 3a | User | Click action on single row | Display item-specific confirmation |
 | 3b | User | Confirm | Apply changes for single item |
-
-#### AF-002: Export for Review
-
-| Step | Actor | Action | System Response |
-|------|-------|--------|-----------------|
-| 3c | User | Click "Export" | Download recommendations as Excel |
-| 3d | User | Review offline | - |
-| 3e | User | Return to apply | Continue from step 3 |
-
-#### AF-003: Reject Recommendation
-
-| Step | Actor | Action | System Response |
-|------|-------|--------|-----------------|
-| 3f | User | Click "Reject" on item | Mark as rejected |
-| 3g | System | - | Remove from active recommendations |
-| 3h | System | - | Exclude from next generation cycle |
 
 ### Postconditions
 
@@ -446,13 +421,12 @@ Inventory Manager reviews and applies optimization recommendations to update reo
 |----|-----------|
 | POST-001 | Selected recommendations applied to inventory |
 | POST-002 | Changes logged for audit |
-| POST-003 | Dashboard metrics updated |
+| POST-003 | Table reflects updated status |
 
 ### Business Rules Applied
 
 - Recommendations must be reviewed before application
 - Changes are auditable with user and timestamp
-- Rejected items excluded from future recommendations
 
 ---
 
@@ -470,7 +444,7 @@ Inventory Manager reviews and applies optimization recommendations to update reo
 
 ### Description
 
-Inventory Manager configures default parameters and thresholds for inventory planning calculations.
+Inventory Manager configures default parameters, alert thresholds, notifications, and automation settings for inventory planning calculations.
 
 ### Preconditions
 
@@ -483,32 +457,36 @@ Inventory Manager configures default parameters and thresholds for inventory pla
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 1 | User | Navigate to Inventory Planning → Settings | Display Settings page |
-| 2 | System | - | Load current configuration |
-| 3 | User | Adjust default parameters: | |
-| | | - Default service level | Update calculation default |
-| | | - Order cost ($) | Update EOQ calculation |
-| | | - Holding cost rate (%) | Update carrying cost |
-| | | - Lead time (days) | Update reorder point default |
-| 4 | User | Configure notification settings: | |
-| | | - Low stock threshold | Set alert trigger |
-| | | - Dead stock days | Set analysis threshold |
-| | | - Email notifications | Enable/disable alerts |
-| 5 | User | Configure integration settings: | |
-| | | - Auto-apply low risk recommendations | Enable/disable |
-| | | - Sync with procurement | Enable/disable |
-| 6 | User | Click "Save Settings" | Validate and save |
-| 7 | System | - | Apply new settings |
-| 8 | System | - | Display success message |
+| 1 | User | Navigate to Inventory Planning > Settings | Display Settings page |
+| 2 | System | - | Load current configuration in form |
+| 3 | User | Adjust Default Parameters: | |
+| | | - Default Service Level (90%, 95%, 99%) | Update calculation default |
+| | | - Order Cost Per Order ($) | Update EOQ calculation |
+| | | - Holding Cost Rate (%) | Update carrying cost |
+| | | - Default Lead Time (days) | Update reorder point default |
+| 4 | User | Configure Alert Thresholds: | |
+| | | - Dead Stock Threshold (days) | Set analysis threshold |
+| | | - Low/Dead/Overstock Alert toggles | Enable/disable alerts |
+| 5 | User | Configure Notification Settings: | |
+| | | - Email Notifications toggle | Enable/disable |
+| | | - Notification Email | Set email address |
+| | | - Digest Frequency | Set Daily/Weekly/Monthly |
+| 6 | User | Configure Automation Settings: | |
+| | | - Auto-Apply Low Risk | Enable/disable |
+| | | - Auto-Generate Weekly | Enable/disable |
+| | | - Sync with Procurement | Enable/disable |
+| 7 | User | Click "Save Settings" | Validate and save |
+| 8 | System | - | Apply new settings |
+| 9 | System | - | Display success message |
 
 ### Alternative Flows
 
-#### AF-001: Invalid Configuration
+#### AF-001: Validation Error
 
 | Step | Actor | Action | System Response |
 |------|-------|--------|-----------------|
-| 6a | System | Validation fails | Display error messages |
-| 6b | User | Correct invalid values | Re-validate |
+| 7a | System | Validation fails | Display error messages |
+| 7b | User | Correct invalid values | Re-validate |
 
 #### AF-002: Reset to Defaults
 
@@ -537,13 +515,18 @@ Inventory Manager configures default parameters and thresholds for inventory pla
 
 ```
 UC-IP-001 (Dashboard)
-├── Navigates to → UC-IP-002 (Optimization)
-├── Navigates to → UC-IP-003 (Dead Stock)
-└── Navigates to → UC-IP-005 (Multi-Location)
+├── Quick Actions → UC-IP-002 (Reorder)
+├── Quick Actions → UC-IP-003 (Dead Stock)
+├── Quick Actions → UC-IP-005 (Multi-Location)
+├── Quick Actions → UC-IP-007 (Settings)
+├── Alert Click → UC-IP-002 (Reorder)
+├── Alert Click → UC-IP-003 (Dead Stock)
+└── Cross-Nav → Demand Forecasting
 
-UC-IP-002 (Optimization)
+UC-IP-002 (Reorder)
 ├── Uses → UC-IP-006 (Apply Recommendations)
-└── Requires → UC-IP-007 (Settings)
+├── Requires → UC-IP-007 (Settings)
+└── Cross-Nav → Store Operations Stock Replenishment
 
 UC-IP-004 (Safety Stock)
 ├── Uses → UC-IP-006 (Apply Recommendations)

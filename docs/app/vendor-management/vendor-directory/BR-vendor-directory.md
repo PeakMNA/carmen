@@ -3,8 +3,8 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Vendor Management > Vendor Directory
-- **Version**: 2.2.0
-- **Last Updated**: 2025-11-25
+- **Version**: 2.3.0
+- **Last Updated**: 2025-01-15
 - **Document Status**: Updated
 - **Route**: `/vendor-management/manage-vendors`
 
@@ -12,6 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.3.0 | 2025-01-15 | Claude | Synced with current code: Updated currency list to 12 values (BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN); Added suspended status to 3-value system |
 | 2.2.0 | 2025-11-25 | System | Added full certification management with status tracking; Updated address format to Asian international standard |
 | 2.1.0 | 2025-11-25 | System | Added multi-address and multi-contact management with primary designation |
 | 2.0.0 | 2025-11-25 | System | Updated to match actual code implementation |
@@ -109,7 +110,7 @@ The Vendor Directory module serves as the central repository for managing all ve
 - Company Registration (optional)
 - Tax ID (optional)
 - Tax Profile (dropdown: None VAT, VAT 7%)
-- Preferred Currency (dropdown: BHT, USD, CNY, SGD) from Currency table.
+- Preferred Currency (dropdown: BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN) from Currency table.
 - Payment Terms (dropdown: Net 30, Net 60, Net 90, 2/10 Net 30, 1/15 Net 45, Due on Receipt, COD)
 
 **Tab 3 - Additional Info**:
@@ -360,10 +361,11 @@ The Vendor Directory module serves as the central repository for managing all ve
 **Description**: System supports basic vendor status management.
 
 **Implemented Requirements**:
-- Vendor status types:
+- Vendor status types (3 values used in service layer):
   - **Active**: Vendor available for transactions
   - **Inactive**: Vendor not available for new transactions
-- Status toggle switch on detail page header
+  - **Suspended**: Vendor temporarily unavailable (can be reactivated)
+- Status toggle switch on detail page header (active/inactive)
 - Status badge displayed in list and detail views
 - Status filter on list page (All, Active, Inactive)
 
@@ -424,8 +426,8 @@ The Vendor Directory module serves as the central repository for managing all ve
 - Due on Receipt
 - COD
 
-**Currency Support**:
-- Preferred Currency selection: BHT, USD, CNY, SGD
+**Currency Support** (12 currencies):
+- Preferred Currency selection: BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN
 - Default: BHT (Thai Baht)
 
 **Tax Configuration** (Detail Page - Overview Tab):
@@ -708,7 +710,7 @@ interface Vendor {
   contacts: VendorContact[]
   isActive?: boolean
   rating?: number
-  status?: 'active' | 'inactive'
+  status?: 'active' | 'inactive' | 'suspended'  // 3-value system in service layer
   website?: string
   notes?: string
   // Tax & Payment
@@ -877,7 +879,7 @@ When tax profile is selected, tax rate auto-populates:
 
 ### BR-VD-009: Multi-Currency Selection
 **Implementation Status**: ✅ Implemented
-Preferred currency selectable during vendor creation (BHT, USD, CNY, SGD).
+Preferred currency selectable during vendor creation (12 currencies: BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN).
 
 ### BR-VD-010: Certification Management
 **Implementation Status**: ✅ Implemented

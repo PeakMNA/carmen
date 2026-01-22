@@ -5,9 +5,9 @@
 - **System**: Vendor Price Submission Portal
 - **Module**: Vendor Management > Vendor Portal
 - **Version**: 3.0.0
-- **Status**: Updated
+- **Status**: Active
 - **Created**: 2025-01-23
-- **Last Updated**: 2025-11-26
+- **Last Updated**: 2026-01-15
 - **Author**: Development Team
 - **Related Documents**:
   - [Business Requirements](./BR-vendor-portal.md)
@@ -19,10 +19,11 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2025-01-23 | Development Team | Initial technical specification |
-| 2.0 | 2025-01-23 | Development Team | Concise version - code removed, sitemap enhanced |
-| 2.1.0 | 2025-11-26 | System | Removed approval workflow; Updated status to draft → submitted |
+| 3.0.1 | 2026-01-15 | Documentation Team | Synced with current code; Updated sample page route; Added ProductItem interface; Updated supported currencies (BHT, USD, CNY, SGD); Added submission method types |
 | 3.0.0 | 2025-11-26 | System | Complete refactor - removed staff-side content (campaigns, templates, pricelists). This document now focuses ONLY on vendor-facing portal. See related modules for staff-side functionality. |
+| 2.1.0 | 2025-11-26 | System | Removed approval workflow; Updated status to draft to submitted |
+| 2.0 | 2025-01-23 | Development Team | Concise version - code removed, sitemap enhanced |
+| 1.0 | 2025-01-23 | Development Team | Initial technical specification |
 
 ---
 

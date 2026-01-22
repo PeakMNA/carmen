@@ -5,8 +5,15 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Inventory Balance |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 3.0.0 |
+| Last Updated | 2025-01-15 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Updated movement history use cases for IN/OUT only; Added inventory status use cases; Removed Analytics and Insights tabs; Added pagination use case |
+| 2.0.0 | 2024-06-15 | System | Previous version |
+| 1.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -25,15 +32,11 @@
 2. System displays loading state with skeleton placeholders
 3. System loads user context and filters locations by permission
 4. System calculates total quantities and values for accessible locations
-5. System displays summary cards:
-   - Total Quantity with trend indicator
-   - Total Value with trend indicator
-   - Location count
-   - Category count
+5. System displays balance report with hierarchical data
 6. System displays "As of" date header
 
 **Postconditions**:
-- User sees accurate summary metrics
+- User sees accurate balance data
 - Data reflects user's permitted locations only
 
 **Alternative Flows**:
@@ -52,21 +55,18 @@
 - User has multiple locations assigned
 
 **Main Flow**:
-1. User clicks "Filters" to expand filter panel
-2. User enters location range (From/To)
+1. User enters location range (From/To) in filter panel
+2. User clicks "Apply" button
 3. System displays loading indicator
 4. System filters data by selected location range
-5. System updates summary cards with filtered totals
-6. System displays "Location" filter badge
-7. System updates table and charts with filtered data
+5. System updates table with filtered data
 
 **Postconditions**:
 - Data displays only for selected location range
-- Filter badge shows active filter
 - Summary metrics reflect filtered data
 
 **Alternative Flows**:
-- **AF1**: User clicks X on badge to remove filter
+- **AF1**: User clicks Reset to clear all filters
 - **AF2**: User selects only "From" location for single location view
 
 ---
@@ -78,15 +78,13 @@
 - Inventory Balance page is loaded
 
 **Main Flow**:
-1. User expands filter panel
-2. User enters category range (From/To)
+1. User enters category range (From/To) in filter panel
+2. User clicks "Apply" button
 3. System applies category filter
-4. System displays "Category" filter badge
-5. System updates all data displays
+4. System updates all data displays
 
 **Postconditions**:
 - Data filtered to selected category range
-- Charts reflect category filtering
 
 ---
 
@@ -97,11 +95,10 @@
 - Inventory Balance page is loaded
 
 **Main Flow**:
-1. User expands filter panel
-2. User enters product range (From/To)
+1. User enters product range (From/To) in filter panel
+2. User clicks "Apply" button
 3. System applies product filter
-4. System displays "Product" filter badge
-5. System updates balance table
+4. System updates balance table
 
 **Postconditions**:
 - Table shows only products in range
@@ -116,11 +113,11 @@
 - Inventory Balance page is loaded
 
 **Main Flow**:
-1. User expands filter panel
-2. User selects date from calendar picker
-3. System loads balance as of selected date
-4. System displays selected date in header
-5. System updates all data for historical point-in-time
+1. User clicks date picker in filter panel
+2. User selects date from calendar
+3. User clicks "Apply" button
+4. System loads balance as of selected date
+5. System displays selected date in header
 
 **Postconditions**:
 - Balance reflects inventory state at selected date
@@ -135,14 +132,13 @@
 - One or more filters are active
 
 **Main Flow**:
-1. User clicks "Clear All" or removes all filter badges
+1. User clicks "Reset" button
 2. System clears all filter parameters
 3. System reloads default data (current date, all permitted locations)
-4. System removes all filter badges
 
 **Postconditions**:
 - Data returns to default unfiltered state
-- No active filter badges displayed
+- All filter inputs cleared
 
 ---
 
@@ -159,7 +155,7 @@
 2. System expands location to show categories
 3. User clicks on category row
 4. System expands category to show products
-5. User views product-level quantities and values
+5. User views product-level quantities, values, and inventory status
 
 **Postconditions**:
 - Hierarchical data displayed
@@ -172,13 +168,12 @@
 
 **Preconditions**:
 - Balance table is displayed
-- Products have lot tracking enabled
+- Products have lot tracking enabled (tracking.batch = true)
 
 **Main Flow**:
-1. User enables "Show Lots" toggle
-2. System reloads data with lot-level detail
-3. User expands product to see lot breakdown
-4. User views lot numbers, quantities, expiry dates, and values
+1. User expands product with lot tracking
+2. System displays lot-level detail
+3. User views lot numbers, quantities, expiry dates, unit costs, and values
 
 **Postconditions**:
 - Lot-level detail visible for tracked products
@@ -186,157 +181,45 @@
 
 ---
 
-### UC-BAL-009: Change View Type
+### UC-BAL-009: View Inventory Status
+**Actor**: Inventory Manager, Storekeeper
+
+**Preconditions**:
+- Balance table is displayed with products expanded
+
+**Main Flow**:
+1. User views product rows in expanded state
+2. System displays inventory status badge for each product:
+   - **Low** (red): quantity ≤ minimum threshold
+   - **Normal** (green): minimum < quantity < maximum
+   - **High** (amber): quantity ≥ maximum threshold
+
+**Postconditions**:
+- User can quickly identify stock level issues
+
+**Source Evidence**: `components/BalanceTable.tsx:112-121`
+
+---
+
+### UC-BAL-010: Navigate to Stock Card
 **Actor**: All Users
 
 **Preconditions**:
-- Balance table is displayed
+- Balance table is displayed with products visible
 
 **Main Flow**:
-1. User clicks view type selector (PRODUCT/CATEGORY/LOT)
-2. System switches to selected view level
-3. System reorganizes table display accordingly
+1. User clicks on a product row
+2. System navigates to Stock Card page for selected product
 
 **Postconditions**:
-- Table displays at selected aggregation level
-- Totals remain consistent across views
+- User is on Stock Card page
+- Product context preserved
 
 ---
 
-## 4. Analyze Inventory
+## 4. View Movement History
 
-### UC-BAL-010: View Analytics Tab
-**Actor**: Inventory Manager, Financial Controller
-
-**Preconditions**:
-- Balance page is loaded with data
-
-**Main Flow**:
-1. User clicks "Analytics" tab
-2. System displays value trend chart (6-month)
-3. System displays category distribution pie chart
-4. System displays location bar charts
-
-**Postconditions**:
-- All charts render with current filtered data
-- Interactive tooltips provide detail on hover
-
----
-
-### UC-BAL-011: Analyze Value Trend
-**Actor**: Financial Controller
-
-**Preconditions**:
-- Analytics tab is active
-
-**Main Flow**:
-1. User views inventory value trend area chart
-2. User hovers over data points for monthly values
-3. User identifies trends (increasing/decreasing)
-4. User notes seasonal patterns
-
-**Postconditions**:
-- User understands inventory value trajectory
-- Insights inform budget planning
-
----
-
-### UC-BAL-012: Analyze Category Distribution
-**Actor**: Inventory Manager
-
-**Preconditions**:
-- Analytics tab is active
-
-**Main Flow**:
-1. User views category distribution pie chart
-2. User identifies dominant categories by value
-3. User hovers for percentage breakdown
-4. User compares category investments
-
-**Postconditions**:
-- User understands inventory composition
-- Informs category management decisions
-
----
-
-### UC-BAL-013: Compare Location Stock
-**Actor**: Inventory Manager
-
-**Preconditions**:
-- Analytics tab is active
-
-**Main Flow**:
-1. User views stock by location bar chart
-2. User compares quantity distribution
-3. User views value by location bar chart
-4. User identifies imbalanced locations
-
-**Postconditions**:
-- User understands location distribution
-- Identifies potential transfer opportunities
-
----
-
-## 5. View Insights
-
-### UC-BAL-014: Review High Value Items
-**Actor**: Financial Controller, Inventory Manager
-
-**Preconditions**:
-- Insights tab is active
-
-**Main Flow**:
-1. User clicks "Insights" tab
-2. System displays top 5 items by value
-3. User reviews product, location, quantity, and value
-4. User clicks item to navigate to stock card
-
-**Postconditions**:
-- User identifies highest value inventory
-- Can take action on high-value items
-
----
-
-### UC-BAL-015: Review Low Stock Alerts
-**Actor**: Storekeeper, Inventory Manager
-
-**Preconditions**:
-- Insights tab is active
-- Low stock items exist
-
-**Main Flow**:
-1. User views low stock items table
-2. User identifies items below threshold
-3. User clicks "View Items" button in alert banner
-4. User creates purchase request or transfer
-
-**Postconditions**:
-- User aware of low stock situations
-- Can initiate replenishment action
-
----
-
-### UC-BAL-016: Analyze Location Performance
-**Actor**: Inventory Manager
-
-**Preconditions**:
-- Insights tab is active
-
-**Main Flow**:
-1. User views location performance table
-2. User compares total items, value, and percentage
-3. User identifies concentration risks
-4. User reviews average item value by location
-
-**Postconditions**:
-- User understands location efficiency
-- Can plan inventory optimization
-
----
-
-## 6. View Movement History
-
-### UC-BAL-017: View Recent Movements
+### UC-BAL-011: View Recent Movements
 **Actor**: Storekeeper, Inventory Manager
 
 **Preconditions**:
@@ -344,19 +227,100 @@
 
 **Main Flow**:
 1. User clicks "Movement History" tab
-2. System displays recent transactions
-3. User filters by transaction type (IN/OUT/ADJUSTMENT)
-4. User clicks transaction to view source document
+2. System displays summary cards (Total In, Total Out, Net Change, Transactions)
+3. System displays movement table with recent transactions
+4. User views transaction details
 
 **Postconditions**:
 - User sees recent inventory activity
-- Can trace transactions to source
+- Summary cards show accurate totals
 
 ---
 
-## 7. Export Data
+### UC-BAL-012: Filter by Transaction Type
+**Actor**: Storekeeper, Inventory Manager
 
-### UC-BAL-018: Export Balance Report
+**Preconditions**:
+- Movement History tab is active
+
+**Main Flow**:
+1. User selects transaction type from dropdown:
+   - All Types
+   - In (IN transactions)
+   - Out (OUT transactions)
+2. System filters movement records by selected type
+3. System updates table display
+
+**Postconditions**:
+- Table shows only selected transaction type
+- Summary cards update accordingly
+
+**Note**: Only IN and OUT transaction types are available. No ADJUSTMENT type.
+
+**Source Evidence**: `components/MovementHistory.tsx:298-310`
+
+---
+
+### UC-BAL-013: Filter by Date Range
+**Actor**: Storekeeper, Inventory Manager
+
+**Preconditions**:
+- Movement History tab is active
+
+**Main Flow**:
+1. User clicks date range picker
+2. User selects start date and end date
+3. System filters movement records within date range
+4. System updates table display
+
+**Postconditions**:
+- Table shows movements within selected date range
+
+---
+
+### UC-BAL-014: Search Movements
+**Actor**: All Users
+
+**Preconditions**:
+- Movement History tab is active
+
+**Main Flow**:
+1. User enters search term in search input
+2. System filters by product name, product code, reference, location, or reason
+3. System updates table display
+
+**Postconditions**:
+- Table shows matching movements
+- Search is case-insensitive
+
+**Source Evidence**: `components/MovementHistory.tsx:90-98`
+
+---
+
+### UC-BAL-015: Navigate Movement Pages
+**Actor**: All Users
+
+**Preconditions**:
+- Movement History tab is active
+- More than 10 movements exist
+
+**Main Flow**:
+1. User views current page of movements (10 per page)
+2. User clicks "Next" to view next page
+3. User clicks "Previous" to view previous page
+4. System updates displayed records
+
+**Postconditions**:
+- Correct page of movements displayed
+- Pagination controls update state
+
+**Source Evidence**: `components/MovementHistory.tsx:398-420`
+
+---
+
+## 5. Export Data
+
+### UC-BAL-016: Export Balance Report
 **Actor**: Financial Controller, Inventory Manager
 
 **Preconditions**:
@@ -375,9 +339,26 @@
 
 ---
 
-## 8. Access Control
+### UC-BAL-017: Export Movement History
+**Actor**: Inventory Manager, Financial Controller
 
-### UC-BAL-019: Location-Based Access
+**Preconditions**:
+- Movement History tab is active
+
+**Main Flow**:
+1. User clicks "Export" button on Movement History tab
+2. System generates file with filtered movement data
+3. File downloads to user's device
+
+**Postconditions**:
+- Export file contains filtered movements
+- Filename includes date stamp
+
+---
+
+## 6. Access Control
+
+### UC-BAL-018: Location-Based Access
 **Actor**: System (automatic)
 
 **Preconditions**:
@@ -408,14 +389,22 @@
 | UC-BAL-006 | Clear All Filters | All Users | Medium |
 | UC-BAL-007 | Expand Location Details | Inventory Manager | High |
 | UC-BAL-008 | View Lot Details | Storekeeper | Medium |
-| UC-BAL-009 | Change View Type | All Users | Medium |
-| UC-BAL-010 | View Analytics Tab | Inventory Manager | High |
-| UC-BAL-011 | Analyze Value Trend | Financial Controller | High |
-| UC-BAL-012 | Analyze Category Distribution | Inventory Manager | Medium |
-| UC-BAL-013 | Compare Location Stock | Inventory Manager | Medium |
-| UC-BAL-014 | Review High Value Items | Financial Controller | High |
-| UC-BAL-015 | Review Low Stock Alerts | Storekeeper | High |
-| UC-BAL-016 | Analyze Location Performance | Inventory Manager | Medium |
-| UC-BAL-017 | View Recent Movements | Storekeeper | Medium |
-| UC-BAL-018 | Export Balance Report | Financial Controller | High |
-| UC-BAL-019 | Location-Based Access | System | Critical |
+| UC-BAL-009 | View Inventory Status | Inventory Manager | High |
+| UC-BAL-010 | Navigate to Stock Card | All Users | High |
+| UC-BAL-011 | View Recent Movements | Storekeeper | Medium |
+| UC-BAL-012 | Filter by Transaction Type | Storekeeper | Medium |
+| UC-BAL-013 | Filter by Date Range | Inventory Manager | Medium |
+| UC-BAL-014 | Search Movements | All Users | Medium |
+| UC-BAL-015 | Navigate Movement Pages | All Users | Low |
+| UC-BAL-016 | Export Balance Report | Financial Controller | High |
+| UC-BAL-017 | Export Movement History | Inventory Manager | Medium |
+| UC-BAL-018 | Location-Based Access | System | Critical |
+
+---
+
+## Related Documents
+
+- [BR-inventory-balance.md](./BR-inventory-balance.md) - Business Requirements
+- [TS-inventory-balance.md](./TS-inventory-balance.md) - Technical Specification
+- [FD-inventory-balance.md](./FD-inventory-balance.md) - Flow Diagrams
+- [VAL-inventory-balance.md](./VAL-inventory-balance.md) - Validations

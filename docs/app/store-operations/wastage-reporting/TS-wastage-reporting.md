@@ -4,8 +4,8 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Route**: `/app/(main)/store-operations/wastage-reporting`
-- **Version**: 1.2.0
-- **Last Updated**: 2025-12-09
+- **Version**: 1.3.0
+- **Last Updated**: 2025-01-15
 - **Owner**: Store Operations Team
 - **Status**: Active
 - **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2025-01-15 | Claude | Updated status values to match code: Draft, Submitted, Under Review, Approved, Rejected, Posted |
 | 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend architecture |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
@@ -907,7 +908,7 @@ graph TD
    Use transaction isolation level (READ COMMITTED)
    ↓
 9. Primary Data Write
-   Insert wastage_headers record with status "pending_approval"
+   Insert wastage_headers record with status "Submitted"
    Insert wastage_line_items records
    Insert wastage_photos metadata records
    ↓
@@ -974,7 +975,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
   - Route to appropriate approver using ApprovalRouter
   - Generate unique wastage number (format: WST-YYYY-MMDD-NNNN)
 - **Database Operations**:
-  - Insert wastage_headers record with status "pending_approval"
+  - Insert wastage_headers record with status "Submitted"
   - Insert wastage_line_items if multiple products (batch)
   - Upload photos to Supabase Storage and insert wastage_photos metadata
   - Create initial wastage_approvals record with approver assignment
@@ -1060,11 +1061,11 @@ All server-side operations are implemented as Next.js Server Actions located in 
 ### Update Operations
 
 **updateWastage**
-- **Purpose**: Update existing wastage transaction (only if in draft or pending status)
+- **Purpose**: Update existing wastage transaction (only if in Draft or Rejected status)
 - **Input**: wastageId (UUID), updatedData (partial wastage object)
 - **Authorization**:
   - Check user is the original submitter OR has "Edit All Wastage" permission
-  - Check wastage is in editable status (draft or pending_approval, not approved/rejected)
+  - Check wastage is in editable status (Draft or Rejected, not Submitted/Under Review/Approved/Posted)
 - **Validation**:
   - Validate only changed fields
   - Re-calculate total value if quantity changed
@@ -1078,22 +1079,21 @@ All server-side operations are implemented as Next.js Server Actions located in 
 - **Returns**: Updated wastage object or conflict error
 
 **approveWastage**
-- **Purpose**: Approve wastage transaction, adjust inventory, post to GL
+- **Purpose**: Approve wastage transaction, prepare for posting to inventory/GL
 - **Input**: wastageId (UUID), approvalData (optional comments)
 - **Authorization**:
   - Check user has "Wastage Approver" permission
   - Check user has authority for this value level (based on thresholds)
   - Prevent user from approving own wastage (BR-WAST-008)
 - **Business Logic**:
-  - Validate wastage is in "pending_approval" status
+  - Validate wastage is in "Under Review" status
   - Check if multi-level approval required
-  - If first level of multi-level: update status to "partially_approved", route to next approver
-  - If final approval level: update status to "approved", trigger inventory adjustment
+  - If multi-level approval not complete: route to next approver
+  - If final approval level: update status to "Approved"
 - **Database Transaction**:
-  - Update wastage_headers.doc_status to "approved"
+  - Update wastage_headers.doc_status to "Approved"
   - Update wastage_approvals record with approval details
-  - Call InventoryIntegration.adjustStock() within transaction
-  - Queue FinanceIntegration.postToGL() for async execution
+  - Posting to inventory/GL happens when status transitions to "Posted"
 - **Integration**:
   - Inventory adjustment (synchronous, within transaction for atomicity)
   - GL posting (async queue, fire-and-forget)
@@ -1106,9 +1106,9 @@ All server-side operations are implemented as Next.js Server Actions located in 
 - **Authorization**: Same as approveWastage
 - **Validation**:
   - Check rejection reason meets minimum length
-  - Validate wastage is in pending status
+  - Validate wastage is in "Under Review" status
 - **Database Operation**:
-  - Update wastage_headers.doc_status to "rejected"
+  - Update wastage_headers.doc_status to "Rejected"
   - Update wastage_approvals with rejection action and reason
   - Do NOT adjust inventory
 - **Notification**: Send detailed rejection reason to submitter
@@ -1119,12 +1119,12 @@ All server-side operations are implemented as Next.js Server Actions located in 
 - **Input**: wastageId, approvedQuantity (must be < original quantity), reductionReason
 - **Business Logic**:
   - Calculate approved value and rejected value
-  - Create inventory adjustment for approved quantity only
-  - Create new draft wastage for rejected quantity for submitter to review
+  - Create inventory adjustment for approved quantity only when Posted
+  - Create new Draft wastage for rejected quantity for submitter to review
 - **Database Transaction**:
-  - Update original wastage with approved_quantity, status "partially_approved"
-  - Create inventory adjustment for approved portion
-  - Create new wastage_headers with rejected portion in "draft" status
+  - Update original wastage with approved_quantity, status "Approved"
+  - Inventory adjustment happens when status transitions to "Posted"
+  - Create new wastage_headers with rejected portion in "Draft" status
 - **Returns**: Success with both wastage IDs (original and new draft)
 
 ### Delete Operations
@@ -1134,7 +1134,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
 - **Input**: wastageId (UUID)
 - **Authorization**:
   - Check user is original submitter OR has "Delete All Wastage" permission
-  - Check wastage is in deletable status (draft or rejected only, not approved)
+  - Check wastage is in deletable status (Draft or Rejected only, not Submitted/Under Review/Approved/Posted)
 - **Validation**:
   - Prevent deletion of approved wastage (inventory already adjusted)
   - Warn if wastage has approval history
@@ -1221,7 +1221,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
   - location_id, department_id (foreign keys for organizational context)
   - wastage_category, subcategory (classification)
   - total_value, currency (financial fields)
-  - doc_status (pending_approval, approved, partially_approved, rejected, cancelled, draft)
+  - doc_status (Draft, Submitted, Under Review, Approved, Rejected, Posted)
   - is_supplier_quality_issue, supplier_id (quality tracking)
   - created_by, created_date, updated_by, updated_date (audit fields)
   - deleted_at (soft delete timestamp)
@@ -1239,7 +1239,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
   - stock_on_hand_before, stock_on_hand_after (for validation)
   - line_reason, line_photos (line-specific documentation)
   - approved_quantity, rejected_quantity (partial approval support)
-  - line_status (pending, approved, partially_approved, rejected)
+  - line_status (pending, approved, rejected)
 - **Indexes**: On wastage_header_id, product_id for JOIN performance
 
 **wastage_photos**
@@ -1261,7 +1261,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
   - wastage_header_id (foreign key)
   - approval_level (1, 2, 3 for multi-level approvals)
   - approver_id (user who approved), approver_role
-  - approval_action (approved, partially_approved, rejected, pending)
+  - approval_action (approved, rejected, pending)
   - approval_date, approval_comments
   - original_total_value, approved_total_value (partial approval tracking)
 - **Indexes**: On wastage_header_id, approver_id, approval_action
@@ -1304,7 +1304,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
 **vw_pending_approvals**
 - **Purpose**: Pending approvals filtered by approver
 - **Usage**: Powers Approval Queue page, pre-filtered for performance
-- **Filters**: doc_status = 'pending_approval' AND approver_id = current_user
+- **Filters**: doc_status IN ('Submitted', 'Under Review') AND approver_id = current_user
 - **Additional**: Calculates days_pending, flags overdue approvals (>48 hours)
 
 **vw_wastage_trends**
@@ -1342,7 +1342,7 @@ All server-side operations are implemented as Next.js Server Actions located in 
 - **Captures**: Action type, user_id, timestamp, old_values, new_values, IP address
 
 **trg_update_inventory_on_approval**
-- **Event**: AFTER UPDATE on wastage_headers WHERE doc_status changes to 'approved'
+- **Event**: AFTER UPDATE on wastage_headers WHERE doc_status changes to 'Posted'
 - **Action**: Calls inventory adjustment function to reduce stock
 - **Atomicity**: Runs within same transaction as approval, ensures consistency
 

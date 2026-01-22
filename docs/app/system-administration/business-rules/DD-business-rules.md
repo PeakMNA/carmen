@@ -2,7 +2,7 @@
 
 **Module**: System Administration - Business Rules
 **Version**: 1.0
-**Last Updated**: 2025-01-16
+**Last Updated**: 2026-01-16
 ## Document History
 
 | Version | Date | Author | Changes |
@@ -271,8 +271,8 @@ model tb_compliance_violation {
   "detected_by": "system",
   "status": "acknowledged",
   "business_impact": "safety-risk",
-  "detected_at": "2025-01-16T14:30:00Z",
-  "acknowledged_at": "2025-01-16T14:35:00Z"
+  "detected_at": "2026-01-16T14:30:00Z",
+  "acknowledged_at": "2026-01-16T14:35:00Z"
 }
 ```
 
@@ -329,7 +329,7 @@ model tb_corrective_action {
   "violation_id": "550e8400-e29b-41d4-a716-446655440030",
   "action": "Discard affected pizza slices and review holding procedures with staff",
   "assigned_to_id": "550e8400-e29b-41d4-a716-446655440050",
-  "target_date": "2025-01-16T16:00:00Z",
+  "target_date": "2026-01-16T16:00:00Z",
   "status": "in-progress",
   "evidence_required": true,
   "verification_method": "Photo of discarded items and signed training log"
@@ -1340,7 +1340,7 @@ CREATE TABLE tb_rule_performance (
 ---
 
 **Document Control**:
-- **Created**: 2025-01-16
+- **Created**: 2026-01-16
 - **Version**: 1.0
 - **Status**: Planned Schema
 - **Target Implementation**: Q1 2025

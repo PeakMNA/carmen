@@ -4,8 +4,8 @@
 - **Module**: Product Management
 - **Sub-Module**: Products
 - **Route**: /product-management/products
-- **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Version**: 1.1.0
+- **Last Updated**: 2026-01-15
 - **Owner**: Product Management Team
 - **Status**: Draft
 
@@ -13,6 +13,7 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-02-11 | System | Initial use cases documentation |
+| 1.1.0 | 2026-01-15 | System | Renamed Recipe Units to Ingredient Units; Updated location assignment with new fields (shelves, tags, parLevel, reorderPoint); Updated product type flags to isIngredient/isForSale; Added advanced filtering with saved filters; Added Table/Card view modes |
 
 ---
 
@@ -58,7 +59,7 @@ Products serve as the central master data repository for all operational modules
 | Procurement Module | Purchase Request and Purchase Order system | Module - Product selection, cost validation |
 | Inventory Module | Stock tracking and warehouse management | Module - Unit conversions, store assignments |
 | GRN Module | Goods Receipt Note processing | Module - Update last receiving cost, purchase history |
-| Recipe Module | Recipe management and costing | Module - Ingredient selection, recipe units |
+| Recipe Module | Recipe management and costing | Module - Ingredient selection, ingredient units |
 | Sales Module | Point of sale and sales order processing | Module - Product selection for direct sales |
 | Finance Module | Financial accounting and reporting | Module - Cost data, tax configuration |
 | Activity Log Service | Centralized audit logging | Service - Record all product changes |
@@ -137,7 +138,7 @@ Products serve as the central master data repository for all operational modules
 | UC-PROD-004 | Change Product Status | Product Manager, System Admin | High | Simple | User |
 | UC-PROD-005 | Assign Product Category | Product Manager | Critical | Simple | User |
 | UC-PROD-006 | Manage Product Units | Inventory Manager, Product Manager | Critical | Complex | User |
-| UC-PROD-007 | Assign Product to Store | Inventory Manager | High | Medium | User |
+| UC-PROD-007 | Assign Product to Location | Inventory Manager | High | Medium | User |
 | UC-PROD-008 | Update Product Cost | Procurement Staff, Finance Manager | High | Medium | User |
 | UC-PROD-009 | Configure Price Deviation | Product Manager, Procurement Staff | High | Simple | User |
 | UC-PROD-010 | Configure Product Tax | Finance Manager, Product Manager | High | Simple | User |
@@ -493,7 +494,7 @@ Products serve as the central master data repository for all operational modules
 
 ### UC-PROD-006: Manage Product Units
 
-**Description**: User manages multiple unit types for a product including Inventory Unit (base), Order Units (for purchasing), and Recipe Units (for recipes), each with conversion rates to the base unit.
+**Description**: User manages multiple unit types for a product including Inventory Unit (base), Order Units (for purchasing), and Ingredient Units (for recipes), each with conversion rates to the base unit. Units support isDefault flag to designate the primary unit and isInverse flag to control conversion calculation direction.
 
 **Actor(s)**: Inventory Manager, Product Manager
 
@@ -513,34 +514,45 @@ Products serve as the central master data repository for all operational modules
 
 **Main Flow** (Happy Path):
 1. User is on product edit page
-2. System displays three unit management sections:
+2. System displays three unit management tabs:
    - Inventory Unit (single, required, base unit)
-   - Order Units (multiple, optional, with conversion rates)
-   - Recipe Units (multiple, optional, with conversion rates)
+   - Order Units tab (multiple, optional, with conversion rates)
+   - Ingredient Units tab (multiple, optional, with conversion rates)
 3. User reviews current Inventory Unit (base unit, conversion rate = 1.00000)
-4. User clicks "Add Order Unit" button in Order Units section
-5. System displays order unit entry form with fields:
-   - Unit dropdown (populated from units master)
-   - Conversion Rate input (5 decimal places)
-   - "Set as Default" checkbox
-6. User selects Unit from dropdown (e.g., "Box")
-7. User enters conversion rate (e.g., 12.00000 meaning 1 Box = 12 Each)
-8. User optionally checks "Set as Default" to make this the default order unit
-9. User clicks "Add" button
-10. System validates:
+4. User clicks Order Units tab
+5. User clicks "Add Unit" button in Order Units section
+6. System displays order unit entry form with fields:
+   - Unit dropdown (populated from available units: BAG, BOX, CASE, PALLET, PACK)
+   - Description input (optional, descriptive name)
+   - Conversion Factor input (5 decimal places)
+   - Default toggle (Switch component)
+   - Direction toggle (isInverse flag - controls calculation direction)
+7. User selects Unit from dropdown (e.g., "BOX")
+8. User enters description (e.g., "Box of 12")
+9. User enters conversion factor (e.g., 12.00000)
+10. User toggles Direction to set isInverse flag:
+    - If isInverse = true: "1 KG = X [Unit]" (multiply by factor)
+    - If isInverse = false: "1 [Unit] = X KG" (factor is direct)
+11. User optionally enables "Default" switch to make this the default order unit
+12. User clicks Save icon to add unit
+13. System validates:
     - Unit selected is not already in Order Units list
-    - Conversion rate is positive, non-zero, max 5 decimals
-11. System adds order unit to product's order units collection
-12. System calculates and displays reverse conversion: "1 Each = 0.08333 Box"
-13. System updates real-time conversion calculator showing all unit relationships
-14. System creates activity log entry with action type "UNIT_ADDED"
-15. User repeats steps 4-14 for additional order units as needed
-16. User clicks "Add Recipe Unit" button in Recipe Units section
-17. User repeats similar process for recipe units
-18. User clicks "Save" button to save all unit changes
-19. System saves all units and conversion rates to database
-20. System displays success message: "Product units updated successfully"
-21. Use case ends
+    - Conversion factor is positive, non-zero, max 5 decimals
+14. System adds order unit to product's order units collection
+15. System calculates and displays conversion based on isInverse flag:
+    - If isInverse: "1 KG = [1/factor] BOX" (e.g., "1 KG = 0.08333 BOX")
+    - Calculation formula: "Qty × [1/factor]" displayed below
+16. System updates real-time conversion calculator showing all unit relationships
+17. System creates activity log entry with action type "UNIT_ADDED"
+18. User repeats steps 5-17 for additional order units as needed
+19. User clicks Ingredient Units tab
+20. User clicks "Add Unit" button
+21. System displays ingredient unit entry form with same fields (available units: G, KG, LB, OZ)
+22. User adds ingredient units following same process
+23. User clicks "Save" button to save all unit changes
+24. System saves all units and conversion rates to database
+25. System displays success message: "Product units updated successfully"
+26. Use case ends
 
 **Alternative Flows**:
 
@@ -551,48 +563,53 @@ Products serve as the central master data repository for all operational modules
 - 3d. If history exists: display blocking error: "Inventory unit cannot be changed because product has transaction history. Contact administrator if change is required."
 - Resume at step 3
 
-**Alt-006B: Remove Order Unit** (After step 14)
-- User clicks "Remove" button next to existing order unit
+**Alt-006B: Remove Order Unit** (After step 17)
+- User clicks delete icon (trash) next to existing order unit
 - System displays confirmation: "Remove order unit '[Unit]'?"
 - User confirms
 - System checks if unit is referenced in any active POs
 - If no references: system removes unit, creates activity log "UNIT_REMOVED"
 - If references exist: display error: "Cannot remove. Unit referenced in [N] active purchase orders."
-- Resume at step 14
+- Resume at step 17
 
-**Alt-006C: Edit Conversion Rate** (After step 14)
-- User clicks "Edit" button next to existing unit
-- System allows conversion rate modification
-- User updates rate
-- System validates new rate (positive, non-zero, 5 decimals)
-- System updates rate and reverse calculation
-- System creates activity log "UNIT_CHANGED" with old/new rates
-- Resume at step 14
+**Alt-006C: Edit Conversion Factor** (After step 17)
+- User modifies conversion factor in existing unit row (inline editing enabled when in edit mode)
+- User updates factor value
+- System validates new factor (positive, non-zero, 5 decimals)
+- System recalculates conversion display based on isInverse flag
+- System creates activity log "UNIT_CHANGED" with old/new factors
+- Resume at step 17
 
-**Alt-006D: Set Different Default Order Unit** (At step 8)
-- 8a. Another unit is already marked as default
-- 8b. User checks "Set as Default" on new unit
-- 8c. System automatically unchecks default flag on previous default unit
-- 8d. System shows info message: "Default order unit changed from [Old Unit] to [New Unit]"
-- Continue to step 9
+**Alt-006D: Set Different Default Order Unit** (At step 11)
+- 11a. Another unit is already marked as default
+- 11b. User enables "Default" switch on new unit
+- 11c. System automatically disables default flag on previous default unit
+- 11d. System shows info message: "Default order unit changed from [Old Unit] to [New Unit]"
+- Continue to step 12
+
+**Alt-006E: Toggle Direction (isInverse)** (At step 10)
+- User clicks Direction toggle button to change isInverse flag
+- System immediately recalculates and displays updated conversion text
+- System shows visual indicator (rotated arrow icon) for current direction
+- Resume at step 11
 
 **Exception Flows**:
 
-**Exc-006A: Duplicate Unit** (At step 10)
+**Exc-006A: Duplicate Unit** (At step 13)
 - System detects selected unit already exists in Order Units list
 - System displays error: "Unit '[Unit]' is already assigned as an order unit"
 - System highlights unit dropdown in red
 - User selects different unit
-- Resume at step 6
-
-**Exc-006B: Invalid Conversion Rate** (At step 10)
-- System detects invalid conversion rate (zero, negative, or > 5 decimals)
-- System displays error: "Conversion rate must be positive, non-zero, with max 5 decimal places"
-- System highlights conversion rate field in red
-- User corrects value
 - Resume at step 7
 
-**Exc-006C: No Inventory Unit Selected** (At step 18)
+**Exc-006B: Invalid Conversion Factor** (At step 13)
+- System detects invalid conversion factor (zero, negative, or > 5 decimals)
+- System displays error: "Conversion factor must be positive, non-zero, with max 5 decimal places"
+- System highlights conversion factor field in red
+- User corrects value
+- Resume at step 9
+
+**Exc-006C: No Inventory Unit Selected** (At step 23)
 - User attempts to save without setting inventory unit
 - System displays error: "Inventory unit is required. Please select a base unit."
 - System highlights inventory unit section in red
@@ -601,9 +618,11 @@ Products serve as the central master data repository for all operational modules
 **Business Rules**:
 - **BR-PROD-005**: Inventory unit is mandatory and cannot change if transaction history exists
 - **BR-PROD-011**: Inventory unit conversion rate always 1.00000
-- **BR-PROD-012**: Order units optional, multiple allowed, unique conversion rates
-- **BR-PROD-013**: Recipe units optional, multiple allowed, unique conversion rates
-- **BR-PROD-021**: Unit conversion calculation formulas
+- **BR-PROD-012**: Order units optional, multiple allowed, unique units with isDefault and isInverse flags. Available units: BAG, BOX, CASE, PALLET, PACK
+- **BR-PROD-013**: Ingredient units optional, multiple allowed, unique units with isDefault and isInverse flags. Available units: G, KG, LB, OZ
+- **BR-PROD-021**: Unit conversion calculation formulas:
+  - If isInverse = true: Result = Quantity × (1/factor)
+  - If isInverse = false: Result = Quantity × factor
 
 **Related Requirements**:
 - FR-PROD-006: Multi-Unit Management
@@ -615,8 +634,11 @@ Products serve as the central master data repository for all operational modules
 - Inventory unit is the base unit (conversion rate = 1.00000 by definition)
 - All other units convert to/from the inventory unit
 - Real-time calculator shows conversion between any two assigned units
-- Conversion rates support up to 5 decimal precision for accurate calculations
-- System automatically calculates reverse conversion rates for display
+- Conversion factors support up to 5 decimal precision for accurate calculations
+- System automatically calculates reverse conversion rates for display based on isInverse flag
+- isInverse flag controls whether conversion shows "1 KG = X [Unit]" (inverse) or "1 [Unit] = X KG" (direct)
+- Description field allows user-friendly naming (e.g., "Box of 12" for BOX unit)
+- Only one unit per type (Order/Ingredient) can be marked as default
 
 ---
 
@@ -735,7 +757,7 @@ Products serve as the central master data repository for all operational modules
 
 ### UC-PROD-014: Search and Filter Products
 
-**Description**: User searches for products using type-ahead search and applies multiple filters to quickly locate products from large catalog.
+**Description**: User searches for products using type-ahead search and applies multiple filters to quickly locate products from large catalog. Supports advanced filtering with multiple conditions, logical operators (AND/OR), and saved filter presets for reuse.
 
 **Actor(s)**: All Users
 
@@ -755,11 +777,11 @@ Products serve as the central master data repository for all operational modules
 **Main Flow** (Happy Path):
 1. User navigates to product list page
 2. System displays search box at top with placeholder: "Search by code, description, barcode..."
-3. System displays filter panel on left side with filter options:
+3. System displays filter panel with quick filter options:
    - Category hierarchy (expandable tree)
    - Status (Active, Inactive, All)
-   - Product Type (Used in Recipes, Sold Directly, Both, Stock Only)
-   - Store Assignment (dropdown of locations)
+   - Product Type (isIngredient, isForSale checkboxes)
+   - Location Assignment (dropdown of locations)
 4. User types search term in search box (e.g., "coffee")
 5. System waits 300ms (debounce delay)
 6. System performs search query matching term against:
@@ -819,13 +841,53 @@ Products serve as the central master data repository for all operational modules
 - User downloads file
 - Resume at step 14
 
-**Alt-014F: Save Filter Preset** (After step 14)
-- User clicks "Save Filters" button
-- System prompts for preset name
-- User enters name: "Active Coffee Products"
-- System saves filter combination to user preferences
-- User can load saved preset from dropdown on future visits
+**Alt-014F: Use Advanced Filtering** (At step 3)
+- User clicks "Advanced Filters" button
+- System opens advanced filter panel with:
+  - Multiple filter conditions (add/remove conditions)
+  - Field selector for each condition (Category, Status, Product Type, Cost Range, etc.)
+  - Operator selector (equals, contains, greater than, less than, etc.)
+  - Value input appropriate to field type
+  - Logical operator between conditions (AND/OR toggle)
+- User adds first condition: "Category equals Beverages"
+- User clicks "Add Condition" button
+- User adds second condition: "Standard Cost greater than 100"
+- User toggles logical operator to "AND"
+- User clicks "Apply" button
+- System filters results showing products in Beverages with cost > 100
+- System displays condition summary in filter tags
 - Resume at step 14
+
+**Alt-014G: Save Filter as Preset** (After step 14 or Alt-014F)
+- User clicks "Save Filter" icon/button
+- System displays save dialog with fields:
+  - Filter name input (required)
+  - Description (optional)
+- User enters name: "Premium Beverages"
+- User clicks "Save" button
+- System saves filter configuration to user preferences
+- System displays success message: "Filter saved"
+- Saved filter appears in "Saved Filters" dropdown
+- Resume at step 14
+
+**Alt-014H: Load Saved Filter** (At step 3)
+- User clicks "Saved Filters" dropdown
+- System displays list of user's saved filters with names
+- User selects "Premium Beverages" from list
+- System loads saved filter configuration
+- System applies all conditions from saved filter
+- System updates results with saved filter applied
+- System displays filter name in active filters area
+- Resume at step 14
+
+**Alt-014I: Delete Saved Filter** (At step 3)
+- User clicks "Saved Filters" dropdown
+- User clicks delete (trash) icon next to a saved filter
+- System displays confirmation: "Delete saved filter 'Premium Beverages'?"
+- User confirms deletion
+- System removes saved filter from user preferences
+- System displays success message: "Filter deleted"
+- Resume at step 3
 
 **Exception Flows**:
 
@@ -851,12 +913,23 @@ Products serve as the central master data repository for all operational modules
 - System executes fallback search
 - Continue to step 7 with potentially slower response
 
+**Exc-014D: Invalid Filter Value** (At Alt-014F)
+- User enters invalid value for field type (e.g., text in numeric field)
+- System displays validation error: "Please enter a valid [field type] value"
+- System highlights invalid field in red
+- User corrects value
+- Resume at Alt-014F
+
 **Business Rules**:
 - Search is case-insensitive
 - Partial matches supported (contains, not just starts-with)
-- Multiple filters use AND logic (all must match)
+- Multiple quick filters use AND logic (all must match)
+- Advanced filter conditions support AND/OR logic (user selectable)
 - 300ms debounce prevents excessive queries while typing
 - Active filters persist when navigating away and returning
+- Saved filters are user-specific (not shared between users)
+- Maximum 10 saved filters per user
+- isIngredient and isForSale are boolean filter options for product type filtering
 
 **Related Requirements**:
 - FR-PROD-015: Product Search and Filtering
@@ -871,6 +944,9 @@ Products serve as the central master data repository for all operational modules
 - Result count helps user understand search effectiveness
 - Multiple simultaneous filters support complex queries
 - Export respects active filters for reporting
+- Advanced filtering supports building complex queries with multiple conditions
+- Saved filters improve efficiency for frequent search patterns
+- Logical operators (AND/OR) allow flexible condition combinations
 
 ---
 
@@ -1683,7 +1759,7 @@ If Product API unavailable for extended period:
 
 **Get Product Inventory Data**:
 ```json
-GET /api/products/{id}/inventory-data?storeId={storeId}
+GET /api/products/{id}/inventory-data?locationId={locationId}
 Response:
 {
   "productId": "uuid",
@@ -1698,14 +1774,33 @@ Response:
     {
       "id": "unit-uuid-2",
       "code": "BAG",
-      "name": "Bag (5kg)",
-      "conversionRate": 5.00000
+      "description": "Bag (5kg)",
+      "factor": 5.00000,
+      "isDefault": true,
+      "isInverse": false
     }
   ],
-  "storeAssignment": {
-    "storeId": "store-uuid",
-    "minimumQuantity": 100.000,
-    "maximumQuantity": 500.000
+  "ingredientUnits": [
+    {
+      "id": "unit-uuid-3",
+      "code": "G",
+      "description": "Gram",
+      "factor": 0.001,
+      "isDefault": false,
+      "isInverse": true
+    }
+  ],
+  "locationAssignment": {
+    "locationId": "location-uuid",
+    "locationName": "Main Kitchen",
+    "locationCode": "LOC-001",
+    "shelfId": "shelf-uuid",
+    "shelfName": "Shelf A-1",
+    "minQuantity": 100.000,
+    "maxQuantity": 500.000,
+    "reorderPoint": 150.000,
+    "parLevel": 300.000,
+    "tags": ["dry-goods", "high-usage"]
   }
 }
 ```
@@ -1736,9 +1831,16 @@ Response:
 | Product Field | Inventory Field | Usage |
 |---------------|----------------|--------|
 | inventoryUnit | base_unit | Primary unit for stock tracking |
-| orderUnits[].conversionRate | conversion_rates | Unit conversion calculations |
-| storeAssignment.minimumQuantity | reorder_point | Low stock alerts |
-| storeAssignment.maximumQuantity | max_stock_level | Overstock warnings |
+| orderUnits[].factor | conversion_rates | Order unit conversion calculations |
+| orderUnits[].isInverse | conversion_direction | Controls calculation direction |
+| ingredientUnits[].factor | ingredient_rates | Ingredient unit conversion calculations |
+| ingredientUnits[].isInverse | ingredient_direction | Controls ingredient calculation direction |
+| locationAssignment.minQuantity | reorder_point | Low stock alerts |
+| locationAssignment.maxQuantity | max_stock_level | Overstock warnings |
+| locationAssignment.reorderPoint | reorder_trigger | Reorder notification threshold |
+| locationAssignment.parLevel | target_stock | Target inventory level |
+| locationAssignment.shelfId | shelf_location | Physical storage location |
+| locationAssignment.tags | inventory_tags | Categorization tags |
 
 **Monitoring**:
 - Unit conversion API calls per day

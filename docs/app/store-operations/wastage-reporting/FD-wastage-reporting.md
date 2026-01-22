@@ -3,8 +3,8 @@
 ## Module Information
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
-- **Version**: 1.2.0
-- **Last Updated**: 2025-12-09
+- **Version**: 1.3.0
+- **Last Updated**: 2025-01-15
 - **Owner**: Store Operations Team
 - **Status**: Active
 - **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
@@ -12,6 +12,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2025-01-15 | Claude | Updated status values to match code: Draft, Submitted, Under Review, Approved, Rejected, Posted; Updated state diagram and all workflow references |
 | 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend workflows |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning, verified Mermaid 8.8.2 compatibility |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
@@ -29,7 +30,7 @@ The Wastage Reporting module frontend has been fully implemented with workflows 
 - ✅ **Analytics Flow** - Analytics page: Select date range → View trends → Analyze by reason/location/category → Review insights
 - ✅ **Category Management Flow** - Categories page: View categories → Add/Edit category → Configure approval rules → Toggle active status
 
-**Status Transitions Implemented**: `pending` → `under_review` → `approved` OR `rejected`
+**Status Transitions Implemented**: `Draft` → `Submitted` → `Under Review` → `Approved`/`Rejected` → `Posted`
 
 See [BR-wastage-reporting.md](./BR-wastage-reporting.md) for complete implementation details.
 
@@ -143,7 +144,7 @@ flowchart TD
     ConfirmSubmit -->|No| SaveAsDraft([Saved as Draft])
     ConfirmSubmit -->|Yes| Submit[Submit Wastage]
 
-    Submit --> StatusUpdate[Update Status to pending_approval or approved]
+    Submit --> StatusUpdate[Update Status to Submitted]
     StatusUpdate --> NotifyApprovers[Notify Approvers if needed]
     NotifyApprovers --> SubmitSuccess([Submitted Successfully])
 
@@ -191,8 +192,8 @@ flowchart TD
 14. **Save Draft**: System saves wastage as draft with calculated approval level
 15. **Review Screen**: User reviews all entered information
 16. **Confirm Submit**: User chooses to save as draft or submit
-    - Save as draft: Remains in draft status for later submission
-    - Submit: Changes status to pending_approval (or approved if auto-approved)
+    - Save as draft: Remains in Draft status for later submission
+    - Submit: Changes status to Submitted (then routed for approval)
 17. **Notify Approvers**: System sends notifications to appropriate approver(s)
 18. **Success**: Process completes with wastage submitted
 
@@ -227,7 +228,7 @@ flowchart TD
 - Inventory System
 - Finance System
 
-**Trigger**: Wastage transaction submitted with status pending_approval
+**Trigger**: Wastage transaction submitted with status Submitted
 
 ```mermaid
 flowchart TD
@@ -236,7 +237,7 @@ flowchart TD
     ExtractParams --> CheckLevel{Approval<br>Level?}
 
     CheckLevel -->|0 Auto-Approve| AutoApproveCheck{Auto-Approve<br>Rules Match?}
-    AutoApproveCheck -->|Yes| MarkApproved[Update Status: approved<br>is_auto_approved: true]
+    AutoApproveCheck -->|Yes| MarkApproved[Update Status: Approved<br>is_auto_approved: true]
     AutoApproveCheck -->|No| RouteLevel1[Route to Level 1]
 
     MarkApproved --> AdjustInventory[Trigger Inventory Adjustment]
@@ -259,9 +260,9 @@ flowchart TD
     L1Decision -->|Approved| RecordL1Approval[Record Approval:<br>- approver_id<br>- approval_date<br>- comments]
     L1Decision -->|Partial| RecordL1Partial[Record Partial Approval:<br>- approved_quantity<br>- rejected_quantity<br>- adjustment_reason]
     L1Decision -->|Rejected| RecordL1Rejection[Record Rejection:<br>- rejection_reason<br>- comments]
-    L1Decision -->|Returned| SetDraftStatus[Status: draft]
+    L1Decision -->|Returned| SetDraftStatus[Status: Draft]
 
-    RecordL1Rejection --> UpdateStatusRejected[Status: rejected]
+    RecordL1Rejection --> UpdateStatusRejected[Status: Rejected]
     UpdateStatusRejected --> NotifySubmitter1[Notify Submitter of Rejection]
     NotifySubmitter1 --> RejectedEnd([Rejected - Can Resubmit])
 
@@ -271,7 +272,7 @@ flowchart TD
     RecordL1Approval --> CheckMoreLevels{More<br>Levels?}
     RecordL1Partial --> CheckMoreLevels
 
-    CheckMoreLevels -->|No| FinalApproved[Status: approved or partially_approved]
+    CheckMoreLevels -->|No| FinalApproved[Status: Approved]
     CheckMoreLevels -->|Yes Level 2| RouteLevel2[Route to Level 2]
 
     RouteLevel2 --> NotifyL2[Notify Store Manager]
@@ -853,7 +854,7 @@ sequenceDiagram
 
 1. **Authority Check**: Approver's `approval_authority_limit` must be >= wastage `total_value`
 2. **Self-Approval Check**: Approver cannot be the wastage creator (BR-WAST-008)
-3. **Status Check**: Wastage must be in `pending_approval` status
+3. **Status Check**: Wastage must be in `Under Review` status
 4. **Level Check**: Approver must have permission for current approval level
 5. **Optimistic Locking**: `doc_version` check prevents concurrent approval conflicts
 
@@ -876,70 +877,68 @@ These operations run asynchronously (5-30 seconds) to avoid blocking the approve
 
 ```mermaid
 stateDiagram-v2
-    [*] --> draft: Create new wastage
+    [*] --> Draft: Create new wastage
 
-    draft --> draft: Save changes
-    draft --> pending_approval: Submit for approval
-    draft --> [*]: Delete (soft delete)
+    Draft --> Draft: Save changes
+    Draft --> Submitted: Submit for approval
+    Draft --> [*]: Delete (soft delete)
 
-    pending_approval --> approved: Approve (all levels complete)
-    pending_approval --> partially_approved: Partial approval (qty reduced)
-    pending_approval --> rejected: Reject with reason
-    pending_approval --> draft: Return for revision
-    pending_approval --> cancelled: Submitter withdraws
+    Submitted --> UnderReview: Reviewer picks up
+    Submitted --> Draft: Return for revision
+    Submitted --> [*]: Submitter withdraws
 
-    approved --> approved: Inventory adjustment processing
-    approved --> approved: GL posting processing
-    approved --> cancelled: Cancel (before inventory adjusted)
+    UnderReview --> Approved: Approve (all levels complete)
+    UnderReview --> Rejected: Reject with reason
+    UnderReview --> Draft: Return for revision
 
-    partially_approved --> partially_approved: Inventory adjustment processing
-    partially_approved --> cancelled: Cancel remaining portion
+    Approved --> Posted: Post to inventory and GL
+    Approved --> [*]: Cancel (before posted)
 
-    rejected --> draft: Revise and resubmit
-    rejected --> [*]: Abandon (do not resubmit)
+    Rejected --> Draft: Revise and resubmit
+    Rejected --> [*]: Abandon (do not resubmit)
 
-    cancelled --> [*]: Cancelled permanently
+    Posted --> [*]: Complete (immutable)
 
-    note right of draft
+    note right of Draft
         - Editable by submitter
         - Can save multiple times
         - Validation warnings shown
         - No approval required yet
     end note
 
-    note right of pending_approval
+    note right of Submitted
         - Read-only for submitter
-        - Awaiting approver action
-        - SLA monitoring active
-        - Can be returned or rejected
+        - Awaiting reviewer pickup
+        - SLA monitoring starts
+        - Can be returned or withdrawn
     end note
 
-    note right of approved
-        - Immutable (no edits)
-        - Inventory adjustment triggered
-        - GL posting triggered
+    note right of UnderReview
+        - Being actively reviewed
+        - Approver action pending
+        - Can approve or reject
+        - Can return for revision
+    end note
+
+    note right of Approved
+        - Ready for posting
+        - Inventory adjustment ready
+        - GL posting ready
         - Notifications sent
     end note
 
-    note right of partially_approved
-        - Some quantity approved
-        - Remainder can be rejected
-        - Partial inventory adjustment
-        - Reduced GL posting
-    end note
-
-    note right of rejected
+    note right of Rejected
         - Cannot be auto-resubmitted
         - Rejection reason provided
-        - Can revise to draft
+        - Can revise to Draft
         - Can abandon permanently
     end note
 
-    note right of cancelled
+    note right of Posted
         - Terminal state
-        - No further actions
-        - Audit trail preserved
-        - Cannot be uncancelled
+        - Inventory adjusted
+        - GL posted
+        - Immutable record
     end note
 ```
 
@@ -947,62 +946,62 @@ stateDiagram-v2
 
 | State | Description | Allowed Actions | Can Transition To | Entry Actions | Exit Actions |
 |-------|-------------|-----------------|-------------------|---------------|--------------|
-| **draft** | Initial state, user editing | Save, Submit, Delete | pending_approval, [deleted] | Set status, Assign creator, Initialize fields | Validate completeness, Lock editing |
-| **pending_approval** | Awaiting approval | Approve, Reject, Return, Cancel | approved, partially_approved, rejected, draft, cancelled | Route to approver(s), Send notifications, Start SLA timer | Stop SLA timer, Record decision |
-| **approved** | Fully approved | (View only), Cancel (if not adjusted) | cancelled | Update approval_level_complete, Trigger inventory adjustment, Trigger GL posting, Notify submitter | - |
-| **partially_approved** | Some quantity approved, remainder rejected | (View only), Cancel remaining | cancelled | Record approved vs rejected quantities, Trigger partial inventory adjustment, Trigger partial GL posting | - |
-| **rejected** | Approval denied | Revise to draft, Abandon | draft, [abandoned] | Notify submitter with reason, Log rejection comments, Release pending approval | - |
-| **cancelled** | Manually cancelled | (None - terminal state) | [*] | Release any locks, Notify relevant parties, Update audit log | - |
+| **Draft** | Initial state, user editing | Save, Submit, Delete | Submitted, [deleted] | Set status, Assign creator, Initialize fields | Validate completeness, Lock editing |
+| **Submitted** | Awaiting reviewer pickup | Return, Withdraw | Under Review, Draft, [withdrawn] | Route to approver(s), Send notifications, Start SLA timer | Stop SLA timer, Record pickup |
+| **Under Review** | Being actively reviewed | Approve, Reject, Return | Approved, Rejected, Draft | Assign reviewer, Track review time | Record decision, Stop review timer |
+| **Approved** | Ready for posting | Post | Posted | Notify submitter, Prepare for posting | - |
+| **Rejected** | Approval denied | Revise to Draft | Draft | Notify submitter with reason, Log rejection comments | - |
+| **Posted** | Committed to inventory and GL | (None - terminal state) | [*] | Trigger inventory adjustment, Trigger GL posting, Update audit log | - |
 
 **Transition Rules and Guards**:
 
-1. **draft → pending_approval** (Submit):
+1. **Draft → Submitted** (Submit):
    - Guard: All required fields completed AND stock available AND photos uploaded (if required)
    - Action: Lock editing, determine approval level, route to first approver, send notification
    - Example: User fills form completely and clicks "Submit"
 
-2. **pending_approval → approved** (Approve):
-   - Guard: User has approver role AND approval_authority_limit >= total_value AND user_id != created_by AND all required levels approved
-   - Action: Record approval, update status, trigger inventory/GL, send notifications
+2. **Submitted → Under Review** (Pick Up):
+   - Guard: User has approver role for this wastage level
+   - Action: Assign reviewer, start review timer, notify submitter
+   - Example: Department Manager picks up wastage for review
+
+3. **Under Review → Approved** (Approve):
+   - Guard: User has approver role AND approval_authority_limit >= total_value AND user_id != created_by
+   - Action: Record approval, update status, prepare for posting, send notifications
    - Example: Department Manager approves $125 wastage (within authority)
 
-3. **pending_approval → partially_approved** (Partial Approve):
-   - Guard: User has approver role AND approved_quantity < original_quantity AND approved_quantity > 0
-   - Action: Record partial approval, update line item quantities, trigger partial inventory/GL
-   - Example: Approver approves 2kg instead of requested 2.5kg
-
-4. **pending_approval → rejected** (Reject):
+4. **Under Review → Rejected** (Reject):
    - Guard: User has approver role AND rejection_reason provided (min 20 chars)
    - Action: Record rejection, update status, notify submitter with reason
    - Example: Store Manager rejects due to insufficient photo evidence
 
-5. **pending_approval → draft** (Return):
+5. **Under Review → Draft** (Return):
    - Guard: User has approver role AND return_reason provided
-   - Action: Reset status to draft, unlock editing, notify submitter to revise
+   - Action: Reset status to Draft, unlock editing, notify submitter to revise
    - Example: Approver returns wastage asking for better photos
 
-6. **approved → cancelled** (Cancel):
-   - Guard: User is creator OR user has admin role AND inventory_adjusted = false
-   - Action: Update status, release any locks, notify parties
-   - Example: Submitter cancels approved wastage before inventory adjusted
+6. **Approved → Posted** (Post):
+   - Guard: Wastage is approved AND not yet posted
+   - Action: Trigger inventory adjustment, trigger GL posting, mark as Posted
+   - Example: System posts approved wastage to inventory and GL
 
-7. **rejected → draft** (Revise):
+7. **Rejected → Draft** (Revise):
    - Guard: User is original creator
-   - Action: Reset to draft, allow editing, clear rejection reason
+   - Action: Reset to Draft, allow editing, clear rejection reason
    - Example: Kitchen staff revises wastage based on rejection feedback
 
-8. **draft → [*]** (Delete):
+8. **Draft → [*]** (Delete):
    - Guard: User is creator OR user has admin role
    - Action: Soft delete (set deleted_at timestamp), preserve for audit
    - Example: User decides not to proceed with wastage recording
 
 **Immutability Rules**:
-- Once status = `approved` AND `inventory_adjusted` = true: No further status changes allowed (except audit fields)
+- Once status = `Posted`: No further status changes allowed (except audit fields)
 - All transitions logged in audit_log table with timestamp, user, before_value, after_value
-- State transitions triggered by user actions (Submit, Approve, Reject) or system actions (Auto-approve rules)
+- State transitions triggered by user actions (Submit, Approve, Reject, Post) or system actions (Auto-approve rules)
 
 **SLA Monitoring**:
-- `pending_approval` state tracks time in status
+- `Submitted` and `Under Review` states track time in status
 - SLA thresholds: L1=24h, L2=48h, L3=72h
 - Reminder emails sent at 75% of SLA (18h, 36h, 60h)
 - `is_overdue` flag set in `wastage_approvals` if SLA exceeded
@@ -1015,7 +1014,7 @@ stateDiagram-v2
 
 **Purpose**: Shows how approved wastage triggers inventory stock adjustment
 
-**Trigger**: Wastage status changes to `approved` or `partially_approved`
+**Trigger**: Wastage status changes to `Posted`
 
 ```mermaid
 flowchart TD
@@ -1141,7 +1140,7 @@ WHERE
 
 **Purpose**: Shows how approved wastage creates GL journal entries for financial reporting
 
-**Trigger**: Wastage status changes to `approved` or `partially_approved`
+**Trigger**: Wastage status changes to `Posted`
 
 ```mermaid
 flowchart TD
@@ -1336,7 +1335,7 @@ flowchart TD
     CreateLine --> LinkPhotos[Link Line-Specific Photos]
     LinkPhotos --> LoopLines
 
-    LoopLines -->|No| UpdateStatus[Update Status: pending_approval]
+    LoopLines -->|No| UpdateStatus[Update Status: Submitted]
     UpdateStatus --> NotifyApprovers[Notify Approvers]
     NotifyApprovers --> Success([Batch Wastage Submitted])
 
@@ -1362,7 +1361,7 @@ flowchart TD
   batch_context: "Sunday dinner buffet cleanup",
   reason: "Production quantities exceeded actual customer count by 30%. Adjusting forecasting model.",
   total_value: 450.00,
-  doc_status: "pending_approval",
+  doc_status: "Submitted",
   approval_level_required: 2
 }
 ```
@@ -1457,11 +1456,11 @@ flowchart TD
     ConfirmPartial -->|No| ViewDetails
     ConfirmPartial -->|Yes| StartTxn[BEGIN TRANSACTION]
 
-    StartTxn --> CreateApproval[CREATE wastage_approvals:<br>approval_action: 'partially_approved'<br>original_value: 225.00<br>approved_value: 180.00<br>rejected_value: 45.00<br>adjustment_reason: 'Only 4kg...']
+    StartTxn --> CreateApproval[CREATE wastage_approvals:<br>approval_action: 'approved'<br>original_value: 225.00<br>approved_value: 180.00<br>rejected_value: 45.00<br>adjustment_reason: 'Only 4kg...']
 
-    CreateApproval --> UpdateHeader[UPDATE wastage_headers:<br>doc_status: 'partially_approved'<br>current_approval_level: 1]
+    CreateApproval --> UpdateHeader[UPDATE wastage_headers:<br>doc_status: 'Approved'<br>current_approval_level: 1]
 
-    UpdateHeader --> UpdateLineItem[UPDATE wastage_line_items:<br>approved_quantity: 4.0<br>rejected_quantity: 1.0<br>line_status: 'partially_approved']
+    UpdateHeader --> UpdateLineItem[UPDATE wastage_line_items:<br>approved_quantity: 4.0<br>rejected_quantity: 1.0<br>line_status: 'approved']
 
     UpdateLineItem --> RecordLineAdj[Store Line Item Adjustments JSON:<br>{<br>  'line_item_id': '...',<br>  'product_name': 'Beef Ribeye',<br>  'original_quantity': 5.0,<br>  'approved_quantity': 4.0,<br>  'rejected_quantity': 1.0,<br>  'reason': 'Only 4 kg visible...'<br>}]
 
@@ -1511,7 +1510,7 @@ Line 1 - Beef Ribeye 3 kg: Fully Approved (photos clear)
 Line 2 - Salmon 2.5 kg: Partially Approved 2 kg (0.5 kg rejected, unclear in photos)
 Line 3 - Pasta 5 kg: Fully Approved (photos clear)
 
-Overall Status: partially_approved
+Overall Status: Approved (with partial quantities)
 Total Original: $450
 Total Approved: $425
 Total Rejected: $25
@@ -1532,7 +1531,7 @@ Total Rejected: $25
 3. **Submitter Actions**:
    - Can view partial approval details
    - Can create new wastage for rejected portion (1 kg) with better evidence
-   - Original wastage remains in `partially_approved` status (immutable)
+   - Original wastage remains in `Approved` status with partial quantities (immutable after Posted)
 
 4. **Approval Chain**: If multi-level approval required:
    - Next level approves based on approved_value ($180), not original ($225)

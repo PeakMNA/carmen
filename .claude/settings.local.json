@@ -68,20 +68,9 @@
       "Bash(else echo \"next.config.mjs not found or already moved\")",
       "Bash(fi)",
       "Bash(git checkout:*)",
-<<<<<<< HEAD
       "Bash(docker:*)",
       "Bash(open:*)",
-      "mcp__n8n-mcp__search_nodes",
-      "mcp__n8n-mcp__get_node_info",
-      "mcp__n8n-mcp__n8n_create_workflow",
-      "mcp__n8n-mcp__n8n_validate_workflow",
-=======
-      "Bash(npm install:*)",
->>>>>>> 2c7e43f7701487dcbb9f2653929a93059a7cfab3
-      "mcp__puppeteer__puppeteer_navigate",
-      "mcp__puppeteer__puppeteer_screenshot",
-      "mcp__puppeteer__puppeteer_click",
-      "mcp__puppeteer__puppeteer_evaluate"
+      "Bash(npm install:*)"
     ],
     "deny": [],
     "defaultMode": "acceptEdits"

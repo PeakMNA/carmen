@@ -3,7 +3,8 @@
 /**
  * Import Stock Overview Sub-Modules Documentation to Wiki.js
  *
- * This script imports documentation for all Stock Overview sub-modules:
+ * This script imports documentation for the Stock Overview section and all sub-modules:
+ * - Stock Overview (main section INDEX)
  * - Inventory Balance
  * - Stock Cards
  * - Slow Moving
@@ -14,6 +15,7 @@
  * - BR (Business Requirements)
  * - UC (Use Cases)
  * - TS (Technical Specification)
+ * - DD (Data Dictionary)
  * - FD (Flow Diagrams)
  * - VAL (Validations)
  *
@@ -195,6 +197,13 @@ const DOC_TYPES = [
     extraTags: ['technical-specification', 'architecture', 'implementation']
   },
   {
+    prefix: 'DD',
+    pathSuffix: '/data-dictionary',
+    titleSuffix: ' - Data Dictionary',
+    description: 'Data structures, schema definitions, and entity relationships',
+    extraTags: ['data-dictionary', 'schema', 'data-structures']
+  },
+  {
     prefix: 'FD',
     pathSuffix: '/flow-diagrams',
     titleSuffix: ' - Flow Diagrams',
@@ -263,6 +272,10 @@ function transformLinks(content, subModuleSlug) {
   transformed = transformed.replace(
     new RegExp(`\\[([^\\]]+)\\]\\(\\.\\/VAL-${subModuleSlug}\\.md\\)`, 'g'),
     `[$1](/${WIKI_BASE_PATH}/${subModuleSlug}/validations)`
+  );
+  transformed = transformed.replace(
+    new RegExp(`\\[([^\\]]+)\\]\\(\\.\\/DD-${subModuleSlug}\\.md\\)`, 'g'),
+    `[$1](/${WIKI_BASE_PATH}/${subModuleSlug}/data-dictionary)`
   );
 
   // Cross-module links within stock-overview
@@ -465,13 +478,17 @@ async function processDocument(doc) {
 }
 
 /**
- * Ensure Stock Overview landing page exists
+ * Import Stock Overview main section INDEX file
  */
-async function ensureStockOverviewLanding() {
+async function importStockOverviewIndex() {
   const wikiPath = 'inventory-management/stock-overview';
-  const existingPage = await getPageByPath(wikiPath);
+  const filePath = path.join(BASE_DIR, 'INDEX-stock-overview.md');
 
-  if (!existingPage) {
+  console.log(`\n📄 Importing Stock Overview INDEX: ${wikiPath}`);
+
+  if (!fs.existsSync(filePath)) {
+    console.log(`   ⚠️ INDEX-stock-overview.md not found, creating default landing page`);
+
     const content = `# Stock Overview
 
 Welcome to the Stock Overview module documentation.
@@ -499,17 +516,82 @@ The Stock Overview module provides comprehensive tools for monitoring and analyz
 > This is the landing page for Stock Overview. Select a sub-module above to view its documentation.
 `;
 
-    return await createPage(
+    return await upsertPage(
       wikiPath,
       'Stock Overview',
       'Stock Overview module documentation - inventory monitoring and analysis',
       content,
-      ['inventory-management', 'stock-overview', 'landing-page']
+      ['inventory-management', 'stock-overview', 'landing-page', 'index']
     );
   }
 
-  console.log(`\n✅ Stock Overview landing page already exists`);
-  return { success: true, path: wikiPath, action: 'exists' };
+  let content = fs.readFileSync(filePath, 'utf-8');
+
+  // Transform links for parent module
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/inventory-balance\/INDEX-inventory-balance\.md\)/g,
+    '[$1](/inventory-management/stock-overview/inventory-balance)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/stock-cards\/INDEX-stock-cards\.md\)/g,
+    '[$1](/inventory-management/stock-overview/stock-cards)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/slow-moving\/INDEX-slow-moving\.md\)/g,
+    '[$1](/inventory-management/stock-overview/slow-moving)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/inventory-aging\/INDEX-inventory-aging\.md\)/g,
+    '[$1](/inventory-management/stock-overview/inventory-aging)'
+  );
+
+  // Transform parent module doc links
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/BR-stock-overview\.md\)/g,
+    '[$1](/inventory-management/stock-overview/business-requirements)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/UC-stock-overview\.md\)/g,
+    '[$1](/inventory-management/stock-overview/use-cases)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/TS-stock-overview\.md\)/g,
+    '[$1](/inventory-management/stock-overview/technical-specification)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/DD-stock-overview\.md\)/g,
+    '[$1](/inventory-management/stock-overview/data-dictionary)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/FD-stock-overview\.md\)/g,
+    '[$1](/inventory-management/stock-overview/flow-diagrams)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\/VAL-stock-overview\.md\)/g,
+    '[$1](/inventory-management/stock-overview/validations)'
+  );
+
+  // Transform other module links
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\.\/transactions\/INDEX-inventory-transactions\.md\)/g,
+    '[$1](/inventory-management/transactions)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\.\/([^)]+)\)/g,
+    '[$1](/inventory-management/$2)'
+  );
+  content = content.replace(
+    /\[([^\]]+)\]\(\.\.\/\.\.\/store-operations\/([^)]+)\)/g,
+    '[$1](/store-operations/$2)'
+  );
+
+  return await upsertPage(
+    wikiPath,
+    'Stock Overview',
+    'Stock Overview module documentation - inventory monitoring and analysis',
+    content,
+    ['inventory-management', 'stock-overview', 'landing-page', 'index']
+  );
 }
 
 /**
@@ -533,9 +615,14 @@ async function main() {
     failed: []
   };
 
-  // Ensure Stock Overview landing page exists
-  console.log('\n━━━ Ensuring Parent Pages ━━━');
-  await ensureStockOverviewLanding();
+  // Import Stock Overview INDEX page
+  console.log('\n━━━ Importing Stock Overview INDEX ━━━');
+  const indexResult = await importStockOverviewIndex();
+  if (indexResult.success) {
+    results.success.push(indexResult);
+  } else {
+    results.failed.push(indexResult);
+  }
 
   // Process documents by sub-module
   for (const subModule of SUB_MODULES) {
@@ -592,6 +679,7 @@ async function main() {
     console.log(`   - BR: http://dev.blueledgers.com:3993/en/${WIKI_BASE_PATH}/${subModule.slug}/business-requirements`);
     console.log(`   - UC: http://dev.blueledgers.com:3993/en/${WIKI_BASE_PATH}/${subModule.slug}/use-cases`);
     console.log(`   - TS: http://dev.blueledgers.com:3993/en/${WIKI_BASE_PATH}/${subModule.slug}/technical-specification`);
+    console.log(`   - DD: http://dev.blueledgers.com:3993/en/${WIKI_BASE_PATH}/${subModule.slug}/data-dictionary`);
     console.log(`   - FD: http://dev.blueledgers.com:3993/en/${WIKI_BASE_PATH}/${subModule.slug}/flow-diagrams`);
     console.log(`   - VAL: http://dev.blueledgers.com:3993/en/${WIKI_BASE_PATH}/${subModule.slug}/validations`);
   }

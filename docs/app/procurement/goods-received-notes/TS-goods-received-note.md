@@ -4,14 +4,15 @@
 - **Module**: Procurement
 - **Sub-Module**: Goods Received Note (GRN)
 - **Route**: `/procurement/goods-received-note`
-- **Version**: 1.0.2
-- **Last Updated**: 2025-12-03
+- **Version**: 1.2.0
+- **Last Updated**: 2025-01-15
 - **Owner**: Procurement Team
 - **Status**: Approved
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2025-01-15 | Documentation Team | Added Item Detail Form 5-tab structure, RelatedPRAllocation interface, Location Type documentation |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.2 | 2025-12-03 | Documentation Team | Added context for inventory costing methods (FIFO or Periodic Average) used for inventory valuation |
 | 1.0.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
@@ -219,6 +220,28 @@ lib/
 - Calculate and display line totals
 - Handle batch/lot number entry
 - Support item selection from product catalog via search
+
+#### Item Detail Form Dialog
+**File**: `components/tabs/itemDetailForm.tsx`
+**Purpose**: Comprehensive item editing dialog with 5-tab internal structure
+**Responsibilities**:
+- Provide detailed item editing interface for add/edit operations
+- Support 3 modes: 'add' (new item), 'edit' (existing item), 'view' (read-only)
+- Manage RelatedPRAllocation data for PR-to-GRN quantity tracking
+- Handle FOC (Free of Charge) quantity and unit fields
+- Support consignment flag tracking (isConsignment)
+- Validate quantity allocations across related PRs
+
+**Internal Tab Structure**:
+1. **Details Tab**: Product info, location selector with type icons (INV/DIR/CON), PO reference, lot number, description, notes
+2. **Quantity Tab**: Ordered qty, receiving qty with unit, FOC qty/unit, delivery point, expiry date, consignment checkbox
+3. **Pricing Tab**: Currency, exchange rate, unit price, tax type, discounts, calculated totals
+4. **Related PRs Tab**: PR allocation table with business context, editable thisGrnQty per PR, validation warnings
+5. **Inventory Tab**: Current stock status, purchase history (only shown in edit mode)
+
+**Key Interfaces**:
+- `FormGRNItem`: Extended GRN item type with relatedPRs array, FOC fields, consignment tracking
+- `RelatedPRAllocation`: Tracks PR-to-GRN quantity allocation with business context (job code, event, project, market segment)
 
 #### Extra Costs Tab
 **File**: `components/tabs/ExtraCostsTab.tsx`
@@ -693,11 +716,53 @@ graph TB
 
 **Dialogs for Tab 4.1**:
 - Add Item (Modal): Search and select item from product catalog
-- Item Details Form (Modal): Comprehensive item editing with all fields, specifications, images
+- Item Details Form (Dialog): Comprehensive item editing with 5-tab internal structure:
+
+  **Tab 1: Details**
+  - Product name and code (read-only)
+  - Location selector with type indicator (INV/DIR/CON icons)
+  - PO reference display
+  - Lot/batch number entry
+  - Description field
+  - Notes field
+
+  **Tab 2: Quantity**
+  - Ordered quantity (read-only, from PO)
+  - Receiving quantity with unit selector
+  - FOC (Free of Charge) quantity and unit
+  - Delivery point selector
+  - Expiry date picker
+  - Consignment checkbox (isConsignment flag)
+  - Conversion rate display
+
+  **Tab 3: Pricing**
+  - Currency selector
+  - Exchange rate to base currency
+  - Unit price entry
+  - Tax type selector
+  - Discount percentage and amount
+  - Calculated line totals (subtotal, tax, net)
+
+  **Tab 4: Related PRs**
+  - PR allocation table showing:
+    - PR number and line reference
+    - Business context (job code, event, project, market segment)
+    - Requester and department
+    - Quantity tracking (requested, previously received, this GRN, remaining)
+    - Editable "This GRN Qty" field per PR
+  - Validation warnings for over-allocation
+  - Auto-calculation of remaining quantities
+
+  **Tab 5: Inventory** (only shown in edit mode, not add mode)
+  - Current inventory status by location
+  - Available stock levels
+  - Purchase history for the item
+  - Recent GRN receipts
+
 - Item History (Modal): Previous GRN history for this item
 - Quick Adjust (Modal): Quick quantity adjustment with reason and notes
 - Batch/Lot Entry (Modal): Enter batch number, manufacturing date, expiry date
-- Location Selector (Modal): Visual warehouse location picker with stock levels
+- Location Selector (Modal): Visual warehouse location picker with stock levels and type icons (INV, DIR, CON)
 - Discard Changes (Modal): Confirm discard when navigating away with unsaved changes
 
 ##### Tab 4.2: Extra Costs

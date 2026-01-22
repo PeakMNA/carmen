@@ -5,8 +5,14 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Transactions |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 2.0.0 |
+| Last Updated | 2025-01-16 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 2.0.0 | 2025-01-16 | Documentation Team | Updated transaction types to IN/OUT only; Updated reference types (ST, SI); Added source evidence; Aligned with current code |
+| 1.0.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -25,6 +31,8 @@
 - "From date cannot be in the future"
 - "To date must be after From date"
 - "Date range cannot exceed 365 days"
+
+**Source Evidence**: `components/TransactionFilters.tsx:94-122`
 
 ---
 
@@ -45,23 +53,46 @@ if (user.role === 'System Administrator') {
 }
 ```
 
+**Source Evidence**: `page.tsx:43-56`, `page.tsx:66-81`
+
 ---
 
 ### VAL-TXN-003: Transaction Type Filter
 | Rule | Description |
 |------|-------------|
-| Valid Values | IN, OUT, ADJUSTMENT |
+| Valid Values | IN, OUT |
 | Multiple Selection | Allowed |
 | Empty Selection | Shows all transaction types |
+
+**Note**: Only IN and OUT transaction types exist. Adjustments are recorded as IN or OUT with referenceType = 'ADJ'.
+
+**Source Evidence**: `types.ts:7`, `components/TransactionFilters.tsx:59-64`
 
 ---
 
 ### VAL-TXN-004: Reference Type Filter
 | Rule | Description |
 |------|-------------|
-| Valid Values | GRN, SO, ADJ, TRF, PO, WO, SR, PC, WR |
+| Valid Values | GRN, SO, ADJ, ST, SI, PO, WO, SR, PC, WR, PR |
 | Multiple Selection | Allowed |
 | Empty Selection | Shows all reference types |
+
+**Reference Type Descriptions**:
+| Code | Description | Transaction Direction |
+|------|-------------|----------------------|
+| GRN | Goods Received Note | IN |
+| SO | Sales Order | OUT |
+| ADJ | Adjustment | IN or OUT |
+| ST | Stock Transfer | IN or OUT |
+| SI | Stock Issue | OUT |
+| PO | Purchase Order | IN |
+| WO | Write Off | OUT |
+| SR | Store Requisition | OUT |
+| PC | Physical Count | IN or OUT |
+| WR | Wastage Report | OUT |
+| PR | Purchase Request | N/A (no transactions) |
+
+**Source Evidence**: `types.ts:6`, `types.ts:103-115`, `components/TransactionFilters.tsx:66-76`
 
 ---
 
@@ -74,6 +105,8 @@ if (user.role === 'System Administrator') {
 | Case Sensitivity | Case-insensitive search |
 | Special Characters | Allowed, escaped for matching |
 
+**Source Evidence**: `components/TransactionFilters.tsx:51-53`, `lib/mock-data/transactions.ts:350-365`
+
 ---
 
 ## 2. Data Display Validation
@@ -84,19 +117,21 @@ if (user.role === 'System Administrator') {
 | Qty In | Display only for IN transactions, >= 0 |
 | Qty Out | Display only for OUT transactions, >= 0 |
 | Net Quantity | Calculated as quantityIn - quantityOut |
-| Color Coding | Green for positive, Red for negative |
+| Color Coding | Green for positive (IN), Red for negative (OUT) |
 | Format | Number with thousand separators |
+
+**Source Evidence**: `components/TransactionTable.tsx:259-285`
 
 ---
 
 ### VAL-TXN-007: Currency Display
 | Rule | Description |
 |------|-------------|
-| Format | USD with 2 decimal places |
+| Format | USD with 0 decimal places (summary), 2 decimal places (details) |
 | Locale | en-US formatting |
 | Symbol | $ prefix |
 | Negative Values | Red color with minus sign |
-| Zero Values | Display as $0.00 |
+| Zero Values | Display as $0 |
 
 **Formatting Function**:
 ```typescript
@@ -108,6 +143,8 @@ new Intl.NumberFormat('en-US', {
 })
 ```
 
+**Source Evidence**: `components/TransactionSummaryCards.tsx:12-22`
+
 ---
 
 ### VAL-TXN-008: Date/Time Display
@@ -118,6 +155,8 @@ new Intl.NumberFormat('en-US', {
 | Timezone | Server timezone |
 | Display | Date bold, time muted |
 
+**Source Evidence**: `components/TransactionTable.tsx:206-214`
+
 ---
 
 ### VAL-TXN-009: Balance Validation
@@ -126,7 +165,9 @@ new Intl.NumberFormat('en-US', {
 | Balance Before | Must be >= 0 |
 | Balance After | Must be >= 0 (negative indicates data error) |
 | Calculation | balanceAfter = balanceBefore + netQuantity |
-| Display | "Before → After" format |
+| Display | "Before -> After" format with arrow |
+
+**Source Evidence**: `components/TransactionTable.tsx:305-314`
 
 ---
 
@@ -139,6 +180,8 @@ new Intl.NumberFormat('en-US', {
 | Default | 10 |
 | Invalid Value | Reset to default 10 |
 
+**Source Evidence**: `components/TransactionTable.tsx:44-46`, `components/TransactionTable.tsx:349-358`
+
 ---
 
 ### VAL-TXN-011: Page Number
@@ -148,6 +191,8 @@ new Intl.NumberFormat('en-US', {
 | Maximum | ceil(totalRecords / pageSize) |
 | Out of Range | Reset to page 1 |
 | Filter Change | Reset to page 1 |
+
+**Source Evidence**: `components/TransactionTable.tsx:120-123`, `components/TransactionTable.tsx:364-391`
 
 ---
 
@@ -160,6 +205,8 @@ new Intl.NumberFormat('en-US', {
 | Default Field | date |
 | Invalid Field | Use default |
 
+**Source Evidence**: `components/TransactionTable.tsx:62-94`
+
 ---
 
 ### VAL-TXN-013: Sort Direction
@@ -168,6 +215,8 @@ new Intl.NumberFormat('en-US', {
 | Valid Values | asc, desc |
 | Default | desc (newest first) |
 | Toggle Behavior | Same column click toggles direction |
+
+**Source Evidence**: `components/TransactionTable.tsx:104-118`
 
 ---
 
@@ -181,7 +230,7 @@ new Intl.NumberFormat('en-US', {
 | Empty State | Export button disabled |
 | Filename | `inventory-transactions-YYYY-MM-DD.csv` |
 
-**Required Columns**:
+**Required Columns (16)**:
 | Column | Source Field |
 |--------|--------------|
 | Date | date |
@@ -201,6 +250,8 @@ new Intl.NumberFormat('en-US', {
 | Balance After | balanceAfter |
 | User | createdByName |
 
+**Source Evidence**: `page.tsx:97-154`
+
 ---
 
 ## 6. Analytics Validation
@@ -213,16 +264,20 @@ new Intl.NumberFormat('en-US', {
 | Pie Chart | Requires at least 1 segment |
 | Bar Charts | Limit to top 8 categories |
 
+**Source Evidence**: `components/TransactionAnalytics.tsx:61-293`
+
 ---
 
 ### VAL-TXN-016: Analytics Calculations
-| Rule | Description |
-|------|-------------|
-| Trend Aggregation | Group by date |
-| Type Distribution | Count by transactionType |
+| Chart | Calculation |
+|-------|-------------|
+| Transaction Trend | Group by date, sum Inbound/Outbound/Adjustment values |
+| Distribution by Type | Count by transactionType (IN/OUT) |
 | Location Activity | Sum in/out counts by location |
-| Reference Distribution | Count by referenceType |
-| Category Values | Sum totalValue by category |
+| Reference Type Distribution | Count by referenceType |
+| Top Categories by Value | Sum totalValue by category, limit 8 |
+
+**Source Evidence**: `lib/mock-data/transactions.ts:199-347`
 
 ---
 
@@ -238,6 +293,8 @@ new Intl.NumberFormat('en-US', {
 | Financial Controller | View, Filter, Export (all locations) |
 | System Administrator | View, Filter, Export (all locations) |
 
+**Source Evidence**: `page.tsx:43-56`
+
 ---
 
 ### VAL-TXN-018: Location Access
@@ -248,6 +305,8 @@ new Intl.NumberFormat('en-US', {
 | Invalid Location | Auto-filter to permitted only |
 | Admin Override | System Administrator bypasses all checks |
 
+**Source Evidence**: `page.tsx:66-81`
+
 ---
 
 ## 8. Summary Card Validation
@@ -256,9 +315,15 @@ new Intl.NumberFormat('en-US', {
 | Metric | Calculation | Validation |
 |--------|-------------|------------|
 | Total Transactions | COUNT(records) | >= 0 |
-| Total In Value | SUM(totalValue) WHERE type = IN | >= 0 |
-| Total Out Value | SUM(totalValue) WHERE type = OUT | >= 0 |
-| Net Change | Total In - Total Out | Can be negative |
+| Adjustment Count | COUNT(records WHERE referenceType = ADJ) | >= 0 |
+| Total Inbound Value | SUM(totalValue) WHERE type = IN | >= 0 |
+| Total Inbound Quantity | SUM(quantityIn) | >= 0 |
+| Total Outbound Value | SUM(totalValue) WHERE type = OUT | >= 0 |
+| Total Outbound Quantity | SUM(quantityOut) | >= 0 |
+| Net Value Change | Total In Value - Total Out Value | Can be negative |
+| Net Quantity Change | Total In Qty - Total Out Qty | Can be negative |
+
+**Source Evidence**: `lib/mock-data/transactions.ts:164-197`, `components/TransactionSummaryCards.tsx:46-125`
 
 ---
 
@@ -271,6 +336,9 @@ new Intl.NumberFormat('en-US', {
 | Filter Error | Show toast notification, maintain previous state |
 | Export Failure | Show error toast, log error |
 | No Permission | Redirect to dashboard or show access denied |
+| No Data | Display empty state with icon and message |
+
+**Source Evidence**: `components/TransactionTable.tsx:161-171`
 
 ---
 
@@ -283,6 +351,20 @@ new Intl.NumberFormat('en-US', {
 | Filter Apply | < 500ms | 500ms-2s | > 2s |
 | Export (1000 records) | < 5s | 5-10s | > 10s |
 | Chart Render | < 1s | 1-3s | > 3s |
+
+---
+
+## 11. Quick Date Filter Validation
+
+### VAL-TXN-022: Quick Date Filters
+| Button | From Date | To Date |
+|--------|-----------|---------|
+| Today | Start of today | Now |
+| 7 Days | 7 days ago | Now |
+| 30 Days | 30 days ago | Now |
+| This Month | Start of month | End of month |
+
+**Source Evidence**: `components/TransactionFilters.tsx:94-122`
 
 ---
 
@@ -311,3 +393,14 @@ new Intl.NumberFormat('en-US', {
 | VAL-TXN-019 | Summary Calculations | Business | High |
 | VAL-TXN-020 | Error States | UX | Medium |
 | VAL-TXN-021 | Performance | Performance | Medium |
+| VAL-TXN-022 | Quick Date Filters | Input | Low |
+
+---
+
+## Related Documents
+
+- [BR-inventory-transactions.md](./BR-inventory-transactions.md) - Business Requirements
+- [TS-inventory-transactions.md](./TS-inventory-transactions.md) - Technical Specification
+- [UC-inventory-transactions.md](./UC-inventory-transactions.md) - Use Cases
+- [FD-inventory-transactions.md](./FD-inventory-transactions.md) - Flow Diagrams
+- [DD-inventory-transactions.md](./DD-inventory-transactions.md) - Data Definition

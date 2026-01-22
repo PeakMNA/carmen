@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Use Cases Document
 - **Module**: Vendor Management > Requests for Pricing
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated priority level to include 'normal' default; Added tags field to creation flow; Updated vendor status values |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional RFQ features (bidding, evaluation, awards, contracts, negotiations); Updated to reflect Price Collection Campaign functionality |
 | 1.0 | 2024-01-15 | System | Initial use cases document |
 
@@ -156,7 +157,8 @@ This document covers all user interactions with the Requests for Pricing module 
 5. User enters:
    - Campaign name (required)
    - Campaign description (required)
-   - Priority level (low/medium/high/urgent)
+   - Priority level (low/normal/medium/high/urgent - default: normal)
+   - Tags (optional)
    - Scheduled start date (required)
    - Scheduled end date (optional)
 6. User clicks "Next"

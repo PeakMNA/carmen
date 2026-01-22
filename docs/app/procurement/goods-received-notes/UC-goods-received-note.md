@@ -2,16 +2,24 @@
 
 **Module**: Procurement
 **Sub-module**: Goods Received Note
-**Document Version**: 1.2
-**Last Updated**: 2025-12-03
+**Document Version**: 1.3.0
+**Last Updated**: 2025-01-15
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2025-01-15 | Documentation Team | Added A5 (Location Type Selection), A6 (Related PR Allocation) alternative flows to UC-GRN-007 |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.2 | 2025-12-03 | Documentation Team | Updated inventory section with configurable costing method context (FIFO or Periodic Average) |
 | 1.1 | 2025-12-03 | Documentation Team | Verified coverage against BR requirements (FR-GRN-001 to FR-GRN-017) |
 | 1.0 | 2025-12-02 | Documentation Team | Initial version |
+
+**Related Documents**:
+- [Business Requirements](./BR-goods-received-note.md)
+- [Technical Specification](./TS-goods-received-note.md)
+- [Data Definition](./DD-goods-received-note.md)
+- [Flow Diagrams](./FD-goods-received-note.md)
+- [Validations](./VAL-goods-received-note.md)
 
 ---
 
@@ -790,6 +798,33 @@ This document covers:
    - Expiry Date
 - 8c. User enters batch information
 - 8d. System validates expiry date > today
+
+**A5: Location Type Selection**
+- 7a. User clicks storage location dropdown in item entry form
+- 7b. System displays locations grouped by type with visual indicators:
+   - **INV** (Warehouse icon): Standard inventory locations - items tracked in inventory
+   - **DIR** (ArrowRight icon): Direct issue locations - items bypass inventory, go directly to department
+   - **CON** (HandCoins icon): Consignment locations - items remain vendor-owned until consumed
+- 7c. User selects location with appropriate type
+- 7d. System applies type-specific behavior:
+   - **INV**: Creates stock receipt transaction, updates inventory levels
+   - **DIR**: Creates direct expense entry, no inventory impact
+   - **CON**: Creates consignment receipt, vendor liability tracking
+- 7e. Location type indicator displays next to selected location in form
+
+**A6: Related PR Allocation** (for PO-based GRNs)
+- 7a. Item has multiple related PRs from the source PO
+- 7b. User navigates to "Related PRs" tab in Item Detail Form
+- 7c. System displays PR allocation table showing:
+   - PR number and line reference
+   - Business context (job code, event, project, market segment)
+   - Requested quantity vs. previously received vs. remaining
+- 7d. User edits "This GRN Qty" for each PR to allocate received quantity
+- 7e. System validates:
+   - Total allocated ≤ received quantity
+   - Individual allocations ≤ remaining quantity per PR
+- 7f. System displays warning if over-allocation detected
+- 7g. User saves allocation; system stores RelatedPRAllocation data with item
 
 **Exception Flows**:
 

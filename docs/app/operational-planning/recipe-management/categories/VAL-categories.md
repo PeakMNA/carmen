@@ -3,21 +3,22 @@
 ## Document Information
 - **Document Type**: Validations Specification
 - **Module**: Operational Planning > Recipe Management > Categories
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 - **Related Documents**:
   - [BR-categories.md](./BR-categories.md) - Business Requirements
   - [UC-categories.md](./UC-categories.md) - Use Cases
   - [TS-categories.md](./TS-categories.md) - Technical Specification
-  - [DS-categories.md](./DS-categories.md) - Data Schema
+  - [DD-categories.md](./DD-categories.md) - Data Definition
   - [FD-categories.md](./FD-categories.md) - Flow Diagrams
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0 | 2024-01-15 | System | Initial validation specification created |
+| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: added kitchen workflow and food safety field validations |
 
 ---
 

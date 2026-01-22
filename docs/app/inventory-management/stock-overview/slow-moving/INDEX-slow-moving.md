@@ -6,6 +6,15 @@ The **Slow Moving Inventory** module provides comprehensive analysis and managem
 
 ---
 
+## Quick Navigation
+
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/inventory-management/stock-overview/slow-moving/business-requirements)<br/>Business Requirements | [**UC**](/inventory-management/stock-overview/slow-moving/use-cases)<br/>Use Cases | [**TS**](/inventory-management/stock-overview/slow-moving/technical-specification)<br/>Technical Spec |
+| [**DD**](/inventory-management/stock-overview/slow-moving/data-dictionary)<br/>Data Dictionary | [**FD**](/inventory-management/stock-overview/slow-moving/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/inventory-management/stock-overview/slow-moving/validations)<br/>Validations |
+
+---
+
 ## Module Information
 
 | Property | Value |
@@ -131,6 +140,7 @@ app/(main)/inventory-management/stock-overview/slow-moving/
 | **Business Requirements** | Functional requirements and business objectives | [BR-slow-moving.md](./BR-slow-moving.md) |
 | **Use Cases** | User interaction scenarios | [UC-slow-moving.md](./UC-slow-moving.md) |
 | **Technical Specification** | Architecture and implementation details | [TS-slow-moving.md](./TS-slow-moving.md) |
+| **Data Dictionary** | Data structures and schema definitions | [DD-slow-moving.md](./DD-slow-moving.md) |
 | **Flow Diagrams** | Visual process flows | [FD-slow-moving.md](./FD-slow-moving.md) |
 | **Validation Rules** | Data validation and business rules | [VAL-slow-moving.md](./VAL-slow-moving.md) |
 

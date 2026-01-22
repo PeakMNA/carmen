@@ -4,8 +4,8 @@
 - **Module**: Product Management
 - **Sub-Module**: Unit Management
 - **Route**: `/product-management/units`
-- **Version**: 1.0.0
-- **Last Updated**: 2025-11-02
+- **Version**: 1.1.0
+- **Last Updated**: 2026-01-15
 - **Owner**: Product Management Team
 - **Status**: Approved
 
@@ -13,12 +13,13 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0.0 | 2025-11-02 | Documentation Team | Initial version based on source code analysis |
+| 1.1.0 | 2026-01-15 | System | Added MEASURE unit type for ingredient measurements, updated unit type descriptions |
 
 ---
 
 ## Overview
 
-This document describes all use cases for the Unit Management sub-module within the Carmen ERP system. Use cases cover unit catalog management including viewing, searching, creating, editing, and deleting measurement units used throughout the hospitality operation. The module supports three unit types: INVENTORY (for stock tracking), ORDER (for purchasing), and RECIPE (for food preparation).
+This document describes all use cases for the Unit Management sub-module within the Carmen ERP system. Use cases cover unit catalog management including viewing, searching, creating, editing, and deleting measurement units used throughout the hospitality operation. The module supports four unit types: INVENTORY (for stock tracking), ORDER (for purchasing), RECIPE (for serving/portion output), and MEASURE (for ingredient measurements in recipes).
 
 **Related Documents**:
 - [Business Requirements](./BR-units.md)
@@ -57,7 +58,7 @@ External systems, internal modules, or automated services that interact with thi
 | System | Description | Integration Type |
 |--------|-------------|------------------|
 | Product Management Module | Requires units for product base unit, purchase unit, and stock unit selection | Module (internal reference) |
-| Recipe Management Module | Uses RECIPE type units for ingredient measurements in recipes | Module (internal reference) |
+| Recipe Management Module | Uses RECIPE type units for yield output and MEASURE type units for ingredient measurements | Module (internal reference) |
 | Inventory Management Module | References INVENTORY type units for stock transactions and counting | Module (internal reference) |
 | Purchase Order Module | Uses ORDER and INVENTORY type units for order line items | Module (internal reference) |
 | Audit Log System | Records all unit changes for compliance and traceability | Event (async logging) |
@@ -166,7 +167,7 @@ External systems, internal modules, or automated services that interact with thi
 6. Each unit row shows:
    - Unit code (e.g., KG, ML, TSP)
    - Unit name (e.g., Kilogram, Milliliter, Teaspoon)
-   - Type badge (INVENTORY, ORDER, or RECIPE) with color coding
+   - Type badge (INVENTORY, ORDER, RECIPE, or MEASURE) with color coding
    - Status badge (Active in green, Inactive in gray)
    - Description text (truncated if too long)
    - Actions dropdown menu (three-dot icon)
@@ -237,7 +238,7 @@ External systems, internal modules, or automated services that interact with thi
 3. System displays matching units where search term appears in code, name, or description
 4. System updates summary: "Showing X of Y units"
 5. User can additionally select status filter from dropdown (All Status, Active, Inactive)
-6. User can additionally select type filter from dropdown (All Types, INVENTORY, ORDER, RECIPE)
+6. User can additionally select type filter from dropdown (All Types, INVENTORY, ORDER, RECIPE, MEASURE)
 7. System applies all active filters simultaneously
 8. System displays filtered results
 9. Use case ends
@@ -364,7 +365,7 @@ External systems, internal modules, or automated services that interact with thi
    - Code (text input, required, max 20 chars)
    - Name (text input, required, max 100 chars)
    - Description (textarea, optional, max 500 chars)
-   - Type (dropdown, required: INVENTORY, ORDER, RECIPE)
+   - Type (dropdown, required: INVENTORY, ORDER, RECIPE, MEASURE)
    - Status (toggle, default: Active)
 4. User enters unit code (e.g., "BAG")
 5. User enters unit name (e.g., "Bag")
@@ -896,7 +897,8 @@ External systems, internal modules, or automated services that interact with thi
 2. Module requests list of active units from Unit Management
 3. Unit Management returns units filtered by:
    - Status = Active
-   - Type = RECIPE or INVENTORY
+   - Type = MEASURE or INVENTORY (for ingredient quantities)
+   - Type = RECIPE (for yield output)
 4. Recipe Management displays filtered units
 5. User selects unit for ingredient
 6. Recipe Management stores unit ID reference
@@ -956,8 +958,8 @@ External systems, internal modules, or automated services that interact with thi
 **Request**:
 ```typescript
 {
-  type?: 'INVENTORY' | 'ORDER' | 'RECIPE' | 'ALL',  // Optional filter
-  statusFilter?: 'ACTIVE' | 'ALL'                   // Default: ACTIVE
+  type?: 'INVENTORY' | 'ORDER' | 'RECIPE' | 'MEASURE' | 'ALL',  // Optional filter
+  statusFilter?: 'ACTIVE' | 'ALL'                               // Default: ACTIVE
 }
 ```
 
@@ -970,7 +972,7 @@ External systems, internal modules, or automated services that interact with thi
       id: string,
       code: string,
       name: string,
-      type: 'INVENTORY' | 'ORDER' | 'RECIPE',
+      type: 'INVENTORY' | 'ORDER' | 'RECIPE' | 'MEASURE',
       isActive: boolean
     }
   ],
@@ -1006,5 +1008,5 @@ External systems, internal modules, or automated services that interact with thi
 **Document Control**:
 - **Classification**: Internal Use Only
 - **Review Cycle**: Quarterly
-- **Next Review Date**: 2025-02-02
+- **Next Review Date**: 2026-04-15
 - **Approval Required**: Product Management Team Lead, IT Manager

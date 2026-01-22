@@ -193,17 +193,52 @@ interface LocationStockLevel {
 ### 3.1 Core Types (from `lib/types/store-requisition.ts`)
 
 ```typescript
-// Enums
+// ====== ENUMS ======
+
+// SR Status (5 simplified values)
 enum SRStatus {
   Draft = 'draft',
-  Submitted = 'submitted',
-  Approved = 'approved',
-  Processing = 'processing',
-  Processed = 'processed',
-  PartialComplete = 'partial_complete',
+  InProgress = 'in_progress',
   Completed = 'completed',
-  Rejected = 'rejected',
-  Cancelled = 'cancelled'
+  Cancelled = 'cancelled',
+  Voided = 'voided'
+}
+
+// SR Status Labels
+const SR_STATUS_LABELS: Record<SRStatus, string> = {
+  [SRStatus.Draft]: 'Draft',
+  [SRStatus.InProgress]: 'In Progress',
+  [SRStatus.Completed]: 'Completed',
+  [SRStatus.Cancelled]: 'Cancelled',
+  [SRStatus.Voided]: 'Voided'
+}
+
+// SR Workflow Stage (5 stages)
+// Multiple stages map to the same status
+enum SRStage {
+  Draft = 'draft',
+  Submit = 'submit',
+  Approve = 'approve',
+  Issue = 'issue',
+  Complete = 'complete'
+}
+
+// SR Stage Labels
+const SR_STAGE_LABELS: Record<SRStage, string> = {
+  [SRStage.Draft]: 'Draft',
+  [SRStage.Submit]: 'Submitted',
+  [SRStage.Approve]: 'Approved',
+  [SRStage.Issue]: 'Issue',
+  [SRStage.Complete]: 'Complete'
+}
+
+// Stage to Status Mapping
+const STAGE_TO_STATUS: Record<SRStage, SRStatus> = {
+  [SRStage.Draft]: SRStatus.Draft,
+  [SRStage.Submit]: SRStatus.InProgress,
+  [SRStage.Approve]: SRStatus.InProgress,
+  [SRStage.Issue]: SRStatus.InProgress,
+  [SRStage.Complete]: SRStatus.Completed
 }
 
 enum SRWorkflowType {
@@ -235,6 +270,8 @@ interface ReplenishmentSuggestion {
   currentStock: number
   parLevel: number
   reorderPoint: number
+  minOrderQty: number
+  maxOrderQty: number
   suggestedQty: number
   urgency: ReplenishmentUrgency
   sourceAvailability: {
@@ -247,6 +284,7 @@ interface ReplenishmentSuggestion {
   estimatedTotalCost: number
   isSelected?: boolean
   generatedRequisitionId?: string
+  generatedRequisitionRefNo?: string
 }
 
 enum ReplenishmentMode {
@@ -414,3 +452,12 @@ interface CreateReplenishmentRequestOutput {
 - Server-side validation of quantities
 - Source location type validation
 - Destination location type validation
+
+---
+
+## Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2024-12-01 | System | Initial creation |
+| 1.1.0 | 2025-01-15 | Claude | Updated SRStatus enum to 5-value simplified model (draft, in_progress, completed, cancelled, voided); Added SRStage enum (draft, submit, approve, issue, complete); Added STAGE_TO_STATUS mapping; Added minOrderQty, maxOrderQty, generatedRequisitionRefNo fields to ReplenishmentSuggestion |

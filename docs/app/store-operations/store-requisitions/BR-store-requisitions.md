@@ -3,8 +3,8 @@
 ## Document Information
 - **Module**: Store Operations
 - **Component**: Store Requisitions
-- **Version**: 1.4.0
-- **Last Updated**: 2025-12-19
+- **Version**: 1.5.0
+- **Last Updated**: 2026-01-15
 - **Status**: Active - Implementation Complete
 
 ## Related Documents
@@ -25,6 +25,7 @@
 | 1.2.0 | 2025-12-10 | Documentation Team | Synced with implemented source code - verified status values, item approval workflow, UI tabs configuration |
 | 1.3.0 | 2025-12-13 | Documentation Team | Added new requisition creation page with inline add item pattern, "Requested By" field, "Request From" terminology, Location Type handling (INVENTORY/DIRECT/CONSIGNMENT) |
 | 1.4.0 | 2025-12-19 | Documentation Team | Added stage-based field editability (BR-SR-014), receipt signature requirement for Issue workflow (BR-SR-015), updated FR-SR-004 with signature capture |
+| 1.5.0 | 2026-01-15 | Documentation Team | Synced Section 10.9 TypeScript interfaces with lib/types/store-requisition.ts, fixed status enum values in database constraints (draft, in_progress, completed, cancelled, voided), updated API filter parameters |
 
 ## 1. Executive Summary
 
@@ -899,7 +900,7 @@ Retrieves a paginated list of store requisitions with optional filtering and sor
 |-----------|------|----------|-------------|
 | page | number | No | Page number (default: 1) |
 | limit | number | No | Items per page (default: 20, max: 100) |
-| status | string | No | Filter by status (draft, pending, approved, rejected, issued, cancelled) |
+| status | string | No | Filter by status (draft, in_progress, completed, cancelled, voided) |
 | department_id | string | No | Filter by requesting department |
 | location_id | string | No | Filter by location |
 | date_from | string | No | Filter by date range start (ISO 8601) |
@@ -1077,7 +1078,7 @@ CREATE TABLE store_requisitions (
   is_deleted BOOLEAN DEFAULT FALSE,
   deleted_at TIMESTAMP WITH TIME ZONE,
 
-  CONSTRAINT chk_status CHECK (status IN ('draft', 'pending', 'approved', 'rejected', 'issued', 'cancelled')),
+  CONSTRAINT chk_status CHECK (status IN ('draft', 'in_progress', 'completed', 'cancelled', 'voided')),
   CONSTRAINT chk_priority CHECK (priority IN ('low', 'normal', 'high', 'urgent'))
 );
 
@@ -1129,7 +1130,7 @@ CREATE TABLE store_requisition_approvals (
   action_date TIMESTAMP WITH TIME ZONE,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
 
-  CONSTRAINT chk_approval_status CHECK (status IN ('pending', 'approved', 'rejected', 'current')),
+  CONSTRAINT chk_approval_status CHECK (status IN ('pending', 'approved', 'review', 'rejected')),
   UNIQUE(requisition_id, step_number)
 );
 ```
@@ -1315,68 +1316,145 @@ interface ErrorResponse {
 
 ### 10.9 Backend TypeScript Interfaces
 
+> **Note**: These interfaces are synced with the source code at `lib/types/store-requisition.ts`.
+
 ```typescript
-// Store Requisition Entity
+// Status and Stage Enums
+enum SRStatus {
+  Draft = 'draft',
+  InProgress = 'in_progress',
+  Completed = 'completed',
+  Cancelled = 'cancelled',
+  Voided = 'voided'
+}
+
+enum SRStage {
+  Draft = 'draft',
+  Submit = 'submit',
+  Approve = 'approve',
+  Issue = 'issue',
+  Complete = 'complete'
+}
+
+enum SRWorkflowType {
+  TRANSFER_INTERNAL = 'transfer_internal',
+  MAIN_STORE = 'main_store',
+  STORE_TO_STORE = 'store_to_store',
+  DIRECT_ISSUE = 'direct_issue'
+}
+
+enum InventoryLocationType {
+  INVENTORY = 'INVENTORY',
+  DIRECT = 'DIRECT',
+  CONSIGNMENT = 'CONSIGNMENT'
+}
+
+// Store Requisition Header
 interface StoreRequisition {
-  id: string;
-  requisition_number: string;
-  department_id: string;
-  department?: Department;
-  location_id: string;
-  location?: Location;
-  status: 'draft' | 'pending' | 'approved' | 'rejected' | 'issued' | 'cancelled';
-  priority: 'low' | 'normal' | 'high' | 'urgent';
-  required_date: string;
-  notes?: string;
-  estimated_total: number;
-  actual_total: number;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  submitted_at?: string;
-  approved_at?: string;
-  issued_at?: string;
-  cancelled_at?: string;
+  id: string
+  refNo: string                        // SR-YYMM-NNNN format
+  requestDate: Date
+  requiredDate: Date
+  status: SRStatus
+  stage: SRStage
+  workflowType: SRWorkflowType
+  // Source location (Request From)
+  sourceLocationId: string
+  sourceLocationCode: string
+  sourceLocationName: string
+  sourceLocationType: InventoryLocationType
+  // Destination location (Deliver To)
+  destinationLocationId: string
+  destinationLocationCode: string
+  destinationLocationName: string
+  destinationLocationType: InventoryLocationType
+  // Requestor information
+  requestedBy: string
+  requestorId: string
+  departmentId: string
+  departmentName: string
+  // Line items
+  items: StoreRequisitionItem[]
+  // Totals
+  totalItems: number
+  totalQuantity: number
+  estimatedValue: Money              // { amount: number, currency: string }
+  // Generated documents
+  generatedDocuments: GeneratedDocumentReference[]
+  // Notes
+  description?: string
+  notes?: string
+  // Approval tracking
+  approvedAt?: Date
+  approvedBy?: string
+  rejectedAt?: Date
+  rejectedBy?: string
+  rejectionReason?: string
+  // Issue tracking
+  issuedAt?: Date
+  issuedBy?: string
+  // Completion tracking
+  completedAt?: Date
+  completedBy?: string
+  // Audit fields
+  createdAt: Date
+  createdBy: string
+  updatedAt?: Date
+  updatedBy?: string
 }
 
 // Store Requisition Item Entity
 interface StoreRequisitionItem {
-  id: string;
-  requisition_id: string;
-  product_id: string;
-  product?: Product;
-  uom_id: string;
-  uom?: UnitOfMeasure;
-  requested_quantity: number;
-  approved_quantity?: number;
-  issued_quantity: number;
-  unit_cost?: number;
-  total_cost?: number;
-  notes?: string;
-  lot_id?: string;
-  issued_date?: string;
+  id: string
+  productId: string
+  productCode: string
+  productName: string
+  categoryId?: string
+  categoryName?: string
+  unit: string
+  unitId?: string
+  requestedQty: number
+  approvedQty: number
+  issuedQty: number
+  unitCost: number                    // number type, not Money
+  totalCost: number                   // number type, not Money
+  sourceAvailableQty: number
+  fulfillment: SRLineItemFulfillment  // 'none' | 'partial' | 'full'
+  jobCodeId?: string
+  jobCodeName?: string
+  projectId?: string
+  projectName?: string
+  approvalStatus: ApprovalStatus      // 'pending' | 'approved' | 'review' | 'rejected'
+  approvalNotes?: string
+  notes?: string
 }
 
-// Approval Step Entity
-interface ApprovalStep {
-  id: string;
-  requisition_id: string;
-  step_number: number;
-  approver_role: string;
-  approver_id?: string;
-  approver?: User;
-  status: 'pending' | 'approved' | 'rejected' | 'current';
-  comments?: string;
-  action_date?: string;
+// Approval Status for Line Items
+type ApprovalStatus = 'pending' | 'approved' | 'review' | 'rejected'
+
+// Line Item Fulfillment Status
+type SRLineItemFulfillment = 'none' | 'partial' | 'full'
+
+// Generated Document Reference
+interface GeneratedDocumentReference {
+  id: string
+  documentType: GeneratedDocumentType  // STOCK_TRANSFER | STOCK_ISSUE | PURCHASE_REQUEST
+  refNo: string                        // ST/SI/PR-YYMM-NNNN
+  status: string
+  lineItemIds: string[]
+  totalQuantity: number
+  totalValue: Money
+  createdAt: Date
+  documentId: string
 }
 
 // Approval Log (for history display)
 interface ApprovalLog {
-  id: number;
-  date: string;
-  status: 'Pending' | 'Approved' | 'Reject' | 'Review';
-  by: string;
-  comments: string;
+  id: number
+  date: string
+  status: ApprovalStatus               // 'pending' | 'approved' | 'review' | 'rejected'
+  by: string
+  comments: string
 }
 ```
 

@@ -5,9 +5,9 @@
 - **System**: Vendor Price Submission Portal
 - **Module**: Vendor Management > Vendor Portal
 - **Version**: 3.0.0
-- **Status**: Updated
+- **Status**: Active
 - **Created**: 2025-01-23
-- **Last Updated**: 2025-11-26
+- **Last Updated**: 2026-01-15
 - **Author**: Product Team
 - **Related Documents**:
   - [Business Requirements](./BR-vendor-portal.md)
@@ -20,10 +20,11 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0 | 2024-01-15 | System | Initial version |
-| 2.0 | 2025-01-23 | Product Team | Complete rewrite - token-based price submission only |
-| 2.1.0 | 2025-11-26 | System | Removed approval workflow; Updated status to draft - submitted |
+| 3.0.1 | 2026-01-15 | Documentation Team | Synced with current code; Verified flow diagrams against sample/page.tsx implementation; Confirmed submission methods (online, upload, email) |
 | 3.0.0 | 2025-11-26 | System | Complete refactor - removed staff-side flows. This document now focuses ONLY on vendor-facing portal. Mermaid 8.8.2 compatible syntax. |
+| 2.1.0 | 2025-11-26 | System | Removed approval workflow; Updated status to draft - submitted |
+| 2.0 | 2025-01-23 | Product Team | Complete rewrite - token-based price submission only |
+| 1.0 | 2024-01-15 | System | Initial version |
 
 ---
 

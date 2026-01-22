@@ -4,14 +4,15 @@
 - **Module**: Product Management
 - **Sub-Module**: Products
 - **Route**: /product-management/products
-- **Version**: 1.0.0
-- **Last Updated**: 2025-02-11
+- **Version**: 1.1.0
+- **Last Updated**: 2026-01-15
 - **Owner**: Product Management Team
 - **Status**: Draft
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.2.0 | 2026-01-15 | System | Renamed Recipe Units to Ingredient Units; Updated location assignment with new fields (shelves, tags, parLevel, reorderPoint); Updated product type flags to isIngredient/isForSale; Added isDefault/isInverse unit flags; Added Table/Card view modes |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 1.0.0 | 2025-02-11 | System | Initial technical specification |
 
@@ -207,7 +208,7 @@ The Products sub-module follows a three-tier architecture pattern with clear sep
 │   │  PostgreSQL Database (Supabase)      │      │
 │   │  - products table                    │      │
 │   │  - product_units table               │      │
-│   │  - product_store_assignments table   │      │
+│   │  - product_location_assignments table│      │
 │   │  - product_attributes table          │      │
 │   │  - product_activity_log table        │      │
 │   └─────────────────────────────────────┘      │
@@ -242,7 +243,7 @@ The application is organized into distinct layers with specific responsibilities
 - **Authorization Layer**: Role-based access control and permission checks
 
 **Data Layer** (Database and Caching):
-- **Core Tables**: products, product_units, product_store_assignments, product_attributes, product_activity_log
+- **Core Tables**: products, product_units, product_location_assignments, product_attributes, product_activity_log
 - **Database Views**: Pre-joined views for common queries (products with category path, products with latest costs)
 - **Indexes**: Full-text search indexes on product code, descriptions, barcode
 - **Triggers**: Automatic audit log entry creation on data changes
@@ -380,7 +381,7 @@ app/(main)/product-management/products/
 │   ├── ProductForm.tsx                   # Create/edit form (Client Component)
 │   ├── ProductFilters.tsx                # Search and filters (Client Component)
 │   ├── ProductUnitManager.tsx            # Unit management (Client Component)
-│   ├── ProductStoreAssignments.tsx       # Store assignment manager (Client Component)
+│   ├── ProductLocationAssignments.tsx    # Location assignment manager (Client Component)
 │   ├── ProductAttributes.tsx             # Attribute key-value manager (Client Component)
 │   ├── PurchaseHistoryModal.tsx          # Purchase history dialog (Client Component)
 │   ├── ProductStatusBadge.tsx            # Status display (Server Component)
@@ -419,7 +420,7 @@ app/(main)/product-management/products/
 **Purpose**: Product detail page with server-side data fetching
 **Responsibilities**:
 - Fetch single product by ID on server
-- Include related data (units, store assignments, attributes, activity log)
+- Include related data (units, location assignments, attributes, activity log)
 - Handle 404 if product not found
 - Render detail layout with edit/delete actions
 **Data Flow**: Calls getProductById server action, passes to ProductDetail component
@@ -458,7 +459,10 @@ app/(main)/product-management/products/
 **Purpose**: Search box and filter controls for product list
 **Responsibilities**:
 - Render search input with type-ahead
-- Provide filter dropdowns (category, status, type, store)
+- Provide filter dropdowns (category, status, isIngredient, isForSale, location)
+- Support view mode toggle (Table/Card)
+- Support advanced filtering with AND/OR operators
+- Enable saving filter presets for quick access
 - Display active filters as removable tags
 - Debounce search input (300ms delay)
 - Persist filter state to URL query parameters
@@ -470,15 +474,17 @@ app/(main)/product-management/products/
 **Type**: Client Component
 **Purpose**: Manage product units and conversion rates
 **Responsibilities**:
-- Display three sections: Inventory Unit, Order Units, Recipe Units
-- Allow adding units with conversion rates
-- Support editing conversion rates
-- Calculate and display reverse conversion rates
-- Provide real-time conversion calculator
+- Display three sections: Inventory Unit, Order Units, Ingredient Units
+- Allow adding units with conversion factor and description
+- Support editing conversion factors with isDefault and isInverse flags
+- Calculate and display conversion based on direction (isInverse flag)
+- Provide real-time conversion calculator showing formula
 - Validate unique units within each type
+- Available Order Units: BAG, BOX, CASE, PALLET, PACK
+- Available Ingredient Units: G, KG, LB, OZ
 **Props**: Product units data, onUnitsChange callback
-**State**: Order units array, recipe units array, calculator input values
-**Validation**: Conversion rate positive non-zero, max 5 decimals, unique units
+**State**: Order units array, ingredient units array, calculator input values
+**Validation**: Conversion factor positive non-zero, max 5 decimals, unique units, one default per type
 
 #### PurchaseHistoryModal Component
 **Type**: Client Component
@@ -575,7 +581,7 @@ Products integrate with multiple modules through defined APIs:
 **Inventory Integration**:
 1. User creates inventory transaction in Inventory module
 2. Inventory calls Product API: GET /api/products/{id}/inventory-data
-3. Product module returns inventory unit, conversion rates, store thresholds
+3. Product module returns inventory unit, conversion rates, location thresholds
 4. Inventory calls Product API: POST /api/products/convert-unit
 5. Product module calculates conversion and returns result
 6. Inventory records transaction in base unit
@@ -614,17 +620,20 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 **Authorization**: Requires create_product permission
 
 #### createProductUnit Action
-**Purpose**: Add unit (order or recipe) to product with conversion rate
-**Input**: Product ID, unit ID, unit type (ORDER/RECIPE), conversion rate
+**Purpose**: Add unit (order or ingredient) to product with conversion factor
+**Input**: Product ID, unit code, unit type (ORDER/INGREDIENT), conversion factor, description, isDefault, isInverse
 **Validation**:
 - Product exists and user has permission
-- Unit exists in units master
+- Unit code valid for type (ORDER: BAG, BOX, CASE, PALLET, PACK; INGREDIENT: G, KG, LB, OZ)
 - Unit not already assigned to product for this type
-- Conversion rate positive, non-zero, max 5 decimals
+- Conversion factor positive, non-zero, max 5 decimals
+- Only one default unit per type allowed
 **Business Logic**:
-- Calculate reverse conversion rate for display
+- Calculate display conversion text based on isInverse flag
+- If isInverse: Result = Qty × (1/factor)
+- If not isInverse: Result = Qty × factor
 **Database Operations**:
-- Insert product_unit record
+- Insert product_unit record with isDefault and isInverse flags
 - Create activity log entry 'UNIT_ADDED'
 **Returns**: Success with unit details or error
 **Authorization**: Requires update_product permission
@@ -637,17 +646,20 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 - searchTerm (string, optional) - searches code, descriptions, barcode
 - categoryId (UUID, optional) - filters by any category level
 - status (ACTIVE/INACTIVE/ALL, default ALL)
-- productType (RECIPE/SALE/BOTH/STOCK_ONLY, optional)
-- storeId (UUID, optional) - filters by store assignment
+- isIngredient (boolean, optional) - filter products used as ingredients
+- isForSale (boolean, optional) - filter products available for sale
+- locationId (UUID, optional) - filters by location assignment
 - sortField (string, default 'productCode')
 - sortDirection (ASC/DESC, default ASC)
 - page (number, default 1)
 - pageSize (number, default 25, max 100)
+- viewMode ('table' | 'card', default 'table') - UI display mode
+- savedFilterId (UUID, optional) - apply saved filter preset
 **Query Construction**:
-- Build WHERE clause from filters with AND logic
+- Build WHERE clause from filters with AND logic (or AND/OR based on advanced filter settings)
 - Use full-text search index for searchTerm
 - JOIN categories table for category path
-- JOIN product_store_assignments for store filter
+- JOIN product_location_assignments for location filter
 - Apply soft delete filter (deleted_at IS NULL)
 **Pagination**:
 - Calculate offset: (page - 1) × pageSize
@@ -660,8 +672,8 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 **Input**: Product UUID
 **Query**:
 - SELECT product with JOIN to categories for category path
-- LEFT JOIN product_units for all assigned units
-- LEFT JOIN product_store_assignments for store assignments
+- LEFT JOIN product_units for all assigned units (with isDefault and isInverse flags)
+- LEFT JOIN product_location_assignments for location assignments (includes shelfId, tags, parLevel, reorderPoint)
 - LEFT JOIN product_attributes for custom attributes
 - Filter on deleted_at IS NULL
 **Returns**: Complete product object with nested arrays or null if not found
@@ -759,25 +771,36 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 **Purpose**: Multi-unit assignments with conversion rates
 **Key Technical Aspects**:
 - Composite foreign key to products and units tables
-- unit_type ENUM: 'INVENTORY', 'ORDER', 'RECIPE'
+- unit_type ENUM: 'INVENTORY', 'ORDER', 'INGREDIENT'
 - conversion_rate NUMERIC(12, 5) for 5 decimal precision
-- is_default BOOLEAN for default unit per type
+- is_default BOOLEAN for default unit per type (exactly one per type)
+- is_inverse BOOLEAN for conversion direction flag
+- description VARCHAR(100) for unit description
 - Unique constraint on (product_id, unit_id, unit_type) to prevent duplicates
+**Conversion Logic**:
+- If is_inverse = true: Result = Quantity × (1 / conversion_rate)
+- If is_inverse = false: Result = Quantity × conversion_rate
 **Indexes**:
 - Index on product_id for efficient lookup by product
 - Index on unit_type for filtering by type
 
-#### product_store_assignments Table
-**Purpose**: Product availability at stores with inventory thresholds
+#### product_location_assignments Table
+**Purpose**: Product availability at locations with inventory thresholds
 **Key Technical Aspects**:
-- Foreign keys to products and stores tables
-- minimum_quantity NUMERIC(15, 3) for 3 decimal precision
-- maximum_quantity NUMERIC(15, 3) for 3 decimal precision
-- Check constraint: maximum_quantity > minimum_quantity
-- Unique constraint on (product_id, store_id) to prevent duplicate assignments
+- Foreign keys to products and locations tables
+- shelf_id UUID nullable foreign key to shelves table
+- min_quantity NUMERIC(15, 3) for minimum stock level
+- max_quantity NUMERIC(15, 3) for maximum stock level
+- reorder_point NUMERIC(15, 3) for reorder trigger level
+- par_level NUMERIC(15, 3) for optimal stock level
+- tags JSONB array for location-specific product tags
+- Check constraint: max_quantity > min_quantity
+- Unique constraint on (product_id, location_id) to prevent duplicate assignments
 **Indexes**:
 - Index on product_id for product-based queries
-- Index on store_id for store-based queries
+- Index on location_id for location-based queries
+- Index on shelf_id for shelf-based queries
+- GIN index on tags for tag-based filtering
 
 #### product_attributes Table
 **Purpose**: Flexible key-value storage for custom attributes
@@ -795,7 +818,7 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 **Purpose**: Complete audit trail of all product changes
 **Key Technical Aspects**:
 - Foreign key to products and users tables
-- activity_type ENUM: 'CREATED', 'UPDATED', 'DELETED', 'STATUS_CHANGED', 'UNIT_ADDED', 'UNIT_CHANGED', 'UNIT_REMOVED', 'STORE_ASSIGNED', 'STORE_REMOVED', 'COST_CHANGED'
+- activity_type ENUM: 'CREATED', 'UPDATED', 'DELETED', 'STATUS_CHANGED', 'UNIT_ADDED', 'UNIT_CHANGED', 'UNIT_REMOVED', 'LOCATION_ASSIGNED', 'LOCATION_REMOVED', 'COST_CHANGED'
 - field_name VARCHAR(100) for updated field
 - old_value, new_value TEXT for change tracking (JSON serialized)
 - ip_address, user_agent for security audit
@@ -830,9 +853,14 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 #### Function: calculate_unit_conversion
 **Purpose**: Calculate conversion between any two units for a product
 **Parameters**: product_id, from_unit_code, to_unit_code, quantity
-**Logic**: Retrieve conversion rates, convert to base unit, then to target unit
-**Returns**: Converted quantity with 3 decimal precision
-**Usage**: Called from inventory module, recipe module for unit conversions
+**Logic**:
+- Retrieve conversion rates and is_inverse flags for both units
+- Apply conversion formula based on is_inverse flag:
+  - If is_inverse = true: Result = Quantity × (1 / conversion_rate)
+  - If is_inverse = false: Result = Quantity × conversion_rate
+- Convert from source unit to base unit, then to target unit
+**Returns**: Converted quantity with 5 decimal precision
+**Usage**: Called from inventory module, ingredient module for unit conversions
 
 ---
 
@@ -844,20 +872,26 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 **Purpose**: Manage UI state that needs to be shared across product components
 **State Properties**:
 - selectedProducts: Array of product IDs currently selected in list
-- filterState: Object with search term, category filter, status filter, product type filter, store filter
+- filterState: Object with search term, category filter, status filter, isIngredient filter, isForSale filter, location filter
+- advancedFilters: Array of filter conditions with AND/OR operators
+- savedFilters: Array of saved filter presets with name and conditions
 - sortState: Object with sort field and sort direction
-- viewMode: 'list' or 'grid' display mode
+- viewMode: 'table' or 'card' display mode
 - sidebarCollapsed: Boolean for sidebar expanded/collapsed state
 **Action Methods**:
 - setSelectedProducts: Update selected IDs array
 - toggleProductSelection: Add/remove product ID from selection
 - clearSelection: Empty selected products array
 - updateFilters: Merge new filters into filter state
+- updateAdvancedFilters: Update advanced filter conditions
+- saveFilterPreset: Save current filters as named preset
+- loadFilterPreset: Apply saved filter preset
+- deleteFilterPreset: Remove saved filter preset
 - resetFilters: Clear all filters to default
 - updateSort: Change sort field and direction
-- toggleViewMode: Switch between list and grid
+- setViewMode: Set display mode (table/card)
 - toggleSidebar: Expand/collapse sidebar
-**Persistence**: Filter state persisted to localStorage, restored on page load
+**Persistence**: Filter state and saved presets persisted to localStorage, restored on page load
 **When to Use**: Cross-component UI state that doesn't come from server
 
 ### Server State (React Query)
@@ -869,7 +903,8 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 - ['products', 'purchase-history', productId] - Purchase history for product
 - ['units'] - Units master data
 - ['categories'] - Categories master data
-- ['stores'] - Stores master data
+- ['locations'] - Locations master data
+- ['savedFilters'] - User's saved filter presets
 
 **Cache Strategy**: Stale-while-revalidate pattern
 - staleTime: 5 minutes for list queries (data changes infrequently)
@@ -893,7 +928,7 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 - Query Key: ['products', 'detail', productId]
 - Returns: product object, isLoading, error
 - Enabled: Only when productId is provided
-- Related Data: Includes units, store assignments, attributes (pre-joined)
+- Related Data: Includes units, location assignments, attributes (pre-joined)
 
 **useProductPurchaseHistory Hook**:
 - Purpose: Fetch recent POs and GRNs for product
@@ -938,7 +973,7 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 - Update: Invalidate specific detail and all list queries
 - Delete: Remove from cache and invalidate lists
 - Bulk Operations: Invalidate all products queries
-- Related Changes: Invalidate when categories, units, or stores change
+- Related Changes: Invalidate when categories, units, or locations change
 
 ---
 
@@ -981,7 +1016,7 @@ All server-side operations are implemented as Next.js Server Actions in the acti
 
 **Resource-Level Security**:
 - Users can only access products in their assigned departments (if department-scoped)
-- Store managers can only assign products to their own stores
+- Location managers can only assign products to their own locations
 - Cost information hidden from users without view_costs permission
 
 **Row-Level Security (RLS)**:
@@ -1256,8 +1291,8 @@ Test suite for createProduct server action includes:
 
 **Example Integration Test** (described in text):
 Test suite for product creation workflow includes:
-- Setup: Seed categories, units, stores in test database
-- Test case: Create product with units and store assignments - inserts product, units, store assignments in transaction, verifies all records created
+- Setup: Seed categories, units, locations in test database
+- Test case: Create product with units and location assignments - inserts product, units, location assignments in transaction, verifies all records created
 - Test case: Rollback on error - attempts invalid insert, verifies transaction rolled back, no partial data
 - Test case: Activity log created - verifies activity log entry exists after product creation
 - Teardown: Clean up test data
@@ -1457,7 +1492,7 @@ Test spec for creating product includes:
 - User: User account and authentication types
 - Category: Category hierarchy types (shared with Categories module)
 - Unit: Unit master data types (shared with Units module)
-- Store: Store/location types
+- Location: Location types and assignment structures
 - Common: Shared types like Money, DateRange, Pagination
 
 **Context Providers**:
@@ -1605,8 +1640,10 @@ Test spec for creating product includes:
 **Phase 3: Product Units Migration**
 - Extract unit assignments from Access product_units table
 - Calculate conversion rates from legacy system formulas
+- Determine is_inverse flag based on legacy conversion direction
+- Set is_default flags (one per unit type)
 - Verify conversion rate accuracy with sample calculations
-- Import order units and recipe units
+- Import order units and ingredient units
 
 **Phase 4: Product Attributes Migration**
 - Extract custom fields from Excel spreadsheets

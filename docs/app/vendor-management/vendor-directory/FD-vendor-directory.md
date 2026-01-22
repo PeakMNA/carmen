@@ -4,7 +4,7 @@
 - **Document Type**: Flow Diagrams Document
 - **Module**: Vendor Management > Vendor Directory
 - **Version**: 2.2.0
-- **Last Updated**: 2025-11-25
+- **Last Updated**: 2026-11-25
 - **Document Status**: Updated
 - **Mermaid Version**: 8.8.2+
 
@@ -12,7 +12,7 @@
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
+| 1.1.0 | 2026-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.2.0 | 2025-11-25 | System | Added certification management workflow; Updated address workflow for Asian international format |
 | 2.1.0 | 2025-11-25 | System | Added multi-address and multi-contact workflows with primary designation |
 | 2.0.0 | 2025-11-25 | System | Updated to match actual code implementation |
@@ -32,31 +32,31 @@ This document provides visual representations of all workflows and processes in 
 
 ```mermaid
 graph TB
-    subgraph 'Frontend Layer'
+    subgraph Frontend_Layer
         UI[Next.js UI Components]
         Forms[React Hook Form + Zod]
         State[Zustand + React Query]
     end
 
-    subgraph 'Application Layer'
+    subgraph Application_Layer
         Pages[Server Components]
         Actions[Server Actions]
         API[Route Handlers]
     end
 
-    subgraph 'Business Logic Layer'
+    subgraph Business_Logic_Layer
         Auth[Authentication Service]
         Validation[Validation Service]
         Encryption[Encryption Service]
         Notification[Notification Service]
     end
 
-    subgraph 'Data Layer'
+    subgraph Data_Layer
         Prisma[Prisma ORM]
         DB[(PostgreSQL + JSONB)]
     end
 
-    subgraph 'External Services'
+    subgraph External_Services
         S3[AWS S3 Storage]
         Email[Email Service]
         Search[Search Service]
@@ -459,21 +459,12 @@ flowchart TD
     GatherInvoices --> GatherIssues[Gather Issue Tickets]
 
     GatherIssues --> CalcQuality[Calculate Quality Score]
-    CalcQuality --> QualityFormula['Quality = 100 - (defect_rate * 40) - (reject_rate * 30) - (complaint_impact * 30)']
-
-    QualityFormula --> CalcDelivery[Calculate Delivery Score]
-    CalcDelivery --> DeliveryFormula['Delivery = (on_time / total) * 100']
-
-    DeliveryFormula --> CalcService[Calculate Service Score]
-    CalcService --> ServiceFormula['Service = 100 - (response_delay * 2) - (unresolved * 10)']
-
-    ServiceFormula --> CalcPricing[Calculate Pricing Score]
-    CalcPricing --> PricingFormula['Pricing = 100 - (price_variance * 2)']
-
-    PricingFormula --> ApplyWeights[Apply Weights]
-    ApplyWeights --> OverallFormula['Overall = Quality * 0.35 + Delivery * 0.30 + Service * 0.20 + Pricing * 0.15']
-
-    OverallFormula --> Compare{Rating Change >10 points?}
+    CalcQuality --> CalcDelivery[Calculate Delivery Score]
+    CalcDelivery --> CalcService[Calculate Service Score]
+    CalcService --> CalcPricing[Calculate Pricing Score]
+    CalcPricing --> ApplyWeights[Apply Weights]
+    ApplyWeights --> CalcOverall[Calculate Overall Score]
+    CalcOverall --> Compare{Rating Change >10 points?}
     Compare -->|Yes| FlagChange[Flag Significant Change]
     Compare -->|No| SaveRating
 
@@ -744,7 +735,7 @@ flowchart TD
     Start([User Clicks 'Add Address']) --> ShowForm[Display Address Form]
     ShowForm --> EnterData[User Enters Address Info]
 
-    subgraph 'Asian International Format Fields'
+    subgraph Asian_International_Format_Fields
         EnterData --> EnterLabel[Enter Label e.g. Main Office]
         EnterLabel --> EnterLine1[Enter Address Line 1 *]
         EnterLine1 --> EnterLine2[Enter Address Line 2]
@@ -797,7 +788,7 @@ flowchart TD
     Start([User Clicks 'Add Certification']) --> ShowDialog[Display Certification Dialog]
     ShowDialog --> EnterData[User Enters Certification Info]
 
-    subgraph 'Certification Form Fields'
+    subgraph Certification_Form_Fields
         EnterData --> EnterName[Enter Certification Name *]
         EnterName --> SelectType[Select Certification Type *]
         SelectType --> EnterIssuer[Enter Issuer *]
@@ -822,7 +813,7 @@ flowchart TD
 
     ValidateType -->|Yes| CalcStatus[Calculate Status Auto]
 
-    subgraph 'Status Calculation'
+    subgraph Status_Calculation
         CalcStatus --> CheckExpiry{Days Until Expiry?}
         CheckExpiry -->|< 0| SetExpired[Status: Expired]
         CheckExpiry -->|0-30| SetExpiringSoon[Status: Expiring Soon]
@@ -861,7 +852,7 @@ flowchart TD
 
     ValidateDates -->|Yes| RecalcStatus[Recalculate Status]
 
-    subgraph 'Status Recalculation'
+    subgraph Status_Recalculation
         RecalcStatus --> CheckNewExpiry{New Days Until Expiry?}
         CheckNewExpiry -->|< 0| UpdateExpired[Status: Expired]
         CheckNewExpiry -->|0-30| UpdateExpiringSoon[Status: Expiring Soon]
@@ -898,20 +889,20 @@ flowchart TD
 
 ```mermaid
 flowchart LR
-    subgraph 'Page Load / Edit'
+    subgraph Page_Load_Edit
         A[Load Certification] --> B[Get Expiry Date]
         B --> C[Get Current Date]
         C --> D[Calculate Days Difference]
     end
 
-    subgraph 'Status Decision'
+    subgraph Status_Decision
         D --> E{Days Until Expiry}
         E -->|< 0 days| F[EXPIRED]
         E -->|0-30 days| G[EXPIRING SOON]
         E -->|> 30 days| H[ACTIVE]
     end
 
-    subgraph 'Visual Display'
+    subgraph Visual_Display
         F --> I[Red Badge]
         G --> J[Yellow Badge]
         H --> K[Green Badge]
@@ -922,14 +913,14 @@ flowchart LR
 
 ```mermaid
 graph TB
-    subgraph 'ISO Standards'
+    subgraph ISO_Standards
         ISO9001[ISO 9001 - Quality]
         ISO14001[ISO 14001 - Environmental]
         ISO22000[ISO 22000 - Food Safety]
         ISO45001[ISO 45001 - Occupational Safety]
     end
 
-    subgraph 'Food & Safety'
+    subgraph Food_Safety
         HACCP[HACCP - Hazard Analysis]
         GMP[GMP - Good Manufacturing]
         Halal[Halal Certification]
@@ -939,7 +930,7 @@ graph TB
         FDA[FDA Approved]
     end
 
-    subgraph 'Business & Trade'
+    subgraph Business_Trade
         CE[CE Marking]
         BizLicense[Business License]
         TradeLicense[Trade License]

@@ -587,7 +587,27 @@ The data model consists of four primary entities: GoodsReceiveNote (header), Goo
 **Values**:
 - **quantity**: Quantity variance (short or over delivery)
 - **damage**: Items damaged during delivery
+- **specification**: Items do not match specifications
 - **other**: Other discrepancies not covered by quantity or damage
+
+### Location Type Enumeration
+
+**Purpose**: Defines how received items will be processed based on storage location type
+
+**Values**:
+- **INVENTORY (INV)**: Standard receiving with full inventory tracking - items are stocked in
+  - Icon: Package
+  - Processing: Creates stock movement, updates inventory levels
+- **DIRECT (DIR)**: Items will be expensed immediately (no stock-in)
+  - Icon: DollarSign
+  - Processing: Direct expense to cost center, no inventory tracking
+  - Use case: Items consumed immediately upon receipt
+- **CONSIGNMENT (CON)**: Items tracked as vendor-owned inventory
+  - Icon: Truck
+  - Processing: Tracked separately, not owned until consumed
+  - Use case: Vendor-managed inventory arrangements
+
+**UI Implementation**: Location type is displayed with corresponding icon badges in the Item Location Selection step of the GRN creation wizard
 
 ### Cost Type Enumeration
 
@@ -691,6 +711,51 @@ GRNs use soft delete pattern with `deletedAt` timestamp:
 - All modifications logged in audit_log table
 - Created/updated fields track user and timestamp
 - Activity log captures all status changes and significant operations
+
+---
+
+## Supporting Interfaces
+
+### RelatedPRAllocation Interface
+
+**Purpose**: Tracks how receiving quantity is allocated across multiple Purchase Requests (PRs), preserving business context from the originating PRs.
+
+**Business Purpose**: Enables traceability from received goods back to the original purchase requests, supporting cost allocation, project tracking, and departmental accounting.
+
+**Fields**:
+
+| Field Name | Data Type | Required | Description |
+|-----------|-----------|----------|-------------|
+| id | string | Yes | Unique identifier for the allocation |
+| prNumber | string | Yes | Purchase Request number (e.g., "PR-2412-0015") |
+| prLineNumber | number | Yes | Line number within the PR |
+| prLineItemId | string | Yes | Reference to the PR line item |
+| jobCode | string | No | Job code for cost allocation |
+| jobCodeName | string | No | Display name for job code |
+| event | string | No | Event reference code |
+| eventName | string | No | Display name for event |
+| project | string | No | Project reference code |
+| projectName | string | No | Display name for project |
+| marketSegment | string | No | Market segment classification |
+| marketSegmentName | string | No | Display name for market segment |
+| requester | string | No | Name of person who requested items |
+| requesterDepartment | string | No | Department of requester |
+| requestedQty | number | Yes | Original quantity requested in order unit |
+| requestedUnit | string | Yes | Unit of measure for requested quantity |
+| requestedBaseQty | number | Yes | Requested quantity in base unit |
+| requestedBaseUnit | string | Yes | Base unit of measure |
+| previouslyReceivedQty | number | Yes | Quantity already received in prior GRNs |
+| previouslyReceivedBaseQty | number | Yes | Previously received in base unit |
+| thisGrnQty | number | Yes | Quantity being received in this GRN |
+| thisGrnBaseQty | number | Yes | This GRN quantity in base unit |
+| remainingQty | number | Yes | Remaining quantity to receive |
+| remainingBaseQty | number | Yes | Remaining quantity in base unit |
+| conversionRate | number | Yes | Conversion factor from order unit to base unit |
+
+**Business Rules**:
+- Total allocated quantity (thisGrnQty across all PRs) should equal the item's receivedQuantity
+- Remaining quantity is calculated as: requestedQty - previouslyReceivedQty - thisGrnQty
+- Used in the "Related PRs" tab of the Item Detail Form
 
 ---
 

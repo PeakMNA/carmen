@@ -6,6 +6,15 @@ The **Stock Cards** module provides comprehensive product-level inventory manage
 
 ---
 
+## Quick Navigation
+
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/inventory-management/stock-overview/stock-cards/business-requirements)<br/>Business Requirements | [**UC**](/inventory-management/stock-overview/stock-cards/use-cases)<br/>Use Cases | [**TS**](/inventory-management/stock-overview/stock-cards/technical-specification)<br/>Technical Spec |
+| [**DD**](/inventory-management/stock-overview/stock-cards/data-dictionary)<br/>Data Dictionary | [**FD**](/inventory-management/stock-overview/stock-cards/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/inventory-management/stock-overview/stock-cards/validations)<br/>Validations |
+
+---
+
 ## Module Information
 
 | Property | Value |
@@ -137,6 +146,7 @@ app/(main)/inventory-management/stock-overview/stock-cards/
 | **Business Requirements** | Functional requirements and business objectives | [BR-stock-cards.md](./BR-stock-cards.md) |
 | **Use Cases** | User interaction scenarios | [UC-stock-cards.md](./UC-stock-cards.md) |
 | **Technical Specification** | Architecture and implementation details | [TS-stock-cards.md](./TS-stock-cards.md) |
+| **Data Dictionary** | Data structures and schema definitions | [DD-stock-cards.md](./DD-stock-cards.md) |
 | **Flow Diagrams** | Visual process flows | [FD-stock-cards.md](./FD-stock-cards.md) |
 | **Validation Rules** | Data validation and business rules | [VAL-stock-cards.md](./VAL-stock-cards.md) |
 

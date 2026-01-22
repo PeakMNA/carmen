@@ -6,6 +6,15 @@ The **Inventory Balance** module provides comprehensive real-time visibility int
 
 ---
 
+## Quick Navigation
+
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/inventory-management/stock-overview/inventory-balance/business-requirements)<br/>Business Requirements | [**UC**](/inventory-management/stock-overview/inventory-balance/use-cases)<br/>Use Cases | [**TS**](/inventory-management/stock-overview/inventory-balance/technical-specification)<br/>Technical Spec |
+| [**DD**](/inventory-management/stock-overview/inventory-balance/data-dictionary)<br/>Data Dictionary | [**FD**](/inventory-management/stock-overview/inventory-balance/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/inventory-management/stock-overview/inventory-balance/validations)<br/>Validations |
+
+---
+
 ## Module Information
 
 | Property | Value |
@@ -120,6 +129,7 @@ app/(main)/inventory-management/stock-overview/inventory-balance/
 | **Business Requirements** | Functional requirements and business objectives | [BR-inventory-balance.md](./BR-inventory-balance.md) |
 | **Use Cases** | User interaction scenarios | [UC-inventory-balance.md](./UC-inventory-balance.md) |
 | **Technical Specification** | Architecture and implementation details | [TS-inventory-balance.md](./TS-inventory-balance.md) |
+| **Data Dictionary** | Data structures and schema definitions | [DD-inventory-balance.md](./DD-inventory-balance.md) |
 | **Flow Diagrams** | Visual process flows | [FD-inventory-balance.md](./FD-inventory-balance.md) |
 | **Validation Rules** | Data validation and business rules | [VAL-inventory-balance.md](./VAL-inventory-balance.md) |
 

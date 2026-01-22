@@ -3,13 +3,14 @@
 **Module**: Product Management
 **Sub-Module**: Products
 **Route**: `/product-management/products`
-**Document Version**: 1.2
-**Last Updated**: 2025-12-17
+**Document Version**: 1.3
+**Last Updated**: 2026-01-15
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2026-01-15 | Documentation Team | Updated RECIPE to INGREDIENT unit type, added is_inverse conversion logic, added par_level and shelf_id to location assignment flows |
 | 1.2.0 | 2025-12-17 | Documentation Team | Added tag management workflows for location assignment |
 | 1.1.0 | 2025-11-26 | Documentation Team | Added route reference, aligned with BR-products.md |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
@@ -52,10 +53,10 @@ flowchart TD
     ErrUnits --> Form
 
     ValidateUnits -->|Valid| CreateTx[Begin Database Transaction]
-    CreateTx --> InsertProduct[Insert into products table<br>status = DRAFT or ACTIVE]
-    InsertProduct --> InsertUnit[Insert base inventory unit<br>into product_units<br>type = INVENTORY, factor = 1]
-    InsertUnit --> InsertOrderUnit[Insert default order unit<br>into product_units<br>type = ORDER]
-    InsertOrderUnit --> CreateLog[Create Activity Log Entry<br>action = CREATED]
+    CreateTx --> InsertProduct[Insert into products table<br>status: DRAFT or ACTIVE]
+    InsertProduct --> InsertUnit[Insert base inventory unit<br>into product_units<br>type: INVENTORY, factor: 1]
+    InsertUnit --> InsertOrderUnit[Insert default order unit<br>into product_units<br>type: ORDER]
+    InsertOrderUnit --> CreateLog[Create Activity Log Entry<br>action: CREATED]
     CreateLog --> CommitTx[Commit Transaction]
 
     CommitTx --> Success[Show Success Message<br>Product Code: XXX-XXX]
@@ -114,7 +115,7 @@ flowchart TD
 
     DetectChanges -->|Has Changes| BeginTx[Begin Database Transaction]
     BeginTx --> UpdateProduct[Update modified fields<br>in products table]
-    UpdateProduct --> UpdateTimestamp[Set updated_at = NOW()<br>updated_by = current_user]
+    UpdateProduct --> UpdateTimestamp[Set updated_at to current time<br>Set updated_by to current user]
     UpdateTimestamp --> LogChanges[Create Activity Log Entries<br>For each changed field]
     LogChanges --> CommitTx[Commit Transaction]
 
@@ -161,7 +162,7 @@ flowchart TD
     UnsetOthers --> BeginTx
 
     BeginTx --> InsertUnit[Insert into product_units<br>product_id, unit_id, unit_type<br>conversion_factor, is_default]
-    InsertUnit --> LogActivity[Create Activity Log Entry<br>action = UNIT_ADDED]
+    InsertUnit --> LogActivity[Create Activity Log Entry<br>action: UNIT_ADDED]
     LogActivity --> CommitTx[Commit Transaction]
 
     CommitTx --> Success[Show Success Message]
@@ -178,13 +179,16 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([User views Product Detail]) --> LoadUnits[Load all product units<br>INVENTORY, ORDER, RECIPE, COUNT]
+    Start([User views Product Detail]) --> LoadUnits[Load all product units<br>INVENTORY, ORDER, INGREDIENT, COUNT]
     LoadUnits --> DisplayCalc[Display Unit Conversion Calculator Widget]
     DisplayCalc --> UserSelects[User selects FROM unit<br>and enters quantity]
     UserSelects --> AutoConvert[System calculates conversions<br>to all other units]
 
-    AutoConvert --> CalcFormula[Formula:<br>converted_qty = input_qty<br>× from_factor<br>÷ to_factor]
-    CalcFormula --> DisplayResults[Display results<br>with unit labels]
+    AutoConvert --> CheckInverse{Check is_inverse<br>flag on unit}
+    CheckInverse -->|is_inverse true| CalcInverse[Formula: qty x 1 div factor]
+    CheckInverse -->|is_inverse false| CalcDirect[Formula: qty x factor]
+    CalcInverse --> DisplayResults[Display results<br>with unit labels]
+    CalcDirect --> DisplayResults
     DisplayResults --> UserChange{User changes<br>input?}
     UserChange -->|Yes| UserSelects
     UserChange -->|No| End([End])
@@ -200,10 +204,12 @@ flowchart TD
 flowchart TD
     Start([User clicks Add Location<br>on Location Assignment tab]) --> ShowForm[Display Location Assignment Form]
     ShowForm --> SelectLoc[User selects Location]
-    SelectLoc --> SelectTags[User selects Tags<br>from location-grouped list]
+    SelectLoc --> SelectShelf[User selects Shelf<br>Optional, filtered by location]
+    SelectShelf --> SelectTags[User selects Tags<br>from location-grouped list]
     SelectTags --> EnterMin[User enters Min Stock Level]
     EnterMin --> EnterMax[User enters Max Stock Level]
-    EnterMax --> EnterReorder[User enters Reorder Point<br>Optional]
+    EnterMax --> EnterPar[User enters Par Level<br>Optional, optimal stock level]
+    EnterPar --> EnterReorder[User enters Reorder Point<br>Optional]
     EnterReorder --> ClickSave[User clicks Add]
 
     ClickSave --> ValidateLoc{Validate<br>Location Selected}
@@ -218,9 +224,12 @@ flowchart TD
     CheckDup -->|Exists| ErrDup[Show Error:<br>Product already assigned<br>to this location]
     ErrDup --> ShowForm
 
-    CheckDup -->|New| BeginTx[Begin Database Transaction]
-    BeginTx --> InsertAssign[Insert into product_locations<br>product_id, location_id<br>min, max, reorder_point, tags]
-    InsertAssign --> LogActivity[Create Activity Log Entry<br>action = LOCATION_ASSIGNED]
+    CheckDup -->|New| ValidateShelf{Validate<br>Shelf belongs to<br>selected location?}
+    ValidateShelf -->|Invalid| ErrShelf[Show Error:<br>Shelf not in location]
+    ErrShelf --> ShowForm
+    ValidateShelf -->|Valid or None| BeginTx[Begin Database Transaction]
+    BeginTx --> InsertAssign[Insert into product_locations<br>product_id, location_id, shelf_id<br>min, max, par_level, reorder_point, tags]
+    InsertAssign --> LogActivity[Create Activity Log Entry<br>action: LOCATION_ASSIGNED]
     LogActivity --> CommitTx[Commit Transaction]
 
     CommitTx --> Success[Show Success Message]
@@ -309,7 +318,7 @@ flowchart TD
     SelectFilters --> ApplyBtn[User clicks Apply Filters]
     ApplyBtn --> ApplyFilters
 
-    UserAction -->|Clicks Column Header| ToggleSort[Toggle sort direction<br>ASC ↔ DESC]
+    UserAction -->|Clicks Column Header| ToggleSort[Toggle sort direction<br>ASC to DESC]
     ToggleSort --> QueryDB
 
     UserAction -->|Changes Page Size| UpdatePageSize[Update per_page setting]
@@ -330,7 +339,7 @@ flowchart TD
 ### 6.2 Product List Data Flow
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph Client
         UI[Product List UI]
         SearchInput[Search Input]
@@ -377,43 +386,26 @@ flowchart LR
 stateDiagram-v2
     [*] --> DRAFT: Create Product
 
-    DRAFT --> ACTIVE: Activate<br>(All required fields complete)
-    DRAFT --> [*]: Delete<br>(No transactions)
+    DRAFT --> ACTIVE: Activate
+    DRAFT --> [*]: Delete
 
-    ACTIVE --> INACTIVE: Deactivate<br>(Temporary suspension)
-    ACTIVE --> DISCONTINUED: Discontinue<br>(Permanent removal)
+    ACTIVE --> INACTIVE: Deactivate
+    ACTIVE --> DISCONTINUED: Discontinue
 
     INACTIVE --> ACTIVE: Reactivate
     INACTIVE --> DISCONTINUED: Discontinue
 
-    DISCONTINUED --> ACTIVE: Reactivate<br>(Rare, requires approval)
-
-    note right of DRAFT
-        - Being configured
-        - Not available for transactions
-        - Can be deleted
-    end note
-
-    note right of ACTIVE
-        - Available for all transactions
-        - Cannot be deleted
-        - Default status for new products
-    end note
-
-    note right of INACTIVE
-        - Temporarily unavailable
-        - Transactions blocked
-        - Can be reactivated
-        - Appears in reports with filter
-    end note
-
-    note right of DISCONTINUED
-        - Permanently discontinued
-        - Transactions blocked
-        - Visible in historical data only
-        - Reactivation requires approval
-    end note
+    DISCONTINUED --> ACTIVE: Reactivate
 ```
+
+**Status Descriptions:**
+
+| Status | Description |
+|--------|-------------|
+| **DRAFT** | Being configured, not available for transactions, can be deleted |
+| **ACTIVE** | Available for all transactions, cannot be deleted, default status for new products |
+| **INACTIVE** | Temporarily unavailable, transactions blocked, can be reactivated, appears in reports with filter |
+| **DISCONTINUED** | Permanently discontinued, transactions blocked, visible in historical data only, reactivation requires approval |
 
 ### 7.2 Status Change Workflow
 
@@ -440,7 +432,7 @@ flowchart TD
     ValidateComplete -->|Yes| ConfirmActivate[Show Confirmation:<br>Activate product?]
     ConfirmActivate -->|Cancel| End
     ConfirmActivate -->|Confirm| UpdateStatus[Update status to ACTIVE]
-    UpdateStatus --> LogChange[Log status change<br>action = STATUS_CHANGED<br>old = DRAFT, new = ACTIVE]
+    UpdateStatus --> LogChange[Log status change<br>action: STATUS_CHANGED<br>from DRAFT to ACTIVE]
     LogChange --> ShowSuccess[Show success message]
     ShowSuccess --> RefreshPage[Refresh product detail]
     RefreshPage --> End
@@ -461,8 +453,8 @@ flowchart TD
 
     CheckTransactions -->|No| ConfirmDelete[Show Confirmation:<br>Permanently delete product?<br>This cannot be undone]
     ConfirmDelete -->|Cancel| End
-    ConfirmDelete -->|Confirm| SoftDelete[Set deleted_at = NOW()<br>deleted_by = current_user]
-    SoftDelete --> LogDelete[Log deletion<br>action = DELETED]
+    ConfirmDelete -->|Confirm| SoftDelete[Set deleted_at to current time<br>Set deleted_by to current user]
+    SoftDelete --> LogDelete[Log deletion<br>action: DELETED]
     LogDelete --> Redirect[Redirect to product list]
     Redirect --> End
 ```
@@ -497,10 +489,10 @@ flowchart TD
     UserNav -->|Clicks Order Units Tab| ShowOrder[Show Order Units Table:<br>- Unit, Factor, Default<br>- Add/Edit/Delete actions<br>- Order rules]
     ShowOrder --> UserNav
 
-    UserNav -->|Clicks Ingredient Units Tab| ShowIngredient[Show Recipe Units Table:<br>- Unit, Factor, Default<br>- Add/Edit/Delete actions<br>- Recipe calculator]
+    UserNav -->|Clicks Ingredient Units Tab| ShowIngredient[Show Ingredient Units Table:<br>- Unit, Factor, Default, Direction<br>- Add/Edit/Delete actions<br>- Conversion calculator with is_inverse logic]
     ShowIngredient --> UserNav
 
-    UserNav -->|Clicks Locations Tab| ShowLocations[Show Location Assignments:<br>- Location, Min/Max<br>- Reorder point/qty<br>- Add/Edit/Delete actions]
+    UserNav -->|Clicks Locations Tab| ShowLocations[Show Location Assignments:<br>- Location, Shelf, Min/Max<br>- Reorder point, Par level<br>- Tags, Add/Edit/Delete actions]
     ShowLocations --> UserNav
 
     UserNav -->|Clicks Edit Button| EnableEdit[Enable Inline Edit Mode]
@@ -566,7 +558,7 @@ flowchart TD
 ### 10.1 Product-Procurement Integration
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph Products Module
         PM[Product Master]
         PU[Product Units]
@@ -598,7 +590,7 @@ flowchart LR
 ### 10.2 Product-Inventory Integration
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph Products Module
         PM[Product Master]
         PU[Product Units]
@@ -620,19 +612,20 @@ flowchart LR
     PU -->|Count Units| Count
     PU -->|Auto Conversion| Stock
 
-    PL -->|Min/Max Levels| Stock
-    Stock -->|Check Levels| Alert{Below Min<br>or Above Max?}
-    Alert -->|Yes| Notification[Generate Alert]
-    Alert -->|No| NoAction[No Action]
+    PL -->|Min/Max/Par Levels| Stock
+    Stock -->|Check Levels| Alert{Below Min<br>or Above Max<br>or Below Par?}
+    Alert -->|Below Min/Above Max| Notification[Generate Alert]
+    Alert -->|Below Par| ParWarning[Generate Reorder Warning]
+    Alert -->|Within Range| NoAction[No Action]
 ```
 
 ### 10.3 Product-Recipe Integration
 
 ```mermaid
-flowchart LR
+graph LR
     subgraph Products Module
-        PM[Product Master<br>is_ingredient = true]
-        PU[Product Units<br>RECIPE type]
+        PM[Product Master<br>is_ingredient: true]
+        PU[Product Units<br>INGREDIENT type]
     end
 
     subgraph Recipe Module
@@ -642,8 +635,8 @@ flowchart LR
     end
 
     PM -->|Available Products| Ingredient
-    PU -->|Recipe Units| Ingredient
-    PU -->|Conversion Factors| Cost
+    PU -->|Ingredient Units| Ingredient
+    PU -->|Conversion Factors with is_inverse| Cost
 
     Ingredient -->|Ingredient Cost| Cost
     Cost -->|Total Recipe Cost| Recipe

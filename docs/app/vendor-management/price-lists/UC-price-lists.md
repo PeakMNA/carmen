@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Use Cases Document
 - **Module**: Vendor Management > Price Lists
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added UC-PL-009 Staff Creation Wizard use case; Updated UC-PL-002 with dual creation methods; Added creation method options (template, manual, import); Updated status transitions |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional use cases (bulk import wizard, price comparison, price alerts, approval workflows, vendor portal submission, RFQ integration); Updated to reflect implemented functionality |
 | 1.0.0 | 2025-11-19 | Documentation Team | Initial version |
 
@@ -31,13 +32,14 @@ The Price Lists module enables procurement staff to view, create, and manage ven
 | Use Case ID | Use Case Name | Actor(s) | Priority |
 |-------------|---------------|----------|----------|
 | UC-PL-001 | View Price Lists | Procurement Staff, Purchasing Manager | High |
-| UC-PL-002 | Create Price List | Procurement Staff, Purchasing Manager | High |
+| UC-PL-002 | Create Price List (Simple Form) | Procurement Staff, Purchasing Manager | High |
 | UC-PL-003 | View Price List Detail | Procurement Staff, Purchasing Manager | High |
 | UC-PL-004 | Edit Price List | Procurement Staff, Purchasing Manager | Medium |
 | UC-PL-005 | Duplicate Price List | Procurement Staff, Purchasing Manager | Medium |
 | UC-PL-006 | Export Price List | Procurement Staff, Purchasing Manager | Medium |
 | UC-PL-007 | Delete Price List | Procurement Staff, Purchasing Manager | Medium |
 | UC-PL-008 | Mark Price List as Expired | Procurement Staff, Purchasing Manager | Medium |
+| UC-PL-009 | Create Price List (Staff Wizard) | Procurement Staff, Purchasing Manager | High |
 
 ---
 

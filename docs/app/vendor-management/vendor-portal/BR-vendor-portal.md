@@ -4,18 +4,19 @@
 - **Document Type**: Business Requirements Document
 - **Module**: Vendor Management > Vendor Price Submission Portal
 - **Version**: 3.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 - **Based On**: Actual source code analysis
 
 ## Document History
 
 | Version | Date       | Author | Changes                                    |
 |---------|------------|--------|--------------------------------------------|
-| 1.0     | 2024-01-15 | System | Initial draft (incorrect scope)            |
-| 2.0     | 2025-01-23 | System | Complete rewrite based on actual codebase  |
-| 2.1.0   | 2025-11-26 | System | Removed fictional approval workflow; Updated status flow to draft → submitted |
+| 3.0.0   | 2026-01-15 | Documentation Team | Synced with current code; Updated supported currencies (BHT, USD, CNY, SGD); Updated sample products; Clarified sample implementation scope |
 | 3.0.0   | 2025-11-26 | System | **MAJOR**: Refactored to vendor-facing portal only; Removed campaign, template, and pricelist management content (moved to respective modules) |
+| 2.1.0   | 2025-11-26 | System | Removed fictional approval workflow; Updated status flow to draft to submitted |
+| 2.0     | 2025-01-23 | System | Complete rewrite based on actual codebase  |
+| 1.0     | 2024-01-15 | System | Initial draft (incorrect scope)            |
 
 ---
 
@@ -133,7 +134,7 @@ The Vendor Price Submission Portal provides:
   - Campaign name and description
   - Campaign deadline prominently displayed
   - Instructions from procurement staff
-  - Currency selection (if multiple supported)
+  - Currency selection (supported: BHT, USD, CNY, SGD)
   - Effective date range for pricing
   - Progress indicator (completion percentage)
   - Three submission method tabs
@@ -600,8 +601,35 @@ The Vendor Price Submission Portal provides:
 
 | Source File | Lines | Key Features |
 |-------------|-------|--------------|
-| `/app/(main)/vendor-management/vendor-portal/sample/page.tsx` | 691 | Vendor portal UI, three submission methods |
+| `/app/(main)/vendor-management/vendor-portal/sample/page.tsx` | 566 | Vendor portal sample UI, three submission methods (online, upload, email) |
 | `/app/(main)/vendor-management/templates/components/MOQPricingComponent.tsx` | 430 | MOQ tier pricing component |
+
+### Key Implementation Details from Source Code
+
+**ProductItem Interface**:
+```typescript
+interface ProductItem {
+  code: string
+  description: string
+  unit: string
+  basePrice?: number
+  leadTime?: number
+  moqTiers?: Array<{
+    moq: number
+    price: number
+    leadTime: number
+  }>
+}
+```
+
+**Supported Currencies**: BHT (Thai Baht), USD (US Dollar), CNY (Chinese Yuan), SGD (Singapore Dollar)
+
+**Submission Methods**: `'online' | 'upload' | 'email'`
+
+**Sample Product Categories**:
+- Electronics (ELEC-001 to ELEC-008): USB cables, HDMI cables, network cables, power cables
+- Power (PWR-001 to PWR-005): Laptop chargers, USB chargers, power banks
+- Accessories (ACC-001 to ACC-007): Wireless mouse, USB hub, webcam, keyboard, etc.
 
 ---
 

@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Technical Specification Document
 - **Module**: Vendor Management > Price Lists
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Added 5-step staff creation wizard route (/new); Added edit page routes ([id]/edit, [id]/edit-new); Updated component hierarchy; Added PriceValidation utility documentation; Updated status values |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional features (5-step wizard, bulk import, price comparison, price history charts, approval workflows, alerts, RFQ integration); Removed code blocks per specification (text + sitemap only); Updated to reflect implemented functionality |
 | 1.0 | 2024-01-15 | System | Initial technical specification document |
 
@@ -62,9 +63,21 @@ The module follows the Next.js App Router pattern with Server Components as defa
 /vendor-management/pricelists
 ├── page.tsx                    # Price List Page (list view)
 ├── add/
-│   └── page.tsx               # Add Price List Page
+│   └── page.tsx               # Add Price List Page (simple form)
+├── new/
+│   └── page.tsx               # Staff Creation Wizard (5-step)
+├── components/
+│   └── PricelistProductEditingComponent.tsx  # Shared editing component
+├── types/
+│   └── PricelistEditingTypes.ts             # TypeScript interfaces
+├── utils/
+│   └── PriceValidation.ts                   # Validation utilities
 └── [id]/
-    └── page.tsx               # Price List Detail Page
+    ├── page.tsx               # Price List Detail Page
+    ├── edit/
+    │   └── page.tsx           # Edit Price List Page (legacy)
+    └── edit-new/
+        └── page.tsx           # Enhanced Edit Page (form-based)
 ```
 
 ### 2.2 Page Descriptions
@@ -78,14 +91,34 @@ The module follows the Next.js App Router pattern with Server Components as defa
 **Add Price List Page** (`/vendor-management/pricelists/add`)
 - Route: `/vendor-management/pricelists/add`
 - Component Type: Client Component
-- Purpose: Create new price list with line items
-- Features: Basic info form, line items table with add/remove
+- Purpose: Create new price list with line items (simple form)
+- Features: Basic info form, line items with MOQ pricing tiers, add/remove items
+- Supports pre-population from copied pricelist data via sessionStorage
+
+**Staff Creation Wizard** (`/vendor-management/pricelists/new`)
+- Route: `/vendor-management/pricelists/new`
+- Component Type: Client Component (Suspense wrapped)
+- Purpose: 5-step wizard for staff to create pricelists on behalf of vendors
+- Query Parameters: `vendorId`, `campaignId`, `templateId` (optional pre-selection)
+- Steps:
+  1. Basic Information: Pricelist number, creation notes
+  2. Vendor Selection: Search and select vendor
+  3. Creation Method: Template-based, Manual, or Excel Import
+  4. Configuration: Currency, validity dates, template selection
+  5. Review & Create: Summary and confirmation
+- Features: Progress indicator, step validation, audit logging
 
 **Price List Detail Page** (`/vendor-management/pricelists/[id]`)
 - Route: `/vendor-management/pricelists/[id]`
 - Component Type: Client Component
 - Purpose: Display price list details with line items
 - Features: Header info, line items table, action buttons
+
+**Enhanced Edit Page** (`/vendor-management/pricelists/[id]/edit-new`)
+- Route: `/vendor-management/pricelists/[id]/edit-new`
+- Component Type: Client Component
+- Purpose: Modern form-based editing with product editing component
+- Features: Form validation, MOQ tier management, save draft, submit actions
 
 ---
 

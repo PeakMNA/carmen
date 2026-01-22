@@ -5,8 +5,15 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Stock Cards |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 3.0.0 |
+| Last Updated | 2025-01-15 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Updated to single product detail page architecture; Added 6-tab structure with analytics; Added recharts integration; Updated type definitions; Corrected transaction types to IN/OUT only |
+| 2.0.0 | 2024-06-15 | System | Previous version |
+| 1.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -14,35 +21,39 @@
 
 ```mermaid
 graph TB
-    subgraph 'Frontend Layer'
-        A[StockCardListPage] --> B[SummaryCards]
-        A --> C[FilterBar]
-        A --> D[ListView]
-        A --> E[CardsView]
-        A --> F[GroupedView]
+    subgraph Frontend
+        A[StockCardPage] --> B[StockCardContent]
+        B --> C[Summary Cards]
+        B --> D[Alerts Section]
+        B --> E[Tabs Container]
     end
 
-    subgraph 'Components'
-        G[GroupedTable]
-        H[ExportButton]
+    subgraph Tab Components
+        E --> F[StockCardGeneralInfo]
+        E --> G[StockCardMovementHistory]
+        E --> H[StockCardLotInformation]
+        E --> I[StockCardValuation]
+        E --> J[Analytics Tab]
+        E --> K[Actions Tab]
     end
 
-    subgraph 'Utilities'
-        I[Export Utils]
-        J[Formatters]
+    subgraph Data Layer
+        L[generateMockStockCardData]
+        M[StockCardData]
     end
 
-    subgraph 'Data Layer'
-        K[Mock Product Generator]
-        L[User Context]
+    subgraph Utilities
+        N[formatCurrency]
+        O[formatNumber]
+        P[formatDate]
     end
 
-    F --> G
-    A --> H
-    H --> I
-    A --> J
-    A --> K
-    A --> L
+    B --> L
+    L --> M
+    C --> N
+    C --> O
+    J --> N
+    J --> O
 ```
 
 ---
@@ -51,14 +62,16 @@ graph TB
 
 ```mermaid
 graph LR
-    A[Stock Overview] --> B[Stock Cards]
-    B --> C[List View]
-    B --> D[Cards View]
-    B --> E[Grouped View]
-    B --> F[Stock Card Detail]
+    A[Stock Overview] --> B[Stock Card Detail]
+    B --> C[General Information Tab]
+    B --> D[Movement History Tab]
+    B --> E[Lot Information Tab]
+    B --> F[Valuation Tab]
+    B --> G[Analytics Tab]
+    B --> H[Actions Tab]
 ```
 
-**Route**: `/inventory-management/stock-overview/stock-cards`
+**Route**: `/inventory-management/stock-overview/stock-card?productId={id}`
 
 ---
 
@@ -66,372 +79,458 @@ graph LR
 
 ### 3.1 Page Component
 
-**File**: `app/(main)/inventory-management/stock-overview/stock-cards/page.tsx`
+**File**: `app/(main)/inventory-management/stock-overview/stock-card/page.tsx`
 
 **Responsibilities**:
-- Manage view mode state (list/cards/grouped)
-- Handle filter state management
-- Calculate summary statistics
-- Coordinate view rendering
+- Load product data by productId query parameter
+- Calculate analytics data (trends, distributions, alerts)
+- Manage loading and error states
+- Render summary cards and tab structure
 
 **State Management**:
 ```typescript
 const [isLoading, setIsLoading] = useState(true)
-const [products, setProducts] = useState<Product[]>([])
-const [searchTerm, setSearchTerm] = useState("")
-const [categoryFilter, setCategoryFilter] = useState("all")
-const [statusFilter, setStatusFilter] = useState("all")
-const [stockFilter, setStockFilter] = useState("all")
-const [locationFilter, setLocationFilter] = useState("all")
-const [sortField, setSortField] = useState("name")
-const [sortDirection, setSortDirection] = useState<"asc" | "desc">("asc")
-const [viewMode, setViewMode] = useState<"list" | "grouped" | "cards">("list")
-const [groupedProducts, setGroupedProducts] = useState<GroupedData[]>([])
+const [stockCardData, setStockCardData] = useState<StockCardData | null>(null)
 ```
+
+**Source Evidence**: `stock-card/page.tsx:73-89`
 
 ---
 
-### 3.2 GroupedTable Component
+### 3.2 Analytics Data Calculation
 
-**File**: `components/inventory/GroupedTable.tsx`
+**File**: `app/(main)/inventory-management/stock-overview/stock-card/page.tsx`
 
-**Responsibilities**:
-- Render grouped data structure
-- Handle expand/collapse
-- Display subtotals and grand totals
-- Custom row rendering
-
-**Hook**:
+**Calculated Data**:
 ```typescript
-const {
-  groups,
-  setGroups,
-  toggleGroup,
-  expandAll,
-  collapseAll,
-  calculateGrandTotals
-} = useGroupedTable(groupedProducts)
+const analyticsData = useMemo(() => {
+  return {
+    movementTrend: [],           // 30-day movement data
+    locationDistribution: [],    // Stock by location
+    lotStatusData: [],           // Lot status counts
+    daysOfSupply: number,        // Calculated from avg daily usage
+    avgDailyUsage: number,       // From OUT transactions
+    movementByType: [],          // Receipts (IN) and Issues (OUT)
+    alerts: [],                  // Critical and warning alerts
+    stockPercentage: number,     // Current vs max stock
+    stockStatus: 'low' | 'high' | 'normal'
+  }
+}, [stockCardData])
+```
+
+**Source Evidence**: `stock-card/page.tsx:92-228`
+
+---
+
+### 3.3 StockCardGeneralInfo Component
+
+**File**: `app/(main)/inventory-management/stock-overview/stock-card/components/StockCardGeneralInfo.tsx`
+
+**Responsibilities**:
+- Display product details and specifications
+- Show storage parameters
+- Display stock thresholds
+
+**Props**:
+```typescript
+interface StockCardGeneralInfoProps {
+  data: StockCardData
+}
 ```
 
 ---
 
-### 3.3 ExportButton Component
+### 3.4 StockCardMovementHistory Component
 
-**File**: `components/inventory/ExportButton.tsx`
+**File**: `app/(main)/inventory-management/stock-overview/stock-card/components/StockCardMovementHistory.tsx`
 
 **Responsibilities**:
-- Render export button with dropdown
-- Generate export data
-- Trigger file download
+- Display transaction history table
+- Filter by transaction type (IN/OUT)
+- Search by reference, location
+- Show quantity and value changes
+
+**Props**:
+```typescript
+interface StockCardMovementHistoryProps {
+  data: StockCardData
+}
+```
 
 ---
 
-## 4. Data Flow
+### 3.5 StockCardLotInformation Component
+
+**File**: `app/(main)/inventory-management/stock-overview/stock-card/components/StockCardLotInformation.tsx`
+
+**Responsibilities**:
+- Display lot tracking table
+- Show lot status (Available, Reserved, Expired, Quarantine)
+- Display expiry dates and received dates
+- Show location assignments
+
+**Props**:
+```typescript
+interface StockCardLotInformationProps {
+  data: StockCardData
+}
+```
+
+---
+
+### 3.6 StockCardValuation Component
+
+**File**: `app/(main)/inventory-management/stock-overview/stock-card/components/StockCardValuation.tsx`
+
+**Responsibilities**:
+- Display valuation history
+- Show running average cost calculations
+- Track running quantity and value
+
+**Props**:
+```typescript
+interface StockCardValuationProps {
+  data: StockCardData
+}
+```
+
+---
+
+## 4. Type Definitions
+
+### 4.1 Product Interface
+```typescript
+interface Product {
+  id: string
+  name: string
+  code: string
+  category: string
+  unit: string
+  status: "Active" | "Inactive"
+  description: string
+  lastUpdated: string
+  createdAt: string
+  createdBy: string
+  barcode?: string
+  alternateUnit?: string
+  conversionFactor?: number
+  minimumStock?: number
+  maximumStock?: number
+  reorderPoint?: number
+  reorderQuantity?: number
+  leadTime?: number
+  shelfLife?: number
+  storageRequirements?: string
+  tags?: string[]
+}
+```
+
+**Source Evidence**: `stock-card/types.ts:1-23`
+
+### 4.2 StockSummary Interface
+```typescript
+interface StockSummary {
+  currentStock: number
+  currentValue: number
+  averageCost: number
+  lastMovementDate: string
+  lastMovementType: string
+  locationCount: number
+  primaryLocation: string
+  totalIn: number
+  totalOut: number
+  netChange: number
+}
+```
+
+**Source Evidence**: `stock-card/types.ts:25-36`
+
+### 4.3 LocationStock Interface
+```typescript
+interface LocationStock {
+  locationId: string
+  locationName: string
+  quantity: number
+  value: number
+  lastMovementDate: string
+}
+```
+
+**Source Evidence**: `stock-card/types.ts:38-44`
+
+### 4.4 LotInformation Interface
+```typescript
+interface LotInformation {
+  lotNumber: string
+  expiryDate: string
+  receivedDate: string
+  quantity: number
+  unitCost: number
+  value: number
+  locationId: string
+  locationName: string
+  status: "Available" | "Reserved" | "Expired" | "Quarantine"
+}
+```
+
+**Source Evidence**: `stock-card/types.ts:46-56`
+
+### 4.5 MovementRecord Interface
+```typescript
+interface MovementRecord {
+  id: string
+  date: string
+  time: string
+  reference: string
+  referenceType: string
+  locationId: string
+  locationName: string
+  transactionType: "IN" | "OUT"
+  reason: string
+  lotNumber?: string
+  quantityBefore: number
+  quantityAfter: number
+  quantityChange: number
+  unitCost: number
+  valueBefore: number
+  valueAfter: number
+  valueChange: number
+  username: string
+}
+```
+
+**Note**: Only IN and OUT transaction types are supported.
+
+**Source Evidence**: `stock-card/types.ts:58-77`
+
+### 4.6 ValuationRecord Interface
+```typescript
+interface ValuationRecord {
+  date: string
+  reference: string
+  transactionType: "IN" | "OUT"
+  quantity: number
+  unitCost: number
+  value: number
+  runningQuantity: number
+  runningValue: number
+  runningAverageCost: number
+}
+```
+
+**Source Evidence**: `stock-card/types.ts:79-89`
+
+### 4.7 StockCardData Interface
+```typescript
+interface StockCardData {
+  product: Product
+  summary: StockSummary
+  locationStocks: LocationStock[]
+  lotInformation: LotInformation[]
+  movements: MovementRecord[]
+  valuation: ValuationRecord[]
+}
+```
+
+**Source Evidence**: `stock-card/types.ts:128-135`
+
+---
+
+## 5. Alert System
+
+### 5.1 Alert Generation Logic
+```typescript
+const alerts: { type: 'critical' | 'warning' | 'info'; title: string; description: string }[] = []
+
+// Low stock alert
+if (summary.currentStock <= (product.minimumStock || 0)) {
+  alerts.push({
+    type: 'critical',
+    title: 'Low Stock Alert',
+    description: `Current stock is below minimum level`
+  })
+}
+
+// Reorder point alert
+if (summary.currentStock <= (product.reorderPoint || 0) &&
+    summary.currentStock > (product.minimumStock || 0)) {
+  alerts.push({
+    type: 'warning',
+    title: 'Reorder Point Reached',
+    description: 'Consider placing a purchase order'
+  })
+}
+
+// Expiring lots alert
+const expiringLots = lotInformation.filter(lot => {
+  const daysToExpiry = calculateDaysToExpiry(lot.expiryDate)
+  return daysToExpiry <= 30 && daysToExpiry > 0
+})
+
+if (expiringLots.length > 0) {
+  alerts.push({
+    type: 'warning',
+    title: 'Lots Expiring Soon',
+    description: `${expiringLots.length} lot(s) will expire within 30 days`
+  })
+}
+
+// Expired lots alert
+const expiredLots = lotInformation.filter(lot => lot.status === 'Expired')
+if (expiredLots.length > 0) {
+  alerts.push({
+    type: 'critical',
+    title: 'Expired Lots',
+    description: `${expiredLots.length} lot(s) have expired`
+  })
+}
+```
+
+**Source Evidence**: `stock-card/page.tsx:171-211`
+
+---
+
+## 6. Stock Status Calculation
+
+```typescript
+const stockStatus = summary.currentStock <= (product.minimumStock || 0)
+  ? 'low'
+  : summary.currentStock >= (product.maximumStock || Infinity)
+    ? 'high'
+    : 'normal'
+
+const stockPercentage = product.maximumStock
+  ? (summary.currentStock / product.maximumStock) * 100
+  : 50
+```
+
+**Source Evidence**: `stock-card/page.tsx:213-215`
+
+---
+
+## 7. Days of Supply Calculation
+
+```typescript
+const avgDailyUsage = movements
+  .filter(m => m.transactionType === 'OUT')
+  .reduce((sum, m) => sum + Math.abs(m.quantityChange), 0) / 30
+
+const daysOfSupply = avgDailyUsage > 0
+  ? Math.round(summary.currentStock / avgDailyUsage)
+  : 999
+```
+
+**Source Evidence**: `stock-card/page.tsx:159-162`
+
+---
+
+## 8. Component Tree
+
+```
+StockCardPage
+├── Suspense
+│   └── StockCardContent
+│       ├── PageHeader
+│       │   ├── BackButton
+│       │   ├── ProductIcon
+│       │   ├── Title and Code
+│       │   ├── Status Badge (Active/Inactive)
+│       │   ├── Stock Status Badge (Low/Overstocked)
+│       │   └── ActionButtons (Refresh, Print, Export, Edit)
+│       ├── AlertsSection
+│       │   └── Alert[] (Critical/Warning/Info)
+│       ├── SummaryCards (6 cards)
+│       │   ├── CurrentStock (with Progress)
+│       │   ├── CurrentValue
+│       │   ├── DaysOfSupply
+│       │   ├── LastMovement
+│       │   ├── Locations
+│       │   └── ActiveLots
+│       └── MainCard
+│           └── Tabs
+│               ├── TabsTrigger (6 tabs)
+│               ├── TabsContent[general]
+│               │   └── StockCardGeneralInfo
+│               ├── TabsContent[movement]
+│               │   └── StockCardMovementHistory
+│               ├── TabsContent[lots]
+│               │   └── StockCardLotInformation
+│               ├── TabsContent[valuation]
+│               │   └── StockCardValuation
+│               ├── TabsContent[analytics]
+│               │   ├── MovementTrendChart (ComposedChart)
+│               │   ├── LocationDistribution (Progress bars)
+│               │   ├── LotStatusPieChart
+│               │   └── MovementSummaryCards
+│               └── TabsContent[actions]
+│                   ├── QuickActions (3 buttons)
+│                   ├── RecommendedActions (from alerts)
+│                   └── StockParameters
+```
+
+---
+
+## 9. Third-Party Libraries
+
+| Library | Version | Usage |
+|---------|---------|-------|
+| recharts | ^2.x | ComposedChart, PieChart, AreaChart, Line, Bar |
+| date-fns | ^2.x | Date formatting |
+| lucide-react | ^0.x | Icons (Package, DollarSign, Clock, etc.) |
+| shadcn/ui | ^0.x | Card, Tabs, Badge, Progress, Alert, Button, Skeleton |
+| next/navigation | ^14.x | useSearchParams |
+
+---
+
+## 10. Data Flow
 
 ```mermaid
 sequenceDiagram
     participant User
     participant Page
-    participant UserContext
     participant MockGenerator
-    participant Views
+    participant Analytics
+    participant Tabs
 
-    User->>Page: Navigate to Stock Cards
-    Page->>UserContext: Get user permissions
-    UserContext-->>Page: User role, locations
-    Page->>MockGenerator: Generate products
-    MockGenerator-->>Page: Product array
-    Page->>Page: Filter by permissions
-    Page->>Page: Calculate statistics
-    Page->>Views: Render selected view
-
-    User->>Page: Apply filter
-    Page->>Page: Filter products
-    Page->>Page: Update statistics
-    Page->>Views: Re-render view
+    User->>Page: Navigate with ?productId=xxx
+    Page->>Page: Get productId from searchParams
+    Page->>MockGenerator: generateMockStockCardData(productId)
+    MockGenerator-->>Page: StockCardData
+    Page->>Analytics: useMemo calculates analytics
+    Analytics-->>Page: analyticsData
+    Page->>Tabs: Render with data
+    User->>Tabs: Click tab
+    Tabs-->>Page: Switch tab content
 ```
 
 ---
 
-## 5. Type Definitions
-
-### 5.1 Product Interface
-```typescript
-interface Product {
-  id: string
-  code: string
-  name: string
-  category: string
-  unit: string
-  status: "Active" | "Inactive"
-  currentStock: number
-  minimumStock: number
-  maximumStock: number
-  value: number
-  averageCost: number
-  lastMovementDate: string
-  locationCount: number
-  locations: ProductLocation[]
-}
-
-interface ProductLocation {
-  id: string
-  name: string
-  stock: number
-  value: number
-}
-```
-
-### 5.2 Grouped Data Structure
-```typescript
-interface GroupedData {
-  locationId: string
-  locationName: string
-  items: Product[]
-  subtotals: {
-    totalItems: number
-    currentStock: number
-    value: number
-    averageValue: number
-  }
-  isExpanded: boolean
-}
-```
-
-### 5.3 Summary Statistics
-```typescript
-interface SummaryStats {
-  totalProducts: number
-  activeProducts: number
-  inactiveProducts: number
-  totalValue: number
-  totalStock: number
-  lowStockProducts: number
-  highStockProducts: number
-  normalStockProducts: number
-  avgValue: number
-  categoryStats: CategoryStat[]
-}
-```
-
-### 5.4 Export Configuration
-```typescript
-const exportColumns: ExportColumn[] = [
-  { key: 'code', label: 'Product Code', type: 'text' },
-  { key: 'name', label: 'Product Name', type: 'text' },
-  { key: 'category', label: 'Category', type: 'text' },
-  { key: 'unit', label: 'Unit', type: 'text' },
-  { key: 'status', label: 'Status', type: 'text' },
-  { key: 'currentStock', label: 'Current Stock', type: 'number' },
-  { key: 'value', label: 'Value', type: 'currency' },
-  { key: 'averageCost', label: 'Average Cost', type: 'currency' },
-  { key: 'minimumStock', label: 'Min Stock', type: 'number' },
-  { key: 'maximumStock', label: 'Max Stock', type: 'number' },
-  { key: 'lastMovementDate', label: 'Last Movement', type: 'date' },
-  { key: 'locationCount', label: 'Location Count', type: 'number' }
-]
-```
-
----
-
-## 6. Filtering Logic
-
-### 6.1 Permission Filtering
-```typescript
-const getFilteredProducts = () => {
-  let filteredProducts = products
-
-  // Filter by user's accessible locations
-  if (user?.role !== 'System Administrator' && user?.availableLocations) {
-    const userLocationIds = user.availableLocations.map(l => l.id)
-    filteredProducts = filteredProducts.filter(product =>
-      product.locations.some(loc => userLocationIds.includes(loc.id))
-    )
-  }
-
-  return filteredProducts.filter(product => {
-    // Search filter
-    if (searchTerm && !product.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
-        !product.code.toLowerCase().includes(searchTerm.toLowerCase())) {
-      return false
-    }
-    // Category, status, stock level filters...
-    return true
-  })
-}
-```
-
-### 6.2 Sorting Logic
-```typescript
-const sortedProducts = filteredProducts.sort((a, b) => {
-  let comparison = 0
-  switch (sortField) {
-    case "code": comparison = a.code.localeCompare(b.code); break
-    case "name": comparison = a.name.localeCompare(b.name); break
-    case "category": comparison = a.category.localeCompare(b.category); break
-    case "stock": comparison = a.currentStock - b.currentStock; break
-    case "value": comparison = a.value - b.value; break
-  }
-  return sortDirection === "asc" ? comparison : -comparison
-})
-```
-
----
-
-## 7. Grouping Logic
-
-### 7.1 Group Products by Location
-```typescript
-const groupProductsByLocation = (products: Product[]) => {
-  const locationMap = new Map<string, Product[]>()
-
-  products.forEach(product => {
-    product.locations.forEach(location => {
-      if (!locationMap.has(location.id)) {
-        locationMap.set(location.id, [])
-      }
-
-      // Create location-specific product entry
-      const locationProduct: Product = {
-        ...product,
-        currentStock: location.stock,
-        value: location.value,
-        averageCost: location.value / location.stock || 0,
-        locationCount: 1,
-        locations: [location]
-      }
-
-      locationMap.get(location.id)!.push(locationProduct)
-    })
-  })
-
-  return Array.from(locationMap.entries()).map(([locationId, items]) => ({
-    locationId,
-    locationName: items[0].locations[0].name,
-    items: items.sort((a, b) => a.name.localeCompare(b.name)),
-    subtotals: calculateSubtotals(items),
-    isExpanded: false
-  }))
-}
-```
-
----
-
-## 8. Summary Statistics Calculation
-
-```typescript
-const summaryStats = useMemo(() => {
-  const totalProducts = filteredProducts.length
-  const activeProducts = filteredProducts.filter(p => p.status === 'Active').length
-  const totalValue = filteredProducts.reduce((sum, p) => sum + p.value, 0)
-  const totalStock = filteredProducts.reduce((sum, p) => sum + p.currentStock, 0)
-  const lowStockProducts = filteredProducts.filter(p => p.currentStock <= p.minimumStock).length
-  const highStockProducts = filteredProducts.filter(p => p.currentStock >= p.maximumStock).length
-  const normalStockProducts = filteredProducts.filter(p =>
-    p.currentStock > p.minimumStock && p.currentStock < p.maximumStock
-  ).length
-  const avgValue = totalProducts > 0 ? totalValue / totalProducts : 0
-
-  return {
-    totalProducts, activeProducts, totalValue, totalStock,
-    lowStockProducts, highStockProducts, normalStockProducts, avgValue
-  }
-}, [filteredProducts])
-```
-
----
-
-## 9. Stock Level Badge Rendering
-
-```typescript
-const renderStockLevelBadge = (product: Product) => {
-  if (product.currentStock <= product.minimumStock) {
-    return <Badge variant="destructive">Low</Badge>
-  } else if (product.currentStock >= product.maximumStock) {
-    return <Badge className="bg-amber-100 text-amber-800">High</Badge>
-  } else {
-    return <Badge variant="outline" className="bg-green-100 text-green-800">Normal</Badge>
-  }
-}
-```
-
----
-
-## 10. Navigation
-
-```typescript
-const router = useRouter()
-
-const handleRowClick = (productId: string) => {
-  router.push(`/inventory-management/stock-overview/stock-card?productId=${productId}`)
-}
-```
-
----
-
-## 11. Third-Party Libraries
-
-| Library | Version | Usage |
-|---------|---------|-------|
-| lucide-react | ^0.x | Icons |
-| shadcn/ui | ^0.x | Card, Table, Badge, Progress, Select |
-| next/navigation | ^14.x | Router |
-
----
-
-## 12. Component Tree
-
-```
-StockCardListPage
-├── PageHeader
-│   ├── Title with Icon
-│   └── Description
-├── ActionBar
-│   ├── ViewModeToggle (List/Cards/Grouped)
-│   ├── RefreshButton
-│   ├── AdvancedFiltersButton
-│   ├── ExportButton
-│   └── AddProductButton
-├── SummaryCards (6 cards)
-│   ├── TotalProducts
-│   ├── TotalValue
-│   ├── NormalStock
-│   ├── LowStock
-│   ├── HighStock
-│   └── Categories
-├── MainContent (Card)
-│   ├── FilterBar
-│   │   ├── SearchInput
-│   │   ├── Expand/Collapse All (grouped only)
-│   │   ├── CategorySelect
-│   │   ├── StatusSelect
-│   │   └── StockLevelSelect
-│   ├── ListView (conditional)
-│   ├── CardsView (conditional)
-│   └── GroupedView (conditional)
-└── Footer
-    └── RecordCount
-```
-
----
-
-## 13. Performance Considerations
+## 11. Performance Considerations
 
 | Concern | Mitigation |
 |---------|------------|
-| Large product list | useMemo for filtering/sorting |
-| View switching | Conditional rendering |
-| Grouped calculations | Memoized grouping function |
-| Export generation | Async with loading state |
+| Chart rendering | Lazy load recharts |
+| Large movement history | Pagination in component |
+| Analytics calculation | useMemo for expensive calculations |
+| Initial load | Skeleton placeholders |
 
 ---
 
-## 14. Accessibility
+## 12. Accessibility
 
 | Feature | Implementation |
 |---------|---------------|
-| Keyboard navigation | Tab through rows/cards |
-| Screen readers | ARIA labels |
-| Color contrast | 4.5:1 minimum |
+| Keyboard navigation | Tab through tabs and buttons |
+| Screen readers | ARIA labels on all interactive elements |
+| Color contrast | 4.5:1 minimum ratio |
 | Focus indicators | Visible focus rings |
-| View mode | ARIA-selected state |
+| Alert announcements | Role="alert" for critical alerts |
+
+---
+
+## 13. Related Documents
+
+- [BR-stock-cards.md](./BR-stock-cards.md) - Business Requirements
+- [FD-stock-cards.md](./FD-stock-cards.md) - Flow Diagrams
+- [UC-stock-cards.md](./UC-stock-cards.md) - Use Cases
+- [VAL-stock-cards.md](./VAL-stock-cards.md) - Validations

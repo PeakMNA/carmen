@@ -5,8 +5,15 @@
 |-------|-------|
 | Module | Inventory Management |
 | Sub-module | Slow Moving |
-| Version | 1.0 |
-| Last Updated | 2024-01-15 |
+| Version | 3.0.0 |
+| Last Updated | 2025-01-15 |
+
+## Document History
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Updated type definitions; Added alert system; Added aging distribution chart; Added quick actions; Updated summary cards to 6 |
+| 2.0.0 | 2024-06-15 | System | Previous version |
+| 1.0 | 2024-01-15 | Documentation Team | Initial version |
 
 ---
 
@@ -17,10 +24,11 @@ The Slow Moving Inventory module helps hotel operations identify and manage inve
 
 ### 1.2 Business Objectives
 - Identify slow-moving inventory items across all locations
-- Classify items by risk level based on days idle
+- Classify items by risk level based on days since last movement
 - Provide actionable recommendations for each item
 - Track and manage actions taken on slow-moving stock
 - Reduce inventory carrying costs and waste
+- Visualize aging distribution and value at risk
 
 ### 1.3 Success Metrics
 | Metric | Target |
@@ -41,8 +49,11 @@ The Slow Moving Inventory module helps hotel operations identify and manage inve
 | Attribute | Description |
 |-----------|-------------|
 | Threshold | Items with no movement for 30+ days |
-| Tracking | Last receipt, last issue, last movement dates |
+| Tracking | Last movement date, days since movement |
 | Scope | All inventory items across permitted locations |
+| Turnover | Movements per month tracking |
+
+**Source Evidence**: `slow-moving/page.tsx:77, lib/mock-data/location-inventory.ts:189-206`
 
 #### FR-SM-002: Item Data Display
 | Field | Description |
@@ -50,118 +61,175 @@ The Slow Moving Inventory module helps hotel operations identify and manage inve
 | Product Code | Unique identifier |
 | Product Name | Display name |
 | Category | Product category |
-| Current Stock | Quantity on hand |
+| Location | Storage location |
+| Days Since Movement | Days since last transaction |
+| Current Stock | Quantity on hand with unit |
 | Value | Inventory value |
-| Days Idle | Days since last movement |
-| Last Movement | Most recent transaction date |
+| Turnover Rate | Movements per month |
 | Risk Level | Calculated risk classification |
 | Suggested Action | System recommendation |
-| Location | Storage location |
+| Last Movement Date | Most recent transaction date |
+
+**Source Evidence**: `slow-moving/page.tsx:858-885`
 
 ### 2.2 Risk Classification
 
 #### FR-SM-003: Risk Level Calculation
-| Level | Days Idle | Color | Priority |
-|-------|-----------|-------|----------|
-| Low | 30-60 | Green | 4 |
-| Medium | 61-90 | Amber | 3 |
-| High | 91-120 | Orange | 2 |
-| Critical | 120+ | Red | 1 |
+| Level | Days Since Movement | Color | Badge Style |
+|-------|---------------------|-------|-------------|
+| Low | 30-60 | Green | outline with green background |
+| Medium | 61-90 | Yellow | outline with yellow background |
+| High | 91-120 | Orange | outline with orange background |
+| Critical | 120+ | Red | destructive |
 
-#### FR-SM-004: Risk Scoring
-```typescript
-calculateRiskLevel(daysIdle: number): RiskLevel {
-  if (daysIdle >= 120) return 'critical'
-  if (daysIdle >= 91) return 'high'
-  if (daysIdle >= 61) return 'medium'
-  return 'low'
-}
-```
+**Source Evidence**: `slow-moving/page.tsx:294-310`
 
 ### 2.3 Action Recommendations
 
-#### FR-SM-005: Suggested Actions
-| Action | Criteria | Description |
-|--------|----------|-------------|
-| Transfer | High value, stock exists elsewhere | Move to higher-demand location |
-| Promote | Medium risk, promotable category | Run promotional pricing |
-| Write Off | Critical risk, low value | Remove from inventory |
-| Hold | Low risk, strategic item | Continue monitoring |
+#### FR-SM-004: Suggested Actions
+| Action | Badge Style | Description |
+|--------|-------------|-------------|
+| Transfer | Blue outline | Move to higher-demand location |
+| Promote | Purple outline | Run promotional pricing |
+| Write Off | Destructive | Remove from inventory |
+| Hold | Secondary | Continue monitoring |
 
-#### FR-SM-006: Action Assignment Logic
-```typescript
-suggestAction(item: SlowMovingItem): Action {
-  if (item.riskLevel === 'critical' && item.value < threshold) return 'writeoff'
-  if (item.riskLevel === 'high' && item.hasOtherLocations) return 'transfer'
-  if (item.category in promotableCategories) return 'promote'
-  return 'hold'
-}
-```
+**Source Evidence**: `slow-moving/page.tsx:313-329`
 
-### 2.4 Summary Statistics
+### 2.4 Alert System
 
-#### FR-SM-007: Summary Cards
-| Card | Calculation |
-|------|-------------|
-| Total Items | COUNT(slow_moving_items) |
-| Total Value | SUM(item.value) |
-| Avg Days Idle | AVG(item.daysIdle) |
-| Critical Risk | COUNT(riskLevel = 'critical') |
-| To Transfer | COUNT(action = 'transfer') |
-| To Write Off | COUNT(action = 'writeoff') |
+#### FR-SM-005: Alert Types
+| Alert | Type | Trigger Condition |
+|-------|------|-------------------|
+| Critical Risk Items | Critical | criticalItems > 0 |
+| Items for Write-Off | Warning | writeoffItems > 0 |
+| Items Inactive 180+ Days | Warning | Items with daysSinceMovement > 180 |
 
-### 2.5 Analytics Features
+**Source Evidence**: `slow-moving/page.tsx:419-444`
 
-#### FR-SM-008: Risk Distribution Chart
-| Type | Pie Chart |
-|------|-----------|
+### 2.5 Summary Cards
+
+#### FR-SM-006: Summary Statistics (6 Cards)
+| Card | Metric | Icon | Color |
+|------|--------|------|-------|
+| Total Items | COUNT(slow_moving_items) | Package | Blue |
+| Total Value | SUM(item.value) | DollarSign | Green |
+| Avg Days Idle | AVG(item.daysSinceMovement) | Clock | Orange |
+| Critical Risk | COUNT(riskLevel = 'critical') | AlertTriangle | Red |
+| To Transfer | COUNT(suggestedAction = 'transfer') | ArrowRightLeft | Blue |
+| To Write Off | COUNT(suggestedAction = 'writeoff') | Trash2 | Red |
+
+**Source Evidence**: `slow-moving/page.tsx:567-657`
+
+### 2.6 Analytics Features
+
+#### FR-SM-007: Risk Distribution Chart
+| Type | PieChart |
+|------|----------|
 | Data | Count by risk level |
-| Colors | Green, Amber, Orange, Red |
-| Interaction | Hover for percentages |
+| Colors | Critical (#ef4444), High (#f97316), Medium (#eab308), Low (#22c55e) |
+| Features | Inner/outer radius, labels with percentages, tooltips, legend |
 
-#### FR-SM-009: Category Breakdown Chart
-| Type | Bar Chart |
-|------|-----------|
-| Data | Count by category |
-| Sorting | By count descending |
-| Interaction | Hover for values |
+**Source Evidence**: `slow-moving/page.tsx:964-995`
 
-#### FR-SM-010: Value at Risk Analysis
-| Metric | Calculation |
-|--------|-------------|
-| Critical Value | SUM(value WHERE risk='critical') |
-| High Value | SUM(value WHERE risk='high') |
-| Medium Value | SUM(value WHERE risk='medium') |
-| Total at Risk | SUM of above |
+#### FR-SM-008: Action Distribution Chart
+| Type | PieChart |
+|------|----------|
+| Data | Count by suggested action |
+| Colors | Transfer (#3b82f6), Promote (#8b5cf6), Write Off (#ef4444), Hold (#6b7280) |
+| Features | Inner/outer radius, labels with percentages, tooltips, legend |
 
-### 2.6 Action Center
+**Source Evidence**: `slow-moving/page.tsx:997-1029`
 
-#### FR-SM-011: Action Queue
-| Feature | Description |
-|---------|-------------|
-| Pending Actions | Items requiring action |
-| Priority Sorting | By risk level, then value |
-| Status Tracking | Pending, In Progress, Completed |
-| Bulk Actions | Select multiple items |
+#### FR-SM-009: Aging Distribution Chart
+| Type | ComposedChart (Bar + Line) |
+|------|----------------------------|
+| Data | Items and value by days since movement ranges |
+| Buckets | 30-60, 60-90, 90-120, 120-180, 180+ days |
+| Metrics | Item count (bars), Value (line) |
 
-### 2.7 Filtering Capabilities
+**Source Evidence**: `slow-moving/page.tsx:404-416, 1033-1061`
 
-#### FR-SM-012: Filter Options
+#### FR-SM-010: Category Breakdown
+| Type | Progress Bars |
+|------|---------------|
+| Data | Items, value, and avg days by category |
+| Sorting | By value descending |
+| Limit | Top 10 categories |
+
+**Source Evidence**: `slow-moving/page.tsx:383-391, 1065-1091`
+
+#### FR-SM-011: Location Breakdown
+| Type | Progress Bars |
+|------|---------------|
+| Data | Items, value, and critical count by location |
+| Sorting | By value descending |
+| Features | Critical badge indicator |
+
+**Source Evidence**: `slow-moving/page.tsx:394-402, 1093-1125`
+
+### 2.7 Action Center
+
+#### FR-SM-012: Quick Actions
+| Action | Icon | Description |
+|--------|------|-------------|
+| Bulk Transfer | ArrowRightLeft | Transfer multiple items |
+| Create Promotion | Megaphone | Create promotional campaign |
+| Request Write-Off | Trash2 | Batch write-off request |
+| Export Report | FileDown | Export all items |
+
+**Source Evidence**: `slow-moving/page.tsx:1141-1163`
+
+#### FR-SM-013: Recommended Actions by Risk
+- **Critical Risk Section**: Red border, shows top 5 critical items with action badges
+- **High Risk Section**: Orange border, shows top 5 high risk items with action badges
+- **View All Button**: Expands to show all items in category
+
+**Source Evidence**: `slow-moving/page.tsx:1168-1238`
+
+#### FR-SM-014: Action Summary Cards
+| Action | Color | Shows |
+|--------|-------|-------|
+| Transfer | Blue | Count and label |
+| Promote | Purple | Count and label |
+| Write Off | Red | Count and label |
+| Hold | Gray | Count and label |
+
+**Source Evidence**: `slow-moving/page.tsx:1241-1285`
+
+### 2.8 Filtering Capabilities
+
+#### FR-SM-015: Filter Options
 | Filter | Type | Values |
 |--------|------|--------|
-| Search | Text | Name or code |
-| Category | Dropdown | Dynamic from data |
-| Risk Level | Dropdown | Low, Medium, High, Critical |
-| Suggested Action | Dropdown | Transfer, Promote, Write Off, Hold |
-| Location | Dropdown | User's available locations |
+| Search | Text input | Name or code |
+| Category | Select dropdown | Dynamic from data |
+| Risk Level | Select dropdown | all, low, medium, high, critical |
+| Suggested Action | Select dropdown | all, transfer, promote, writeoff, hold |
+| Location | Select dropdown | User's available locations |
 
-### 2.8 View Modes
+**Source Evidence**: `slow-moving/page.tsx:696-768`
 
-#### FR-SM-013: Display Options
+### 2.9 View Modes
+
+#### FR-SM-016: Display Options
 | View | Description |
 |------|-------------|
 | List | Standard table with sorting |
-| Grouped | Grouped by location |
+| Grouped | Grouped by location with expand/collapse |
+
+**Source Evidence**: `slow-moving/page.tsx:672-694`
+
+### 2.10 Tab Structure
+
+#### FR-SM-017: Available Tabs
+| Tab | Content |
+|-----|---------|
+| Inventory List | Item table with filters |
+| Analytics | Charts and breakdowns |
+| Action Center | Quick actions and recommendations |
+
+**Source Evidence**: `slow-moving/page.tsx:662-667`
 
 ---
 
@@ -173,7 +241,8 @@ suggestAction(item: SlowMovingItem): Action {
 | Page Load | < 2 seconds |
 | Filter Apply | < 500ms |
 | Export | < 5 seconds |
-| Action Execute | < 1 second |
+| Tab Switch | < 300ms |
+| Chart Render | < 1 second |
 
 ### 3.2 Security
 - Role-based access control
@@ -182,49 +251,76 @@ suggestAction(item: SlowMovingItem): Action {
 
 ### 3.3 Usability
 - Responsive design
-- Clear risk indicators
+- Clear risk indicators with color coding
 - Intuitive action workflow
+- Expandable/collapsible grouped views
 
 ---
 
 ## 4. Data Requirements
 
-### 4.1 Slow Moving Item Structure
+### 4.1 Slow Moving Item Interface
 ```typescript
 interface SlowMovingItem {
   id: string
-  code: string
-  name: string
+  productId: string
+  productCode: string
+  productName: string
   category: string
   unit: string
+  locationId: string
+  locationName: string
+  lastMovementDate: Date
+  daysSinceMovement: number
   currentStock: number
   value: number
-  daysIdle: number
-  lastMovementDate: string
-  lastReceiptDate: string
-  lastIssueDate: string
-  riskLevel: 'low' | 'medium' | 'high' | 'critical'
+  averageCost: number
+  turnoverRate: number  // movements per month
   suggestedAction: 'transfer' | 'promote' | 'writeoff' | 'hold'
-  location: {
-    id: string
-    name: string
-  }
+  riskLevel: 'low' | 'medium' | 'high' | 'critical'
 }
 ```
 
-### 4.2 Summary Statistics
+**Source Evidence**: `lib/mock-data/location-inventory.ts:189-206`
+
+### 4.2 Slow Moving Group Interface
+```typescript
+interface SlowMovingGroup {
+  locationId: string
+  locationName: string
+  items: SlowMovingItem[]
+  subtotals: {
+    totalItems: number
+    totalQuantity: number
+    totalValue: number
+    avgDaysSinceMovement: number
+    criticalItems: number
+  }
+  isExpanded: boolean
+}
+```
+
+**Source Evidence**: `lib/mock-data/location-inventory.ts:208-219`
+
+### 4.3 Summary Statistics
 ```typescript
 interface SlowMovingStats {
   totalItems: number
   totalValue: number
-  avgDaysIdle: number
-  criticalCount: number
-  transferCount: number
-  writeOffCount: number
-  riskDistribution: RiskCount[]
-  categoryBreakdown: CategoryCount[]
+  avgDaysSinceMovement: number
+  criticalItems: number
+  highRiskItems: number
+  mediumRiskItems: number
+  lowRiskItems: number
+  transferItems: number
+  promoteItems: number
+  writeoffItems: number
+  holdItems: number
+  criticalValue: number
 }
 ```
+
+**Source Evidence**: `slow-moving/page.tsx:332-362`
 
 ---
 
@@ -243,68 +339,49 @@ System suggests actions based on risk level, value, and category.
 ### BR-003: Location Access Control
 Users can only view items in their assigned locations, except System Administrators.
 
-### BR-004: Value Threshold
-Items below minimum value threshold are recommended for write-off at critical risk.
+### BR-004: Alert Generation
+- Critical alert when criticalItems > 0
+- Warning alert when writeoffItems > 0
+- Warning alert when items inactive for 180+ days
 
-### BR-005: Transfer Eligibility
-Items can only be recommended for transfer if stock exists in multiple locations.
+### BR-005: Aging Distribution
+Items grouped into buckets: 30-60, 60-90, 90-120, 120-180, 180+ days.
 
 ---
 
 ## 6. Acceptance Criteria
 
-### AC-001: Item Display
-- [ ] All slow-moving items displayed with required fields
-- [ ] Risk level badges show correct colors
-- [ ] Days idle calculated correctly
+### AC-001: Summary Cards
+- [ ] All 6 summary cards display correctly
+- [ ] Icons and colors match specifications
+- [ ] Values update with filter changes
+- [ ] Critical card shows border when items exist
 
-### AC-002: Risk Classification
-- [ ] Items classified correctly based on days idle
+### AC-002: Alerts
+- [ ] Critical alert displays for critical items
+- [ ] Warning alert displays for write-off items
+- [ ] Warning alert displays for 180+ day items
+- [ ] Alert icons and colors are correct
+
+### AC-003: Risk Classification
+- [ ] Items classified correctly based on days since movement
 - [ ] Risk badges display appropriate colors
 - [ ] Priority sorting works correctly
 
-### AC-003: Action Recommendations
-- [ ] Suggested actions display for all items
-- [ ] Action icons and colors are correct
-- [ ] Recommendations follow business logic
-
 ### AC-004: Analytics
-- [ ] Risk distribution chart renders correctly
-- [ ] Category breakdown shows accurate data
-- [ ] Charts update with filter changes
+- [ ] Risk distribution pie chart renders correctly
+- [ ] Action distribution pie chart renders correctly
+- [ ] Aging distribution chart shows bars and line
+- [ ] Category and location breakdowns display
 
 ### AC-005: Action Center
-- [ ] Pending actions display correctly
-- [ ] Priority sorting works
-- [ ] Actions can be executed
+- [ ] Quick action buttons display with counts
+- [ ] Critical and high risk sections show items
+- [ ] Action summary cards display correctly
 
 ---
 
-## 7. User Stories
-
-### US-001: Identify Slow Moving Stock
-**As an** Inventory Manager
-**I want to** see all slow-moving items
-**So that** I can take action to reduce waste
-
-### US-002: Assess Risk
-**As a** Financial Controller
-**I want to** see value at risk by category
-**So that** I can prioritize actions
-
-### US-003: Take Action
-**As an** Inventory Manager
-**I want to** execute recommended actions
-**So that** I can reduce slow-moving inventory
-
-### US-004: Filter by Location
-**As a** Storekeeper
-**I want to** see slow-moving items at my location
-**So that** I can address local issues
-
----
-
-## 8. Risks and Mitigations
+## 7. Risks and Mitigations
 
 | Risk | Impact | Probability | Mitigation |
 |------|--------|-------------|------------|
@@ -312,3 +389,13 @@ Items can only be recommended for transfer if stock exists in multiple locations
 | Action not executed | Medium | Medium | Implement tracking and reminders |
 | Data latency | Medium | Low | Real-time movement tracking |
 | User ignores recommendations | High | Medium | Dashboard KPIs and reports |
+| Chart rendering delay | Medium | Low | Lazy load chart components |
+
+---
+
+## Related Documents
+
+- [TS-slow-moving.md](./TS-slow-moving.md) - Technical Specification
+- [FD-slow-moving.md](./FD-slow-moving.md) - Flow Diagrams
+- [UC-slow-moving.md](./UC-slow-moving.md) - Use Cases
+- [VAL-slow-moving.md](./VAL-slow-moving.md) - Validations

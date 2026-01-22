@@ -1,10 +1,10 @@
 # Recipe Cuisine Types - Data Definition (DS)
 
 ## Document Information
-- **Document Type**: Data Schema Document
+- **Document Type**: Data Definition Document
 - **Module**: Operational Planning > Recipe Management > Cuisine Types
-- **Version**: 1.0
-- **Last Updated**: 2024-01-15
+- **Version**: 2.0.0
+- **Last Updated**: 2025-01-16
 - **Related Documents**:
   - [BR-cuisine-types.md](./BR-cuisine-types.md) - Business Requirements
   - [TS-cuisine-types.md](./TS-cuisine-types.md) - Technical Specification
@@ -14,12 +14,12 @@
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
 | 1.0 | 2024-01-15 | System | Initial data schema document created |
+| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
+| 2.0.0 | 2025-01-16 | Development Team | Aligned with actual implementation: added country, typicalIngredients, cookingMethods, flavorProfile, spiceLevel, image, flag fields |
 
 ---
 
 ## 1. Database Schema
-
-| 1.1.0 | 2025-11-15 | Documentation Team | Migrated from DS to DD format |
 
 ### 1.1 PostgreSQL Table Definition
 

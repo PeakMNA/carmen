@@ -3,13 +3,14 @@
 ## Module Information
 - **Module**: Vendor Management
 - **Sub-module**: Vendor Directory
-- **Version**: 2.2.0
+- **Version**: 2.3.0
 - **Status**: Active
-- **Last Updated**: 2025-11-25
+- **Last Updated**: 2025-01-15
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 2.3.0 | 2025-01-15 | Claude | Synced with current code: Updated vendor status to 3-value system (active, inactive, suspended); Updated currency list to 12 values; Added validation for status field |
 | 1.1.0 | 2025-12-10 | Documentation Team | Standardized reference number format (XXX-YYMM-NNNN) |
 | 2.2.0 | 2025-11-25 | System | Updated address format to Asian international standard; Full certification management with status tracking implemented |
 | 2.1.0 | 2025-11-25 | System | Added multi-address and multi-contact management with primary designation |
@@ -136,8 +137,13 @@ INDEX vendor_name_u ON tb_vendor(name)
   "payment_terms": {
     "default_terms": "NET30",
     "discount_terms": "2/10 NET30",
-    "currency_preference": "USD",
+    "currency_preference": "BHT",  // Supported: BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN
     "payment_methods": ['bank_transfer', 'check', 'credit_card']
+  },
+  "status_info": {
+    "current_status": "active",  // Allowed: 'active' | 'inactive' | 'suspended'
+    "status_reason": null,
+    "status_changed_at": null
   },
   "delivery_info": {
     "lead_time_days": 7,
@@ -698,6 +704,16 @@ CREATE UNIQUE INDEX idx_vendor_rating_vendor_period
 3. **VAL-VEN-003**: Business type requirement
    - Rule: `business_type_id` should be specified
    - Error: "Business type is required"
+
+4. **VAL-VEN-004**: Vendor status validation
+   - Rule: Status must be one of: 'active', 'inactive', 'suspended'
+   - Default: 'active'
+   - Error: "Invalid status. Allowed values: active, inactive, suspended"
+
+5. **VAL-VEN-005**: Currency validation
+   - Rule: Preferred currency must be one of: BHT, USD, CNY, SGD, EUR, GBP, CAD, AUD, JPY, CHF, INR, MXN
+   - Default: 'BHT'
+   - Error: "Currency not supported"
 
 ### Contact Validation
 

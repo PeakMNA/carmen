@@ -4,8 +4,8 @@
 - **Module**: Store Operations
 - **Sub-Module**: Wastage Reporting
 - **Route**: `/app/(main)/store-operations/wastage-reporting`
-- **Version**: 1.2.0
-- **Last Updated**: 2025-12-09
+- **Version**: 1.3.0
+- **Last Updated**: 2025-01-15
 - **Owner**: Store Operations Team
 - **Status**: Active
 - **Implementation Status**: IMPLEMENTED (Frontend UI Complete with Mock Data)
@@ -13,6 +13,7 @@
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 1.3.0 | 2025-01-15 | Claude | Updated status values to match code: Draft, Submitted, Under Review, Approved, Rejected, Posted |
 | 1.2.0 | 2025-12-09 | Documentation Team | Updated to reflect implemented frontend workflows |
 | 1.1.0 | 2025-12-05 | Documentation Team | Added implementation status warning |
 | 1.0.0 | 2025-01-12 | Store Operations Team | Initial version |
@@ -250,7 +251,7 @@ The use cases are organized into four categories:
 11. Chef Daniel attaches 2 photos of overcooked salmon using mobile camera
 12. System validates all required fields and business rules (BR-WAST-001 to BR-WAST-006)
 13. Chef Daniel clicks "Submit for Approval"
-14. System creates wastage transaction with status "pending_approval", generates wastage number WST-2501-0112-0023
+14. System creates wastage transaction with status "Submitted", generates wastage number WR-2501-0112-0023
 15. System routes wastage to appropriate approver based on value ($31.25 < $50, routes to Department Manager)
 16. System displays success message: "Wastage WST-2501-0112-0023 submitted for approval. Department Manager will review."
 17. System sends notification to Department Manager
@@ -279,14 +280,14 @@ The use cases are organized into four categories:
 **Alt-1D: Auto-Approval for Expired Items** (At step 14)
 - 14a. System detects category is "Expired Items" and product expiry date is within 24 hours
 - 14b. System applies auto-approval rule (BR-WAST-007)
-- 14c. System sets status to "approved" instead of "pending_approval"
+- 14c. System sets status to "Approved" instead of "Submitted"
 - 14d. System immediately creates inventory adjustment (UC-WAST-101)
 - 14e. System displays message: "Wastage auto-approved (expired item policy)"
 - Resume at step 16
 
 **Alt-1E: Save as Draft** (At any step before step 13)
 - User clicks "Save as Draft" button
-- System saves wastage transaction with status "draft"
+- System saves wastage transaction with status "Draft"
 - User can return later to complete and submit
 - Use case ends
 
@@ -489,7 +490,7 @@ The use cases are organized into four categories:
 
 **Preconditions**:
 - User is authenticated with "Wastage Approver" permission
-- Wastage transaction exists in "pending_approval" status
+- Wastage transaction exists in "Under Review" status
 - Wastage is routed to user's approval queue based on value threshold and role
 - User has permission to approve for the wastage location
 
@@ -538,7 +539,7 @@ The use cases are organized into four categories:
 - 10d. Maria enters approved quantity: 2 kg (reduces from 2.5 kg to 2 kg)
 - 10e. Maria enters reduction reason: "Verified only 2 kg wasted, remaining 0.5 kg salvageable"
 - 10f. System calculates approved value: $25.00 (2 kg × $12.50)
-- 10g. System updates wastage with approved_quantity (2 kg), rejected_quantity (0.5 kg), status "partially_approved"
+- 10g. System updates wastage with approved_quantity (2 kg), rejected_quantity (0.5 kg), status "Approved"
 - 10h. System creates inventory adjustment for approved quantity only (2 kg)
 - 10i. System sends notification to Chef Daniel explaining partial approval and reduction reason
 - 10j. System creates new draft wastage for remaining 0.5 kg for Chef Daniel to review and resubmit if necessary
@@ -564,11 +565,11 @@ The use cases are organized into four categories:
 **Alt-3D: Multi-Level Approval Required** (At step 15)
 - 15a. System detects wastage value ($450) requires two approval levels (Store Manager + Finance Manager)
 - 15b. Maria (Store Manager) approves first level
-- 15c. System updates status to "partially_approved" (Level 1 complete)
+- 15c. System keeps status as "Under Review" (Level 1 complete, routing to Level 2)
 - 15d. System routes wastage to Finance Manager's approval queue
 - 15e. System notifies Finance Manager of pending approval
 - 15f. Finance Manager Frank reviews and approves second level (UC-WAST-003 repeated)
-- 15g. After Frank's approval, system updates status to "approved" and triggers inventory adjustment
+- 15g. After Frank's approval, system updates status to "Approved" and prepares for posting
 - Use case ends
 
 **Exception Flows**:
@@ -644,7 +645,7 @@ The use cases are organized into four categories:
 
 **Preconditions**:
 - User is authenticated with "Wastage Approver" permission
-- Wastage transaction exists in "pending_approval" status
+- Wastage transaction exists in "Under Review" status
 - Wastage is in user's approval queue
 - User has reviewed wastage details and determined it should be rejected
 
@@ -720,7 +721,7 @@ The use cases are organized into four categories:
 
 **Exc-4C: Wastage Already Approved by Another Approver** (At step 11)
 - Race condition: another approver approved the same wastage while Maria was reviewing (multi-level approval scenario)
-- System detects status changed from "pending_approval" to "approved"
+- System detects status changed from "Approved" to "Posted"
 - System displays: "This wastage has already been approved by [Other Approver]. Your rejection cannot be processed."
 - System refreshes approval queue to show updated status
 - Use case ends

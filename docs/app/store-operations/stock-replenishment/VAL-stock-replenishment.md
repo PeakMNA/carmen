@@ -48,7 +48,8 @@ This document defines all validation rules for the Stock Replenishment module, i
 |---------|-------|------------|---------------|
 | VAL-FLD-018 | refNo | FORMAT: SR-YYMM-NNNN | Invalid reference number format |
 | VAL-FLD-019 | requestDate | NOT NULL | Request date is required |
-| VAL-FLD-020 | status | VALID_ENUM | Invalid status value |
+| VAL-FLD-020 | status | VALID SRStatus ENUM (draft, in_progress, completed, cancelled, voided) | Invalid status value |
+| VAL-FLD-020b | stage | VALID SRStage ENUM (draft, submit, approve, issue, complete) | Invalid stage value |
 | VAL-FLD-021 | workflowType | VALID_ENUM | Invalid workflow type |
 | VAL-FLD-022 | departmentId | NOT NULL | Department is required |
 | VAL-FLD-023 | requestorId | NOT NULL | Requestor is required |

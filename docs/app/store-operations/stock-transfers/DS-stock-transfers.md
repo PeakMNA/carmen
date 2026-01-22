@@ -146,8 +146,8 @@ interface StoreRequisitionItem {
   issuedQty: number                       // Quantity issued
 
   // Costing
-  unitCost: Money                         // Cost per unit
-  totalCost: Money                        // issuedQty × unitCost
+  unitCost: number                        // Cost per unit
+  totalCost: number                       // issuedQty × unitCost
 
   // Notes
   notes?: string                          // Line item notes
@@ -250,9 +250,8 @@ function calculateTotalQuantity(items: StoreRequisitionItem[]): number {
 }
 
 // Calculate total value
-function calculateTotalValue(items: StoreRequisitionItem[]): Money {
-  const total = items.reduce((sum, item) => sum + item.totalCost.amount, 0)
-  return { amount: total, currency: 'USD' }
+function calculateTotalValue(items: StoreRequisitionItem[]): number {
+  return items.reduce((sum, item) => sum + item.totalCost, 0)
 }
 ```
 
@@ -349,8 +348,8 @@ const sampleTransferSR: StoreRequisition = {
       requestedQty: 10,
       approvedQty: 10,
       issuedQty: 10,
-      unitCost: { amount: 8.50, currency: 'USD' },
-      totalCost: { amount: 85.00, currency: 'USD' }
+      unitCost: 8.50,
+      totalCost: 85.00
     }
   ],
 
@@ -431,3 +430,12 @@ The following fields have been **removed** as Stock Transfers are now views, not
 - Remove imports of `TransferStatus`, `StockTransfer`, `StockTransferItem`
 - Replace with `SRStatus`, `SRStage`, `StoreRequisition`, `StoreRequisitionItem`
 - Update queries to filter SR data instead of querying separate ST table
+
+---
+
+## Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0.0 | 2024-12-01 | System | Initial creation as filtered view architecture |
+| 1.1.0 | 2025-01-15 | Claude | Fixed `unitCost` and `totalCost` types from `Money` to `number` to match `lib/types/store-requisition.ts` |

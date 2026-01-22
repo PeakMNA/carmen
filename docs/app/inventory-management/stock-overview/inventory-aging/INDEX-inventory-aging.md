@@ -6,6 +6,15 @@ The **Inventory Aging** module provides comprehensive analysis and tracking of i
 
 ---
 
+## Quick Navigation
+
+| | | |
+|:---:|:---:|:---:|
+| [**BR**](/inventory-management/stock-overview/inventory-aging/business-requirements)<br/>Business Requirements | [**UC**](/inventory-management/stock-overview/inventory-aging/use-cases)<br/>Use Cases | [**TS**](/inventory-management/stock-overview/inventory-aging/technical-specification)<br/>Technical Spec |
+| [**DD**](/inventory-management/stock-overview/inventory-aging/data-dictionary)<br/>Data Dictionary | [**FD**](/inventory-management/stock-overview/inventory-aging/flow-diagrams)<br/>Flow Diagrams | [**VAL**](/inventory-management/stock-overview/inventory-aging/validations)<br/>Validations |
+
+---
+
 ## Module Information
 
 | Property | Value |
@@ -140,6 +149,7 @@ app/(main)/inventory-management/stock-overview/inventory-aging/
 | **Business Requirements** | Functional requirements and business objectives | [BR-inventory-aging.md](./BR-inventory-aging.md) |
 | **Use Cases** | User interaction scenarios | [UC-inventory-aging.md](./UC-inventory-aging.md) |
 | **Technical Specification** | Architecture and implementation details | [TS-inventory-aging.md](./TS-inventory-aging.md) |
+| **Data Dictionary** | Data structures and schema definitions | [DD-inventory-aging.md](./DD-inventory-aging.md) |
 | **Flow Diagrams** | Visual process flows | [FD-inventory-aging.md](./FD-inventory-aging.md) |
 | **Validation Rules** | Data validation and business rules | [VAL-inventory-aging.md](./VAL-inventory-aging.md) |
 

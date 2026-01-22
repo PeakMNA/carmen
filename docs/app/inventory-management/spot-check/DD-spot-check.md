@@ -4,17 +4,18 @@
 - **Module**: Inventory Management
 - **Sub-Module**: Spot Check
 - **Route**: `/app/(main)/inventory-management/spot-check`
-- **Version**: 2.1.0
-- **Last Updated**: 2025-12-09
+- **Version**: 2.2.0
+- **Last Updated**: 2025-01-16
 - **Owner**: Inventory Management Team
 - **Status**: Implemented
 
 ## Document History
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
-| 1.0.0 | 2025-01-11 | System | Initial version (planned database design) |
-| 2.0.0 | 2025-12-06 | System | Updated to reflect actual TypeScript implementation |
+| 2.2.0 | 2025-01-16 | Documentation Team | Verified against source code, noted types.ts discrepancy |
 | 2.1.0 | 2025-12-09 | System | Updated for 2-step wizard, revised SelectionMethod, added Zustand store types |
+| 2.0.0 | 2025-12-06 | System | Updated to reflect actual TypeScript implementation |
+| 1.0.0 | 2025-01-11 | System | Initial version (planned database design) |
 
 ---
 
@@ -134,6 +135,8 @@ type SelectionMethod = 'random' | 'high-value' | 'manual';
 | `random` | System generates random selection | Routine verification, unbiased sampling |
 | `high-value` | Automatically selects highest-value items | Risk management, high-cost items |
 | `manual` | User selects individual items | Targeted investigation, specific concerns |
+
+> **Note (2025-01-16)**: The `types.ts` file still contains legacy values `'random' | 'manual' | 'category' | 'value-based'` in `SpotCheckFormData`. The actual `new/page.tsx` implementation uses the values documented above (`'random' | 'high-value' | 'manual'`). The types.ts file should be updated to match the implementation.
 
 ---
 

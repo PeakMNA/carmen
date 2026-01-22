@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Technical Specification Document
 - **Module**: Vendor Management > Requests for Pricing
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-26
-- **Document Status**: Updated
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
+- **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated CampaignSettings priority to include 'normal'; Added tags field; Updated CampaignVendorStatus interface with all fields |
 | 2.0.0 | 2025-11-26 | System | Complete rewrite to match BR v2.0.0 and actual code; Removed fictional RFQ features; Removed code blocks per specification (text + sitemap only); Updated to reflect Price Collection Campaign functionality |
 | 1.0 | 2024-01-15 | System | Initial technical specification document |
 
@@ -198,7 +199,7 @@ The module follows the Next.js App Router pattern with Server Components as defa
 - reminderSchedule: ReminderSchedule object
 - emailTemplate: string (optional)
 - customInstructions: string (optional)
-- priority: Priority enum (low, medium, high, urgent)
+- priority: Priority enum (low, normal, medium, high, urgent)
 
 **RecurringPattern Interface**
 - frequency: Frequency enum (weekly, monthly, quarterly, annually)

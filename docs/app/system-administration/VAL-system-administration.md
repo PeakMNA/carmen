@@ -599,7 +599,7 @@ Data Stored
 **Test Cases**:
 - ✅ Valid: approvalLimit (number) = 5000
 - ✅ Valid: weekendAccess (boolean) = true
-- ✅ Valid: hireDate (datetime) = "2025-01-15T00:00:00Z"
+- ✅ Valid: hireDate (datetime) = "2026-01-15T00:00:00Z"
 - ❌ Invalid: approvalLimit (number) = "five thousand"
 - ❌ Invalid: weekendAccess (boolean) = "yes"
 

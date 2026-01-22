@@ -3,9 +3,17 @@
 ## Document Information
 - **Document Type**: Business Requirements Document
 - **Module**: Vendor Management > Pricelist Templates
-- **Version**: 1.0
-- **Last Updated**: 2025-11-15
-- **Document Status**: Draft
+- **Version**: 3.0.0
+- **Last Updated**: 2025-01-15
+- **Document Status**: Active
+
+## Document History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 3.0.0 | 2025-01-15 | Documentation Team | Synced with current code; Added 3-step wizard creation flow; Updated currency options (BHT, USD, CNY, SGD); Added notification settings and Multi-MOQ features; Updated to use validityPeriod instead of effective date range; Added hierarchical product selection |
+| 2.0.0 | 2025-11-25 | Documentation Team | Simplified to core template functionality |
+| 1.0 | 2025-11-15 | System | Initial creation |
 
 ## 1. Executive Summary
 
@@ -21,15 +29,17 @@ The Pricelist Templates module provides a centralized system for creating, manag
 
 ### 1.2 Scope
 **In Scope**:
-- Template creation and management
-- Product/item assignment to templates
-- Multi-level pricing structures (unit, case, bulk)
-- Location-specific templates
-- Department-specific templates
+- Template creation via 3-step wizard (Basic Info → Product Selection → Settings & Notifications)
+- Hierarchical product/item selection (Categories, Subcategories, Item Groups, Specific Items)
+- Multi-MOQ pricing structures
+- Multi-currency support (BHT, USD, CNY, SGD)
 - Template versioning and history
 - Template activation/deactivation
 - Template cloning and duplication
 - Template distribution to vendors
+- Notification settings with reminder schedules
+- Excel template generation
+- Request for Pricing (RfP) campaign creation
 - Template usage tracking and analytics
 
 **Out of Scope**:
@@ -44,28 +54,41 @@ The Pricelist Templates module provides a centralized system for creating, manag
 
 ### FR-PT-001: Template Creation and Management
 **Priority**: Critical
-**Description**: System shall provide comprehensive template creation and management capabilities.
+**Description**: System shall provide comprehensive template creation and management capabilities via a 3-step wizard.
 
 **Requirements**:
-- Create new templates with required metadata:
-  - Template name (Unique)
-  - Currency
-  - Description
-  - Vendor instruction 
-  - Effective date range
-- Edit existing templates
-- Active/inactive templates
+- Create new templates via 3-step wizard:
+  - **Step 1 - Basic Information**:
+    - Template name (Unique, required)
+    - Description (optional)
+    - Currency (dropdown: BHT, USD, CNY, SGD)
+    - Validity Period (days, default: 90)
+    - Vendor Instructions (optional)
+  - **Step 2 - Product Selection**:
+    - Hierarchical selection (Categories, Subcategories, Item Groups, Specific Items)
+    - Multi-select with checkboxes
+    - Selection summary with counts
+  - **Step 3 - Settings & Notifications**:
+    - Allow Multi-MOQ (toggle)
+    - Require Lead Time (toggle)
+    - Max Items Per Submission
+    - Send Reminders (toggle)
+    - Reminder Days (14, 7, 3, 1 days before deadline)
+    - Escalation Days
+- Edit existing templates with inline editing
+- Activate/Deactivate templates
 - Clone templates for reuse
 - Version control for template changes
-- Bulk operations (activate, archive multiple templates)
-- Export template to Excel/CSV
+- Export template to Excel (with customization options)
+- Table/Card view toggle for template list
 
 **Business Rules**:
 - Template name must be descriptive and unique
-- Default to base currency
+- Default currency is BHT
+- Default validity period is 90 days
 
 **Acceptance Criteria**:
-- User can create template in < 3 minutes
+- User can create template via wizard in < 3 minutes
 - Version history preserved for all changes
 - Cloning creates independent copy with new name
 - All changes logged with user and timestamp
@@ -74,33 +97,34 @@ The Pricelist Templates module provides a centralized system for creating, manag
 
 ### FR-PT-002: Product/Item Assignment
 **Priority**: Critical
-**Description**: System shall support flexible product and item assignment to templates.
+**Description**: System shall support flexible hierarchical product and item assignment to templates.
 
 **Requirements**:
-- Add products/items to template individually
-- Bulk add products by:
-  - Category
-  - Subcategory
-  - Itemsgroup
-  - Custom selection
-- Search and filter products for assignment
-- Specify item attributes:
+- Hierarchical product selection via ProductSelectionComponent:
+  - Select entire Categories (checkbox)
+  - Select specific Subcategories (checkbox)
+  - Select Item Groups (checkbox)
+  - Select individual Specific Items (checkbox)
+- Selection at higher level includes all children
+- Search and filter products within each level
+- Selection summary with counts per level
+- Clear all selections option
+- Specify item attributes when needed:
   - Unit of measure (UOM)
   - Minimum order quantity (MOQ)
   - Expected delivery time (Lead time)
-- Reorder items within template
-- Remove items from template
 
 **Business Rules**:
-- Each template must have at least 1 product/item
+- Each template must have at least 1 selection (category, subcategory, item group, or specific item)
 - Products can appear in multiple templates
+- Hierarchical selection: selecting a category includes all its subcategories, item groups, and items
 - Unit of measure must be standardized
 
 **Acceptance Criteria**:
-- Bulk add supports 100+ products in <10 seconds
+- Hierarchical selection supports 1000+ products
 - Search results appear in <1 second
-- Custom item validation before saving
-- Product assignment logged in audit trail
+- Selection summary updates in real-time
+- Product selection logged in audit trail
 
 ---
 
@@ -197,25 +221,41 @@ The Pricelist Templates module provides a centralized system for creating, manag
 
 ### 4.1 Core Data Entities
 
-**Template**:
+**Template** (PricelistTemplate):
 - Template ID (primary key)
 - Template Name (unique)
 - Description
-- Currency
-- Status (Draft, Active, Inactive)
-- Effective Date Range
+- Default Currency (BHT, USD, CNY, SGD)
+- Supported Currencies (array)
+- Validity Period (days)
+- Status (draft, active, inactive)
+- Product Selection (hierarchical):
+  - Categories (array of IDs)
+  - Subcategories (array of IDs)
+  - Item Groups (array of IDs)
+  - Specific Items (array of IDs)
+- Custom Fields (array)
+- Instructions (vendor instructions)
+- Allow Multi-MOQ (boolean)
+- Require Lead Time (boolean)
+- Max Items Per Submission (number)
+- Notification Settings:
+  - Send Reminders (boolean)
+  - Reminder Days (array: [14, 7, 3, 1])
+  - Escalation Days (number)
 - Created By / Date
 - Modified By / Date
 
-**Template Item**:
+**Template Item** (PricelistTemplateDetail):
 - Item ID (primary key)
 - Template ID (foreign key)
 - Product ID (foreign key)
 - Item Sequence
+- Product Name (denormalized)
 - Unit of Measure
 - Minimum Order Quantity
-- Expected Delivery Time (Lead time)
-- Custom Attributes
+- Lead Time Days
+- Custom Attributes (JSON)
 
 ### 4.2 Data Volumes (Estimated)
 - Templates: 1,000 - 10,000 records
@@ -286,18 +326,37 @@ Template currency must match vendor's default currency or be explicitly overridd
 
 ## 7. Workflow Specifications
 
-### 7.1 Template Creation Workflow
-1. **Initiation**: User creates new template
-2. **Basic Information**: Enter template metadata
-3. **Product Assignment**: Add products/items to template
-7. **Review**: Preview template
-9. **Activation**: Template ready for distribution
+### 7.1 Template Creation Workflow (3-Step Wizard)
+1. **Step 1 - Basic Information**:
+   - Enter template name (unique, required)
+   - Enter description (optional)
+   - Select currency (BHT, USD, CNY, SGD)
+   - Set validity period (days, default: 90)
+   - Enter vendor instructions (optional)
+2. **Step 2 - Product Selection**:
+   - Select categories (checkbox)
+   - Select subcategories (checkbox)
+   - Select item groups (checkbox)
+   - Select specific items (checkbox)
+   - Review selection summary
+3. **Step 3 - Settings & Notifications**:
+   - Configure Allow Multi-MOQ (toggle)
+   - Configure Require Lead Time (toggle)
+   - Set Max Items Per Submission
+   - Configure Send Reminders (toggle)
+   - Select Reminder Days (14, 7, 3, 1)
+   - Set Escalation Days
+4. **Review**: Preview template before saving
+5. **Save**: Template saved as Draft status
+6. **Activation**: Change status to Active when ready
 
 ### 7.2 Template Update Workflow
-1. **Edit Request**: User initiates template edit
-2. **Change Detection**: System identifies type of changes (major/minor)
-3. **Modification**: Make changes to template
-4. **Activation**: Apply changes and notify affected parties
+1. **Edit Request**: User navigates to template edit page
+2. **Inline Editing**: Modify fields with inline editing
+3. **Settings Update**: Update notification and template settings
+4. **Product Selection**: Modify hierarchical product selection if needed
+5. **Save Changes**: Apply changes with version increment
+6. **Notification**: Notify affected parties if Active template changed
 
 ---
 

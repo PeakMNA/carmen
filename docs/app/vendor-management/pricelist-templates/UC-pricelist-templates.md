@@ -3,14 +3,15 @@
 ## Document Information
 - **Document Type**: Use Cases Document
 - **Module**: Vendor Management > Pricelist Templates
-- **Version**: 2.0.0
-- **Last Updated**: 2025-11-25
+- **Version**: 3.0.0
+- **Last Updated**: 2026-01-15
 - **Document Status**: Active
 
 ## Document History
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| 3.0.0 | 2026-01-15 | Documentation Team | Synced with current code; Updated UC-PT-001 to 3-step wizard flow; Updated UC-PT-002 for hierarchical product selection; Added notification settings and Multi-MOQ configuration; Updated route paths from /pricelist-templates to /templates; Added currency options (BHT, USD, CNY, SGD) |
 | 2.0.0 | 2025-11-25 | Documentation Team | Simplified to align with BR-pricelist-templates.md; Reduced from 18 to 6 core use cases; Removed distribution, approval, versioning, submission tracking use cases |
 | 1.1 | 2025-11-25 | System | Updated document status to Active |
 | 1.0 | 2024-01-15 | System | Initial creation with detailed use cases |
@@ -96,57 +97,77 @@ This document covers all user interactions with the Pricelist Templates module a
 - System is operational
 - Product catalog is accessible
 
-#### Main Flow
-1. User navigates to Pricelist Templates module
+#### Main Flow (3-Step Wizard)
+1. User navigates to Vendor Management > Templates (/vendor-management/templates)
 2. User clicks "Create New Template" button
-3. System displays template creation form with sections:
-   - Basic Information
-   - Product Assignment
+3. System displays 3-step wizard interface
+
+**Step 1: Basic Information**
 4. User enters basic information:
    - Template Name (required, unique)
    - Description (optional)
-   - Currency (optional, dropdown)
+   - Currency (required, dropdown: BHT, USD, CNY, SGD)
+   - Validity Period (days, default: 90)
    - Vendor Instructions (optional, textarea)
-   - Effective Date Range (optional start/end dates)
 5. System validates template name uniqueness
-6. User clicks "Next" to proceed to Product Assignment
-7. System saves draft and displays product assignment interface
-8. User adds products (see UC-PT-002 for details)
-9. User clicks "Save Template"
-10. System validates:
+6. User clicks "Next" to proceed to Step 2
+
+**Step 2: Product Selection**
+7. System displays hierarchical product selection interface
+8. User selects products using hierarchical selection:
+   - Select entire Categories (checkbox)
+   - Select specific Subcategories (checkbox)
+   - Select Item Groups (checkbox)
+   - Select individual Specific Items (checkbox)
+9. System shows selection summary with count badges
+10. User clicks "Next" to proceed to Step 3
+
+**Step 3: Settings & Notifications**
+11. User configures template settings:
+    - Allow Multi-MOQ (toggle, default: on)
+    - Require Lead Time (toggle, default: on)
+    - Max Items Per Submission (number, default: 1000)
+12. User configures notification settings:
+    - Send Reminders (toggle, default: on)
+    - Reminder Days (checkboxes: 14, 7, 3, 1 days)
+    - Escalation Days (number, default: 14)
+13. User reviews template summary
+14. User clicks "Create Template"
+15. System validates:
     - Template name is unique (BR-PT-001)
-    - At least one product assigned (BR-PT-002)
-11. If validation passes:
+    - At least one product selection (BR-PT-002)
+16. If validation passes:
     - System saves template with status "Draft"
     - System generates unique template ID
     - System displays success message
-12. System logs creation in audit trail
+17. System navigates to template detail page
+18. System logs creation in audit trail
 
 #### Postconditions
 - **Success**: Template created in database with Draft status
 - **Success**: Template ID assigned and displayed
 - **Success**: All fields saved with entered data
+- **Success**: Notification settings configured
 - **Success**: Audit log entry created
 
 #### Alternate Flows
 
 **AF-001: Clone from Existing Template**
-- At step 3, user clicks "Start from Existing Template":
-  - System displays template search dialog
-  - User searches and selects source template
-  - System copies all settings except:
-    - Template name (appends "Copy of")
-    - Effective dates (clears)
-  - System pre-fills form with copied data
+- At step 2, user clicks "Duplicate" on existing template:
+  - System creates copy with "Copy of [Original Name]"
+  - System opens cloned template in edit mode
   - User modifies as needed
-  - Continue to step 5
+  - Continue to save
 
-**AF-002: Save as Draft Midway**
-- At any step before step 9:
-  - User clicks "Save Draft"
-  - System saves current progress
-  - System displays "Draft saved" message
-  - User can exit and resume later
+**AF-002: Navigate Between Wizard Steps**
+- At any step, user can click "Previous" to go back
+- System preserves entered data when navigating between steps
+
+**AF-003: Cancel Creation**
+- At any step, user clicks "Cancel"
+- System displays confirmation dialog
+- User confirms cancellation
+- System returns to template list
 
 #### Exception Flows
 
@@ -158,35 +179,31 @@ This document covers all user interactions with the Pricelist Templates module a
   - Continue to step 5
 
 **EF-002: Missing Required Fields**
-- At step 10, if required fields are missing:
+- At step 15, if required fields are missing:
   - System highlights missing fields with red borders
   - System displays validation summary
   - User completes missing fields
   - User clicks Save again
+  - Continue to step 15
+
+**EF-003: No Products Selected**
+- At step 15, if no products selected:
+  - System displays error: "Template must have at least one product selection."
+  - System navigates to Step 2 (Product Selection)
+  - User must select products
   - Continue to step 10
-
-**EF-003: No Products Assigned**
-- At step 10, if no products added to template:
-  - System displays error: "Template must have at least one product."
-  - System navigates to Product Assignment section
-  - User must add products (see UC-PT-002)
-  - Continue to step 9
-
-**EF-004: Invalid Date Range**
-- At step 4, if end date is before start date:
-  - System highlights date fields
-  - System displays error: "End date must be after start date"
-  - User corrects dates
-  - Continue to step 4
 
 #### Business Rules Applied
 - BR-PT-001: Template name must be unique across active templates
-- BR-PT-002: Each template must have at least one product
+- BR-PT-002: Each template must have at least one product selection
 
 #### UI Requirements
-- Form with clear sections
+- 3-step wizard with progress indicator
+- Step navigation (Previous/Next buttons)
 - Real-time validation feedback
-- Save draft functionality
+- Hierarchical product selection with checkboxes
+- Selection count badges
+- Toggle switches for boolean settings
 - Mobile-responsive form layout
 
 ---
@@ -203,138 +220,108 @@ This document covers all user interactions with the Pricelist Templates module a
 - User has permission to edit templates
 - Template exists (draft or active)
 - Product catalog is accessible
-- User is in template edit mode
+- User is in template edit mode or Step 2 of creation wizard
 
-#### Main Flow
-1. User opens template for editing
-2. User navigates to "Product Assignment" section
-3. System displays current products (if any) in a table:
-   - Sequence number
-   - Product name
-   - Unit of Measure (UOM)
-   - Minimum Order Quantity (MOQ)
-   - Lead Time (days)
-   - Actions (Edit, Remove)
-4. User clicks "Add Products" button
-5. System displays product search/selection interface:
-   - Search bar
-   - Category filter
-   - Product list with checkboxes
-   - Selected products counter
-6. User searches for products using:
-   - Product name/code
-   - Category filter
-7. System displays matching products with:
-   - Product code and name
-   - Category
-   - Default UOM
-8. User selects products by:
-   - Individual checkbox selection
-   - "Select All" option
-9. User clicks "Add Selected Products"
-10. System displays product configuration for each selected product:
-    - Product name (read-only)
-    - Unit of Measure (text input)
-    - Minimum Order Quantity (number input, optional)
-    - Lead Time Days (number input, optional)
-11. User configures product details
-12. User clicks "Save Products"
-13. System validates configurations:
-    - UOM is provided
-    - MOQ > 0 if specified
-    - Lead time > 0 if specified
-    - Product not already in template
-14. System adds products to template
-15. System auto-sequences products
-16. System updates product count
-17. System displays success message: "X products added"
-18. System saves template draft
+#### Main Flow (Hierarchical Product Selection)
+1. User is in Product Selection step (Step 2 of wizard or edit mode)
+2. System displays ProductSelectionComponent with hierarchical structure:
+   - Categories panel (with checkboxes)
+   - Subcategories panel (with checkboxes)
+   - Item Groups panel (with checkboxes)
+   - Specific Items panel (with checkboxes and search)
+3. System shows selection summary panel with:
+   - Selected Categories count
+   - Selected Subcategories count
+   - Selected Item Groups count
+   - Selected Specific Items count
+   - Total estimated products count
+
+**Hierarchical Selection Flow**
+4. User can select at any level:
+   - **Categories**: Select entire category (includes all subcategories, item groups, and items)
+   - **Subcategories**: Select specific subcategories (includes all item groups and items in that subcategory)
+   - **Item Groups**: Select specific item groups (includes all items in that group)
+   - **Specific Items**: Select individual products
+5. System updates selection summary in real-time
+6. User can use search/filter within each panel
+7. User clicks checkboxes to toggle selection
+8. System shows visual indicators for:
+   - Fully selected (checked)
+   - Partially selected (indeterminate)
+   - Not selected (unchecked)
+
+**Completing Product Selection**
+9. User reviews selection summary
+10. User clicks "Next" to proceed to Settings step
+11. System validates at least one selection exists
 
 #### Postconditions
-- **Success**: Products added to template
-- **Success**: Product configurations saved
-- **Success**: Products sequenced appropriately
-- **Success**: Template draft updated
+- **Success**: Product selections saved to template
+- **Success**: Selection hierarchy preserved
+- **Success**: Selection summary accurate
+- **Success**: Template updated with product selections
 
 #### Alternate Flows
 
-**AF-001: Bulk Add by Category**
-- At step 5, user clicks "Add by Category":
-  - System displays category tree
-  - User selects one or more categories
-  - System displays all products in selected categories
-  - User clicks "Add All from Selected Categories"
-  - System adds all products with default configuration
-  - User can edit configurations afterwards
-  - Continue to step 13
+**AF-001: Search for Specific Items**
+- At step 4, user uses search bar in Specific Items panel:
+  - System filters products by name/code
+  - User selects matching products
+  - Continue to step 5
 
-**AF-002: Edit Existing Product Configuration**
-- At step 3, user clicks "Edit" on existing product:
-  - System displays product configuration dialog
-  - User modifies UOM, MOQ, or Lead Time
-  - User clicks "Update"
-  - System validates changes
-  - System updates product configuration
-  - Continue to step 18
+**AF-002: Clear All Selections**
+- User clicks "Clear All" button:
+  - System clears all selections across all levels
+  - Selection summary resets to zero
+  - Continue to step 4
 
-**AF-003: Remove Product**
-- At step 3, user clicks "Remove" on product:
-  - System displays confirmation dialog
-  - User confirms removal
-  - System removes product
-  - System updates sequence numbers
-  - Continue to step 18
+**AF-003: Expand/Collapse Hierarchy**
+- User clicks expand/collapse on category levels:
+  - System shows/hides child elements
+  - Selection state preserved when collapsed
+  - Continue to step 4
 
-**AF-004: Reorder Products**
-- At step 3, user drags and drops products to reorder:
-  - System enables drag-and-drop mode
-  - User drags product rows to new positions
-  - System updates sequence numbers in real-time
-  - User clicks "Save Order"
-  - System saves new sequence
-  - Continue to step 18
+**AF-004: Filter by Category in Items Panel**
+- User selects category filter in Specific Items panel:
+  - System shows only items from selected category
+  - User can select individual items
+  - Continue to step 5
 
 #### Exception Flows
 
-**EF-001: Product Already in Template**
-- At step 14, if selected product already in template:
-  - System displays warning: "Product is already in this template"
-  - System highlights existing product in list
-  - User options:
-    - "Update Configuration": Opens edit dialog
-    - "Skip": Doesn't add, continues with other products
+**EF-001: No Products Available**
+- If product catalog is empty:
+  - System displays "No products available"
+  - User cannot proceed to next step
+  - User must contact administrator
 
-**EF-002: Invalid Product Configuration**
-- At step 13, if configuration is invalid:
-  - System highlights invalid fields:
-    - MOQ = 0 or negative
-    - Lead time = 0 or negative
-    - UOM empty
-  - System displays specific error messages
-  - User corrects invalid values
-  - Continue to step 13
+**EF-002: No Selection Made**
+- At step 11, if no selections made:
+  - System displays error: "Please select at least one category, subcategory, item group, or specific item"
+  - User must make at least one selection
+  - Continue to step 4
 
-**EF-003: Product Not Found**
-- At step 6, if searching for non-existent product:
-  - System displays "No products found"
-  - System suggests:
-    - Check spelling
-    - Try different keywords
-    - Browse by category
+**EF-003: Category/Product Not Found**
+- If search returns no results:
+  - System displays "No matching products found"
+  - System suggests trying different search terms
   - User adjusts search
 
 #### Business Rules Applied
-- BR-PT-002: Each template must have at least one product
+- BR-PT-002: Each template must have at least one selection
+- Hierarchical selection: parent selection includes all children
 - Products can appear in multiple templates
-- UOM must be provided for each product
+- Selection at higher level overrides individual item selections
 
 #### UI Requirements
-- Product search with autocomplete
-- Category tree navigation
-- Bulk selection checkboxes
-- Drag-and-drop reordering
-- Inline editing for quick updates
-- Selected product counter
+- ProductSelectionComponent with 4-panel layout
+- Checkbox-based multi-selection at each level
+- Collapsible/expandable category tree
+- Search/filter within each panel
+- Selection count badges per level
+- Real-time selection summary
+- Clear all selections option
+- Mobile-responsive layout
 
 ---
 
@@ -352,22 +339,38 @@ This document covers all user interactions with the Pricelist Templates module a
 - Template is in Draft or Active status
 
 #### Main Flow
-1. User navigates to template detail page
+1. User navigates to template detail page (/vendor-management/templates/[id])
 2. User clicks "Edit" button
-3. System displays template in edit mode
-4. System shows all editable fields:
-   - Template Name
-   - Description
-   - Currency
-   - Vendor Instructions
-   - Effective Dates
-   - Product Assignment
-5. User modifies desired fields
+3. System navigates to edit page (/vendor-management/templates/[id]/edit)
+4. System displays template in edit mode with inline editing:
+
+**Basic Information Section**
+   - Template Name (inline editable, click to edit)
+   - Description (inline editable, click to edit)
+   - Currency (dropdown: BHT, USD, CNY, SGD)
+   - Validity Period (days input)
+   - Vendor Instructions (textarea)
+
+**Template Settings Section**
+   - Allow Multi-MOQ (toggle switch)
+   - Require Lead Time (toggle switch)
+   - Max Items Per Submission (number input)
+
+**Notification Settings Section**
+   - Send Reminders (toggle switch)
+   - Reminder Days (checkboxes: 14, 7, 3, 1 days before deadline)
+   - Escalation Days (number input)
+
+**Product Selection Section**
+   - Link to edit product selection
+   - Current selection summary displayed
+
+5. User modifies desired fields using inline editing
 6. User clicks "Save Changes"
 7. System validates all changes:
    - Template name uniqueness (if changed)
-   - Effective date range validity
-   - At least one product remains
+   - Validity period is valid (1-365 days)
+   - At least one product selection exists
 8. System saves changes
 9. System increments doc_version
 10. System displays success message
@@ -380,24 +383,31 @@ This document covers all user interactions with the Pricelist Templates module a
 
 #### Alternate Flows
 
-**AF-001: Edit Active Template**
-- If template status is "Active":
-  - System allows editing
-  - System saves changes immediately
-  - Continue to step 8
+**AF-001: Inline Edit Name/Description**
+- User clicks on template name or description:
+  - Field becomes editable inline
+  - User types new value
+  - User clicks away or presses Enter to confirm
+  - System saves change immediately
+  - Continue to step 9
 
-**AF-002: Cancel Edit**
-- At any step, user clicks "Cancel":
-  - System displays confirmation: "Discard unsaved changes?"
-  - User confirms
-  - System discards changes
-  - System returns to view mode
+**AF-002: Edit Product Selection**
+- User clicks "Edit Products" button:
+  - System navigates to product selection interface
+  - User modifies selections using hierarchical picker
+  - User saves changes
+  - System returns to edit page
+
+**AF-003: Cancel Edit**
+- At any step, user clicks "Cancel" or "Back":
+  - System returns to template detail page
+  - Unsaved changes are discarded
 
 #### Exception Flows
 
 **EF-001: Validation Failure**
 - At step 7, if validation fails:
-  - System displays validation errors
+  - System displays validation errors inline
   - User corrects errors
   - User clicks Save again
 
@@ -412,10 +422,12 @@ This document covers all user interactions with the Pricelist Templates module a
 - BR-PT-001: Template name must remain unique
 
 #### UI Requirements
-- Edit mode toggle
+- Inline editable fields (click to edit)
+- Toggle switches for boolean settings
+- Checkbox groups for reminder days
 - Save/Cancel buttons
-- Validation feedback
-- Unsaved changes warning
+- Real-time validation feedback
+- Unsaved changes indicator
 
 ---
 
@@ -582,64 +594,96 @@ This document covers all user interactions with the Pricelist Templates module a
 - User has permission to view templates
 
 #### Main Flow
-1. User navigates to Pricelist Templates module
-2. System displays template list with:
+1. User navigates to Vendor Management > Templates (/vendor-management/templates)
+2. System displays template list with view toggle (Table/Card view)
+3. **Table View** displays columns:
    - Template name
-   - Status badge
+   - Status badge (Draft/Active/Inactive with color coding)
    - Currency
    - Product count
+   - Validity Period (days)
    - Last updated date
-   - Actions
-3. User can filter templates by:
-   - Status (All, Draft, Active, Inactive)
+   - Actions dropdown
+4. **Card View** displays cards with:
+   - Template name
+   - Description (truncated)
+   - Status badge
+   - Currency and validity period
+   - Product selection summary
+   - Quick action buttons
+5. User can filter templates by:
+   - Status tabs (All, Draft, Active, Inactive)
    - Search term (name, description)
-4. User can sort templates by:
+6. User can sort templates by:
    - Name (A-Z, Z-A)
    - Last updated (newest, oldest)
    - Status
-5. User clicks on template row
-6. System displays template detail page with:
-   - Basic information
-   - Effective dates
-   - Product list
-   - Activity log
-7. User can navigate through template details
+7. User clicks on template row/card
+8. System displays template detail page (/vendor-management/templates/[id]) with:
+   - Basic information header
+   - Template settings (Multi-MOQ, Lead Time, etc.)
+   - Notification settings
+   - Tabs for:
+     - Product Selection (hierarchical view)
+     - RfP/Campaigns (linked campaigns)
+9. User can navigate through template details
 
 #### Postconditions
 - **Success**: User views template information
 - **Success**: Search/filter applied correctly
+- **Success**: View preference (Table/Card) remembered
 
 #### Alternate Flows
 
 **AF-001: Quick Actions from List**
-- At step 2, user clicks action button on template row:
+- At step 3/4, user clicks action dropdown on template:
+  - "View": Opens template detail page
   - "Edit": Opens template in edit mode
-  - "Clone": Initiates clone process
+  - "Duplicate": Creates copy of template
+  - "Generate Excel": Downloads Excel template
   - "Delete": Soft deletes template (if Draft)
 
-**AF-002: Export Template**
-- At step 6, user clicks "Export":
-  - System generates Excel/CSV file
-  - System downloads file
+**AF-002: Toggle View Mode**
+- User clicks Table/Card toggle button:
+  - System switches between table and card layouts
+  - View preference persisted in session
+  - Filter/search state preserved
+
+**AF-003: Export Template to Excel**
+- At step 8, user clicks "Generate Excel":
+  - System opens ExcelTemplateCustomizer dialog
+  - User configures Excel options
+  - System generates and downloads Excel file
+
+**AF-004: Preview Template**
+- At step 8, user clicks "Preview":
+  - System displays TemplatePreview modal
+  - Shows template as vendors will see it
+  - User can close preview to return
 
 #### Exception Flows
 
 **EF-001: No Templates Found**
-- At step 3, if no templates match filter:
-  - System displays empty state
+- At step 5, if no templates match filter:
+  - System displays empty state with illustration
   - System suggests: "No templates found. Create a new template?"
+  - "Create Template" button displayed
 
 #### Business Rules Applied
 - Users can only see templates they have permission to view
 - Status filters show accurate counts
+- Status badge colors: Draft (gray), Active (green), Inactive (red)
 
 #### UI Requirements
-- Searchable list
-- Status filter tabs
-- Sortable columns
-- Responsive table
-- Quick action buttons
+- Table/Card view toggle
+- Searchable list with debounce
+- Status filter tabs with counts
+- Sortable columns (table view)
+- Responsive grid (card view)
+- Actions dropdown menu
+- Status badges with consistent colors
 - Empty state handling
+- Pagination or infinite scroll
 
 ---
 
