@@ -32,14 +32,53 @@ import {
   Package,
   Calculator,
   Truck,
-  Building2,
+  FileText,
   Info,
+  ChevronDown,
+  ChevronRight,
+  Plus,
+  Trash2,
 } from "lucide-react";
 import { GoodsReceiveNoteItem } from "@/lib/types";
 import { mockCurrencies } from "@/lib/mock-data";
 
 // UnitConversion type placeholder
 type UnitConversion = any;
+
+/**
+ * Related PR allocation for a GRN item
+ * Tracks how receiving quantity is allocated across multiple PRs
+ */
+export interface RelatedPRAllocation {
+  id: string;
+  prNumber: string;
+  prLineNumber: number;
+  prLineItemId: string;
+  // Business context from PR
+  jobCode?: string;
+  jobCodeName?: string;
+  event?: string;
+  eventName?: string;
+  project?: string;
+  projectName?: string;
+  marketSegment?: string;
+  marketSegmentName?: string;
+  requester?: string;
+  requesterDepartment?: string;
+  // Quantity tracking
+  requestedQty: number;
+  requestedUnit: string;
+  requestedBaseQty: number;
+  requestedBaseUnit: string;
+  previouslyReceivedQty: number;
+  previouslyReceivedBaseQty: number;
+  thisGrnQty: number;
+  thisGrnBaseQty: number;
+  remainingQty: number;
+  remainingBaseQty: number;
+  // Conversion
+  conversionRate: number;
+}
 
 /**
  * Extended GRN Item type for form handling
@@ -111,6 +150,8 @@ export interface FormGRNItem {
   hasDiscrepancy?: boolean;
   discrepancyType?: 'quantity' | 'quality' | 'specification' | 'damage';
   discrepancyNotes?: string;
+  // Related PRs - business context comes from PR level
+  relatedPRs: RelatedPRAllocation[];
 }
 
 // Get base currency from mock data
@@ -173,6 +214,7 @@ const emptyItem: FormGRNItem = {
   expiryDate: undefined,
   serialNumber: undefined,
   notes: undefined,
+  relatedPRs: [],
 };
 
 // Mock options for dropdowns
@@ -213,6 +255,64 @@ const deliveryPointOptions = [
 ];
 
 const ADD_NEW_VALUE = "__add_new__";
+
+// Mock related PRs for demonstration
+const MOCK_RELATED_PRS: RelatedPRAllocation[] = [
+  {
+    id: "pr-alloc-1",
+    prNumber: "PR-2412-0015",
+    prLineNumber: 1,
+    prLineItemId: "pr-line-001",
+    jobCode: "FB-2024-Q1-001",
+    jobCodeName: "F&B Q1 Operations",
+    event: "CONF2024",
+    eventName: "Annual Conference 2024",
+    project: "PROJ001",
+    projectName: "Digital Transformation",
+    marketSegment: "ENTERPRISE",
+    marketSegmentName: "Enterprise",
+    requester: "John Smith",
+    requesterDepartment: "Kitchen",
+    requestedQty: 100,
+    requestedUnit: "Carton",
+    requestedBaseQty: 1000,
+    requestedBaseUnit: "Kg",
+    previouslyReceivedQty: 60,
+    previouslyReceivedBaseQty: 600,
+    thisGrnQty: 30,
+    thisGrnBaseQty: 300,
+    remainingQty: 10,
+    remainingBaseQty: 100,
+    conversionRate: 10,
+  },
+  {
+    id: "pr-alloc-2",
+    prNumber: "PR-2412-0018",
+    prLineNumber: 2,
+    prLineItemId: "pr-line-002",
+    jobCode: "FB-2024-Q2-001",
+    jobCodeName: "F&B Q2 Operations",
+    event: "TRADE2024",
+    eventName: "Trade Show 2024",
+    project: "PROJ002",
+    projectName: "Sustainability Initiative",
+    marketSegment: "HOSPITALITY",
+    marketSegmentName: "Hospitality",
+    requester: "Jane Doe",
+    requesterDepartment: "Restaurant",
+    requestedQty: 50,
+    requestedUnit: "Carton",
+    requestedBaseQty: 500,
+    requestedBaseUnit: "Kg",
+    previouslyReceivedQty: 20,
+    previouslyReceivedBaseQty: 200,
+    thisGrnQty: 10,
+    thisGrnBaseQty: 100,
+    remainingQty: 20,
+    remainingBaseQty: 200,
+    conversionRate: 10,
+  },
+];
 
 // Type that accepts both GoodsReceiveNoteItem and FormGRNItem for compatibility
 type GRNItemInput = GoodsReceiveNoteItem | FormGRNItem | null;
@@ -293,6 +393,7 @@ function toFormGRNItem(input: GRNItemInput): FormGRNItem {
     hasDiscrepancy: item.hasDiscrepancy,
     discrepancyType: item.discrepancyType,
     discrepancyNotes: item.discrepancyNotes,
+    relatedPRs: item.relatedPRs || MOCK_RELATED_PRS, // Use mock data for demo
   };
 }
 
@@ -341,6 +442,7 @@ export default function ItemDetailForm({
 }: ItemDetailFormProps) {
   const [item, setItem] = useState<FormGRNItem>(() => toFormGRNItem(initialItem));
   const [mode, setMode] = useState<"view" | "edit" | "add">(initialMode);
+  const [expandedPRRows, setExpandedPRRows] = useState<Set<string>>(new Set());
 
   // Update local state when props change
   useEffect(() => {
@@ -520,9 +622,18 @@ export default function ItemDetailForm({
   };
 
   const handleSave = () => {
-    const finalItem = recalculateAmounts(item);
+    // Sync total PR allocations to receivedQuantity
+    let updatedItem = { ...item };
+    if (updatedItem.relatedPRs && updatedItem.relatedPRs.length > 0) {
+      const totalThisGrnQty = updatedItem.relatedPRs.reduce((sum, pr) => sum + pr.thisGrnQty, 0);
+      const totalThisGrnBaseQty = updatedItem.relatedPRs.reduce((sum, pr) => sum + pr.thisGrnBaseQty, 0);
+      updatedItem.receivedQuantity = totalThisGrnQty;
+      updatedItem.baseQuantity = totalThisGrnBaseQty;
+    }
+    const finalItem = recalculateAmounts(updatedItem);
+    setItem(finalItem); // Update local state with recalculated values
     onSave(finalItem);
-    handleModeChange("view");
+    // Keep form open in edit mode after save
   };
 
   // --- FormField Component ---
@@ -623,9 +734,9 @@ export default function ItemDetailForm({
             <Calculator className="h-4 w-4 mr-2" />
             Pricing
           </TabsTrigger>
-          <TabsTrigger value="business" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
-            <Building2 className="h-4 w-4 mr-2" />
-            Business
+          <TabsTrigger value="related-prs" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
+            <FileText className="h-4 w-4 mr-2" />
+            Related PRs
           </TabsTrigger>
           {mode !== 'add' && (
             <TabsTrigger value="inventory" className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none">
@@ -1071,116 +1182,245 @@ export default function ItemDetailForm({
             </div>
           </TabsContent>
 
-          {/* Business Tab */}
-          <TabsContent value="business" className="p-6 mt-0 space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField id="jobCode" label="Job Number">
-                {isReadOnly ? (
-                  <div className="h-9 flex items-center text-sm font-medium">
-                    {(item as any).jobCode || "Not assigned"}
-                  </div>
-                ) : (
-                  <Select
-                    value={(item as any).jobCode || ''}
-                    onValueChange={(value) => {
-                      if (value === ADD_NEW_VALUE) {
-                        onAddNewRecord?.('jobCode');
-                      } else {
-                        handleChange('jobCode' as any, value);
+          {/* Related PRs Tab */}
+          <TabsContent value="related-prs" className="p-6 mt-0 space-y-4">
+            {/* Header with Add Button and Total */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <h4 className="text-sm font-medium">PR Allocations</h4>
+                <Badge variant="secondary" className="text-xs">
+                  {item.relatedPRs?.length || 0} PRs
+                </Badge>
+              </div>
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-muted-foreground">
+                  Total Allocated: <span className="font-semibold text-foreground">
+                    {formatAmountOnly(item.relatedPRs?.reduce((sum, pr) => sum + pr.thisGrnQty, 0) || 0)} {item.unit}
+                  </span>
+                </div>
+                {!isReadOnly && (
+                  <Button size="sm" variant="outline" className="h-8">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add PR
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {/* Validation Warning */}
+            {(() => {
+              const totalAllocated = item.relatedPRs?.reduce((sum, pr) => sum + pr.thisGrnQty, 0) || 0;
+              const receivingQty = item.receivedQuantity || 0;
+              const difference = receivingQty - totalAllocated;
+              if (difference !== 0) {
+                return (
+                  <div className={cn(
+                    "flex items-center gap-2 p-3 rounded-lg text-sm",
+                    difference > 0 ? "bg-yellow-50 border border-yellow-200 text-yellow-800" : "bg-red-50 border border-red-200 text-red-800"
+                  )}>
+                    <span>⚠️</span>
+                    <span>
+                      {difference > 0
+                        ? `${formatAmountOnly(difference)} ${item.unit} unallocated. Total receiving: ${formatAmountOnly(receivingQty)}, Allocated: ${formatAmountOnly(totalAllocated)}`
+                        : `Over-allocated by ${formatAmountOnly(Math.abs(difference))} ${item.unit}. Total receiving: ${formatAmountOnly(receivingQty)}, Allocated: ${formatAmountOnly(totalAllocated)}`
                       }
-                    }}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select job number" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_JOB_NUMBERS.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value={ADD_NEW_VALUE} className="text-blue-600 italic">
-                        + Add New...
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                )}
-              </FormField>
-
-              <FormField id="event" label="Event">
-                {isReadOnly ? (
-                  <div className="h-9 flex items-center text-sm font-medium">
-                    {(item as any).event || "Not assigned"}
+                    </span>
                   </div>
-                ) : (
-                  <Select
-                    value={(item as any).event || ''}
-                    onValueChange={(value) => handleChange('event' as any, value)}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select event" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_EVENTS.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </FormField>
-            </div>
+                );
+              }
+              return (
+                <div className="flex items-center gap-2 p-3 rounded-lg text-sm bg-green-50 border border-green-200 text-green-800">
+                  <span>✓</span>
+                  <span>All {formatAmountOnly(receivingQty)} {item.unit} allocated to PRs</span>
+                </div>
+              );
+            })()}
 
-            <div className="grid grid-cols-2 gap-4">
-              <FormField id="project" label="Project">
-                {isReadOnly ? (
-                  <div className="h-9 flex items-center text-sm font-medium">
-                    {(item as any).project || "Not assigned"}
-                  </div>
-                ) : (
-                  <Select
-                    value={(item as any).project || ''}
-                    onValueChange={(value) => handleChange('project' as any, value)}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select project" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_PROJECTS.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </FormField>
+            {/* PR Allocation Table */}
+            {item.relatedPRs && item.relatedPRs.length > 0 ? (
+              <div className="border rounded-lg overflow-hidden">
+                {/* Table Header */}
+                <div className="grid grid-cols-[32px_120px_50px_100px_90px_80px_80px_32px] gap-2 px-3 py-2 bg-muted/50 text-xs font-medium text-muted-foreground border-b">
+                  <div></div>
+                  <div>PR #</div>
+                  <div className="text-center">Line</div>
+                  <div>Job Code</div>
+                  <div className="text-right">Requested</div>
+                  <div className="text-right">This GRN</div>
+                  <div className="text-right">Remaining</div>
+                  <div></div>
+                </div>
 
-              <FormField id="marketSegment" label="Market Segment">
-                {isReadOnly ? (
-                  <div className="h-9 flex items-center text-sm font-medium">
-                    {(item as any).marketSegment || "Not assigned"}
-                  </div>
-                ) : (
-                  <Select
-                    value={(item as any).marketSegment || ''}
-                    onValueChange={(value) => handleChange('marketSegment' as any, value)}
-                  >
-                    <SelectTrigger className="h-9">
-                      <SelectValue placeholder="Select segment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {MOCK_MARKET_SEGMENTS.map(option => (
-                        <SelectItem key={option.value} value={option.value}>
-                          {option.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                {/* PR Rows */}
+                {item.relatedPRs.map((pr) => {
+                  const isExpanded = expandedPRRows.has(pr.id);
+                  const toggleExpanded = () => {
+                    setExpandedPRRows(prev => {
+                      const next = new Set(prev);
+                      if (next.has(pr.id)) {
+                        next.delete(pr.id);
+                      } else {
+                        next.add(pr.id);
+                      }
+                      return next;
+                    });
+                  };
+
+                  return (
+                    <div key={pr.id} className="border-b last:border-b-0">
+                      {/* Main Row */}
+                      <div
+                        className={cn(
+                          "grid grid-cols-[32px_120px_50px_100px_90px_80px_80px_32px] gap-2 px-3 py-2 items-center hover:bg-muted/30 cursor-pointer",
+                          isExpanded && "bg-muted/20"
+                        )}
+                        onClick={toggleExpanded}
+                      >
+                        {/* Expand Icon */}
+                        <div className="flex justify-center">
+                          {isExpanded ? (
+                            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          )}
+                        </div>
+
+                        {/* PR Number */}
+                        <div>
+                          <div className="text-sm font-medium text-blue-600">{pr.prNumber}</div>
+                        </div>
+
+                        {/* Line # */}
+                        <div className="text-center text-sm">{pr.prLineNumber}</div>
+
+                        {/* Job Code */}
+                        <div className="text-sm truncate" title={pr.jobCodeName}>
+                          {pr.jobCode || '-'}
+                        </div>
+
+                        {/* Requested */}
+                        <div className="text-right">
+                          <div className="text-sm">{formatAmountOnly(pr.requestedQty)} {pr.requestedUnit}</div>
+                          <div className="text-xs text-muted-foreground">({formatAmountOnly(pr.requestedBaseQty)} {pr.requestedBaseUnit})</div>
+                        </div>
+
+                        {/* This GRN - Editable */}
+                        <div className="text-right" onClick={(e) => e.stopPropagation()}>
+                          {isReadOnly ? (
+                            <>
+                              <div className="text-sm font-medium">{formatAmountOnly(pr.thisGrnQty)} {pr.requestedUnit}</div>
+                              <div className="text-xs text-muted-foreground">({formatAmountOnly(pr.thisGrnBaseQty)} {pr.requestedBaseUnit})</div>
+                            </>
+                          ) : (
+                            <Input
+                              type="number"
+                              value={pr.thisGrnQty}
+                              onChange={(e) => {
+                                const newQty = parseFloat(e.target.value) || 0;
+                                const updatedPRs = item.relatedPRs.map(p => {
+                                  if (p.id === pr.id) {
+                                    const newBaseQty = newQty * p.conversionRate;
+                                    const newRemaining = p.requestedQty - p.previouslyReceivedQty - newQty;
+                                    const newRemainingBase = newRemaining * p.conversionRate;
+                                    return {
+                                      ...p,
+                                      thisGrnQty: newQty,
+                                      thisGrnBaseQty: newBaseQty,
+                                      remainingQty: newRemaining,
+                                      remainingBaseQty: newRemainingBase,
+                                    };
+                                  }
+                                  return p;
+                                });
+                                setItem(prev => ({ ...prev, relatedPRs: updatedPRs }));
+                              }}
+                              className="h-7 w-16 text-right text-sm"
+                            />
+                          )}
+                        </div>
+
+                        {/* Remaining */}
+                        <div className="text-right">
+                          <div className={cn(
+                            "text-sm",
+                            pr.remainingQty < 0 && "text-red-600",
+                            pr.remainingQty === 0 && "text-green-600"
+                          )}>
+                            {formatAmountOnly(pr.remainingQty)} {pr.requestedUnit}
+                          </div>
+                          <div className="text-xs text-muted-foreground">({formatAmountOnly(pr.remainingBaseQty)} {pr.requestedBaseUnit})</div>
+                        </div>
+
+                        {/* Delete */}
+                        <div className="flex justify-center" onClick={(e) => e.stopPropagation()}>
+                          {!isReadOnly && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-muted-foreground hover:text-red-600"
+                              onClick={() => {
+                                const updatedPRs = item.relatedPRs.filter(p => p.id !== pr.id);
+                                setItem(prev => ({ ...prev, relatedPRs: updatedPRs }));
+                              }}
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* Expanded Detail */}
+                      {isExpanded && (
+                        <div className="px-10 py-4 bg-muted/10 border-t">
+                          <div className="grid grid-cols-2 gap-x-8 gap-y-3">
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Job Code</p>
+                              <p className="text-sm font-medium">{pr.jobCode || '-'}</p>
+                              {pr.jobCodeName && <p className="text-xs text-muted-foreground">{pr.jobCodeName}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Event</p>
+                              <p className="text-sm font-medium">{pr.event || '-'}</p>
+                              {pr.eventName && <p className="text-xs text-muted-foreground">{pr.eventName}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Project</p>
+                              <p className="text-sm font-medium">{pr.project || '-'}</p>
+                              {pr.projectName && <p className="text-xs text-muted-foreground">{pr.projectName}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Market Segment</p>
+                              <p className="text-sm font-medium">{pr.marketSegment || '-'}</p>
+                              {pr.marketSegmentName && <p className="text-xs text-muted-foreground">{pr.marketSegmentName}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Requester</p>
+                              <p className="text-sm font-medium">{pr.requester || '-'}</p>
+                              {pr.requesterDepartment && <p className="text-xs text-muted-foreground">{pr.requesterDepartment}</p>}
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted-foreground mb-1">Conversion Rate</p>
+                              <p className="text-sm font-medium">1 {pr.requestedUnit} = {pr.conversionRate} {pr.requestedBaseUnit}</p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center border rounded-lg bg-muted/10">
+                <FileText className="h-10 w-10 text-muted-foreground mb-3" />
+                <p className="text-sm text-muted-foreground mb-2">No PRs linked to this item</p>
+                {!isReadOnly && (
+                  <Button size="sm" variant="outline">
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add PR
+                  </Button>
                 )}
-              </FormField>
-            </div>
+              </div>
+            )}
           </TabsContent>
 
           {/* Inventory Tab */}
