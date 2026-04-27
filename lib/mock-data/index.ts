@@ -153,3 +153,6 @@ export * from './document-sequences'
 
 // Store Requisitions, Stock Transfers, Stock Issues mock data
 export * from './store-requisitions'
+
+// Sales Consumption mock data
+export * from './sales-consumption'
