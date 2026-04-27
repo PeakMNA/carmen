@@ -42,7 +42,6 @@ export default function SCDetailPage({ params }: Props) {
 
   return (
     <div className="container mx-auto py-6 space-y-6">
-      {/* Back link */}
       <Link
         href="/store-operations/sales-consumption"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -51,13 +50,11 @@ export default function SCDetailPage({ params }: Props) {
         Back to Sales Consumption
       </Link>
 
-      {/* Page title */}
       <div className="flex items-center gap-3">
         <h1 className="text-2xl font-bold">{sc.docNumber}</h1>
         <SCStatusBadge status={sc.status} />
       </div>
 
-      {/* Header info grid */}
       <Card>
         <CardContent className="py-4">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4 text-sm">
@@ -93,7 +90,6 @@ export default function SCDetailPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      {/* Summary stats */}
       <Card>
         <CardContent className="py-6">
           <div className="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
@@ -110,24 +106,22 @@ export default function SCDetailPage({ params }: Props) {
               <div className="text-sm text-muted-foreground">Pending Lines</div>
             </div>
             <div>
-              <div className="text-2xl font-bold">{formatCurrency(sc.totalCostPosted.amount)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(sc.totalCostPosted.amount, sc.totalCostPosted.currency)}</div>
               <div className="text-sm text-muted-foreground">Cost Posted</div>
             </div>
             <div>
-              <div className="text-2xl font-bold">{formatCurrency(sc.totalRevenue.amount)}</div>
+              <div className="text-2xl font-bold">{formatCurrency(sc.totalRevenue.amount, sc.totalRevenue.currency)}</div>
               <div className="text-sm text-muted-foreground">Revenue</div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Exception banner — renders nothing when pendingLineCount === 0 */}
       <SCExceptionBanner
         pendingLineCount={sc.pendingLineCount}
         posExceptionsHref={POS_EXCEPTIONS_HREF}
       />
 
-      {/* Lines table */}
       <SCLineTable lines={lines} />
     </div>
   )

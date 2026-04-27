@@ -19,11 +19,11 @@ export function SCExceptionBanner({ pendingLineCount, posExceptionsHref }: SCExc
           <p className="text-sm text-amber-800">
             This SC has{' '}
             <span className="font-semibold">{pendingLineCount}</span> pending exception line(s).
-            Resolve them in POS Integration &rarr; Operate &rarr; Exceptions.
+            Resolve them in POS Integration → Operate → Exceptions.
           </p>
         </div>
         <Button asChild variant="outline" size="sm" className="border-amber-400 text-amber-800 hover:bg-amber-100 shrink-0">
-          <Link href={posExceptionsHref}>Go to Exception Queue &rarr;</Link>
+          <Link href={posExceptionsHref}>Go to Exception Queue →</Link>
         </Button>
       </CardContent>
     </Card>

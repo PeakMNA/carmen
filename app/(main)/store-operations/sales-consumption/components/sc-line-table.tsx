@@ -29,7 +29,7 @@ const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
   { value: 'reversed', label: 'Reversed' },
 ]
 
-function LineStatusBadge({ status }: { status: SCLineStatus }) {
+function LineStatusBadge({ status }: { status: SCLineStatus }): JSX.Element {
   switch (status) {
     case 'posted':
       return (
@@ -49,6 +49,8 @@ function LineStatusBadge({ status }: { status: SCLineStatus }) {
           Reversed
         </Badge>
       )
+    default:
+      return <Badge variant="outline">{status}</Badge>
   }
 }
 
@@ -110,10 +112,10 @@ export function SCLineTable({ lines }: SCLineTableProps) {
                     {line.qtyConsumed} {line.unitOfMeasure}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatCurrency(line.unitCost)}
+                    {formatCurrency(line.unitCost, line.currency)}
                   </TableCell>
                   <TableCell className="text-right font-mono">
-                    {formatCurrency(line.extendedCost)}
+                    {formatCurrency(line.extendedCost, line.currency)}
                   </TableCell>
                   <TableCell>
                     <LineStatusBadge status={line.status} />
