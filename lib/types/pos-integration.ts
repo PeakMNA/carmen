@@ -664,3 +664,50 @@ export interface ApprovalStatusChangedEvent extends POSWebSocketEvent {
     changedAt: string
   }
 }
+
+// ====== CONNECTOR TYPES (v2.0) ======
+
+export type ConnectorMode = 'api' | 'file_import' | 'webhook'
+
+export type POSModel =
+  | 'square'
+  | 'toast'
+  | 'lightspeed'
+  | 'micros'
+  | 'generic_csv'
+  | 'generic_xml'
+
+export interface ApiCredentials {
+  endpoint: string
+  apiKey: string
+  apiSecret?: string
+}
+
+export interface FileImportConfig {
+  fileFormat: 'csv' | 'xml'
+  columnMappings: Record<string, string>
+  uploadSchedule: string
+}
+
+export interface PosConnection {
+  id: string
+  posModel: POSModel
+  mode: ConnectorMode
+  credentials?: ApiCredentials
+  importConfig?: FileImportConfig
+  syncSchedule: string
+  locationId: string
+  status: 'active' | 'paused' | 'error'
+  scGenerationEnabled?: boolean
+  lastSyncAt?: string
+  lastSyncTransactionCount?: number
+}
+
+export const POS_MODEL_CONNECTOR_MODES: Record<POSModel, ConnectorMode[]> = {
+  square: ['api'],
+  toast: ['api', 'webhook'],
+  lightspeed: ['api'],
+  micros: ['file_import'],
+  generic_csv: ['file_import'],
+  generic_xml: ['file_import'],
+}
