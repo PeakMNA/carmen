@@ -240,13 +240,11 @@ const menuItems: MenuItem[] = [
         subItems: [
           {
             name: "POS Integration",
-            path: "/system-administration/system-integration/pos",
+            path: "/system-administration/system-integration/pos/operate",
             subItems: [
-              { name: "Dashboard", path: "/system-administration/system-integration/pos" },
-              { name: "Mapping", path: "/system-administration/system-integration/pos?tab=mapping" },
-              { name: "Transactions", path: "/system-administration/system-integration/pos?tab=transactions" },
-              { name: "Configuration", path: "/system-administration/system-integration/pos?tab=config" },
-              { name: "Reports", path: "/system-administration/system-integration/pos?tab=reports" },
+              { name: "Setup", path: "/system-administration/system-integration/pos/setup" },
+              { name: "Operate", path: "/system-administration/system-integration/pos/operate" },
+              { name: "Audit", path: "/system-administration/system-integration/pos/audit" },
             ]
           },
         ]
