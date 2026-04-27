@@ -586,7 +586,8 @@ export class InventoryAuditService {
       [TransactionType.ADJUST_DOWN]: AuditEventType.STOCK_ADJUSTED,
       [TransactionType.COUNT]: AuditEventType.STOCK_ADJUSTED,
       [TransactionType.WASTE]: AuditEventType.STOCK_ADJUSTED,
-      [TransactionType.CONVERSION]: AuditEventType.STOCK_ADJUSTED
+      [TransactionType.CONVERSION]: AuditEventType.STOCK_ADJUSTED,
+      [TransactionType.SALES_CONSUMPTION]: AuditEventType.STOCK_ISSUED
     }
 
     return mapping[transactionType] || AuditEventType.STOCK_ADJUSTED

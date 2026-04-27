@@ -77,7 +77,8 @@ export enum TransactionType {
   ADJUST_DOWN = "ADJUST_DOWN",   // Negative adjustment
   COUNT = "COUNT",               // Physical count adjustment
   WASTE = "WASTE",               // Wastage/spoilage
-  CONVERSION = "CONVERSION"      // Unit conversion/split
+  CONVERSION = "CONVERSION",     // Unit conversion/split
+  SALES_CONSUMPTION = "SALES_CONSUMPTION"
 }
 
 /**
