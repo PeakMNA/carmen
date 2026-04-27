@@ -9,7 +9,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { 
   ResponsiveContainer, 
@@ -28,15 +27,14 @@ import {
   Legend
 } from 'recharts';
 import { 
-  TrendingUp, 
-  TrendingDown, 
-  Star, 
-  AlertTriangle, 
-  Target, 
+  TrendingUp,
+  TrendingDown,
+  Star,
+  AlertTriangle,
+  Target,
   DollarSign,
   Calendar as CalendarIcon,
   Download,
-  Upload,
   Settings,
   Filter,
   RefreshCw,
@@ -51,7 +49,6 @@ import { cn } from '@/lib/utils';
 import { format } from 'date-fns';
 
 // Import our custom components
-import SalesDataImport from './components/sales-data-import';
 import CostAlertManagement from './components/cost-alert-management';
 import RecipePerformanceMetrics from './components/recipe-performance-metrics';
 
@@ -147,7 +144,6 @@ export default function MenuEngineeringPage() {
   });
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedLocation, setSelectedLocation] = useState('all');
-  const [showImportDialog, setShowImportDialog] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState<string | null>(null);
 
   // Portfolio composition data
@@ -192,10 +188,6 @@ export default function MenuEngineeringPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setShowImportDialog(true)}>
-            <Upload className="h-4 w-4 mr-2" />
-            Import Sales Data
-          </Button>
           <Button variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
             Export Report
@@ -288,7 +280,6 @@ export default function MenuEngineeringPage() {
           <TabsTrigger value="portfolio">Portfolio Analysis</TabsTrigger>
           <TabsTrigger value="recipe-details">Recipe Details</TabsTrigger>
           <TabsTrigger value="alerts">Cost Alerts</TabsTrigger>
-          <TabsTrigger value="data-import">Data Import</TabsTrigger>
         </TabsList>
 
         <TabsContent value="matrix" className="space-y-4">
@@ -630,23 +621,7 @@ export default function MenuEngineeringPage() {
           <CostAlertManagement />
         </TabsContent>
 
-        <TabsContent value="data-import">
-          <SalesDataImport />
-        </TabsContent>
       </Tabs>
-
-      {/* Import Dialog */}
-      <Dialog open={showImportDialog} onOpenChange={setShowImportDialog}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Import Sales Data</DialogTitle>
-            <DialogDescription>
-              Import sales data to enhance menu engineering analysis
-            </DialogDescription>
-          </DialogHeader>
-          <SalesDataImport />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
