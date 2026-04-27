@@ -21,9 +21,14 @@ graph TD
     SO[Store Ops] --> INV
     SO --> PROD
 
+    POS[POS Integration] --> SC[Sales Consumption]
+    POS --> REC[Recipes]
+    SC --> INV
+    SC --> ME[Menu Engineering]
+
     OP[Op Planning] --> INV
     OP --> PROD
-    OP --> REC[Recipes]
+    OP --> REC
 
     REC --> INV
 
@@ -33,6 +38,9 @@ graph TD
     style PR fill:#f0f9ff
     style INV fill:#e1f5ff
     style VEN fill:#fff4e1
+    style POS fill:#f0fdf4
+    style SC fill:#dcfce7
+    style ME fill:#fef9c3
 ```
 
 ---
@@ -196,7 +204,54 @@ const accountingEntry = {
 
 ---
 
-### 5. Store Operations → Inventory
+### 5. POS Integration → Sales Consumption → Inventory → Menu Engineering
+
+**Flow**: POS Sale → Recipe Mapping Explosion → SC Document (per shift) → Inventory Ledger → Menu Engineering Analytics
+
+**Data Exchange**:
+```typescript
+// At shift close: POS service triggers SC generation
+const result = await salesConsumptionService.generate({
+  locationId: 'loc-main',
+  shiftId: 'shift-lunch',
+  businessDate: '2026-01-27',
+  connectionIds: ['conn-square-main'],
+})
+
+// SC generation creates inventory transactions per ingredient line
+await createInventoryTransaction({
+  transactionType: TransactionType.SALES_CONSUMPTION,
+  productId: ingredientLine.ingredientProductId,
+  locationId: sc.locationId,
+  quantity: -ingredientLine.qtyConsumed,      // OUT direction
+  totalCost: ingredientLine.extendedCost,
+  referenceType: 'SALES_CONSUMPTION',
+  referenceId: sc.id,
+})
+
+// Menu Engineering reads from SC via adapter (never directly from POS)
+const performance = await menuEngineeringDataSource.getItemPerformance(
+  locationId,
+  { from: '2026-01-01', to: '2026-01-27' }
+)
+```
+
+**Shared Tables**:
+- `tb_sales_consumption` (Store Ops / Sales Consumption)
+- `tb_sales_consumption_line` (Store Ops / Sales Consumption)
+- `tb_inventory_transaction` (Inventory)
+- `tb_stock_level` (Inventory)
+- `tb_pos_transaction` (POS Integration — staging)
+- `tb_pos_recipe_mapping` (POS Integration — mappings)
+
+**Key Rules**:
+- POS owns transaction ingestion and recipe mappings
+- SC is the only module that writes `SALES_CONSUMPTION` inventory transactions
+- Menu Engineering reads SC data only via `menu-engineering-data-source.ts` adapter — no direct POS import
+
+---
+
+### 6. Store Operations → Inventory
 
 **Flow**: Store Requisition → Transfer → Inventory Update
 

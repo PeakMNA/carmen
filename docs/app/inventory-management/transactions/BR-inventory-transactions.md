@@ -190,7 +190,8 @@ The Inventory Transactions module provides a unified view of all inventory movem
 | Code | Full Name | IN Types | OUT Types | Description |
 |------|-----------|----------|-----------|-------------|
 | GRN | Goods Received Note | IN | - | Stock received from suppliers |
-| SO | Sales Order | - | OUT | Stock issued for sales/service |
+| SC | Sales Consumption | - | OUT | Ingredient stock consumed from POS menu sales (system-generated per shift). See [store-operations/sales-consumption](../../store-operations/sales-consumption/INDEX-sales-consumption.md) |
+| SO | Sales Order | - | OUT | Stock issued for sales/service (legacy reference type; SC supersedes this for POS-driven consumption) |
 | ADJ | Adjustment | IN | OUT | Manual stock corrections |
 | ST | Stock Transfer | IN | OUT | Inter-location movements |
 | SI | Stock Issue | - | OUT | Stock issued from store requisitions |

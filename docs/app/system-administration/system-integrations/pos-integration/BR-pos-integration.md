@@ -11,7 +11,17 @@
 
 ## Overview
 
-POS Integration provides real-time synchronization between Point-of-Sale systems (Comanche POS) and Carmen ERP for automatic inventory deduction, sales tracking, and consumption analysis. The system supports multi-outlet configurations with outlet-specific pricing.
+POS Integration provides synchronization between Point-of-Sale systems and Carmen ERP for automatic inventory deduction, sales tracking, and consumption analysis. The system supports multi-outlet configurations with outlet-specific pricing, and multiple connector modes (API, file import, webhook) per POS model.
+
+**Architecture**: POS Integration owns sales data ingestion and recipe mappings. At shift close, a scheduled job reads POS transactions, explodes them through recipe mappings, and creates a **Sales Consumption (SC)** document in Store Operations that posts ingredient consumption to the inventory ledger. Menu Engineering reads from SC (read-only analytics consumer) — it does not import data independently.
+
+**UI Structure**: The POS module is organized into three workflow sections:
+
+| Section | Purpose | Frequency |
+|---------|---------|-----------|
+| **Setup** | Add POS connections (API or file import), configure mappings | Rare |
+| **Operate** | Monitor sync health, clear Exception Queue so SC can post | Daily |
+| **Audit** | Review raw transaction log and sync events | On demand |
 
 ---
 
@@ -126,54 +136,80 @@ POS Integration provides real-time synchronization between Point-of-Sale systems
 
 ---
 
-### FR-POS-006: Configuration Management
+### FR-POS-006: Connection Management (Setup → Connections)
 
 **Priority**: High
-**User Story**: As an IT Administrator, I want to configure POS integration settings so that transaction processing matches our operational requirements.
+**User Story**: As an IT Administrator, I want to configure POS connections so that transaction data flows into Carmen correctly for my POS model.
 
 **Requirements**:
-- Configure POS system type and API endpoint
-- Set sync frequency (5/15/30/60 minutes)
-- Choose processing mode: automatic, approval, manual
-- Set auto-approve threshold for approval mode
-- Configure email notifications and recipients
-- Set data retention period
+- Add a POS connection with a wizard: choose POS model → choose connector mode
+- Connector modes per POS model:
+  - `api`: REST API with credentials (Square, Toast, Lightspeed)
+  - `file_import`: Manual CSV/XML upload (Micros, generic)
+  - `webhook`: Push events (Toast, custom)
+- Configure sync schedule (5/15/30/60 minutes, or manual)
+- Link POS outlet to Carmen location
 - Test connection
-- Reset configuration
-
-**Intent**:
-- Customize integration to match business processes
-- Control automatic vs manual processing
-- Ensure proper notification of issues
+- Activate/pause/delete connections
+- Configure email notifications and SC generation settings per connection
 
 **Acceptance Criteria**:
-- Connection test provides success/failure feedback
-- Unsaved changes alert prevents data loss
-- Reset requires confirmation
+- Connection wizard only offers modes valid for the selected POS model
+- Connection test provides success/failure feedback with error detail
+- SC generation can be enabled/disabled per location from this screen
 
 ---
 
-### FR-POS-007: Analytics & Reports
+### FR-POS-007: Exception Queue (Operate → Exceptions)
 
-**Priority**: Medium
-**User Story**: As a Financial Controller, I want to analyze POS data so that I can track gross profit margins and identify consumption variances.
+**Priority**: High
+**User Story**: As an F&B Manager, I want to see which POS sales could not be posted to inventory so I can resolve mapping gaps before the inventory ledger falls behind.
 
 **Requirements**:
-- Gross Profit Report: revenue, COGS, margin by category
-- Consumption Analysis: theoretical vs actual usage
-- Variance Report: cost impact of variances
-- Period filtering (7d, 30d, 90d, YTD)
-- Export reports (CSV, PDF, Excel)
+- List all exception lines with: POS item name, reason code, sale date, outlet, quantity sold
+- Group by reason code for efficient bulk resolution
+- Bulk actions: Resolve & Re-post, Reassign Mapping, Defer to Tomorrow, Mark as Non-inventory, Discard with Reason
+- Reason codes displayed with human-readable labels (see [BR-sales-consumption.md §7](../../../store-operations/sales-consumption/BR-sales-consumption.md))
+- Link to the parent SC document from each exception item
+- Auto-resolved exceptions (DUPLICATE_TRANSACTION, TAX_ONLY_ITEM after one-time flag, VOID_AFTER_POST) shown as informational history, not actionable queue items
 
 **Intent**:
-- Monitor F&B profitability
-- Identify ingredient waste or theft
-- Support cost control decisions
+- Exception Queue is the gating step for SC completion (Supplemental SCs post when exceptions are resolved)
+- Provides daily operational view for resolving mapping gaps
 
 **Acceptance Criteria**:
-- Gross profit shows margin percentage with color coding
-- Variance report shows top variance items by cost impact
-- Variance status: Normal (<=3%), Review (3-10%), Critical (>10%)
+- Exceptions filterable by reason code, outlet, date, and resolution status
+- Resolving an exception triggers re-validation and generates a Supplemental SC if valid
+- Bulk-select supports resolving multiple same-reason exceptions at once
+
+---
+
+### FR-POS-008: Analytics & Reports (deprecated — moved to Menu Engineering)
+
+**Priority**: N/A
+**Status**: Removed
+
+Analytics (Gross Profit Report, Consumption Analysis, Variance Report) have moved to **Menu Engineering** (`/operational-planning/menu-engineering`). Menu Engineering reads from Sales Consumption documents and POS transaction staging as a pure analytics consumer.
+
+Any existing deep links to POS reports redirect to `/operational-planning/menu-engineering`.
+
+---
+
+## Sales Consumption Handoff
+
+After shift close, the POS module hands off to Store Operations via the SC document:
+
+```
+POS transactions (staging)
+    -> [shift-close job]
+    -> Sales Consumption document (store-operations/sales-consumption/)
+        -> posted lines -> inventory ledger (SALES_CONSUMPTION transactions)
+        -> exception lines -> Exception Queue (POS Operate -> Exceptions)
+    -> [exception resolved]
+    -> Supplemental SC (linked to parent)
+```
+
+The SC document is the audit record owned by Store Operations. POS owns only the pipeline up to and including the Exception Queue.
 
 ---
 
@@ -181,11 +217,11 @@ POS Integration provides real-time synchronization between Point-of-Sale systems
 
 | Persona | Role | Primary Use Cases |
 |---------|------|-------------------|
-| F&B Manager | Monitor and approve | Dashboard, Transactions, Reports |
-| Purchasing Manager | Configure mappings | Recipe Mapping, Location Mapping |
-| Head Chef | Review consumption | Reports, Fractional Variants |
-| IT Administrator | System configuration | Configuration, Connection Testing |
-| Financial Controller | Analyze profitability | Reports, Variance Analysis |
+| F&B Manager | Daily operations | Operate → Sync Health, Exception Queue |
+| Purchasing Manager / POS Admin | Configure mappings | Setup → Connections, Setup → Mappings |
+| Head Chef | Configure fractional variants | Setup → Mappings → Fractional |
+| IT Administrator | Connection setup | Setup → Connections |
+| Financial Controller | Analyze profitability | Menu Engineering (analytics consumer) |
 
 ---
 

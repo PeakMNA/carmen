@@ -206,7 +206,19 @@ Stage management happens in Store Requisitions, NOT in Stock Issues
 | Actions | SI-specific actions | View and Print only |
 | Stage Changes | Could complete from SI view | Stage managed in SR only |
 
-## 15. Differences from Stock Transfers
+## 15. Related OUT-Direction Documents
+
+| Document | Source | Created By | Use Case |
+|----------|--------|-----------|---------|
+| Stock Issue (this module) | Store Requisition | User | Manual direct issue from store to department |
+| Sales Consumption (SC) | POS sales pipeline | System | Automatic ingredient deduction from menu sales at shift close |
+| Wastage Report | User report | User | Spoilage, spillage, expired inventory |
+
+For POS-driven inventory depletion, see [Sales Consumption](../sales-consumption/INDEX-sales-consumption.md). SC is system-generated and should not be confused with manually-created Stock Issues.
+
+---
+
+## 16. Differences from Stock Transfers
 
 | Aspect | Stock Transfer | Stock Issue |
 |--------|---------------|-------------|

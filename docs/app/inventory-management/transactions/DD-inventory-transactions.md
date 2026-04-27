@@ -230,6 +230,7 @@ Analytics data for charts.
 | Code | Label | Color Class |
 |------|-------|-------------|
 | GRN | Goods Received Note | bg-green-100 text-green-800 |
+| SC | Sales Consumption | bg-teal-100 text-teal-800 |
 | SO | Sales Order | bg-blue-100 text-blue-800 |
 | ADJ | Adjustment | bg-amber-100 text-amber-800 |
 | ST | Stock Transfer | bg-purple-100 text-purple-800 |
@@ -253,6 +254,25 @@ Analytics data for charts.
 | OUT | Outbound | text-red-600 | bg-red-100 text-red-800 |
 
 **Source Evidence**: `types.ts:118-121`
+
+### 4.3 TransactionType Enum (lib/types/inventory.ts)
+
+Detailed enum values for `TransactionType` used in inventory service layer:
+
+| Enum Value | Direction | Source Module | Description |
+|------------|-----------|---------------|-------------|
+| `RECEIVE` | IN | GRN | Receipt from supplier via Goods Received Note |
+| `ISSUE` | OUT | Store Requisition | Manual issue via Store Requisition |
+| `TRANSFER_OUT` | OUT | Stock Transfer | Deduction from source location |
+| `TRANSFER_IN` | IN | Stock Transfer | Addition to destination location |
+| `ADJUST_UP` | IN | Inventory Adjustments | Manual upward stock correction |
+| `ADJUST_DOWN` | OUT | Inventory Adjustments | Manual downward stock correction |
+| `COUNT` | IN/OUT | Physical Count | Count-driven correction |
+| `WASTE` | OUT | Wastage Reporting | Spoilage, spillage, expiry |
+| `CONVERSION` | IN/OUT | Product Management | Unit conversion adjustment |
+| `SALES_CONSUMPTION` | OUT | Sales Consumption (SC) | Ingredient deduction from POS menu sales; system-generated per shift via `sales-consumption-service.ts` |
+
+**Note**: `SALES_CONSUMPTION` was added in v2.1.0. It is always system-generated (never created manually). See [Sales Consumption module](../../store-operations/sales-consumption/DD-sales-consumption.md).
 
 ---
 

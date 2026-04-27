@@ -181,6 +181,18 @@
 **Wastage Reason**
 : Cause of wastage (expired, damaged, spillage, etc.)
 
+**Sales Consumption (SC)**
+: System-generated inventory source document created at shift close. Aggregates POS sales for a location/shift, explodes each menu item through its recipe mapping, and deducts the resulting ingredient quantities from the inventory ledger. One SC per (location, shift, business_date). See [store-operations/sales-consumption](../store-operations/sales-consumption/INDEX-sales-consumption.md).
+
+**Exception Queue (POS)**
+: List of POS transaction lines that could not be auto-posted to the inventory ledger during SC generation. Each entry carries a reason code (e.g. `UNMAPPED_ITEM`, `MISSING_RECIPE`). Managed in POS Integration → Operate → Exceptions.
+
+**Supplemental SC**
+: A Sales Consumption document generated when exception lines from a prior SC are resolved and re-posted. Linked to the parent SC via `parentSCId`. The parent SC is never edited — corrections flow through supplementals.
+
+**Connector Mode**
+: How a POS system delivers transaction data to Carmen. Options: `api` (real-time API call), `file_import` (manual CSV/XML upload), `webhook` (push event). Configured per POS connection in POS Integration → Setup → Connections.
+
 ---
 
 ## Technical Terms
@@ -288,6 +300,7 @@
 **PR** - Purchase Request
 **PO** - Purchase Order
 **GRN** - Goods Received Note
+**SC** - Sales Consumption (system-generated inventory document from POS sales)
 **RFP** - Request for Pricing
 **UoM** - Unit of Measure
 **SKU** - Stock Keeping Unit

@@ -2,7 +2,9 @@
 
 ## Overview
 
-The **POS Integration** module enables real-time synchronization between Point-of-Sale systems (primarily Comanche POS) and Carmen ERP for automatic inventory deduction, sales tracking, and consumption analysis. It supports multi-outlet configurations with outlet-specific pricing and comprehensive analytics.
+The **POS Integration** module synchronizes Point-of-Sale systems with Carmen ERP. It owns sales data ingestion, recipe mappings, and the Exception Queue. At shift close, a scheduled job converts POS transactions into **Sales Consumption (SC)** documents in Store Operations, which post ingredient consumption to the inventory ledger.
+
+**Menu Engineering** reads from SC documents as a pure analytics consumer — it no longer imports data directly.
 
 ---
 
@@ -13,29 +15,40 @@ The **POS Integration** module enables real-time synchronization between Point-o
 | **Module** | System Administration > System Integrations |
 | **Sub-module** | POS Integration |
 | **Route** | `/system-administration/system-integration/pos` |
-| **Version** | 1.0 |
+| **Version** | 2.0 |
 | **Status** | Active |
+
+---
+
+## UI Structure
+
+| Section | Route | Purpose | Frequency |
+|---------|-------|---------|-----------|
+| **Setup** | `/pos/setup` | Add connections, configure mappings | Rare |
+| **Operate** | `/pos/operate` (default) | Sync health, Exception Queue | Daily |
+| **Audit** | `/pos/audit` | Raw transactions, sync events | On demand |
 
 ---
 
 ## Key Features
 
-### Dashboard Monitoring
-- Real-time POS system connection status
-- Alert cards for unmapped items, pending approvals, failed transactions
-- Transaction statistics with period filtering
-- Recent activity feed and sync schedule display
+### Setup → Connections
+- Add POS connections via wizard (model-first → connector mode → location → settings)
+- Connector modes: `api`, `file_import`, `webhook` per POS model
+- Enable/disable SC generation per location
+- Test connection and sync schedule configuration
 
-### Recipe Mapping
-- Map POS menu items to Carmen recipes
-- Outlet-specific pricing support (same item, different prices per outlet)
-- Portion size and unit configuration
-- Bulk sync of POS items
+### Setup → Mappings
+- Recipe mapping: map POS items to Carmen recipes
+- Unit mapping, location mapping, fractional variants
+- **Modifier mapping** (NEW): map POS add-ons/modifiers to ingredient recipes
+- Outlet-specific pricing and portion sizes
 
-### Location Mapping
-- Link Carmen locations to POS outlets
-- Sync status monitoring per location
-- Transaction routing configuration
+### Operate → Exception Queue (NEW)
+- List of POS lines that could not auto-post to inventory during SC generation
+- 12 reason codes with human-readable labels
+- Bulk actions: Resolve & Re-post, Defer, Mark Non-inventory, Discard
+- Resolving an exception triggers a Supplemental SC in Store Operations
 
 ### Fractional Variants
 - Configure fractional sales (pizza slices, cake portions)

@@ -15,13 +15,15 @@ Carmen uses **7 specialized document types** to comprehensively document the sys
 
 | Type | Purpose | Count | Who Reads | When to Read |
 |------|---------|-------|-----------|--------------|
-| **DD** | Data Definition | 40 | Developers, DBAs | Implementing features, schema work |
-| **BR** | Business Requirements | 38 | All | Understanding business rules |
-| **TS** | Technical Specification | 36 | Developers | Implementation details |
-| **UC** | Use Cases | 38 | All | User workflows, testing |
-| **FD** | Flow Diagrams | 38 | All | Visual process understanding |
-| **VAL** | Validations | 38 | Developers, QA | Validation rules, testing |
+| **DD** | Data Definition | 41 | Developers, DBAs | Implementing features, schema work |
+| **BR** | Business Requirements | 39 | All | Understanding business rules |
+| **TS** | Technical Specification | 37 | Developers | Implementation details |
+| **UC** | Use Cases | 39 | All | User workflows, testing |
+| **FD** | Flow Diagrams | 39 | All | Visual process understanding |
+| **VAL** | Validations | 39 | Developers, QA | Validation rules, testing |
 | **PROCESS** | Process Documentation | 2 | All | End-to-end workflows |
+
+**v2.1.0 additions**: Sales Consumption module added under `store-operations/sales-consumption/` (7 new docs). POS Integration PC doc added. Counts reflect this addition.
 
 ---
 

@@ -4,26 +4,84 @@
 - **Module**: System Administration > System Integrations
 - **Sub-Module**: POS Integration
 - **Route**: `/system-administration/system-integration/pos`
-- **Version**: 1.0.0
-- **Last Updated**: 2026-01-18
+- **Version**: 2.0.0
+- **Last Updated**: 2026-01-27
 
 ---
 
-## Transaction Processing Flow
+## Module Layout (Setup / Operate / Audit)
+
+```mermaid
+graph TD
+    POS[POS Integration root] --> SETUP[Setup]
+    POS --> OPERATE[Operate]
+    POS --> AUDIT[Audit]
+    SETUP --> CONN[Connections - add and manage POS connections]
+    SETUP --> MAP[Mappings - recipes, units, locations, fractional, modifiers]
+    OPERATE --> HEALTH[Sync Health Dashboard]
+    OPERATE --> EXC[Exception Queue]
+    AUDIT --> RAW[Raw Transactions Log]
+    AUDIT --> SYNC[Sync Events Log]
+```
+
+---
+
+## Connection Wizard Flow (Setup → Connections)
+
+```mermaid
+graph TD
+    A[Click Add Connection] --> B[Select POS Model]
+    B --> C{Connector Modes Available}
+    C -->|api| D[Enter API Credentials and Endpoint]
+    C -->|file_import| E[Configure File Format and Upload Schedule]
+    C -->|webhook| F[Copy Webhook URL - System Generates]
+    D --> G[Select Carmen Location]
+    E --> G
+    F --> G
+    G --> H[Set Sync Schedule]
+    H --> I[Enable SC Generation for Location]
+    I --> J[Test Connection]
+    J --> K{Test Result}
+    K -->|Success| L[Save Connection - status active]
+    K -->|Failed| M[Show Error Detail - user corrects]
+    M --> J
+```
+
+---
+
+## Exception Queue Flow (Operate → Exceptions)
+
+```mermaid
+graph TD
+    A[Shift-Close SC Generation] --> B{Line Validates?}
+    B -->|Yes| C[Posted to Inventory Ledger]
+    B -->|No| D[Exception Queue with Reason Code]
+    D --> E[Manager Opens Exception Queue]
+    E --> F{Action}
+    F -->|Resolve and Re-post| G[Fix Mapping in Setup]
+    F -->|Defer to Tomorrow| H[Exception Remains in Queue]
+    F -->|Mark as Non-inventory| I[Item Permanently Flagged - auto-skip future]
+    F -->|Discard with Reason| J[Exception Discarded with Audit Note]
+    G --> K[Re-validate Line]
+    K --> L{Passes?}
+    L -->|Yes| M[Generate Supplemental SC - posted]
+    L -->|No| N[Exception Remains with Updated Reason Code]
+```
+
+## Transaction Processing Flow (Legacy — replaced by SC pipeline)
+
+The old per-transaction approval flow (pending_approval → approved → processing → success) has been replaced by the shift-close batch SC generation model. See [Sales Consumption module](../../../store-operations/sales-consumption/FD-sales-consumption.md) for the current pipeline flow.
 
 ```mermaid
 stateDiagram-v2
-    [*] --> pending_approval: POS Transaction Received
-    pending_approval --> approved: Manager Approves
-    pending_approval --> rejected: Manager Rejects
-    approved --> processing: Start Processing
-    processing --> success: Inventory Deducted
-    processing --> failed: Processing Error
-    failed --> processing: Retry
-    failed --> manually_resolved: Manual Resolution
-    rejected --> [*]
-    success --> [*]
-    manually_resolved --> [*]
+    [*] --> staging: POS Transaction Synced
+    staging --> included_in_sc: Shift-Close Job Runs
+    included_in_sc --> posted: Clean Line - Inventory Updated
+    included_in_sc --> exception: Mapping Missing or Invalid
+    exception --> resolved: Exception Cleared in Queue
+    resolved --> supplemental_sc: Supplemental SC Generated
+    supplemental_sc --> posted
+    posted --> [*]
 ```
 
 ---
@@ -161,42 +219,23 @@ graph TD
 
 ---
 
-## Report Export Flow
+## Sync Workflow (Updated)
 
 ```mermaid
 graph TD
-    A[View Report] --> B[Click Export Button]
-    B --> C[Select Format]
-    C --> D{Format}
-    D -->|CSV| E[Generate CSV]
-    D -->|PDF| F[Generate PDF]
-    D -->|Excel| G[Generate Excel]
-    E --> H[Download File]
+    A[Scheduled Sync per Connection] --> B{Connection Active?}
+    B -->|No| C[Skip]
+    B -->|Yes| D{Connector Mode}
+    D -->|api| E[Call POS API - Fetch Transactions]
+    D -->|webhook| F[Receive Push Event]
+    D -->|file_import| G[Process Uploaded File]
+    E --> H[Write to POS Staging Table]
     F --> H
     G --> H
-    H --> I[Show Toast Notification]
-```
-
----
-
-## Sync Workflow
-
-```mermaid
-graph TD
-    A[Scheduled Sync] --> B[Check Sync Enabled]
-    B --> C{Enabled?}
-    C -->|Yes| D[Fetch POS Transactions]
-    C -->|No| E[Skip]
-    D --> F[Process Each Transaction]
-    F --> G{Processing Mode}
-    G -->|Automatic| H[Auto Process]
-    G -->|Approval| I[Queue for Approval]
-    G -->|Manual| J[Mark as Pending]
-    H --> K[Update Inventory]
-    I --> L[Send Notification]
-    K --> M[Update Last Sync]
-    L --> M
-    J --> M
+    H --> I[Update Last Sync Timestamp]
+    I --> J[Sync Health Dashboard Updated]
+    J --> K[At Shift Close - SC Generation Job Runs]
+    K --> L[SC Document Created in Store Operations]
 ```
 
 ---

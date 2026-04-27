@@ -15,6 +15,26 @@
 | 1.1 | 2025-01-05 | System | Added implementation status section and Section 11 (Backend Requirements) |
 | 1.0 | 2024-01-15 | System | Initial business requirements document created |
 
+## ⚠️ Architecture Change Notice (v2.1.0)
+
+**Menu Engineering is now a pure analytics consumer.** It no longer owns sales data ingestion or POS synchronization. These responsibilities have moved to the POS Integration module.
+
+**New data flow**:
+```
+POS Integration (owns ingestion + mappings)
+    -> Sales Consumption SC document (Store Operations)
+    -> Inventory Ledger (SALES_CONSUMPTION transactions)
+    -> menu-engineering-data-source.ts adapter  ← ME reads from here
+    -> Menu Engineering analytics (read-only)
+```
+
+**Deprecated items** (see §Deprecated below):
+- `components/sales-data-import.tsx` — removed; file import is now in POS Setup → Connections
+- `/api/menu-engineering/sales/import` — removed; returns 410 Gone
+- `/api/menu-engineering/pos/sync` — moved to `/api/pos/sync`; old path is a 308 redirect
+
+---
+
 ## ⚠️ Implementation Status
 
 **Current State**: SUBSTANTIAL IMPLEMENTATION (~70-80% Complete)
@@ -24,7 +44,7 @@
 **UI Components** (650+ lines):
 - ✅ Menu Engineering Dashboard (`app/(main)/operational-planning/menu-engineering/page.tsx`)
 - ✅ Performance Matrix Scatter Plot with 4-quadrant visualization
-- ✅ Sales Data Import with POS integration (`components/sales-data-import.tsx`)
+- ~~Sales Data Import (`components/sales-data-import.tsx`)~~ — **DEPRECATED** moved to POS module
 - ✅ Cost Alert Management (`components/cost-alert-management.tsx`)
 - ✅ Recipe Performance Metrics (`components/recipe-performance-metrics.tsx`)
 - ✅ Portfolio composition pie charts
@@ -36,9 +56,9 @@
 - ✅ `/api/menu-engineering/analysis` - Menu performance analysis with Boston Matrix classification
 - ✅ `/api/menu-engineering/classification` - Item classification engine
 - ✅ `/api/menu-engineering/recommendations/[recipeId]` - Strategic recommendations
-- ✅ `/api/menu-engineering/sales/import` - Sales data import from POS
-- ✅ `/api/menu-engineering/sales/summary` - Sales summaries
-- ✅ `/api/menu-engineering/pos/sync` - POS system synchronization
+- ~~`/api/menu-engineering/sales/import`~~ — **REMOVED** (returns 410); import now in POS module
+- ✅ `/api/menu-engineering/sales/summary` - Sales summaries (refactored to read from SC + POS staging)
+- ~~`/api/menu-engineering/pos/sync`~~ — **MOVED** to `/api/pos/sync` (308 redirect in place)
 - ✅ `/api/recipes/[id]/cost-alerts` - Cost alert management
 - ✅ `/api/recipes/[id]/performance-metrics` - Performance tracking
 - ✅ `/api/recipes/[id]/real-time-cost` - Real-time cost calculations
