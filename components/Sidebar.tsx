@@ -128,6 +128,7 @@ const menuItems: MenuItem[] = [
       { name: "Stock Transfers", path: "/store-operations/stock-transfers" },
       { name: "Stock Issues", path: "/store-operations/stock-issues" },
       { name: "Wastage Reporting", path: "/store-operations/wastage-reporting" },
+      { name: "Sales Consumption", path: "/store-operations/sales-consumption" },
     ],
   },
   {
