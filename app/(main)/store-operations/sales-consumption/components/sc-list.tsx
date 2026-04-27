@@ -145,7 +145,7 @@ export function SCList({ scs }: SCListProps) {
                     </span>
                   </TableCell>
                   <TableCell className="text-right font-medium">
-                    {formatCurrency(sc.totalCostPosted.amount)}
+                    {formatCurrency(sc.totalCostPosted.amount, sc.totalCostPosted.currency)}
                   </TableCell>
                 </TableRow>
               ))

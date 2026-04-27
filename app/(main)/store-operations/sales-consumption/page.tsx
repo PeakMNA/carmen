@@ -1,4 +1,4 @@
-import { ShoppingCart, AlertTriangle } from 'lucide-react'
+import { PackageMinus, AlertTriangle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { mockSalesConsumptions } from '@/lib/mock-data'
@@ -16,7 +16,7 @@ export default function SalesConsumptionPage() {
     <div className="container mx-auto py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <ShoppingCart className="h-6 w-6 text-primary" />
+          <PackageMinus className="h-6 w-6 text-primary" />
           Sales Consumption
         </h1>
         <p className="text-muted-foreground mt-1">

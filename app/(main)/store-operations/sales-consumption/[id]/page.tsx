@@ -67,22 +67,36 @@ export default function SCDetailPage({ params }: Props) {
               <div className="font-medium">{sc.shiftId}</div>
             </div>
             <div>
-              <div className="text-muted-foreground">Location ID</div>
+              <div className="text-muted-foreground">Location</div>
               <div className="font-medium">{sc.locationId}</div>
             </div>
             <div>
               <div className="text-muted-foreground">Posted By</div>
-              <div className="font-medium">{sc.postedBy}</div>
+              <div className="font-medium">
+                {sc.postedBy === 'system' ? (
+                  <span className="text-muted-foreground italic">System (auto-posted)</span>
+                ) : (
+                  sc.postedBy
+                )}
+              </div>
             </div>
             <div>
               <div className="text-muted-foreground">Created At</div>
-              <div className="font-medium">{new Date(sc.createdAt).toLocaleString('en-GB')}</div>
+              <div className="font-medium">
+                {new Date(sc.createdAt).toLocaleString('en-US', {
+                  month: 'short', day: 'numeric', year: 'numeric',
+                  hour: 'numeric', minute: '2-digit',
+                })}
+              </div>
             </div>
             {sc.voidedAt && (
               <div>
                 <div className="text-muted-foreground">Voided At</div>
                 <div className="font-medium text-red-600">
-                  {new Date(sc.voidedAt).toLocaleString('en-GB')}
+                  {new Date(sc.voidedAt).toLocaleString('en-US', {
+                    month: 'short', day: 'numeric', year: 'numeric',
+                    hour: 'numeric', minute: '2-digit',
+                  })}
                 </div>
               </div>
             )}

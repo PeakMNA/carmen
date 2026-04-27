@@ -12,8 +12,8 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import type { SalesConsumptionLine, SCLineStatus } from '@/lib/types/sales-consumption'
-import { getExceptionCodeLabel } from '@/lib/services/sales-consumption-service'
+import type { SalesConsumptionLine, SCLineStatus, ExceptionCode } from '@/lib/types/sales-consumption'
+import { EXCEPTION_CODE_LABELS, EXCEPTION_CODE_SEVERITY } from '@/lib/types/sales-consumption'
 import { formatCurrency } from '@/lib/utils/formatters'
 
 interface SCLineTableProps {
@@ -28,6 +28,21 @@ const FILTER_OPTIONS: { value: FilterOption; label: string }[] = [
   { value: 'pending', label: 'Pending' },
   { value: 'reversed', label: 'Reversed' },
 ]
+
+function ExceptionCodeBadge({ code }: { code: ExceptionCode }): JSX.Element {
+  const severity = EXCEPTION_CODE_SEVERITY[code]
+  const label = EXCEPTION_CODE_LABELS[code]
+  if (severity === 'mapping') {
+    return <Badge variant="outline" className="border-amber-500 text-amber-700 text-xs">{label}</Badge>
+  }
+  if (severity === 'data') {
+    return <Badge variant="outline" className="border-orange-500 text-orange-700 text-xs">{label}</Badge>
+  }
+  if (severity === 'operational') {
+    return <Badge variant="outline" className="border-blue-500 text-blue-700 text-xs">{label}</Badge>
+  }
+  return <Badge variant="outline" className="text-muted-foreground text-xs">{label}</Badge>
+}
 
 function LineStatusBadge({ status }: { status: SCLineStatus }): JSX.Element {
   switch (status) {
@@ -120,8 +135,12 @@ export function SCLineTable({ lines }: SCLineTableProps) {
                   <TableCell>
                     <LineStatusBadge status={line.status} />
                   </TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {line.exceptionCode ? getExceptionCodeLabel(line.exceptionCode) : '—'}
+                  <TableCell>
+                    {line.exceptionCode ? (
+                      <ExceptionCodeBadge code={line.exceptionCode} />
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </TableCell>
                 </TableRow>
               ))

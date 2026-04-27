@@ -31,6 +31,21 @@ const STATUS_BADGE_VARIANT: Record<PosConnection['status'], 'default' | 'seconda
   error: 'destructive',
 }
 
+const POS_MODEL_LABELS: Record<string, string> = {
+  square: 'Square',
+  toast: 'Toast',
+  lightspeed: 'Lightspeed',
+  micros: 'Micros',
+  generic_csv: 'Generic CSV',
+  generic_xml: 'Generic XML',
+}
+
+const CONNECTOR_MODE_LABELS: Record<string, string> = {
+  api: 'API',
+  file_import: 'File Import',
+  webhook: 'Webhook',
+}
+
 export default function POSSetupPage() {
   const { toast } = useToast()
   const [mappings, setMappings] = useState<POSMapping[]>(mockPOSMappings)
@@ -104,7 +119,7 @@ export default function POSSetupPage() {
               <TableRow>
                 <TableHead>POS Model</TableHead>
                 <TableHead>Mode</TableHead>
-                <TableHead>Location ID</TableHead>
+                <TableHead>Location</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead>Last Sync</TableHead>
               </TableRow>
@@ -112,8 +127,10 @@ export default function POSSetupPage() {
             <TableBody>
               {mockPosConnections.map((conn) => (
                 <TableRow key={conn.id}>
-                  <TableCell className="font-medium capitalize">{conn.posModel.replace(/_/g, ' ')}</TableCell>
-                  <TableCell className="capitalize">{conn.mode.replace(/_/g, ' ')}</TableCell>
+                  <TableCell className="font-medium">
+                    {POS_MODEL_LABELS[conn.posModel] ?? conn.posModel}
+                  </TableCell>
+                  <TableCell>{CONNECTOR_MODE_LABELS[conn.mode] ?? conn.mode}</TableCell>
                   <TableCell>{conn.locationId}</TableCell>
                   <TableCell>
                     <Badge variant={STATUS_BADGE_VARIANT[conn.status]} className="capitalize">

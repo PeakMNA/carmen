@@ -192,8 +192,9 @@ export default function MenuEngineeringPage() {
             <Download className="h-4 w-4 mr-2" />
             Export Report
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="gap-1.5">
             <RefreshCw className="h-4 w-4" />
+            Refresh
           </Button>
         </div>
       </div>
@@ -371,11 +372,13 @@ export default function MenuEngineeringPage() {
                 <div className="space-y-2">
                   <label className="text-sm font-medium">Quick Actions</label>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1 gap-1.5">
                       <Settings className="h-4 w-4" />
+                      Settings
                     </Button>
-                    <Button variant="outline" size="sm" className="flex-1">
+                    <Button variant="outline" size="sm" className="flex-1 gap-1.5">
                       <Target className="h-4 w-4" />
+                      Targets
                     </Button>
                   </div>
                 </div>

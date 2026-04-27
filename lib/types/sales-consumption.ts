@@ -69,6 +69,23 @@ export interface SalesConsumptionLine {
   createdAt: string
 }
 
+export type ExceptionCodeSeverity = 'mapping' | 'data' | 'operational' | 'policy'
+
+export const EXCEPTION_CODE_SEVERITY: Record<ExceptionCode, ExceptionCodeSeverity> = {
+  UNMAPPED_ITEM: 'mapping',
+  MISSING_RECIPE: 'mapping',
+  LOCATION_UNMAPPED: 'mapping',
+  FRACTIONAL_MISSING_VARIANT: 'mapping',
+  MODIFIER_UNMAPPED: 'mapping',
+  ZERO_COST_INGREDIENT: 'data',
+  CURRENCY_MISMATCH: 'data',
+  VOID_AFTER_POST: 'operational',
+  REFUND_PARTIAL: 'operational',
+  STALE_TRANSACTION: 'operational',
+  TAX_ONLY_ITEM: 'policy',
+  COMP_OR_DISCOUNT: 'policy',
+}
+
 export const EXCEPTION_CODE_LABELS: Record<ExceptionCode, string> = {
   UNMAPPED_ITEM: 'Unmapped Item',
   MISSING_RECIPE: 'Missing Recipe',

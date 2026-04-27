@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useMemo } from 'react'
+import Link from 'next/link'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import {
@@ -21,7 +22,26 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { CheckCircle2 } from 'lucide-react'
 import { mockSCLines } from '@/lib/mock-data'
-import { EXCEPTION_CODE_LABELS, type ExceptionCode } from '@/lib/types/sales-consumption'
+import {
+  EXCEPTION_CODE_LABELS,
+  EXCEPTION_CODE_SEVERITY,
+  type ExceptionCode,
+} from '@/lib/types/sales-consumption'
+
+function ExceptionCodeBadge({ code }: { code: ExceptionCode }) {
+  const severity = EXCEPTION_CODE_SEVERITY[code]
+  const label = EXCEPTION_CODE_LABELS[code]
+  if (severity === 'mapping') {
+    return <Badge variant="outline" className="border-amber-500 text-amber-700">{label}</Badge>
+  }
+  if (severity === 'data') {
+    return <Badge variant="outline" className="border-orange-500 text-orange-700">{label}</Badge>
+  }
+  if (severity === 'operational') {
+    return <Badge variant="outline" className="border-blue-500 text-blue-700">{label}</Badge>
+  }
+  return <Badge variant="outline" className="text-muted-foreground">{label}</Badge>
+}
 
 const ALL_EXCEPTION_CODES = Object.keys(EXCEPTION_CODE_LABELS) as ExceptionCode[]
 
@@ -91,12 +111,19 @@ export default function ExceptionQueuePage() {
                 <TableCell className="font-medium">{line.posItemName}</TableCell>
                 <TableCell>
                   {line.exceptionCode ? (
-                    <Badge variant="outline">{EXCEPTION_CODE_LABELS[line.exceptionCode]}</Badge>
+                    <ExceptionCodeBadge code={line.exceptionCode} />
                   ) : (
                     <span className="text-muted-foreground">—</span>
                   )}
                 </TableCell>
-                <TableCell className="text-muted-foreground">{line.scId}</TableCell>
+                <TableCell>
+                  <Link
+                    href={`/store-operations/sales-consumption/${line.scId}`}
+                    className="text-sm text-primary hover:underline"
+                  >
+                    {line.scId}
+                  </Link>
+                </TableCell>
                 <TableCell className="max-w-xs truncate text-sm text-muted-foreground">
                   {line.exceptionDetail || '—'}
                 </TableCell>
