@@ -22,7 +22,9 @@ import type {
   TransactionStatistics,
   InventoryImpactPreview,
   TransactionAuditLog,
-  TransactionError
+  TransactionError,
+  PosConnection,
+  SyncEvent,
 } from '@/lib/types/pos-integration'
 import { ErrorCategory } from '@/lib/types/pos-integration'
 
@@ -813,3 +815,85 @@ export function getMappedLocations(): POSLocationMapping[] {
 export function getUnmappedLocations(): POSLocationMapping[] {
   return mockLocationMappings.filter(l => l.posOutletId === null)
 }
+
+export const mockPosConnections: PosConnection[] = [
+  {
+    id: 'conn-001',
+    posModel: 'square',
+    mode: 'api',
+    credentials: { endpoint: 'https://connect.squareup.com', apiKey: 'sq0atp-***' },
+    syncSchedule: '*/15 * * * *',
+    locationId: 'loc-001',
+    status: 'active',
+    scGenerationEnabled: true,
+    lastSyncAt: '2026-04-27T08:30:00Z',
+    lastSyncTransactionCount: 45,
+  },
+  {
+    id: 'conn-002',
+    posModel: 'toast',
+    mode: 'webhook',
+    credentials: { endpoint: 'https://api.toasttab.com', apiKey: 'toast-***' },
+    syncSchedule: '0 * * * *',
+    locationId: 'loc-002',
+    status: 'paused',
+    scGenerationEnabled: false,
+    lastSyncAt: '2026-04-26T22:00:00Z',
+    lastSyncTransactionCount: 12,
+  },
+  {
+    id: 'conn-003',
+    posModel: 'generic_csv',
+    mode: 'file_import',
+    importConfig: { fileFormat: 'csv', columnMappings: {}, uploadSchedule: 'daily' },
+    syncSchedule: '0 6 * * *',
+    locationId: 'loc-003',
+    status: 'error',
+    scGenerationEnabled: false,
+    lastSyncAt: '2026-04-25T06:00:00Z',
+    lastSyncTransactionCount: 0,
+  },
+]
+
+export const mockSyncEvents: SyncEvent[] = [
+  {
+    id: 'evt-001',
+    timestamp: '2026-04-27T08:30:00Z',
+    connectionName: 'Square – Main Location',
+    mode: 'api',
+    transactionsFetched: 45,
+    transactionsNew: 12,
+    errors: 0,
+    durationMs: 1240,
+  },
+  {
+    id: 'evt-002',
+    timestamp: '2026-04-27T08:15:00Z',
+    connectionName: 'Toast – Rooftop Bar',
+    mode: 'webhook',
+    transactionsFetched: 8,
+    transactionsNew: 8,
+    errors: 1,
+    durationMs: 380,
+  },
+  {
+    id: 'evt-003',
+    timestamp: '2026-04-26T22:00:00Z',
+    connectionName: 'Square – Main Location',
+    mode: 'api',
+    transactionsFetched: 112,
+    transactionsNew: 0,
+    errors: 0,
+    durationMs: 2100,
+  },
+  {
+    id: 'evt-004',
+    timestamp: '2026-04-26T06:00:00Z',
+    connectionName: 'Generic CSV – Kitchen POS',
+    mode: 'file_import',
+    transactionsFetched: 0,
+    transactionsNew: 0,
+    errors: 3,
+    durationMs: 510,
+  },
+]

@@ -703,6 +703,17 @@ export interface PosConnection {
   lastSyncTransactionCount?: number
 }
 
+export interface SyncEvent {
+  id: string
+  timestamp: string
+  connectionName: string
+  mode: ConnectorMode
+  transactionsFetched: number
+  transactionsNew: number
+  errors: number
+  durationMs: number
+}
+
 export const POS_MODEL_CONNECTOR_MODES: Record<POSModel, ConnectorMode[]> = {
   square: ['api'],
   toast: ['api', 'webhook'],

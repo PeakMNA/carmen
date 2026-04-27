@@ -19,61 +19,8 @@ import {
   mockTransactionLineItems,
   mockTransactionErrors,
   mockInventoryImpactPreview,
+  mockSyncEvents,
 } from '@/lib/mock-data/pos-integration'
-
-interface SyncEvent {
-  id: string
-  timestamp: string
-  connectionName: string
-  mode: string
-  transactionsFetched: number
-  transactionsNew: number
-  errors: number
-  durationMs: number
-}
-
-const mockSyncEvents: SyncEvent[] = [
-  {
-    id: 'evt-001',
-    timestamp: '2026-04-27T08:30:00Z',
-    connectionName: 'Square – Main Location',
-    mode: 'api',
-    transactionsFetched: 45,
-    transactionsNew: 12,
-    errors: 0,
-    durationMs: 1240,
-  },
-  {
-    id: 'evt-002',
-    timestamp: '2026-04-27T08:15:00Z',
-    connectionName: 'Toast – Rooftop Bar',
-    mode: 'webhook',
-    transactionsFetched: 8,
-    transactionsNew: 8,
-    errors: 1,
-    durationMs: 380,
-  },
-  {
-    id: 'evt-003',
-    timestamp: '2026-04-26T22:00:00Z',
-    connectionName: 'Square – Main Location',
-    mode: 'api',
-    transactionsFetched: 112,
-    transactionsNew: 0,
-    errors: 0,
-    durationMs: 2100,
-  },
-  {
-    id: 'evt-004',
-    timestamp: '2026-04-26T06:00:00Z',
-    connectionName: 'Generic CSV – Kitchen POS',
-    mode: 'file_import',
-    transactionsFetched: 0,
-    transactionsNew: 0,
-    errors: 3,
-    durationMs: 510,
-  },
-]
 
 export default function POSAuditPage() {
   const { toast } = useToast()
@@ -140,7 +87,7 @@ export default function POSAuditPage() {
                     {new Date(evt.timestamp).toLocaleString()}
                   </TableCell>
                   <TableCell className="font-medium">{evt.connectionName}</TableCell>
-                  <TableCell className="capitalize">{evt.mode.replace('_', ' ')}</TableCell>
+                  <TableCell className="capitalize">{evt.mode.replace(/_/g, ' ')}</TableCell>
                   <TableCell className="text-right">{evt.transactionsFetched}</TableCell>
                   <TableCell className="text-right">{evt.transactionsNew}</TableCell>
                   <TableCell className="text-right">

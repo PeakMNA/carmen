@@ -22,46 +22,8 @@ import {
   mockRecipeSearchResults,
   mockLocationMappings,
   mockFractionalVariants,
+  mockPosConnections,
 } from '@/lib/mock-data/pos-integration'
-
-const mockPosConnections: PosConnection[] = [
-  {
-    id: 'conn-001',
-    posModel: 'square',
-    mode: 'api',
-    credentials: { endpoint: 'https://connect.squareup.com', apiKey: 'sq0atp-***' },
-    syncSchedule: '*/15 * * * *',
-    locationId: 'loc-001',
-    status: 'active',
-    scGenerationEnabled: true,
-    lastSyncAt: '2026-04-27T08:30:00Z',
-    lastSyncTransactionCount: 45,
-  },
-  {
-    id: 'conn-002',
-    posModel: 'toast',
-    mode: 'webhook',
-    credentials: { endpoint: 'https://api.toasttab.com', apiKey: 'toast-***' },
-    syncSchedule: '0 * * * *',
-    locationId: 'loc-002',
-    status: 'paused',
-    scGenerationEnabled: false,
-    lastSyncAt: '2026-04-26T22:00:00Z',
-    lastSyncTransactionCount: 12,
-  },
-  {
-    id: 'conn-003',
-    posModel: 'generic_csv',
-    mode: 'file_import',
-    importConfig: { fileFormat: 'csv', columnMappings: {}, uploadSchedule: 'daily' },
-    syncSchedule: '0 6 * * *',
-    locationId: 'loc-003',
-    status: 'error',
-    scGenerationEnabled: false,
-    lastSyncAt: '2026-04-25T06:00:00Z',
-    lastSyncTransactionCount: 0,
-  },
-]
 
 const STATUS_BADGE_VARIANT: Record<PosConnection['status'], 'default' | 'secondary' | 'destructive'> = {
   active: 'default',
@@ -150,8 +112,8 @@ export default function POSSetupPage() {
             <TableBody>
               {mockPosConnections.map((conn) => (
                 <TableRow key={conn.id}>
-                  <TableCell className="font-medium capitalize">{conn.posModel.replace('_', ' ')}</TableCell>
-                  <TableCell className="capitalize">{conn.mode.replace('_', ' ')}</TableCell>
+                  <TableCell className="font-medium capitalize">{conn.posModel.replace(/_/g, ' ')}</TableCell>
+                  <TableCell className="capitalize">{conn.mode.replace(/_/g, ' ')}</TableCell>
                   <TableCell>{conn.locationId}</TableCell>
                   <TableCell>
                     <Badge variant={STATUS_BADGE_VARIANT[conn.status]} className="capitalize">
