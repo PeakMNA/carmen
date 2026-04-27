@@ -457,7 +457,7 @@ export default function PhysicalCountManagementPage() {
 
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 px-4 sm:px-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold tracking-tight">Physical Count</h1>
@@ -470,7 +470,7 @@ export default function PhysicalCountManagementPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-4 sm:px-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>

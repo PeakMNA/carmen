@@ -230,7 +230,7 @@ function StockCardContent() {
   // Render loading state
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         {/* Header skeleton */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div className="space-y-1">
@@ -270,7 +270,7 @@ function StockCardContent() {
 
   if (!stockCardData) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex items-center justify-center h-[60vh]">
           <div className="text-center space-y-4">
             <h2 className="text-2xl font-bold">Product Not Found</h2>
@@ -293,7 +293,7 @@ function StockCardContent() {
   const { product, summary, movements, lotInformation, locationStocks } = stockCardData
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>
@@ -807,7 +807,7 @@ function StockCardContent() {
 
 export default function StockCardPage() {
   return (
-    <Suspense fallback={<div className="container mx-auto py-6 space-y-6">
+    <Suspense fallback={<div className="px-6 py-6 space-y-6">
       {/* Header skeleton */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div className="space-y-1">

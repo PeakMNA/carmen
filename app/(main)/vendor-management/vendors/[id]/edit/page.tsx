@@ -253,7 +253,7 @@ export default function EditVendorPage({ params }: EditVendorPageProps) {
   
   if (loading) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Edit Vendor</h1>
         </div>
@@ -270,7 +270,7 @@ export default function EditVendorPage({ params }: EditVendorPageProps) {
   
   if (error || !vendor) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Edit Vendor</h1>
           <Button onClick={() => router.push('/vendor-management/vendors')}>
@@ -289,7 +289,7 @@ export default function EditVendorPage({ params }: EditVendorPageProps) {
   }
   
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Edit Vendor</h1>
         <Button 

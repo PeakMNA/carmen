@@ -113,7 +113,7 @@ export default function StockTransferDetailPage() {
 
   if (!sr) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <Card>
           <CardContent className="py-12 text-center">
             <AlertCircle className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -144,7 +144,7 @@ export default function StockTransferDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-start">
         <div className="space-y-2">

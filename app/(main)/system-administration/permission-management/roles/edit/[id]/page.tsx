@@ -93,7 +93,7 @@ export default function EditRolePage() {
 
   if (!role) {
     return (
-      <div className="container mx-auto py-6 px-6">
+      <div className="px-6 py-6">
         <div className="flex flex-col items-center justify-center py-12">
           <h2 className="text-2xl font-bold mb-4">Role Not Found</h2>
           <p className="text-muted-foreground mb-4">
@@ -144,7 +144,7 @@ export default function EditRolePage() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="space-y-2">

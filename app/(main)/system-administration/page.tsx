@@ -7,7 +7,7 @@ export const dynamic = 'force-dynamic'
 
 export default function SystemAdministrationPage() {
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">System Administration</h1>
         <p className="text-muted-foreground mt-2">
@@ -150,7 +150,7 @@ export default function SystemAdministrationPage() {
           <CardContent>
             <div className="space-y-2">
               <Button asChild variant="outline" className="w-full justify-start text-left" size="sm">
-                <Link href="/system-administration/system-integration/pos/transactions" className="flex items-center justify-between">
+                <Link href="/system-administration/system-integration/pos/audit" className="flex items-center justify-between">
                   <div className="flex items-center">
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     POS Transactions

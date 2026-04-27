@@ -26,7 +26,7 @@ export default function SimplePolicyCreatorPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto py-6 px-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center space-x-4">
           <Button 

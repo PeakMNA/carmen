@@ -15,7 +15,7 @@ export default function UserPreferencesPage() {
   const [activeTab, setActiveTab] = useState("display");
 
   return (
-    <div className="container mx-auto p-6 max-w-6xl">
+    <div className="mx-auto px-6 py-6 max-w-6xl">
       <div className="mb-6">
         <h1 className="text-3xl font-bold">User Preferences</h1>
         <p className="text-muted-foreground mt-2">

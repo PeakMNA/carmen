@@ -42,7 +42,7 @@ interface GrnItemsTableProps {
 
 export function GrnItemsTable({ itemData }: GrnItemsTableProps) {
   return (
-    <div className="container mx-auto py-4">
+    <div className="px-6 py-4">
       <div className="bg-muted p-4 rounded-lg mb-6">
         <h3 className="text-lg font-semibold mb-2">{itemData?.name || "Item"}</h3>
         <p className="text-muted-foreground">{itemData?.description || "Item description"}</p>

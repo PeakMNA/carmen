@@ -83,7 +83,7 @@ export default function StyleGuidePage() {
   );
 
   return (
-    <div className="container mx-auto py-6 px-6 space-y-8 transition-colors duration-300">
+    <div className="px-6 py-6 space-y-8 transition-colors duration-300">
       {/* Header */}
       <div className="space-y-4 animate-in slide-in-from-top duration-500">
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">

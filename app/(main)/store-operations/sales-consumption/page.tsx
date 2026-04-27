@@ -13,7 +13,7 @@ export default function SalesConsumptionPage() {
   const pendingLines = mockSalesConsumptions.reduce((sum, sc) => sum + sc.pendingLineCount, 0)
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
           <PackageMinus className="h-6 w-6 text-primary" />

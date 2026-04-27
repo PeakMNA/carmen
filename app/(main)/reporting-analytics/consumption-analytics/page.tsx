@@ -33,7 +33,7 @@ function DashboardSkeleton() {
 
 export default function ConsumptionAnalyticsPage() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Navigation */}
       <div className="flex items-center gap-2 mb-6">
         <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">

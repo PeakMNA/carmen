@@ -218,7 +218,7 @@ export default function PhysicalActiveCountPage({ params }: PageProps) {
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="w-full min-h-screen bg-gray-50">
       <CountHeader />
       <LocationBar />
       <div className="max-w-7xl mx-auto">

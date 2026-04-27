@@ -24,7 +24,7 @@ export default function SubscriptionsPage() {
   const [activeTab, setActiveTab] = useState('overview');
 
   return (
-    <div className="container mx-auto py-6 px-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Page Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">

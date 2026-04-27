@@ -9,7 +9,7 @@ interface StoreRequisitionDetailPageProps {
 
 export default function StoreRequisitionDetailPage({ params }: StoreRequisitionDetailPageProps) {
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <StoreRequisitionDetailComponent id={params.id} />
     </div>
   )

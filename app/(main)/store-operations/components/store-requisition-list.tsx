@@ -668,7 +668,7 @@ export function StoreRequisitionListComponent() {
   }
 
   return (
-    <div className="container mx-auto px-6 py-6 max-w-full">
+    <div className="px-6 py-6">
       {/* Store Requisitions Card with Header */}
       <Card className="overflow-hidden shadow-sm hover:shadow-md transition-shadow">
         <CardHeader className="p-4 pb-3 bg-muted/30 border-b space-y-6">

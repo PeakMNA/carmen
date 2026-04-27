@@ -272,7 +272,7 @@ export function ModernPurchaseRequestListAPI({ className }: ModernPurchaseReques
 
   return (
     <ProcurementErrorBoundary>
-      <div className={cn("container mx-auto py-6 px-6 space-y-6", className)}>
+      <div className={cn("px-6 py-6 space-y-6", className)}>
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
           <div className="space-y-2">

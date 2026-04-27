@@ -102,10 +102,10 @@ export function POSDashboard({ metrics, statistics, onNavigateToTab, onSync }: P
 
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => onNavigateToTab('transactions')}
+          onClick={() => onNavigateToTab('exceptions')}
         >
           <CardHeader className="pb-2">
-            <CardDescription>Pending Approvals</CardDescription>
+            <CardDescription>Pending Exceptions</CardDescription>
             <CardTitle className="text-3xl flex items-center justify-between">
               {metrics.alerts.pendingApprovals}
               {metrics.alerts.pendingApprovals > 0 && (
@@ -115,17 +115,17 @@ export function POSDashboard({ metrics, statistics, onNavigateToTab, onSync }: P
           </CardHeader>
           <CardContent>
             <p className="text-sm text-muted-foreground">
-              Transactions awaiting approval
+              SC lines blocked from posting
             </p>
             <Button variant="link" className="p-0 h-auto mt-2" size="sm">
-              Review pending <ArrowRight className="h-3 w-3 ml-1" />
+              View queue <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
           </CardContent>
         </Card>
 
         <Card
           className="cursor-pointer hover:shadow-md transition-shadow"
-          onClick={() => onNavigateToTab('transactions')}
+          onClick={() => onNavigateToTab('exceptions')}
         >
           <CardHeader className="pb-2">
             <CardDescription>Failed Transactions</CardDescription>
@@ -141,7 +141,7 @@ export function POSDashboard({ metrics, statistics, onNavigateToTab, onSync }: P
               Transactions requiring attention
             </p>
             <Button variant="link" className="p-0 h-auto mt-2" size="sm">
-              View failed <ArrowRight className="h-3 w-3 ml-1" />
+              Resolve in queue <ArrowRight className="h-3 w-3 ml-1" />
             </Button>
           </CardContent>
         </Card>

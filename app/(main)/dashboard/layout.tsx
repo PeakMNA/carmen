@@ -4,7 +4,7 @@ export default function DashboardLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       {children}
     </div>
   )

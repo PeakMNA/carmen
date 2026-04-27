@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useCallback } from 'react'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Button } from '@/components/ui/button'
+import Link from 'next/link'
+import { Plus } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import {
   Table,
   TableBody,
@@ -13,16 +14,15 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { useToast } from '@/hooks/use-toast'
-import { Plus } from 'lucide-react'
 import { POSMappingTab } from '../components/pos-mapping-tab'
 import type { POSMapping, PosConnection } from '@/lib/types/pos-integration'
 import {
+  mockPosConnections,
   mockPOSMappings,
   mockUnmappedPOSItems,
   mockRecipeSearchResults,
   mockLocationMappings,
   mockFractionalVariants,
-  mockPosConnections,
 } from '@/lib/mock-data/pos-integration'
 
 const STATUS_BADGE_VARIANT: Record<PosConnection['status'], 'default' | 'secondary' | 'destructive'> = {
@@ -75,7 +75,10 @@ export default function POSSetupPage() {
       updatedBy: 'user-001',
     }
     setMappings(prev => [...prev, newMapping])
-    toast({ title: 'Mapping Created', description: `${mapping.posItemName} has been mapped to ${mapping.recipeName}.` })
+    toast({
+      title: 'Mapping Created',
+      description: `${mapping.posItemName} has been mapped to ${mapping.recipeName}.`,
+    })
   }, [toast])
 
   const handleUpdateMapping = useCallback((id: string, updates: Partial<POSMapping>) => {
@@ -96,72 +99,79 @@ export default function POSSetupPage() {
   }, [toast])
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">POS Setup</h2>
-      </div>
-
-      <Tabs defaultValue="connections" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="connections">Connections</TabsTrigger>
-          <TabsTrigger value="mappings">Mappings</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="connections" className="space-y-4">
-          <div className="flex justify-end">
-            <Button onClick={() => toast({ title: 'Coming soon', description: 'Add Connection is not yet available.' })}>
+    <div className="space-y-10">
+      {/* Connections */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-xl font-semibold">Connections</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">Configure POS system connectors</p>
+          </div>
+          <Button asChild>
+            <Link href="/system-administration/system-integration/pos/setup/connections/new">
               <Plus className="mr-2 h-4 w-4" />
               Add Connection
-            </Button>
-          </div>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>POS Model</TableHead>
-                <TableHead>Mode</TableHead>
-                <TableHead>Location</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Last Sync</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mockPosConnections.map((conn) => (
-                <TableRow key={conn.id}>
-                  <TableCell className="font-medium">
-                    {POS_MODEL_LABELS[conn.posModel] ?? conn.posModel}
-                  </TableCell>
-                  <TableCell>{CONNECTOR_MODE_LABELS[conn.mode] ?? conn.mode}</TableCell>
-                  <TableCell>{conn.locationId}</TableCell>
-                  <TableCell>
-                    <Badge variant={STATUS_BADGE_VARIANT[conn.status]} className="capitalize">
-                      {conn.status}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {conn.lastSyncAt
-                      ? new Date(conn.lastSyncAt).toLocaleString()
-                      : '—'}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TabsContent>
+            </Link>
+          </Button>
+        </div>
 
-        <TabsContent value="mappings">
-          <POSMappingTab
-            mappings={mappings}
-            unmappedItems={mockUnmappedPOSItems}
-            locationMappings={mockLocationMappings}
-            fractionalVariants={mockFractionalVariants}
-            recipeSearchResults={mockRecipeSearchResults}
-            onCreateMapping={handleCreateMapping}
-            onUpdateMapping={handleUpdateMapping}
-            onDeleteMapping={handleDeleteMapping}
-            onSyncPOSItems={handleSyncPOSItems}
-          />
-        </TabsContent>
-      </Tabs>
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>POS Model</TableHead>
+              <TableHead>Mode</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Last Sync</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {mockPosConnections.map(conn => (
+              <TableRow key={conn.id}>
+                <TableCell className="font-medium">
+                  {POS_MODEL_LABELS[conn.posModel] ?? conn.posModel}
+                </TableCell>
+                <TableCell>{CONNECTOR_MODE_LABELS[conn.mode] ?? conn.mode}</TableCell>
+                <TableCell>{conn.locationId}</TableCell>
+                <TableCell>
+                  <Badge variant={STATUS_BADGE_VARIANT[conn.status]} className="capitalize">
+                    {conn.status}
+                  </Badge>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {conn.lastSyncAt
+                    ? new Date(conn.lastSyncAt).toLocaleString('en-US', {
+                        dateStyle: 'medium',
+                        timeStyle: 'short',
+                      })
+                    : '—'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Item Mappings */}
+      <div className="space-y-4">
+        <div>
+          <h2 className="text-xl font-semibold">Item Mappings</h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Map POS items to recipes, locations, and fractional variants
+          </p>
+        </div>
+        <POSMappingTab
+          mappings={mappings}
+          unmappedItems={mockUnmappedPOSItems}
+          locationMappings={mockLocationMappings}
+          fractionalVariants={mockFractionalVariants}
+          recipeSearchResults={mockRecipeSearchResults}
+          onCreateMapping={handleCreateMapping}
+          onUpdateMapping={handleUpdateMapping}
+          onDeleteMapping={handleDeleteMapping}
+          onSyncPOSItems={handleSyncPOSItems}
+        />
+      </div>
     </div>
   )
 }

@@ -29,7 +29,7 @@ function WorkflowContent() {
   }))
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       <h1 className="text-3xl font-bold tracking-tight">Workflow Management</h1>
       <Tabs defaultValue={defaultTab} className="space-y-4">
         <TabsList className="grid w-full grid-cols-3">

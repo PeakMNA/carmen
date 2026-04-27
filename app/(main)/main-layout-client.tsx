@@ -12,12 +12,10 @@ export default function MainLayoutClient({
   return (
     <WorkflowProvider>
       <SidebarLayout>
-        <div className="flex flex-col">
+        <div className="sticky top-0 z-50">
           <Header />
-          <div className="flex-1">
-            {children}
-          </div>
         </div>
+        {children}
       </SidebarLayout>
     </WorkflowProvider>
   )

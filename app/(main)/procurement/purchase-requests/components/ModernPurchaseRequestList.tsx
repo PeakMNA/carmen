@@ -89,7 +89,7 @@ export function ModernPurchaseRequestList() {
   )
 
   return (
-    <div className="container mx-auto py-6 px-6 space-y-8">
+    <div className="px-6 py-6 space-y-8">
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
         <div className="space-y-2">
           <h1 className="text-2xl font-bold tracking-tight">Purchase Requests</h1>

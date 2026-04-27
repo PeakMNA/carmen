@@ -6,18 +6,45 @@ import { ChevronLeft } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const NAV_ITEMS = [
-  { label: 'Setup', href: '/system-administration/system-integration/pos/setup' },
   { label: 'Operate', href: '/system-administration/system-integration/pos/operate' },
   { label: 'Audit', href: '/system-administration/system-integration/pos/audit' },
+  { label: 'Setup', href: '/system-administration/system-integration/pos/setup' },
 ]
+
+function getCurrentSection(pathname: string): string | null {
+  if (pathname.includes('/pos/operate')) return 'Operate'
+  if (pathname.includes('/pos/audit')) return 'Audit'
+  if (pathname.includes('/pos/setup')) return 'Setup'
+  return null
+}
 
 export default function POSLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname()
+  const section = getCurrentSection(pathname)
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       <div className="flex items-center justify-between">
         <div>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+            <Link href="/system-administration" className="hover:text-foreground transition-colors">
+              System Administration
+            </Link>
+            <span>/</span>
+            <Link href="/system-administration/system-integration" className="hover:text-foreground transition-colors">
+              System Integration
+            </Link>
+            <span>/</span>
+            <Link href="/system-administration/system-integration/pos/operate" className="hover:text-foreground transition-colors">
+              POS Integration
+            </Link>
+            {section && (
+              <>
+                <span>/</span>
+                <span className="text-foreground font-medium">{section}</span>
+              </>
+            )}
+          </div>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" asChild className="h-8 w-8 p-0">
               <Link href="/system-administration/system-integration">

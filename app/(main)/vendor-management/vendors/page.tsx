@@ -195,7 +195,7 @@ function VendorsPageContent() {
   const totalPages = Math.ceil(total / limit);
   
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Vendor Management</h1>
         <Button onClick={handleCreateVendor}>Add New Vendor</Button>

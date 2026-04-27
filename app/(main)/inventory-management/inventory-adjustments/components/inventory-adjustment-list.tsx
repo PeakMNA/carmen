@@ -71,6 +71,7 @@ const mockAdjustments = [
     id: "ADJ-2410-001",
     date: "2024-01-15",
     type: "IN",
+    category: "Inventory Variance",
     status: "Posted",
     location: "Main Warehouse",
     reason: "Physical Count Variance",
@@ -81,6 +82,7 @@ const mockAdjustments = [
     id: "ADJ-2410-002",
     date: "2024-01-16",
     type: "OUT",
+    category: "Damage & Loss",
     status: "Posted",
     location: "Main Warehouse",
     reason: "Damaged Goods",
@@ -91,6 +93,7 @@ const mockAdjustments = [
     id: "ADJ-2410-003",
     date: "2024-01-17",
     type: "IN",
+    category: "Inventory Variance",
     status: "Posted",
     location: "Production Store",
     reason: "System Reconciliation",
@@ -101,6 +104,7 @@ const mockAdjustments = [
     id: "ADJ-2410-004",
     date: "2024-01-18",
     type: "OUT",
+    category: "Damage & Loss",
     status: "Draft",
     location: "Main Warehouse",
     reason: "Quality Control Rejection",
@@ -111,6 +115,7 @@ const mockAdjustments = [
     id: "ADJ-2410-005",
     date: "2024-01-18",
     type: "IN",
+    category: "Inventory Variance",
     status: "Draft",
     location: "Production Store",
     reason: "Spot Check Variance",
@@ -121,6 +126,7 @@ const mockAdjustments = [
     id: "ADJ-2410-006",
     date: "2024-01-19",
     type: "OUT",
+    category: "Waste & Spoilage",
     status: "Voided",
     location: "Main Warehouse",
     reason: "Expired Items",
@@ -131,6 +137,7 @@ const mockAdjustments = [
     id: "ADJ-2410-007",
     date: "2024-01-19",
     type: "IN",
+    category: "Production Variance",
     status: "Posted",
     location: "Production Store",
     reason: "Production Yield Variance",
@@ -141,6 +148,7 @@ const mockAdjustments = [
     id: "ADJ-2410-008",
     date: "2024-01-20",
     type: "OUT",
+    category: "Theft & Loss",
     status: "Draft",
     location: "Main Warehouse",
     reason: "Theft/Loss",
@@ -296,7 +304,8 @@ export function InventoryAdjustmentList({ typeFilter }: InventoryAdjustmentListP
             <TableRow>
               <TableHead>Adjustment #</TableHead>
               <TableHead>Date</TableHead>
-              <TableHead>Type</TableHead>
+              <TableHead>Direction</TableHead>
+              <TableHead>Category</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Reason</TableHead>
               <TableHead>Items</TableHead>
@@ -317,8 +326,9 @@ export function InventoryAdjustmentList({ typeFilter }: InventoryAdjustmentListP
                 </TableCell>
                 <TableCell>{adjustment.date}</TableCell>
                 <TableCell>
-                  <StatusBadge status= {adjustment.type}/>
+                  <StatusBadge status={adjustment.type} />
                 </TableCell>
+                <TableCell>{adjustment.category}</TableCell>
                 <TableCell>{adjustment.location}</TableCell>
                 <TableCell>{adjustment.reason}</TableCell>
                 <TableCell>{adjustment.items}</TableCell>

@@ -7,7 +7,7 @@ export default function RoleAssignmentLayout() {
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
 
   return (
-    <div className="container mx-auto p-4 max-w-7xl">
+    <div className="mx-auto p-4 max-w-7xl">
       <header className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">Role Assignment Matrix</h1>
         <p className="text-muted-foreground mt-2">

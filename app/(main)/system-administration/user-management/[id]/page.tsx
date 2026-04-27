@@ -159,7 +159,7 @@ export default function UserDetailPage({
   }
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="px-6 py-10">
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div className="space-y-1">

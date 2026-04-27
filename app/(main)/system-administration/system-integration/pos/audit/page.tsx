@@ -15,36 +15,23 @@ import { useToast } from '@/hooks/use-toast'
 import { POSTransactionsTab } from '../components/pos-transactions-tab'
 import {
   mockPOSTransactions,
-  mockPendingTransactions,
   mockTransactionLineItems,
   mockTransactionErrors,
-  mockInventoryImpactPreview,
   mockSyncEvents,
 } from '@/lib/mock-data/pos-integration'
 
 export default function POSAuditPage() {
   const { toast } = useToast()
 
-  const handleApproveTransaction = useCallback((id: string) => {
-    toast({ title: 'Transaction Approved', description: `Transaction ${id} has been approved and processed.` })
-  }, [toast])
-
-  const handleRejectTransaction = useCallback((id: string) => {
-    toast({ title: 'Transaction Rejected', description: `Transaction ${id} has been rejected.`, variant: 'destructive' })
-  }, [toast])
-
   const handleRetryTransaction = useCallback((id: string) => {
     toast({ title: 'Retrying Transaction', description: `Attempting to reprocess transaction ${id}...` })
   }, [toast])
 
-  const handleBulkApprove = useCallback((ids: string[]) => {
-    toast({ title: 'Bulk Approval', description: `${ids.length} transactions approved and processed.` })
-  }, [toast])
-
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-4">
+      <div>
         <h2 className="text-xl font-semibold">Audit Log</h2>
+        <p className="text-sm text-muted-foreground mt-0.5">Read-only view of raw POS transactions and sync history</p>
       </div>
 
       <Tabs defaultValue="transactions" className="space-y-4">
@@ -56,14 +43,9 @@ export default function POSAuditPage() {
         <TabsContent value="transactions">
           <POSTransactionsTab
             transactions={mockPOSTransactions}
-            pendingTransactions={mockPendingTransactions}
             transactionLineItems={mockTransactionLineItems}
             transactionErrors={mockTransactionErrors}
-            inventoryImpactPreview={mockInventoryImpactPreview}
-            onApproveTransaction={handleApproveTransaction}
-            onRejectTransaction={handleRejectTransaction}
             onRetryTransaction={handleRetryTransaction}
-            onBulkApprove={handleBulkApprove}
           />
         </TabsContent>
 
@@ -84,7 +66,10 @@ export default function POSAuditPage() {
               {mockSyncEvents.map(evt => (
                 <TableRow key={evt.id}>
                   <TableCell className="text-muted-foreground">
-                    {new Date(evt.timestamp).toLocaleString()}
+                    {new Date(evt.timestamp).toLocaleString('en-US', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short',
+                    })}
                   </TableCell>
                   <TableCell className="font-medium">{evt.connectionName}</TableCell>
                   <TableCell className="capitalize">{evt.mode.replace(/_/g, ' ')}</TableCell>

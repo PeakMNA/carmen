@@ -252,7 +252,7 @@ export default function PricelistSettingsPage({ params }: PricelistSettingsPageP
   
   if (loading) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Pricelist Settings</h1>
         </div>
@@ -269,7 +269,7 @@ export default function PricelistSettingsPage({ params }: PricelistSettingsPageP
   
   if (error || !settings) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Pricelist Settings</h1>
           <Button onClick={() => router.push(`/vendor-management/vendors/${id}`)}>
@@ -288,7 +288,7 @@ export default function PricelistSettingsPage({ params }: PricelistSettingsPageP
   }
   
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Pricelist Settings</h1>
         <Button 

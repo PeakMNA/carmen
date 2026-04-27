@@ -61,7 +61,7 @@ export default function LocationDetailPage() {
 
   if (!location) {
     return (
-      <div className="container mx-auto py-6 px-6">
+      <div className="px-6 py-6">
         <div className="flex flex-col items-center justify-center py-12">
           <Warehouse className="h-12 w-12 text-muted-foreground mb-4" />
           <h2 className="text-xl font-semibold mb-2">Location Not Found</h2>
@@ -132,7 +132,7 @@ export default function LocationDetailPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
         <div className="flex items-start gap-4">

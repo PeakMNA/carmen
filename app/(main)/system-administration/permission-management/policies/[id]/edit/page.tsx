@@ -56,7 +56,7 @@ export default function PolicyEditPage() {
 
   if (loading) {
     return (
-      <div className="container mx-auto py-6 px-6">
+      <div className="px-6 py-6">
         <div className="flex items-center space-x-4 mb-6">
           <Button variant="ghost" onClick={handleBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -78,7 +78,7 @@ export default function PolicyEditPage() {
 
   if (!policy) {
     return (
-      <div className="container mx-auto py-6 px-6">
+      <div className="px-6 py-6">
         <div className="flex items-center space-x-4 mb-6">
           <Button variant="ghost" onClick={handleBack}>
             <ArrowLeft className="w-4 h-4 mr-2" />
@@ -96,7 +96,7 @@ export default function PolicyEditPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 px-6">
+    <div className="px-6 py-6">
       {/* Breadcrumb Navigation */}
       <div className="flex items-center space-x-4 mb-6">
         <Button variant="ghost" onClick={handleBack}>

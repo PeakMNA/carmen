@@ -120,7 +120,7 @@ export default function RoleManagementPage() {
   };
 
   return (
-    <div className="container mx-auto py-6 px-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Breadcrumbs */}
       <PermissionBreadcrumbs />
       

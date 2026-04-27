@@ -1,17 +1,19 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { 
-  Edit, 
-  FileText, 
-  Trash2, 
-  Printer, 
-  Plus, 
-  Search, 
+import { Badge } from '@/components/ui/badge';
+import {
+  Edit,
+  FileText,
+  Trash2,
+  Printer,
+  Plus,
+  Search,
   Filter,
   SlidersHorizontal,
   ChevronLeft,
@@ -672,6 +674,28 @@ export const StockInListing = () => {
     }
   }
 
+  const typeFilterMap: Record<string, TransactionType | null> = {
+    all: null,
+    grn: 'Good Receive Note',
+    transfer: 'Transfer',
+    credit: 'Credit Note',
+    issue: 'Issue Return',
+    adjustment: 'Adjustment',
+  }
+
+  const docRouteBase: Record<TransactionType, string> = {
+    'Good Receive Note': '/procurement/goods-received-note',
+    'Transfer': '/store-operations/stock-transfers',
+    'Credit Note': '/procurement/credit-note',
+    'Issue Return': '/store-operations/stock-issues',
+    'Adjustment': '/inventory-management/inventory-adjustments',
+  }
+
+  const filteredTransactions = useMemo(() => {
+    const typeValue = typeFilterMap[view]
+    return typeValue ? stockTransactions.filter(t => t.type === typeValue) : stockTransactions
+  }, [view])
+
   const handleActionClick = (action: 'view' | 'edit' | 'add', transaction?: StockTransaction) => {
     setDetailMode(action)
     setSelectedTransaction(transaction || null)
@@ -810,7 +834,8 @@ export const StockInListing = () => {
                     <thead className="bg-gray-50">
                       <tr>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Requisition</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Ref #</th>
+                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Direction</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Location</th>
                         <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Qty</th>
@@ -819,7 +844,7 @@ export const StockInListing = () => {
                       </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
-                      {stockTransactions
+                      {filteredTransactions
                         .slice((currentPage - 1) * pageSize, currentPage * pageSize)
                         .map((transaction) => (
                           <React.Fragment key={transaction.id}>
@@ -831,13 +856,20 @@ export const StockInListing = () => {
                                 {transaction.refNo}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
+                                <Badge className="bg-green-100 text-green-800 hover:bg-green-100">IN</Badge>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
                                 <div className="flex flex-col gap-1">
                                   <span className={`inline-flex px-2 py-1 text-xs rounded-full ${getTypeBadgeClass(transaction.type)} w-fit`}>
                                     {transaction.type}
                                   </span>
-                                  <span className="block mt-1 text-sm text-blue-600">
+                                  <Link
+                                    href={`${docRouteBase[transaction.type]}/${transaction.relatedDoc}`}
+                                    className="block mt-1 text-sm text-blue-600 hover:underline"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
                                     {transaction.relatedDoc}
-                                  </span>
+                                  </Link>
                                 </div>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -858,8 +890,8 @@ export const StockInListing = () => {
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                 <div className="flex gap-2">
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     disabled={transaction.status === 'Committed'}
                                     className="h-8 w-8"
@@ -868,8 +900,8 @@ export const StockInListing = () => {
                                   >
                                     <Edit className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     className="h-8 w-8"
                                     title="View"
@@ -877,8 +909,8 @@ export const StockInListing = () => {
                                   >
                                     <FileText className="h-4 w-4" />
                                   </Button>
-                                  <Button 
-                                    variant="ghost" 
+                                  <Button
+                                    variant="ghost"
                                     size="icon"
                                     className="h-8 w-8 text-red-600 hover:text-red-700 hover:bg-red-50"
                                     disabled={transaction.status === 'Committed'}
@@ -890,7 +922,7 @@ export const StockInListing = () => {
                               </td>
                             </tr>
                             <tr className="bg-gray-50">
-                              <td colSpan={7} className="px-6 py-2 text-sm text-gray-500 border-b">
+                              <td colSpan={8} className="px-6 py-2 text-sm text-gray-500 border-b">
                                 {transaction.description}
                               </td>
                             </tr>
@@ -909,14 +941,14 @@ export const StockInListing = () => {
             <div className="text-sm text-gray-700">
               Showing{' '}
               <span className="font-medium">
-                {Math.min((currentPage - 1) * pageSize + 1, stockTransactions.length)}
+                {Math.min((currentPage - 1) * pageSize + 1, filteredTransactions.length)}
               </span>{' '}
               to{' '}
               <span className="font-medium">
-                {Math.min(currentPage * pageSize, stockTransactions.length)}
+                {Math.min(currentPage * pageSize, filteredTransactions.length)}
               </span>{' '}
               of{' '}
-              <span className="font-medium">{stockTransactions.length}</span> results
+              <span className="font-medium">{filteredTransactions.length}</span> results
             </div>
 
             {/* Pagination controls with justify-between */}
@@ -927,14 +959,14 @@ export const StockInListing = () => {
                 <Input
                   type="number"
                   min={1}
-                  max={Math.ceil(stockTransactions.length / pageSize)}
+                  max={Math.ceil(filteredTransactions.length / pageSize)}
                   value={goToPage}
                   onChange={(e) => setGoToPage(e.target.value)}
                   className="w-20 h-8"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter') {
                       const page = parseInt(goToPage)
-                      if (page >= 1 && page <= Math.ceil(stockTransactions.length / pageSize)) {
+                      if (page >= 1 && page <= Math.ceil(filteredTransactions.length / pageSize)) {
                         setCurrentPage(page)
                         setGoToPage('')
                       }
@@ -965,10 +997,10 @@ export const StockInListing = () => {
                 >
                   <ChevronLeft className="h-4 w-4" />
                 </Button>
-                
+
                 {/* Page numbers */}
                 <div className="flex items-center gap-1">
-                  {Array.from({ length: Math.min(5, Math.ceil(stockTransactions.length / pageSize)) }, (_, i) => {
+                  {Array.from({ length: Math.min(5, Math.ceil(filteredTransactions.length / pageSize)) }, (_, i) => {
                     const pageNumber = i + 1
                     return (
                       <Button
@@ -988,10 +1020,10 @@ export const StockInListing = () => {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => setCurrentPage(prev => 
-                    Math.min(prev + 1, Math.ceil(stockTransactions.length / pageSize))
+                  onClick={() => setCurrentPage(prev =>
+                    Math.min(prev + 1, Math.ceil(filteredTransactions.length / pageSize))
                   )}
-                  disabled={currentPage === Math.ceil(stockTransactions.length / pageSize)}
+                  disabled={currentPage === Math.ceil(filteredTransactions.length / pageSize)}
                   title="Next Page"
                 >
                   <ChevronRight className="h-4 w-4" />
@@ -1000,8 +1032,8 @@ export const StockInListing = () => {
                   variant="outline"
                   size="icon"
                   className="h-8 w-8"
-                  onClick={() => setCurrentPage(Math.ceil(stockTransactions.length / pageSize))}
-                  disabled={currentPage === Math.ceil(stockTransactions.length / pageSize)}
+                  onClick={() => setCurrentPage(Math.ceil(filteredTransactions.length / pageSize))}
+                  disabled={currentPage === Math.ceil(filteredTransactions.length / pageSize)}
                   title="Last Page"
                 >
                   <ChevronsRight className="h-4 w-4" />

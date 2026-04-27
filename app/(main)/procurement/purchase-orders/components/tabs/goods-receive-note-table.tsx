@@ -44,7 +44,7 @@ const mockGRNData = [
 
 export function GoodsReceiveNoteTable() {
   return (
-    <div className="container mx-auto p-4">
+    <div className="p-4">
           <div className="mb-6 bg-muted p-4 rounded-lg">
             <h3 className="text-lg font-semibold mb-2">Office Chair</h3>
             <p className="text-muted-foreground">Ergonomic office chair with lumbar support</p>

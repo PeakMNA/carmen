@@ -656,7 +656,7 @@ export default function NewVendorPage() {
   }
 
   return (
-    <div className="container mx-auto py-4 px-12">
+    <div className="px-6 py-4 px-12">
       {/* Header */}
       <div className="flex items-center mb-6">
         <button 

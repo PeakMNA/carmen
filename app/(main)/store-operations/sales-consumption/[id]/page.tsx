@@ -18,7 +18,7 @@ export default function SCDetailPage({ params }: Props) {
 
   if (!sc) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <Card>
           <CardContent className="py-12 text-center">
             <h2 className="text-lg font-medium">SC Not Found</h2>
@@ -41,7 +41,7 @@ export default function SCDetailPage({ params }: Props) {
   const lines = mockSCLines.filter((l) => l.scId === sc.id)
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       <Link
         href="/store-operations/sales-consumption"
         className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"

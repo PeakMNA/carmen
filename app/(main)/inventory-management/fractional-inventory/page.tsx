@@ -142,7 +142,7 @@ export default function FractionalInventoryPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="p-6 space-y-6">
       <Tabs defaultValue="dashboard" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="dashboard">Inventory Dashboard</TabsTrigger>

@@ -142,7 +142,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   
   if (loading) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Vendor Details</h1>
         </div>
@@ -159,7 +159,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   
   if (error || !vendor) {
     return (
-      <div className="container mx-auto py-6">
+      <div className="px-6 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-3xl font-bold">Vendor Details</h1>
           <Button onClick={() => router.push('/vendor-management/vendors')}>
@@ -178,7 +178,7 @@ export default function VendorDetailPage({ params }: VendorDetailPageProps) {
   }
   
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Vendor Details</h1>
         <div className="flex gap-2">

@@ -144,7 +144,7 @@ export default function PRTemplateDetailPage({
   )
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       <PRDetailTemplate
         mode={mode}
         title={headerContent}

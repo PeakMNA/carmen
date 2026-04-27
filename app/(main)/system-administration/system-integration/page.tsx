@@ -5,7 +5,7 @@ import { ArrowRight, Database, RefreshCcw, ShoppingCart, Cable } from "lucide-re
 
 export default function SystemIntegrationPage() {
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold tracking-tight">System Integration</h1>
         <p className="text-muted-foreground mt-2">

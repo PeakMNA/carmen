@@ -45,7 +45,7 @@ export default function EditGoodsReceiveNote({ params }: { params: { id: string 
   }
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="p-6">
       <GoodsReceiveNoteDetail 
         id={params.id} 
         mode={mode} 

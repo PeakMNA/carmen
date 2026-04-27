@@ -202,6 +202,22 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    title: "System Integrations",
+    path: "/system-administration/system-integration",
+    icon: "Cable",
+    subItems: [
+      {
+        name: "POS Integration",
+        path: "/system-administration/system-integration/pos/operate",
+        subItems: [
+          { name: "Operate", path: "/system-administration/system-integration/pos/operate" },
+          { name: "Audit", path: "/system-administration/system-integration/pos/audit" },
+          { name: "Setup", path: "/system-administration/system-integration/pos/setup" },
+        ]
+      },
+    ],
+  },
+  {
     title: "System Administration",
     path: "/system-administration",
     icon: "Settings",
@@ -213,40 +229,25 @@ const menuItems: MenuItem[] = [
       { name: "General Settings", path: "/system-administration/settings" },
       { name: "Notification Preferences", path: "/system-administration/settings/notifications" },
       { name: "License Management", path: "/system-administration/license-management" },
-      { 
-        name: "Permission Management", 
+      {
+        name: "Permission Management",
         path: "/system-administration/permission-management",
         subItems: [
-          { 
-            name: "Policy Management", 
+          {
+            name: "Policy Management",
             path: "/system-administration/permission-management/policies",
             icon: "FileText"
           },
-          { 
-            name: "Role Management", 
+          {
+            name: "Role Management",
             path: "/system-administration/permission-management/roles",
             icon: "Users"
           },
-          { 
-            name: "Subscription Settings", 
+          {
+            name: "Subscription Settings",
             path: "/system-administration/permission-management/subscription",
             icon: "CreditCard"
           }
-        ]
-      },
-      {
-        name: "System Integrations",
-        path: "/system-administration/system-integration",
-        subItems: [
-          {
-            name: "POS Integration",
-            path: "/system-administration/system-integration/pos/operate",
-            subItems: [
-              { name: "Setup", path: "/system-administration/system-integration/pos/setup" },
-              { name: "Operate", path: "/system-administration/system-integration/pos/operate" },
-              { name: "Audit", path: "/system-administration/system-integration/pos/audit" },
-            ]
-          },
         ]
       },
     ],
@@ -382,12 +383,10 @@ export function AppSidebar() {
 export function SidebarLayout({ children }: { children: React.ReactNode }) {
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AppSidebar />
-        <SidebarInset className="flex flex-1 flex-col">
-          {children}
-        </SidebarInset>
-      </div>
+      <AppSidebar />
+      <SidebarInset>
+        {children}
+      </SidebarInset>
     </SidebarProvider>
   );
 }

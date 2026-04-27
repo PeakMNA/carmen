@@ -146,7 +146,7 @@ export default function StockOverviewPage() {
 
   if (isLoading || !data) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         <div className="flex justify-between items-center">
           <div>
             <Skeleton className="h-8 w-48" />
@@ -263,7 +263,7 @@ export default function StockOverviewPage() {
   }
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Header with Location Selector */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

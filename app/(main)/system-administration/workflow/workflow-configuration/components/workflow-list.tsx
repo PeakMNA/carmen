@@ -66,7 +66,7 @@ export function WorkflowList({ workflows }: WorkflowListProps) {
   }
 
   return (
-    <div className="container mx-auto py-10 px-4 sm:px-6 lg:px-8">
+    <div className="px-6 py-10 px-4 sm:px-6 lg:px-8">
       <div className="flex flex-col md:flex-row justify-between items-center mb-6">
         <h1 className="text-3xl font-bold mb-4 md:mb-0">Workflows</h1>
         <Button>

@@ -44,7 +44,7 @@ export function WorkflowDetail({ workflowId }: WorkflowDetailProps) {
   const stageNames = workflow.stages.map(stage => stage.name)
 
   return (
-    <div className="container mx-auto py-6">
+    <div className="px-6 py-6">
       <Button variant="ghost" asChild className="mb-4">
         <Link href="/system-administration/workflow/workflow-configuration">
           <ChevronLeft className="mr-2 h-4 w-4" /> Back to Workflows

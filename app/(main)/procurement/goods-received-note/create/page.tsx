@@ -54,7 +54,7 @@ export default function CreateGoodsReceiveNote() {
   } as unknown as GoodsReceiveNote));
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="p-6">
       <Suspense fallback={<div>Loading GRN Form...</div>}>
         <GoodsReceiveNoteComponent 
           initialData={initialGrnData}

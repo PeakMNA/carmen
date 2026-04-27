@@ -217,7 +217,7 @@ export function RecipeForm({ initialData, onSubmit }: RecipeFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="container mx-auto py-6 px-3 space-y-6">
+    <form onSubmit={handleSubmit} className="px-6 py-6 px-3 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div className="space-y-1">

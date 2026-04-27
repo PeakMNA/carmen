@@ -503,7 +503,7 @@ export default function StockCardListPage() {
   // Render loading skeleton
   if (isLoading) {
     return (
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="px-6 py-6 space-y-6">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <Skeleton className="h-8 w-64" />
@@ -547,7 +547,7 @@ export default function StockCardListPage() {
   }
   
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Page Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <div>

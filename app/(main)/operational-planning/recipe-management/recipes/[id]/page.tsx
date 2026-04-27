@@ -67,7 +67,7 @@ export default function RecipeViewPage({ params }: RecipeViewPageProps) {
 
   if (!recipe) {
     return (
-      <div className="container mx-auto py-12">
+      <div className="px-6 py-12">
         <Card className="p-6">
           <div className="flex flex-col items-center justify-center text-center space-y-4">
             <div className="w-12 h-12 rounded-full bg-destructive/10 flex items-center justify-center">
@@ -90,7 +90,7 @@ export default function RecipeViewPage({ params }: RecipeViewPageProps) {
   }
 
   return (
-    <div className="container mx-auto py-6 px-3 space-y-6">
+    <div className="px-6 py-6 px-3 space-y-6">
       {/* Header Section */}
       <div className="flex justify-between items-start">
         <div className="space-y-1">

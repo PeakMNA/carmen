@@ -16,7 +16,7 @@ export function DashboardApproval() {
   }
 
   return (
-    <div className="container mx-auto p-6 bg-gray-50">
+    <div className="w-full p-6 bg-gray-50">
       <h1 className="text-3xl font-semibold mb-6 text-gray-800">Department Approval</h1>
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2 shadow-sm">

@@ -681,7 +681,7 @@ export default function NewStoreRequisitionPage() {
     <div className="flex flex-col min-h-screen bg-background">
       {/* Header */}
       <div className="sticky top-0 z-10 bg-background border-b">
-        <div className="container mx-auto px-4 py-3">
+        <div className="px-6 px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <Button
@@ -725,7 +725,7 @@ export default function NewStoreRequisitionPage() {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 container mx-auto px-4 py-6">
+      <div className="flex-1 px-6 px-4 py-6">
         <div className={cn(
           "flex gap-6 transition-all duration-300",
           isSidePanelOpen ? "mr-80" : ""

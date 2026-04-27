@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 export function RecipeViewSkeleton() {
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="px-6 py-6 space-y-6">
       {/* Header Skeleton */}
       <div className="flex justify-between items-start">
         <div className="space-y-2">
